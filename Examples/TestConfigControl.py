@@ -82,6 +82,9 @@ class TestControls():
         args = parser.parse_args()
         return args
 
+    def selector_ctrl_handler(self, msg):
+        self.selector_ctrl.position = int(msg[1])
+
     def __init__(self):
         self.bttn1_value = False
 
@@ -145,6 +148,15 @@ class TestControls():
         self.ic.add_control(self.text_cntrl2)
         self.test_menu.add_control(self.text_cntrl2)
 
+        self.selector_ctrl = dashio.Selector('TestSelector', 'A Selector')
+        self.selector_ctrl.message_rx_event += self.selector_ctrl_handler
+        self.selector_ctrl.add_selection('First')
+        self.selector_ctrl.add_selection('Second')
+        self.selector_ctrl.add_selection('Third')
+        self.selector_ctrl.add_selection('Forth')
+        self.selector_ctrl.add_selection('Fifth')
+        self.ic.add_control(self.selector_ctrl)
+        self.test_menu.add_control(self.selector_ctrl)
         self.ic.add_control(self.test_menu)
 
         while not self.shutdown:
