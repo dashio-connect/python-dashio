@@ -13,3 +13,5 @@ from .iotcontrol.compass import Compass
 from .iotcontrol.map import Map, MapLocation
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.menu import Menu
+from .iotcontrol.selector import Selector
+ 
