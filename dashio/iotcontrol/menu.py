@@ -9,7 +9,7 @@ class Menu(Control):
         menu_status = ''
         return menu_status
 
-    def __get_menu_cotrols_state(self, msg):
+    def __get_menu_controls_state(self, msg):
         menu_status = ''
         for key in self.control_dict.keys():
             menu_status += self.control_dict[key].get_state()
@@ -35,7 +35,7 @@ class Menu(Control):
         self.title_bar_colour = title_bar_colour
         self.text_colour = text_colour
 
-        self.message_rx_event += self.__get_menu_cotrols_state
+        self.message_rx_event += self.__get_menu_controls_state
 
     def add_control(self, control):
         if isinstance(control, TextBox) or isinstance(control, Button) or isinstance(control, SliderSingleBar):
