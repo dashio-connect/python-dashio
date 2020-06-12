@@ -17,6 +17,7 @@ class Selector(Control):
         self.text_align = text_align
         self.sent_selection_colour = sent_selection_colour
         self.selection_list = []
+        self._cfg['selection'] = self.selection_list
 
     def add_selection(self, text):
         self.selection_list.append(text)
