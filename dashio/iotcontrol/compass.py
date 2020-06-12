@@ -22,7 +22,7 @@ class Compass(Control):
     @direction_value.setter
     def direction_value(self, val):
         self._direction_value = val
-        self.state_str = '\t{}\t{}\t{}'.format(self.msg_type, self.control_id, val)
+        self.state_str = '\t{}\t{}\t{}\n'.format(self.msg_type, self.control_id, val)
 
     @property
     def pointer_colour(self) -> Colour:
