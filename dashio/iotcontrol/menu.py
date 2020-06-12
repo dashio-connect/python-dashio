@@ -3,6 +3,7 @@ from .enums import Icon, Colour
 from .slider_single_bar import SliderSingleBar
 from .button import Button
 from .textbox import TextBox
+from .selector import Selector
 
 class Menu(Control):
     def get_state(self):
@@ -38,7 +39,10 @@ class Menu(Control):
         self.message_rx_event += self.__get_menu_controls_state
 
     def add_control(self, control):
-        if isinstance(control, TextBox) or isinstance(control, Button) or isinstance(control, SliderSingleBar):
+        if isinstance(control, TextBox) or \
+           isinstance(control, Button) or \
+           isinstance(control, SliderSingleBar) or \
+           isinstance(control, Selector):
             str_cfg = control.msg_type + ',' + control.control_id
             self.control_list.append(str_cfg)
             key = control.msg_type + '_' + control.control_id
