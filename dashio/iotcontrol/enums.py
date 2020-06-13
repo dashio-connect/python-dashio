@@ -69,6 +69,12 @@ class Precision(Enum):
     SIX = '6'
 
 
+class ButtonState(Enum):
+    ON = 'ON'
+    OFF = 'OFF'
+    FLASH = 'FLASH'
+
+
 class Keyboard(Enum):
     NONE = 'None'
     ALL_CHARS = 'All Characters'

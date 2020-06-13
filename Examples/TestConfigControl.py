@@ -86,7 +86,6 @@ class TestControls():
         self.selector_ctrl.position = int(msg[1])
 
     def __init__(self):
-        self.bttn1_value = False
 
         # Catch CNTRL-C signel
         signal.signal(signal.SIGINT, self.signal_cntrl_c)
@@ -105,7 +104,7 @@ class TestControls():
         self.test_menu = dashio.Menu("TestTheMenu")
 
         self.up_btn = dashio.Button('UP_BTN')
-        self.up_btn.btn_state = self.bttn1_value
+        self.up_btn.btn_state = dashio.ButtonState.OFF
         self.up_btn.icon_name = dashio.Icon.UP
         self.up_btn.on_colour = dashio.Colour.GREEN
         self.up_btn.text = 'Up Button'
@@ -115,7 +114,7 @@ class TestControls():
         self.test_menu.add_control(self.up_btn)
 
         self.down_btn = dashio.Button('DOWN_BTN')
-        self.down_btn.btn_state = self.bttn1_value
+        self.down_btn.btn_state = dashio.ButtonState.OFF
         self.down_btn.icon_name = dashio.Icon.DOWN
         self.down_btn.on_colour = dashio.Colour.GREEN
         self.down_btn.text = ''

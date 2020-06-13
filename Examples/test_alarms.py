@@ -91,7 +91,6 @@ class TestControls():
         self.bttn1_value = False
 
         signal.signal(signal.SIGINT, self.signal_cntrl_c)
-        self.shutdown = False
         args = self.parse_commandline_arguments()
 
         self.init_logging(args.logfilename, args.verbose)
@@ -106,7 +105,7 @@ class TestControls():
 
         self.alarm_btn1 = dashio.Button('ALARM_BTN1')
         self.alarm_btn1.title = 'A1'
-        self.alarm_btn1.btn_state = self.bttn1_value
+        self.alarm_btn1.btn_state = dashio.ButtonState.OFF
         self.alarm_btn1.icon_name = dashio.Icon.BELL
         self.alarm_btn1.on_colour = dashio.Colour.RED
         self.alarm_btn1.text_colour = dashio.Colour.BLUE
@@ -115,7 +114,7 @@ class TestControls():
 
         self.alarm_btn2 = dashio.Button('ALARM_BTN2')
         self.alarm_btn2.title = 'A2'
-        self.alarm_btn2.btn_state = self.bttn1_value
+        self.alarm_btn2.btn_state = dashio.ButtonState.OFF
         self.alarm_btn2.icon_name = dashio.Icon.BELL
         self.alarm_btn2.on_colour = dashio.Colour.RED
         self.alarm_btn2.text_colour = dashio.Colour.BLUE
@@ -124,7 +123,7 @@ class TestControls():
 
         self.alarm_btn3 = dashio.Button('ALARM_BTN3')
         self.alarm_btn3.title = 'A3'
-        self.alarm_btn3.btn_state = self.bttn1_value
+        self.alarm_btn3.btn_state = dashio.ButtonState.OFF
         self.alarm_btn3.icon_name = dashio.Icon.BELL
         self.alarm_btn3.on_colour = dashio.Colour.RED
         self.alarm_btn3.text_colour = dashio.Colour.BLUE
