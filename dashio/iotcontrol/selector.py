@@ -17,10 +17,9 @@ class Selector(Control):
         self.text_align = text_align
         self.sent_selection_colour = sent_selection_colour
         self.selection_list = []
-        self.position = 0
+        self._position = 0
         self._cfg['selection'] = self.selection_list
         
-
     def get_state(self):
         _state_str = '\t{}\t{}\t{}\n'.format(self.msg_type, self.control_id, self.position)
         return _state_str
@@ -28,10 +27,23 @@ class Selector(Control):
     def add_selection(self, text):
         self.selection_list.append(text)
 
-    def send_selected(self, selected_text):
+    def set_selected(self, selected_text):
         if selected_text in self.selection_list:
-            self.position = self.selection_list.index(selected_text)
-            self.state_str = '\t{}\t{}\t{}\n'.format(self.msg_type, self.control_id, self.position)
+            self._position = self.selection_list.index(selected_text)
+            self.state_str = '\t{}\t{}\t{}\n'.format(self.msg_type, self.control_id, self._position)
+    
+    @property
+    def position(self):
+        return self._position
+
+    @position.setter
+    def position(self, val):
+        try:
+            gotdata = self.selection_list[val]
+            self._position = val
+            self.state_str = '\t{}\t{}\t{}\n'.format(self.msg_type, self.control_id, self._position)
+        except IndexError:
+            pass
 
     @property
     def max_font_size(self):

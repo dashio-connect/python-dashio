@@ -99,6 +99,7 @@ class TestControls():
 
     def slider_dbl_event_handler(self, msg):
         self.sldr_dbl_cntrl.slider_value = float(msg[1])
+        self.selector_ctrl.position = int(float(msg[1]))
 
     def knob_event_handler(self, msg):
         self.knb_control.knob_value = float(msg[1])
@@ -115,7 +116,6 @@ class TestControls():
         print(self.selector_ctrl.selection_list[int(msg[1])])
 
     def __init__(self):
-        self.bttn1_value = False
 
         # Catch CNTRL-C signel
         signal.signal(signal.SIGINT, self.signal_cntrl_c)
@@ -132,7 +132,7 @@ class TestControls():
         self.ic.start()
         self.connection = args.connection
         self.up_btn = dashio.Button('UP_BTN')
-        self.up_btn.btn_state = self.bttn1_value
+        self.up_btn.btn_state = dashio.ButtonState.OFF
         self.up_btn.icon_name = dashio.Icon.UP
         self.up_btn.on_colour = dashio.Colour.GREEN
         self.up_btn.text = ''
@@ -142,7 +142,7 @@ class TestControls():
         self.ic.add_control(self.up_btn)
 
         self.down_btn = dashio.Button('DOWN_BTN')
-        self.down_btn.btn_state = self.bttn1_value
+        self.down_btn.btn_state = dashio.ButtonState.OFF
         self.down_btn.icon_name = dashio.Icon.DOWN
         self.down_btn.on_colour = dashio.Colour.GREEN
         self.down_btn.text = ''
@@ -161,7 +161,7 @@ class TestControls():
 
         self.sldr_dbl_cntrl = dashio.SliderDoubleBar('SLDR_DBL')
         self.sldr_dbl_cntrl.title = 'Slider Double'
-        self.sldr_dbl_cntrl.max = 10
+        self.sldr_dbl_cntrl.max = 5
         self.sldr_dbl_cntrl.slider_enabled = True
         self.sldr_dbl_cntrl.red_value
         self.sldr_dbl_cntrl.message_rx_event += self.slider_dbl_event_handler

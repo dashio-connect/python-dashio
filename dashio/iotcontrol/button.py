@@ -1,4 +1,4 @@
-from .enums import Colour, Icon
+from .enums import Colour, Icon, ButtonState
 from .control import Control
 
 class Button(Control):
@@ -9,6 +9,7 @@ class Button(Control):
     def __init__(self,
                  control_id,
                  control_title='A Button',
+                 button_enabled = True,
                  icon_name=Icon.NONE,
                  on_colour=Colour.BLACK,
                  off_colour=Colour.RED,
@@ -17,15 +18,24 @@ class Button(Control):
                  text_colour=Colour.WHITE):
         super().__init__('BTTN', control_id)
         self.title = control_title
-        self._btn_state = False
-        self._state_str = '\t{}\t{}\tOFF\n'.format(self.msg_type, self.control_id)
-
+        self._btn_state = ButtonState.OFF
+        self._state_str = '\t{}\t{}\t{}\n'.format(self.msg_type, self.control_id, self._btn_state.value)
+        self.button_enabled = button_enabled
         self.icon_name = icon_name
         self.on_colour = on_colour
         self.off_colour = off_colour
         self.flash_colour = flash_colour
         self.text = text
         self.text_colour = text_colour
+
+
+    @property
+    def button_enabled(self) -> bool:
+        return self._cfg['buttonEnabled']
+
+    @button_enabled.setter
+    def button_enabled(self, val: bool):
+        self._cfg['buttonEnabled'] = val
 
     @property
     def on_colour(self) -> Colour:
@@ -62,6 +72,7 @@ class Button(Control):
     def icon_name(self, val: Icon):
         self._icon_name = val
         self._cfg['iconName'] = val.value
+        self.state_str = '\t{}\t{}\t{}\t{}\n'.format(self.msg_type, self.control_id, self._btn_state.value, val.value)
 
     @property
     def text(self):
@@ -70,6 +81,7 @@ class Button(Control):
     @text.setter
     def text(self, val):
         self._cfg['text'] = val
+        self.state_str = '\t{}\t{}\t{}\t{}\t{}\n'.format(self.msg_type, self.control_id, self._btn_state.value, self._icon_name, val)
 
     @property
     def text_colour(self) -> Colour:
@@ -81,13 +93,10 @@ class Button(Control):
         self._cfg['textColour'] = str(val.value)
 
     @property
-    def btn_state(self):
-        return self.__btn_state
+    def btn_state(self) -> ButtonState:
+        return self._btn_state
 
     @btn_state.setter
-    def btn_state(self, val):
-        self.__btn_state = val
-        if self.btn_state:
-            self.state_str = '\t{}\t{}\tON\n'.format(self.msg_type, self.control_id)
-        else:
-            self.state_str = '\t{}\t{}\tOFF\n'.format(self.msg_type, self.control_id)
+    def btn_state(self, val: ButtonState):
+        self._btn_state = val
+        self.state_str = '\t{}\t{}\t{}\n'.format(self.msg_type, self.control_id, val.value)
