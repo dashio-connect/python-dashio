@@ -1,6 +1,7 @@
 from .enums import Colour
 from .control import Control
 
+
 class Compass(Control):
     def __init__(self,
                  control_id,
