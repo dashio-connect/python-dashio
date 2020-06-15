@@ -13,3 +13,4 @@ from .map import Map, MapLocation
 from .alarm import Alarm
 from .menu import Menu
 from .selector import Selector
+from .label import Label
