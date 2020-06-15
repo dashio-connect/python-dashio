@@ -1,10 +1,9 @@
 from .control import Control
 from .enums import Colour, TextAlignment
 
+
 class Selector(Control):
 
-# sentSelectionColour
-# selection
     def __init__(self,
                  control_id,
                  control_title='A Selector',
@@ -25,7 +24,7 @@ class Selector(Control):
         self.text_colour = text_colour
         self.title_bar_colour = title_bar_colour
         self._cfg['selection'] = self.selection_list
-        
+
     def get_state(self):
         _state_str = '\t{}\t{}\t{}\n'.format(self.msg_type, self.control_id, self.position)
         return _state_str
@@ -37,7 +36,7 @@ class Selector(Control):
         if selected_text in self.selection_list:
             self._position = self.selection_list.index(selected_text)
             self.state_str = '\t{}\t{}\t{}\n'.format(self.msg_type, self.control_id, self._position)
-    
+
     @property
     def position(self):
         return self._position
@@ -76,7 +75,7 @@ class Selector(Control):
     def sent_selection_colour(self, val: Colour):
         self._sent_selection_colour = val
         self._cfg['sentSelectionColour'] = str(val.value)
-    
+
     @property
     def background_colour(self) -> Colour:
         return self._background_colour
@@ -95,7 +94,6 @@ class Selector(Control):
         self._text_colour = val
         self._cfg['textColour'] = str(val.value)
 
-    
     @property
     def title_bar_colour(self) -> Colour:
         return self._title_bar_colour

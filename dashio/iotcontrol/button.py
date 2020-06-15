@@ -1,6 +1,7 @@
 from .enums import Colour, Icon, ButtonState
 from .control import Control
 
+
 class Button(Control):
 
     def toggle_btn(self):
@@ -9,7 +10,8 @@ class Button(Control):
     def __init__(self,
                  control_id,
                  control_title='A Button',
-                 button_enabled = True,
+                 max_font_size=20,
+                 button_enabled=True,
                  icon_name=Icon.NONE,
                  on_colour=Colour.BLACK,
                  off_colour=Colour.RED,
@@ -18,6 +20,7 @@ class Button(Control):
                  text_colour=Colour.WHITE):
         super().__init__('BTTN', control_id)
         self.title = control_title
+        self.max_font_size = max_font_size
         self._btn_state = ButtonState.OFF
         self._state_str = '\t{}\t{}\t{}\n'.format(self.msg_type, self.control_id, self._btn_state.value)
         self.button_enabled = button_enabled
@@ -28,6 +31,13 @@ class Button(Control):
         self.text = text
         self.text_colour = text_colour
 
+    @property
+    def max_font_size(self):
+        return self._cfg['maxFontSize']
+
+    @max_font_size.setter
+    def max_font_size(self, val):
+        self._cfg['maxFontSize'] = val
 
     @property
     def button_enabled(self) -> bool:
