@@ -202,6 +202,9 @@ class TestControls():
         self.selector_ctrl.add_selection('Fifth')
         self.ic.add_control(self.selector_ctrl)
 
+        self.label_ctrl = dashio.Label('LabelID', 'A label', text='Hello from Label', text_colour=dashio.Colour.BLUE)
+        self.ic.add_control(self.label_ctrl)
+        
         while not self.shutdown:
             time.sleep(5)
 
