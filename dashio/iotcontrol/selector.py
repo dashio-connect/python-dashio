@@ -82,7 +82,7 @@ class Selector(Control):
 
     @background_colour.setter
     def background_colour(self, val: Colour):
-        self.background_colour = val
+        self._background_colour = val
         self._cfg['backgroundColour'] = str(val.value)
 
     @property
