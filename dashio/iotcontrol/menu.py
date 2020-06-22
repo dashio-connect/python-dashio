@@ -8,8 +8,9 @@ from .selector import Selector
 
 class Menu(Control):
     def get_state(self):
-        menu_status = ''
-        return menu_status
+        self._state_str += '\t'.join(map(str, self.control_list))
+        self._state_str += '\n'
+        return self._state_str
 
     def __get_menu_controls_state(self, msg):
         menu_status = ''
@@ -30,9 +31,8 @@ class Menu(Control):
         self.title = title
         self.control_list = []
         self.control_dict = {}
-        self._cfg['list'] = self.control_list
         self.max_font_size = max_font_size
-        self.get_state_str = '\t{}\t{}\t'.format(self.msg_type, self.control_id)
+        self._state_str = '\t{}\t{}\t'.format(self.msg_type, self.control_id)
         self.icon_name = icon
         self.text = text
         self.background_colour = background_colour
