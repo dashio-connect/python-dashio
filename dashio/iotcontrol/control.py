@@ -31,6 +31,14 @@ class Control:
 
     # Use getter, setter properties to store the settings in the config dictionary
     @property
+    def parent_id(self) -> int:
+        return _cfg['parentID']
+
+    @parent_id.setter
+    def parent_id(self, val: int):
+        self._cfg['parentID'] = val
+
+    @property
     def control_id(self):
         return self._cfg['identifier']
 
