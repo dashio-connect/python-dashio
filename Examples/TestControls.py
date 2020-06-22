@@ -131,6 +131,8 @@ class TestControls():
         self.ic = dashio.iotConnectionThread(args.connection, args.server, args.port, args.username, args.password, use_ssl=True)
         self.ic.start()
         self.connection = args.connection
+
+        self.page_test = dashio.Page('TestPage','Testing Pages',1)
         self.up_btn = dashio.Button('UP_BTN')
         self.up_btn.btn_state = dashio.ButtonState.OFF
         self.up_btn.icon_name = dashio.Icon.UP
@@ -140,6 +142,7 @@ class TestControls():
         self.up_btn.title = 'Up'
         self.up_btn.message_rx_event += self.up_btn_event_handler
         self.ic.add_control(self.up_btn)
+        self.page_test.add_control(self.up_btn)
 
         self.down_btn = dashio.Button('DOWN_BTN')
         self.down_btn.btn_state = dashio.ButtonState.OFF
@@ -150,6 +153,7 @@ class TestControls():
         self.down_btn.title = 'Down'
         self.down_btn.message_rx_event += self.down_btn_event_handler
         self.ic.add_control(self.down_btn)
+        self.page_test.add_control(self.down_btn)
 
         self.sldr_cntrl = dashio.SliderSingleBar('SLDR')
         self.sldr_cntrl.title = 'Slider'
@@ -158,6 +162,7 @@ class TestControls():
         self.sldr_cntrl.red_value
         self.sldr_cntrl.message_rx_event += self.slider_event_handler
         self.ic.add_control(self.sldr_cntrl)
+        self.page_test.add_control(self.sldr_cntrl)
 
         self.sldr_dbl_cntrl = dashio.SliderDoubleBar('SLDR_DBL')
         self.sldr_dbl_cntrl.title = 'Slider Double'
@@ -166,6 +171,7 @@ class TestControls():
         self.sldr_dbl_cntrl.red_value
         self.sldr_dbl_cntrl.message_rx_event += self.slider_dbl_event_handler
         self.ic.add_control(self.sldr_dbl_cntrl)
+        self.page_test.add_control(self.sldr_dbl_cntrl)
 
         self.knb_control = dashio.Knob('KNB')
         self.knb_control.title = 'A Knob'
@@ -173,11 +179,13 @@ class TestControls():
         self.knb_control.red_value = 10
         self.knb_control.message_rx_event += self.knob_event_handler
         self.ic.add_control(self.knb_control)
+        self.page_test.add_control(self.knb_control)
 
         self.dl_control = dashio.Dial('DIAL1')
         self.dl_control.title = 'A Dial'
         self.dl_control.max = 10
         self.ic.add_control(self.dl_control)
+        self.page_test.add_control(self.dl_control)
 
         self.text_cntrl = dashio.TextBox('TXT1')
         self.text_cntrl.text = 'Hello'
@@ -186,12 +194,14 @@ class TestControls():
         self.text_cntrl.close_key_board_on_send = True
         self.text_cntrl.message_rx_event += self.text_cntrl_message_handler
         self.ic.add_control(self.text_cntrl)
+        self.page_test.add_control(self.text_cntrl)
 
         self.alarm_ctrl = dashio.Alarm('TestingAlarms', 'Test Alarms', 'Hello', 'Test of Shared Alarms', 'A test Alarm')
         self.ic.add_alarm(self.alarm_ctrl)
         self.comp_control = dashio.Compass('COMP1')
         self.comp_control.title = 'A compass'
         self.ic.add_control(self.comp_control)
+        self.page_test.add_control(self.comp_control)
 
         self.selector_ctrl = dashio.Selector('TestSelector', 'A Selector')
         self.selector_ctrl.message_rx_event += self.selector_ctrl_handler
@@ -201,9 +211,12 @@ class TestControls():
         self.selector_ctrl.add_selection('Forth')
         self.selector_ctrl.add_selection('Fifth')
         self.ic.add_control(self.selector_ctrl)
+        self.page_test.add_control(self.selector_ctrl)
 
         self.label_ctrl = dashio.Label('LabelID', 'A label', text='Hello from Label', text_colour=dashio.Colour.BLUE)
         self.ic.add_control(self.label_ctrl)
+        self.page_test.add_control(self.label_ctrl)
+        self.ic.add_control(self.page_test)
         
         while not self.shutdown:
             time.sleep(5)

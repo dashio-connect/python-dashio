@@ -23,7 +23,7 @@ class iotConnectionThread(threading.Thread):
             self.mqttc.publish(self.data_topic, self.__make_status())
         elif cntrl_type == 'STATUS':
             self.mqttc.publish(self.data_topic, self.__make_status())
-        elif cntrl_type == 'CFG' and not data_array:
+        elif cntrl_type == 'CFG':
             self.mqttc.publish(self.data_topic, self.__make_cfg())
         else:
             key = cntrl_type + '_' + data_array[2]

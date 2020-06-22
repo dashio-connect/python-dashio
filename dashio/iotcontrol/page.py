@@ -14,10 +14,14 @@ class Page(Control):
         self.number_pages = number_pages
         self._state_str = ''
 
+    def add_control(self, control):
+        control.parent_id = self.control_id
+
     @property
     def number_pages(self) -> int:
         return self._cfg['numPages']
 
-    @text.setter
+    @number_pages.setter
     def number_pages(self, val: int):
         self._cfg['numPages'] = val
+
