@@ -8,9 +8,7 @@ from .selector import Selector
 
 class Menu(Control):
     def get_state(self):
-        self._state_str += '\t'.join(map(str, self.control_list))
-        self._state_str += '\n'
-        return self._state_str
+        return ''
 
     def __get_menu_controls_state(self, msg):
         menu_status = ''
@@ -39,17 +37,12 @@ class Menu(Control):
         self.title_bar_colour = title_bar_colour
         self.text_colour = text_colour
 
-        self.message_rx_event += self.__get_menu_controls_state
-
     def add_control(self, control):
         if isinstance(control, TextBox) or \
            isinstance(control, Button) or \
            isinstance(control, SliderSingleBar) or \
            isinstance(control, Selector):
-            str_cfg = control.msg_type + ',' + control.control_id
-            self.control_list.append(str_cfg)
-            key = control.msg_type + '_' + control.control_id
-            self.control_dict[key] = control
+            control.parent_id = self.control_id
         else:
             raise TypeError("Only TextBox, Button, or SliderSingleBar are allowed")
 
