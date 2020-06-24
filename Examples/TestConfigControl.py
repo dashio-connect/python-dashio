@@ -102,6 +102,8 @@ class TestControls():
         self.ic.start()
 
         self.test_menu = dashio.Menu("TestTheMenu")
+        self.test_page = dashio.Page('TestCFG', 'Test the Menus')
+        self.ic.add_control(self.test_page)
 
         self.up_btn = dashio.Button('UP_BTN')
         self.up_btn.btn_state = dashio.ButtonState.OFF
@@ -147,6 +149,7 @@ class TestControls():
         self.ic.add_control(self.text_cntrl2)
         self.test_menu.add_control(self.text_cntrl2)
 
+        
         self.selector_ctrl = dashio.Selector('TestSelector', 'A Selector')
         self.selector_ctrl.message_rx_event += self.selector_ctrl_handler
         self.selector_ctrl.add_selection('First')
@@ -156,6 +159,7 @@ class TestControls():
         self.selector_ctrl.add_selection('Fifth')
         self.ic.add_control(self.selector_ctrl)
         self.test_menu.add_control(self.selector_ctrl)
+        self.test_page.add_control(self.test_menu)
         self.ic.add_control(self.test_menu)
 
         while not self.shutdown:
