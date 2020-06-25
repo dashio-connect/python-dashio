@@ -102,8 +102,9 @@ class TestControls():
 
         self.ic = dashio.iotConnectionThread(args.connection, args.server, args.port, args.username, args.password, use_ssl=True)
         self.ic.start()
-
+        self.tapage = dashio.Page('testAlarm','Test Alarm')
         self.alarm_btn1 = dashio.Button('ALARM_BTN1')
+        self.tapage.add_control(self.alarm_btn1)
         self.alarm_btn1.title = 'A1'
         self.alarm_btn1.btn_state = dashio.ButtonState.OFF
         self.alarm_btn1.icon_name = dashio.Icon.BELL
@@ -120,6 +121,7 @@ class TestControls():
         self.alarm_btn2.text_colour = dashio.Colour.BLUE
         self.alarm_btn2.message_rx_event += self.alarm_btn2_handler
         self.ic.add_control(self.alarm_btn2)
+        self.tapage.add_control(self.alarm_btn2)
 
         self.alarm_btn3 = dashio.Button('ALARM_BTN3')
         self.alarm_btn3.title = 'A3'
@@ -129,6 +131,7 @@ class TestControls():
         self.alarm_btn3.text_colour = dashio.Colour.BLUE
         self.alarm_btn3.message_rx_event += self.alarm_btn3_handler
         self.ic.add_control(self.alarm_btn3)
+        self.tapage.add_control(self.alarm_btn3)
 
         self.alarm1_ctrl = dashio.Alarm('TestingAlarms1', 'Alarm1', 'Hello from Alarm1', 'Alarm1', 'No.1 test Alarm')
         self.alarm2_ctrl = dashio.Alarm('TestingAlarms2', 'Alarm2', 'Hello from Alarm2', 'Alarm1', 'No.2 test Alarm')
@@ -136,6 +139,9 @@ class TestControls():
         self.ic.add_alarm(self.alarm1_ctrl)
         self.ic.add_alarm(self.alarm2_ctrl)
         self.ic.add_alarm(self.alarm3_ctrl)
+        self.tapage.add_control(self.alarm1_ctrl)
+        self.tapage.add_control(self.alarm2_ctrl)
+        self.tapage.add_control(self.alarm3_ctrl)
 
         while not self.shutdown:
             time.sleep(1)

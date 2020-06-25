@@ -101,10 +101,11 @@ class TestControls():
         self.ic = dashio.iotConnectionThread(args.connection, args.server, args.port, args.username, args.password, use_ssl=True)
         self.ic.start()
 
+        self.tmpage = dashio.Page('tmpage','Test Alarm')
         self.test_menu = dashio.Menu("TestTheMenu")
         self.test_page = dashio.Page('TestCFG', 'Test the Menus')
         self.ic.add_control(self.test_page)
-
+        
         self.up_btn = dashio.Button('UP_BTN')
         self.up_btn.btn_state = dashio.ButtonState.OFF
         self.up_btn.icon_name = dashio.Icon.UP
