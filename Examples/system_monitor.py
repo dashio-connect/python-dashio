@@ -163,7 +163,7 @@ def main():
 
     ic.add_control(hd_dial)
     monitor_page.add_control(hd_dial)
-
+    ic.add_control(monitor_page)
     while not shutdown:
         time.sleep(10)
 
