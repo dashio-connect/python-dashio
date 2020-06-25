@@ -110,6 +110,7 @@ def main():
 
     ic.start()
 
+    monitor_page = dashio.Page('monpg','Dash Server Moniter')
     gph_network = dashio.TimeGraph('NETWORKGRAPH')
     gph_network.title = 'Server Network Traffic: {}'.format(args.connection)
     gph_network.y_axis_label = 'Kbytes'
@@ -135,7 +136,8 @@ def main():
     gph_cpu.y_axis_max = 100
     gph_cpu.y_axis_min = 0
     gph_cpu.y_axis_num_bars = 8
-
+    monitor_page.add_control(gph_network)
+    monitor_page.add_control(gph_cpu)
     ic.add_control(gph_network)
     ic.add_control(gph_cpu)
     number_of_cores = psutil.cpu_count()
@@ -160,6 +162,7 @@ def main():
     hd_dial.show_min_max = True
 
     ic.add_control(hd_dial)
+    monitor_page.add_control(hd_dial)
 
     while not shutdown:
         time.sleep(10)
