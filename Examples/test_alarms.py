@@ -24,10 +24,18 @@ class TestControls():
             log_level = logging.INFO
         elif level == 2:
             log_level = logging.DEBUG
-        logging.basicConfig(filename=logfilename,
-                            level=log_level,
-                            format='%(asctime)s.%(msecs)03d, %(message)s',
-                            datefmt="%Y-%m-%d %H:%M:%S")
+        if not logfilename:
+            formatter = logging.Formatter('%(asctime)s.%(msecs)03d, %(message)s')
+            handler = logging.StreamHandler()
+            handler.setFormatter(formatter)
+            logger = logging.getLogger()
+            logger.addHandler(handler)
+            logger.setLevel(log_level)
+        else:
+            logging.basicConfig(filename=logfilename,
+                                level=log_level,
+                                format='%(asctime)s.%(msecs)03d, %(message)s',
+                                datefmt="%Y-%m-%d %H:%M:%S")
         logging.info('==== Started ====')
 
     def parse_commandline_arguments(self):
@@ -69,7 +77,7 @@ class TestControls():
         parser.add_argument("-l",
                             "--logfile",
                             dest="logfilename",
-                            default="alarm_test.log",
+                            default="",
                             help="logfile location",
                             metavar="FILE")
         args = parser.parse_args()
@@ -88,7 +96,7 @@ class TestControls():
         self.alarm3_ctrl.send()
 
     def __init__(self):
-        self.bttn1_value = False
+        self.shutdown = False
 
         signal.signal(signal.SIGINT, self.signal_cntrl_c)
         args = self.parse_commandline_arguments()
@@ -133,15 +141,16 @@ class TestControls():
         self.ic.add_control(self.alarm_btn3)
         self.tapage.add_control(self.alarm_btn3)
 
-        self.alarm1_ctrl = dashio.Alarm('TestingAlarms1', 'Alarm1', 'Hello from Alarm1', 'Alarm1', 'No.1 test Alarm')
-        self.alarm2_ctrl = dashio.Alarm('TestingAlarms2', 'Alarm2', 'Hello from Alarm2', 'Alarm1', 'No.2 test Alarm')
-        self.alarm3_ctrl = dashio.Alarm('TestingAlarms3', 'Alarm3', 'Hello from Alarm3', 'Alarm3', 'No.3 test Alarm')
+        self.alarm1_ctrl = dashio.Alarm('TestingAlarms1', 'Alarm1', 'Hello from Alarm1', 'Alarm1')
+        self.alarm2_ctrl = dashio.Alarm('TestingAlarms2', 'Alarm2', 'Hello from Alarm2', 'Alarm1')
+        self.alarm3_ctrl = dashio.Alarm('TestingAlarms3', 'Alarm3', 'Hello from Alarm3', 'Alarm3')
         self.ic.add_alarm(self.alarm1_ctrl)
         self.ic.add_alarm(self.alarm2_ctrl)
         self.ic.add_alarm(self.alarm3_ctrl)
         self.tapage.add_control(self.alarm1_ctrl)
         self.tapage.add_control(self.alarm2_ctrl)
         self.tapage.add_control(self.alarm3_ctrl)
+        self.ic.add_control(self.tapage)
 
         while not self.shutdown:
             time.sleep(1)
