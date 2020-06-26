@@ -68,12 +68,15 @@ class Precision(Enum):
     FIVE = '5'
     SIX = '6'
 
+class TitlePosition(Enum):
+    NONE = 'None'
+    TOP = 'Top'
+    BOTTOM = 'Bottom'
 
 class ButtonState(Enum):
     ON = 'ON'
     OFF = 'OFF'
     FLASH = 'FLASH'
-
 
 class Keyboard(Enum):
     NONE = 'None'
