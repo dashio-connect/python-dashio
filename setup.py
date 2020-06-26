@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name='dashio',
-    version=1.29,
+    version=1.30,
     # py_modules=['iotcontrol', 'iotconnection'],
     description='Dashio interface library',
     long_description=long_description,
