@@ -3,17 +3,19 @@ from .control import Control
 
 class Alarm(Control):
 
+    def get_cfg(self):
+        # Overide get_cfg as Alarms don't have a config setting.
+        return ''
+
     def __init__(self,
                  control_id,
                  control_title='Title',
                  body='Body',
-                 header='Header',
-                 description='An Alarm'):
+                 header='Header'):
         super().__init__('ALM', control_id)
         self.title = control_title
         self.body = body
         self.header = header
-        self.description = description
 
     def send(self):
         self.message_tx_event(self.control_id, self._cfg['header'], self._cfg['body'])
@@ -28,14 +30,6 @@ class Alarm(Control):
     @body.setter
     def body(self, val):
         self._cfg['body'] = val
-
-    @property
-    def description(self):
-        return self._cfg['description']
-
-    @description.setter
-    def description(self, val):
-        self._cfg['description'] = val
 
     @property
     def header(self):
