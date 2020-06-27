@@ -142,7 +142,7 @@ class TestControls():
         self.tapage.add_control(self.alarm_btn3)
 
         self.alarm1_ctrl = dashio.Alarm('TestingAlarms1', 'Alarm1', 'Hello from Alarm1', 'Alarm1')
-        self.alarm2_ctrl = dashio.Alarm('TestingAlarms2', 'Alarm2', 'Hello from Alarm2', 'Alarm1')
+        self.alarm2_ctrl = dashio.Alarm('TestingAlarms2', 'Alarm2', 'Hello from Alarm2', 'Alarm2')
         self.alarm3_ctrl = dashio.Alarm('TestingAlarms3', 'Alarm3', 'Hello from Alarm3', 'Alarm3')
         self.ic.add_alarm(self.alarm1_ctrl)
         self.ic.add_alarm(self.alarm2_ctrl)
