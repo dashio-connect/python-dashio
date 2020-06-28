@@ -15,3 +15,4 @@ from .menu import Menu
 from .selector import Selector
 from .label import Label
 from .page import Page
+from .control import ControlPosition

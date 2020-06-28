@@ -13,8 +13,9 @@ class Knob(Control):
                  show_min_max=False,
                  send_only_on_release=True,
                  dial_follows_knob=False,
-                 dial_colour=Colour.BLUE):
-        super().__init__('KNOB', control_id)
+                 dial_colour=Colour.BLUE,
+                 control_position=None):
+        super().__init__('KNOB', control_id, control_position=control_position)
         self.title = control_title
         self._control_id_dial = 'KBDL'
         self._knob_value = 0

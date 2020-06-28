@@ -39,8 +39,9 @@ class Graph(Control):
                  y_axis_label='',
                  y_axis_min=0.0,
                  y_axis_max=100.0,
-                 y_axis_num_bars=5):
-        super().__init__('GRPH', control_id)
+                 y_axis_num_bars=5,
+                 control_position=None):
+        super().__init__('GRPH', control_id, control_position=control_position)
 
         self.x_axis_label = x_axis_label
         self.x_axis_min = x_axis_min

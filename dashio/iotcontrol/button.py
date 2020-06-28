@@ -1,5 +1,5 @@
 from .enums import Colour, Icon, ButtonState
-from .control import Control
+from .control import Control, ControlPosition
 
 
 class Button(Control):
@@ -17,8 +17,9 @@ class Button(Control):
                  off_colour=Colour.RED,
                  flash_colour=Colour.GREEN,
                  text='',
-                 text_colour=Colour.WHITE):
-        super().__init__('BTTN', control_id)
+                 text_colour=Colour.WHITE,
+                 control_position=None):
+        super().__init__('BTTN', control_id, control_position=control_position)
         self.title = control_title
         self.max_font_size = max_font_size
         self._btn_state = ButtonState.OFF

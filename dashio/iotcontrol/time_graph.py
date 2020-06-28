@@ -103,8 +103,9 @@ class TimeGraph(Control):
                  y_axis_num_bars=5,
                  graph_key_font_size=12,
                  show_connection_in_key=False,
-                 position_of_key=TimeGraphPositionOfKey.TOPLEFT):
-        super().__init__('TGRPH', control_id)
+                 position_of_key=TimeGraphPositionOfKey.TOPLEFT,
+                 control_position=None):
+        super().__init__('TGRPH', control_id, control_position=control_position)
 
         self.message_rx_event += self.__get_lines_from_timestamp
 

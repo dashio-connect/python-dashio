@@ -7,8 +7,9 @@ class Compass(Control):
                  control_id,
                  control_title='A Control',
                  pointer_colour=Colour.GREEN,
-                 calibration_angle=0):
-        super().__init__('DIR', control_id)
+                 calibration_angle=0,
+                 control_position=None):
+        super().__init__('DIR', control_id, control_position=control_position)
         self.title = control_title
         self.pointer_colour = pointer_colour
         self.calibration_angle = calibration_angle

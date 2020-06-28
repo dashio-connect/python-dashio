@@ -3,8 +3,8 @@ from .slider_single_bar import SliderSingleBar
 
 class SliderDoubleBar(SliderSingleBar):
 
-    def __init__(self, control_id):
-        super().__init__(control_id)
+    def __init__(self, control_id, control_position=None):
+        super().__init__(control_id, control_position=None)
 
         self._bar2_value = 0.0
         self._bar_state_str = '\t{}\t{}\t{:.2f}\t{:.2f}\n'.format(self._control_id_bar, self.control_id, self._bar1_value, self._bar2_value)

@@ -22,10 +22,11 @@ class Menu(Control):
                  text='A Menu with Text',
                  max_font_size=20,
                  icon=Icon.MENU,
-                 background_colour=Colour.BLUE,
-                 title_bar_colour=Colour.WHEAT,
-                 text_colour=Colour.WHEAT):
-        super().__init__('MENU', control_id)
+                 background_colour=Colour.BLACK,
+                 title_bar_colour=Colour.BLACK,
+                 text_colour=Colour.WHITE_SMOKE,
+                 control_position=None):
+        super().__init__('MENU', control_id, control_position=control_position)
         self.title = title
         self.control_list = []
         self.control_dict = {}

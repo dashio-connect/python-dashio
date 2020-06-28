@@ -1,6 +1,13 @@
 from .event import Event
 import json
+import copy
 
+class ControlPosition:
+    def __init__(self, x_position_ratio, y_position_ratio, width_ratio, height_ratio):
+        self.x_position_ratio = x_position_ratio
+        self.y_position_ratio = y_position_ratio
+        self.width_ratio = width_ratio
+        self.height_ratio = height_ratio
 
 class Control:
     def get_state(self):
@@ -10,7 +17,7 @@ class Control:
         cfg_str = '\tCFG\t' + self.msg_type + '\t' + json.dumps(self._cfg) + '\n'
         return cfg_str
 
-    def __init__(self, msg_type, control_id):
+    def __init__(self, msg_type, control_id, control_position=None):
         # Dictionary to store CFG json
         self._cfg = {}
         self.title = ''
@@ -19,6 +26,9 @@ class Control:
         self.message_rx_event = Event()
         self.message_tx_event = Event()
         self._state_str = '\t{}\t{}\n'.format(self.msg_type, self.control_id)
+        self._control_position = None
+        if control_position is not None:
+            self.control_position = control_position
 
     @property
     def state_str(self):
@@ -53,3 +63,16 @@ class Control:
     @title.setter
     def title(self, val):
         self._cfg['title'] = val
+
+    @property
+    def control_position(self) -> ControlPosition:
+        return self._control_position
+        
+    @control_position.setter
+    def control_position(self, val: ControlPosition):
+        self._control_position = copy.copy(val)
+        self._cfg['xPositionRatio'] = val.x_position_ratio
+        self._cfg['yPositionRatio'] = val.y_position_ratio
+        self._cfg['widthRatio'] = val.width_ratio
+        self._cfg['heightRatio'] = val.height_ratio
+    
