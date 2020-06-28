@@ -15,8 +15,9 @@ class SliderSingleBar(Control):
                  send_only_on_release=True,
                  bar_follows_slider=False,
                  bar_colour=Colour.BLUE,
-                 bar_style=SliderBarType.SEGMENTED):
-        super().__init__('SLDR', control_id)
+                 bar_style=SliderBarType.SEGMENTED,
+                 control_position=None):
+        super().__init__('SLDR', control_id, control_position=control_position)
 
         self._control_id_bar = 'BAR'
 

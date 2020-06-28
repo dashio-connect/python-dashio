@@ -16,3 +16,4 @@ from .iotcontrol.menu import Menu
 from .iotcontrol.selector import Selector
 from .iotcontrol.label import Label
 from .iotcontrol.page import Page
+from .iotcontrol.control import ControlPosition

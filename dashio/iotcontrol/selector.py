@@ -12,8 +12,9 @@ class Selector(Control):
                  sent_selection_colour=Colour.WHITE,
                  background_colour=Colour.BLUE,
                  text_colour=Colour.WHITE_SMOKE,
-                 title_bar_colour=Colour.RED):
-        super().__init__('SLCTR', control_id)
+                 title_bar_colour=Colour.RED,
+                 control_position=None):
+        super().__init__('SLCTR', control_id, control_position=control_position)
         self.title = control_title
         self.max_font_size = max_font_size
         self.text_align = text_align

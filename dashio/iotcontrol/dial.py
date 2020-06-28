@@ -16,8 +16,9 @@ class Dial(Control):
                  show_min_max=False,
                  style=DialStyle.STD,
                  precision=Precision.OFF,
-                 units=''):
-        super().__init__('DIAL', control_id)
+                 units='',
+                 control_position=None):
+        super().__init__('DIAL', control_id, control_position=control_position)
         self._dial_value = 0
         self.title = control_title
         self.min = min

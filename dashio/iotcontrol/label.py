@@ -10,8 +10,9 @@ class Label(Control):
                  control_title='A label',
                  text='',
                  max_font_size=20,
-                 text_colour=Colour.WHITE):
-        super().__init__('LBL', control_id)
+                 text_colour=Colour.WHITE,
+                 control_position=None):
+        super().__init__('LBL', control_id, control_position=control_position)
         self.title = control_title
         self.text = text
         self.max_font_size = max_font_size

@@ -15,8 +15,9 @@ class TextBox(Control):
                  precision=Precision.OFF,
                  keyboard_type=Keyboard.ALL_CHARS,
                  sent_text_colour=Colour.WHITE,
-                 close_keyboard_on_send=True):
-        super().__init__('TEXT', control_id)
+                 close_keyboard_on_send=True,
+                 control_position=None):
+        super().__init__('TEXT', control_id, control_position=control_position)
         self.title = control_title
         self.text = text
         self.max_font_size = max_font_size

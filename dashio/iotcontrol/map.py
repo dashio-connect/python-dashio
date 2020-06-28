@@ -33,8 +33,8 @@ class Map(Control):
             state_str += self.get_state_str + self.location_dict[key].get_location_data()
         return state_str
 
-    def __init__(self, control_id, map_type=MapType.STANDARD):
-        super().__init__('MAP', control_id)
+    def __init__(self, control_id, map_type=MapType.STANDARD, control_position=None):
+        super().__init__('MAP', control_id, control_position=control_position)
         self.location_dict = {}
         self.get_state_str = '\t{}\t{}\t'.format(self.msg_type, self.control_id)
         self.map_type = map_type
