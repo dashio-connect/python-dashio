@@ -14,7 +14,6 @@ class TextBox(Control):
                  units='',
                  precision=Precision.OFF,
                  keyboard_type=Keyboard.ALL_CHARS,
-                 sent_text_colour=Colour.WHITE,
                  close_keyboard_on_send=True,
                  control_position=None):
         super().__init__('TEXT', control_id, control_position=control_position)
@@ -26,7 +25,6 @@ class TextBox(Control):
         self.units = units
         self.precision = precision
         self.keyboard_type = keyboard_type
-        self.sent_text_colour = sent_text_colour
         self.close_keyboard_on_send = close_keyboard_on_send
         self._state_str = '\t{}\t{}\t{}\n'.format(self.msg_type, self.control_id, self.text)
 
@@ -89,15 +87,6 @@ class TextBox(Control):
     def keyboard_type(self, val: Keyboard):
         self._keyboard_type = val
         self._cfg['kbdType'] = val.value
-
-    @property
-    def sent_text_colour(self) -> Colour:
-        return self._sent_text_colour
-
-    @sent_text_colour.setter
-    def sent_text_colour(self, val: Colour):
-        self._sent_text_colour = val
-        self._cfg['sentTextColour'] = str(val.value)
 
     @property
     def close_keyboard_on_send(self) -> bool:

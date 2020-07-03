@@ -1,4 +1,4 @@
-from .enums import Colour
+from .enums import Colour, LabelStyle
 from .control import Control
 
 
@@ -20,12 +20,13 @@ class Label(Control):
         self._state_str = ''
 
     @property
-    def text(self) -> str:
-        return self._cfg['text']
+    def style(self) -> LabelStyle:
+        return self._style
 
-    @text.setter
-    def text(self, val: str):
-        self._cfg['text'] = val
+    @style.setter
+    def style(self, val: LabelStyle):
+        self._style = val
+        self._cfg['style'] = val.value
 
     @property
     def max_font_size(self) -> int:
@@ -36,10 +37,10 @@ class Label(Control):
         self._cfg['maxFontSize'] = val
 
     @property
-    def sent_text_colour(self) -> Colour:
-        return self._sent_text_colour
+    def colour(self) -> Colour:
+        return self._colour
 
-    @sent_text_colour.setter
+    @colour.setter
     def sent_text_colour(self, val: Colour):
-        self._sent_text_colour = val
-        self._cfg['textColour'] = str(val.value)
+        self._colour = val
+        self._cfg['colour'] = str(val.value)

@@ -102,7 +102,7 @@ class TestControls():
         self.ic.start()
 
         self.tmpage = dashio.Page('tmpage','Test Alarm')
-        self.test_menu = dashio.Menu("TestTheMenu")
+        self.test_menu = dashio.Menu("TestTheMenu", control_position=dashio.ControlPosition(0.3, 0.5, 0.5, 0.5))
         self.test_page = dashio.Page('TestCFG', 'Test the Menus')
         self.ic.add_control(self.test_page)
         
