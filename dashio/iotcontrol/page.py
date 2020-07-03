@@ -17,6 +17,7 @@ class Page(Control):
                  control_text_icon_colour=Colour.WHITE_SMOKE,
                  control_border_on=False,
                  control_background_colour=Colour.BLACK,
+                 control_title_font_size=16,
                  control_background_transparency=0):
         super().__init__('PAGE', control_id)
         self.title = control_title
@@ -28,6 +29,7 @@ class Page(Control):
         self.control_text_icon_colour = control_text_icon_colour
         self.control_border_on = control_border_on
         self.control_background_colour = control_background_colour
+        self.control_title_font_size = control_title_font_size
         self.control_background_transparency = control_background_transparency
         self._state_str = ''
 
@@ -111,6 +113,14 @@ class Page(Control):
     def control_background_colour(self, val: Colour):
         self._control_background_colour = val
         self._cfg['ctrlBkgndColour'] = str(val.value)
+
+    @property
+    def control_title_font_size(self) -> int:
+        return self._control_title_font_size
+
+    @control_title_font_size.setter
+    def control_title_font_size(self, val: int):
+        self._cfg['ctrlTitleFontSize'] = val
 
     @property
     def control_background_transparency(self) -> int:

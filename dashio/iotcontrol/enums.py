@@ -59,14 +59,18 @@ class Icon(Enum):
     LOCATION = "Location"
     DIRECTION = "Direction"
 
+class LabelStyle(Enum):
+    BASIC = 'BASIC'
+    GROUP = 'GROUP'
+
 class Precision(Enum):
-    OFF = 'Off'
-    ONE = '1'
-    TWO = '2'
-    THREE = '3'
-    FOUR = '4'
-    FIVE = '5'
-    SIX = '6'
+    OFF = 0
+    ONE = 1
+    TWO = 2
+    THREE = 3
+    FOUR = 4
+    FIVE = 5
+    SIX = 6
 
 class TitlePosition(Enum):
     NONE = 'None'
