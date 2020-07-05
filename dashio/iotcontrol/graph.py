@@ -35,7 +35,7 @@ class Graph(Control):
                  x_axis_min=0.0,
                  x_axis_max=100.0,
                  x_axis_num_bars=5,
-                 x_axis_labels_style=GrappXAxisLabelsStyle.ON,
+                 x_axis_labels_style=GraphXAxisLabelsStyle.ON,
                  y_axis_label='',
                  y_axis_min=0.0,
                  y_axis_max=100.0,
