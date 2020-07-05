@@ -1,4 +1,4 @@
-from .enums import GraphLineType, Colour
+from .enums import GraphLineType, Colour, GraphXAxisLabelsStyle
 from .control import Control
 
 
@@ -35,7 +35,7 @@ class Graph(Control):
                  x_axis_min=0.0,
                  x_axis_max=100.0,
                  x_axis_num_bars=5,
-                 x_axis_labels_style='',
+                 x_axis_labels_style=GrappXAxisLabelsStyle.ON,
                  y_axis_label='',
                  y_axis_min=0.0,
                  y_axis_max=100.0,
@@ -99,11 +99,12 @@ class Graph(Control):
 
     @property
     def x_axis_labels_style(self):
-        return self._cfg['xAxisLabelsStyle']
+        return self._x_axis_labels_style
 
     @x_axis_labels_style.setter
     def x_axis_labels_style(self, val):
-        self._cfg['xAxisLabelsStyle'] = val
+        self._x_axis_labels_style = val
+        self._cfg['xAxisLabelsStyle'] = val.value
 
     @property
     def y_axis_label(self):
