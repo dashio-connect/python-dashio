@@ -83,32 +83,32 @@ class ButtonState(Enum):
     FLASH = 'FLASH'
 
 class Keyboard(Enum):
-    NONE = 'None'
-    ALL_CHARS = 'All Characters'
-    NUMERIC = 'Numeric'
-    HEX = 'Hexidecimal'
+    NONE = 'NONE'
+    ALL_CHARS = 'ALL'
+    NUMERIC = 'NUM'
+    HEX = 'HEX'
 
 
 class TextAlignment(Enum):
-    LEFT = 'Left'
-    CENTER = 'Center'
-    RIGHT = 'Right'
+    LEFT = 'left'
+    CENTER = 'center'
+    RIGHT = 'right'
 
 
 class SliderBarType(Enum):
-    SEGMENTED = 'Segmented'
-    SOLID = 'Solid'
+    SEGMENTED = 'seg'
+    SOLID = 'solid'
 
 
 class DialPosition(Enum):
-    OFF = 'Off'
-    LEFT = 'Left'
-    RIGHT = 'Right'
+    OFF = 'off'
+    LEFT = 'left'
+    RIGHT = 'right'
 
 
 class DialStyle(Enum):
-    STD = 'Upright'
-    INVERTED = 'Inverted'
+    STD = 'upright'
+    INVERTED = 'inverted'
 
 
 class GraphLineType(Enum):
@@ -117,6 +117,10 @@ class GraphLineType(Enum):
     SEGBAR = 'SEGBAR'
     PEAKBAR = 'PEAKBAR'
     DELETE = 'DEL'
+
+class GraphXAxisLabelsStyle(Enum):
+    ON = 'on'
+    BETWEEN = 'between'
 
 
 class TimeGraphLineType(Enum):
