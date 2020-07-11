@@ -20,7 +20,6 @@ class Menu(Control):
                  control_id,
                  title='A Menu',
                  text='A Menu with Text',
-                 max_font_size=20,
                  icon=Icon.MENU,
                  background_colour=Colour.BLACK,
                  title_bar_colour=Colour.BLACK,
@@ -30,7 +29,6 @@ class Menu(Control):
         self.title = title
         self.control_list = []
         self.control_dict = {}
-        self.max_font_size = max_font_size
         self._state_str = '\t{}\t{}\t'.format(self.msg_type, self.control_id)
         self.icon_name = icon
         self.text = text
@@ -46,14 +44,6 @@ class Menu(Control):
             control.parent_id = self.control_id
         else:
             raise TypeError("Only TextBox, Button, or SliderSingleBar are allowed")
-
-    @property
-    def max_font_size(self):
-        return self._cfg['maxFontSize']
-
-    @max_font_size.setter
-    def max_font_size(self, val):
-        self._cfg['maxFontSize'] = val
 
     @property
     def background_colour(self) -> Colour:

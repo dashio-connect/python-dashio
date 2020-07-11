@@ -8,7 +8,6 @@ class TextBox(Control):
                  control_id,
                  control_title='A Text Box',
                  text='',
-                 max_font_size=20,
                  text_align=TextAlignment.LEFT,
                  number_of_rows=1,
                  units='',
@@ -19,7 +18,6 @@ class TextBox(Control):
         super().__init__('TEXT', control_id, control_position=control_position)
         self.title = control_title
         self.text = text
-        self.max_font_size = max_font_size
         self.text_align = text_align
         self.number_of_rows = number_of_rows
         self.units = units
@@ -36,14 +34,6 @@ class TextBox(Control):
     def text(self, val):
         self._text = val
         self.state_str = '\t{}\t{}\t{}\n'.format(self.msg_type, self.control_id, self.text)
-
-    @property
-    def max_font_size(self):
-        return self._cfg['maxFontSize']
-
-    @max_font_size.setter
-    def max_font_size(self, val):
-        self._cfg['maxFontSize'] = val
 
     @property
     def text_align(self) -> TextAlignment:

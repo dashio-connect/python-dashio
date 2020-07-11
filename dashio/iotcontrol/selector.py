@@ -15,7 +15,6 @@ class Selector(Control):
                  control_position=None):
         super().__init__('SLCTR', control_id, control_position=control_position)
         self.title = control_title
-        self.max_font_size = max_font_size
         self.text_align = text_align
         self.selection_list = []
         self._position = 0
@@ -53,14 +52,6 @@ class Selector(Control):
             self.state_str = '\t{}\t{}\t{}\n'.format(self.msg_type, self.control_id, self._position)
         except IndexError:
             pass
-
-    @property
-    def max_font_size(self):
-        return self._cfg['maxFontSize']
-
-    @max_font_size.setter
-    def max_font_size(self, val):
-        self._cfg['maxFontSize'] = val
 
     @property
     def text_align(self) -> TextAlignment:
