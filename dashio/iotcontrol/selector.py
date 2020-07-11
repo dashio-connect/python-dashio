@@ -8,14 +8,12 @@ class Selector(Control):
                  control_id,
                  control_title='A Selector',
                  max_font_size=20,
-                 text_align=TextAlignment.LEFT,
                  background_colour=Colour.BLUE,
                  text_colour=Colour.WHITE_SMOKE,
                  title_bar_colour=Colour.RED,
                  control_position=None):
         super().__init__('SLCTR', control_id, control_position=control_position)
         self.title = control_title
-        self.text_align = text_align
         self.selection_list = []
         self._position = 0
         self.background_colour = background_colour
@@ -52,15 +50,6 @@ class Selector(Control):
             self.state_str = '\t{}\t{}\t{}\n'.format(self.msg_type, self.control_id, self._position)
         except IndexError:
             pass
-
-    @property
-    def text_align(self) -> TextAlignment:
-        return self._text_align
-
-    @text_align.setter
-    def text_align(self, val: TextAlignment):
-        self._text_align = val
-        self._cfg['textAlign'] = val.value
 
     @property
     def background_colour(self) -> Colour:
