@@ -1,5 +1,5 @@
 from .control import Control
-from .enums import Icon, Colour
+from .enums import Icon
 from .button import Button
 
 
@@ -18,8 +18,6 @@ class ButtonGroup(Control):
                  title='A Button Group',
                  text='A Button group with Text',
                  icon=Icon.MENU,
-                 background_colour=Colour.BLACK,
-                 title_bar_colour=Colour.BLACK,
                  grid_view=True,
                  control_position=None):
         super().__init__('BTGP', control_id, control_position=control_position)
@@ -29,8 +27,6 @@ class ButtonGroup(Control):
         self._state_str = '\t{}\t{}\t'.format(self.msg_type, self.control_id)
         self.icon_name = icon
         self.text = text
-        self.background_colour = background_colour
-        self.title_bar_colour = title_bar_colour
         self.grid_view = gtid_view
 
     def add_button(self, control):
@@ -38,24 +34,6 @@ class ButtonGroup(Control):
             control.parent_id = self.control_id
         else:
             raise TypeError("Only buttons are allowed")
-
-    @property
-    def background_colour(self) -> Colour:
-        return self._background_colour
-
-    @background_colour.setter
-    def background_colour(self, val: Colour):
-        self._background_colour = val
-        self._cfg['backgroundColour'] = str(val.value)
-
-    @property
-    def title_bar_colour(self) -> Colour:
-        return self._title_bar_colour
-
-    @title_bar_colour.setter
-    def title_bar_colour(self, val: Colour):
-        self._title_bar_colour = val
-        self._cfg['titleBarColour'] = str(val.value)
 
     @property
     def grid_view(self) -> bool:

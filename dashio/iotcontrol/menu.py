@@ -21,9 +21,6 @@ class Menu(Control):
                  title='A Menu',
                  text='A Menu with Text',
                  icon=Icon.MENU,
-                 background_colour=Colour.BLACK,
-                 title_bar_colour=Colour.BLACK,
-                 text_colour=Colour.WHITE_SMOKE,
                  control_position=None):
         super().__init__('MENU', control_id, control_position=control_position)
         self.title = title
@@ -32,9 +29,6 @@ class Menu(Control):
         self._state_str = '\t{}\t{}\t'.format(self.msg_type, self.control_id)
         self.icon_name = icon
         self.text = text
-        self.background_colour = background_colour
-        self.title_bar_colour = title_bar_colour
-        self.text_colour = text_colour
 
     def add_control(self, control):
         if isinstance(control, TextBox) or \
@@ -44,33 +38,6 @@ class Menu(Control):
             control.parent_id = self.control_id
         else:
             raise TypeError("Only TextBox, Button, or SliderSingleBar are allowed")
-
-    @property
-    def background_colour(self) -> Colour:
-        return self._background_colour
-
-    @background_colour.setter
-    def background_colour(self, val: Colour):
-        self._background_colour = val
-        self._cfg['backgroundColour'] = str(val.value)
-
-    @property
-    def title_bar_colour(self) -> Colour:
-        return self._title_bar_colour
-
-    @title_bar_colour.setter
-    def title_bar_colour(self, val: Colour):
-        self._title_bar_colour = val
-        self._cfg['titleBarColour'] = str(val.value)
-
-    @property
-    def text_colour(self) -> Colour:
-        return self._text_colour
-
-    @text_colour.setter
-    def text_colour(self, val: Colour):
-        self._text_colour = val
-        self._cfg['textColour'] = str(val.value)
 
     @property
     def icon_name(self) -> Icon:

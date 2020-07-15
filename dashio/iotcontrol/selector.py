@@ -1,5 +1,4 @@
 from .control import Control
-from .enums import Colour, TextAlignment
 
 
 class Selector(Control):
@@ -8,17 +7,11 @@ class Selector(Control):
                  control_id,
                  control_title='A Selector',
                  max_font_size=20,
-                 background_colour=Colour.BLUE,
-                 text_colour=Colour.WHITE_SMOKE,
-                 title_bar_colour=Colour.RED,
                  control_position=None):
         super().__init__('SLCTR', control_id, control_position=control_position)
         self.title = control_title
         self.selection_list = []
         self._position = 0
-        self.background_colour = background_colour
-        self.text_colour = text_colour
-        self.title_bar_colour = title_bar_colour
         self._cfg['selection'] = self.selection_list
 
     def get_state(self):
@@ -50,30 +43,3 @@ class Selector(Control):
             self.state_str = '\t{}\t{}\t{}\n'.format(self.msg_type, self.control_id, self._position)
         except IndexError:
             pass
-
-    @property
-    def background_colour(self) -> Colour:
-        return self._background_colour
-
-    @background_colour.setter
-    def background_colour(self, val: Colour):
-        self._background_colour = val
-        self._cfg['backgroundColour'] = str(val.value)
-
-    @property
-    def text_colour(self) -> Colour:
-        return self.text_colour
-
-    @text_colour.setter
-    def text_colour(self, val: Colour):
-        self._text_colour = val
-        self._cfg['textColour'] = str(val.value)
-
-    @property
-    def title_bar_colour(self) -> Colour:
-        return self._title_bar_colour
-
-    @title_bar_colour.setter
-    def title_bar_colour(self, val: Colour):
-        self._title_bar_colour = val
-        self._cfg['titleBarColour'] = str(val.value)
