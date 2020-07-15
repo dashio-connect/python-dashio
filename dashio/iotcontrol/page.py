@@ -89,7 +89,7 @@ class Page(Control):
     def control_title_position(self, val: TitlePosition):
         self._control_title_position = val
         self._cfg['ctrlTitlePosition'] = val.value
-    
+
     @property
     def control_text_icon_colour(self) -> Colour:
         return self._control_text_icon_colour
@@ -98,7 +98,7 @@ class Page(Control):
     def control_text_icon_colour(self, val: Colour):
         self._control_text_icon_colour = val
         self._cfg['ctrlTextIconColour'] = str(val.value)
-    
+
     @property
     def control_border_on(self) -> bool:
         return self._cfg['ctrlBorderOn']
