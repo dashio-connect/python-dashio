@@ -23,7 +23,7 @@ class Page(Control):
         super().__init__('PAGE', control_id)
         self.title = control_title
         self.number_pages = number_pages
-        self.page_colour=page_colour
+        self.page_colour = page_colour
         self.control_title_box_colour = control_title_box_colour
         self.control_title_box_transparency = control_title_box_transparency
         self.control_title_position = control_title_position
