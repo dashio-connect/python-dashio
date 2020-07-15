@@ -17,3 +17,4 @@ from .iotcontrol.selector import Selector
 from .iotcontrol.label import Label
 from .iotcontrol.page import Page
 from .iotcontrol.control import ControlPosition
+from .iotcontrol.button_group import ButtonGroup
