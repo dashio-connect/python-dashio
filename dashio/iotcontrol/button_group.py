@@ -27,7 +27,7 @@ class ButtonGroup(Control):
         self._state_str = '\t{}\t{}\t'.format(self.msg_type, self.control_id)
         self.icon_name = icon
         self.text = text
-        self.grid_view = gtid_view
+        self.grid_view = grid_view
 
     def add_button(self, control):
         if isinstance(control, Button):

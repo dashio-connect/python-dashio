@@ -11,6 +11,7 @@ import platform
 import psutil
 import logging
 
+
 class TestControls():
 
     def signal_cntrl_c(self, os_signal, os_frame):
@@ -150,7 +151,6 @@ class TestControls():
         self.ic.add_control(self.text_cntrl2)
         self.test_menu.add_control(self.text_cntrl2)
 
-        
         self.selector_ctrl = dashio.Selector('TestSelector', 'A Selector')
         self.selector_ctrl.message_rx_event += self.selector_ctrl_handler
         self.selector_ctrl.add_selection('First')
@@ -161,7 +161,12 @@ class TestControls():
         self.ic.add_control(self.selector_ctrl)
         self.test_menu.add_control(self.selector_ctrl)
         self.test_page.add_control(self.test_menu)
+        self.button_group_test = dashio.ButtonGroup("TestButtonGRP", 'A group of buttons')
+        self.test_page.add_control(self.button_group_test)
+        self.button_group_test.add_button(self.up_btn)
+        self.button_group_test.add_button(self.down_btn)
         self.ic.add_control(self.test_menu)
+        self.ic.add_control(self.button_group_test)
 
         while not self.shutdown:
             time.sleep(5)
