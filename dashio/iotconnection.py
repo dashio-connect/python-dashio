@@ -180,8 +180,14 @@ class iotConnectionThread(threading.Thread):
         while self.running:
             rc = self.mqttc.loop()
             if rc != 0:
-                time.sleep(60.0)
-                self.mqttc.connect(self.host, self.port)
+                connect_error = True
+                while connect_error:  # Incase the server goes down for a reboot
+                    time.sleep(60.0)
+                    try:
+                        self.mqttc.connect(self.host, self.port)
+                        connect_error = False
+                    except ConnectionRefusedError:
+                        connect_error = True
                 self.mqttc.subscribe(self.control_topic, 0)
                 logging.info('Reconnecting to MQTT')
             self.watch_dog_counter += 1
