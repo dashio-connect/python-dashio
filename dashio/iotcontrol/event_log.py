@@ -25,7 +25,8 @@ class EventLog(Control):
 
     def __init__(self,
                  control_id,
-                 title='An Event Log',):
+                 title='An Event Log',
+                 control_position=None):
         super().__init__('LOG', control_id, control_position=control_position)
 
         self.message_rx_event += self.__get_log_from_timestamp
@@ -36,11 +37,12 @@ class EventLog(Control):
     def __get_log_from_timestamp(self, msg):
         
         dt = dateutil.parser.isoparse(msg[1])
+        print (msg[1])
         data_str = ''
         for log in self.log_list:
             if log.timestamp > dt:
                 data_str += self.get_state_str + log.to_string()
-        return data_str
+        self.state_str = data_str
 
     def add_event_data(self, data: EventData):
         if isinstance(data, EventData):
