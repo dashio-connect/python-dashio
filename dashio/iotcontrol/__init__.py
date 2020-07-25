@@ -17,3 +17,4 @@ from .label import Label
 from .page import Page
 from .control import ControlPosition
 from .button_group import ButtonGroup
+from .event_log import EventLog, EventData
