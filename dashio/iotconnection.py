@@ -112,6 +112,7 @@ class iotConnectionThread(threading.Thread):
 
     def __init__(self,
                  connection_name,
+                 device_id,
                  host,
                  port,
                  username,
@@ -121,6 +122,7 @@ class iotConnectionThread(threading.Thread):
         """
         Arguments:
             connection_name {str} --  The connection name as advertised to iotdashboard.
+            device_id {str} -- A string to uniquely identify the device connection. (In case of other connections with the same name.)
             host {str} -- The server name of the mqtt host.
             port {int} -- Port number to connect to.
             username {str} -- username for the mqtt connection.
@@ -139,7 +141,7 @@ class iotConnectionThread(threading.Thread):
         self.running = True
         self.name = connection_name
         self.username = username
-        self.who = "\tWHO\t{name}\n".format(name=self.name)
+        self.who = "\tWHO\t{name}\n".format(name=connection_name)
         self.mqttc = mqtt.Client()
 
         # Assign event callbacks
@@ -158,10 +160,10 @@ class iotConnectionThread(threading.Thread):
 
         self.control_dict = {}
         self.alarm_dict = {}
-        self.control_topic = '{}/{}/control'.format(username, connection_name)
-        self.data_topic = '{}/{}/data'.format(username, connection_name)
-        self.alarm_topic = '{}/{}/alarm'.format(username, connection_name)
-        self.announce_topic = '{}/{}/announce'.format(username, connection_name)
+        self.control_topic = '{}/{}/{}/control'.format(username, connection_name, device_id)
+        self.data_topic = '{}/{}/{}/data'.format(username, connection_name, device_id)
+        self.alarm_topic = '{}/{}/{}/alarm'.format(username, connection_name, device_id)
+        self.announce_topic = '{}/{}/{}/announce'.format(username, connection_name, device_id)
         self.mqttc.on_log = self.__on_log
         self.mqttc.will_set(self.data_topic, self.LWD, qos=1, retain=False)
         # Connect
