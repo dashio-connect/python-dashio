@@ -73,6 +73,11 @@ def parse_commandline_arguments():
                         dest="connection",
                         default='NETWORK_TRAFFIC',
                         help="IotDashboard Connection name")
+    parser.add_argument("-d",
+                        "--device_id",
+                        dest="device_id",
+                        default='00001',
+                        help="IotDashboard Device ID.")
     parser.add_argument("-u",
                         "--username",
                         help="mqtt Username",
@@ -103,10 +108,11 @@ def main():
 
     logging.info('Connecting to server: %s', args.server)
     logging.info('       Connection ID: %s', args.connection)
-    logging.info('       Control topic: %s/%s/control', args.username, args.connection)
-    logging.info('          Data topic: %s/%s/data', args.username, args.connection)
+    logging.info('       Control topic: %s/%s/%s/control', args.username, args.connection, args.device_id)
+    logging.info('          Data topic: %s/%s/%s/data', args.username, args.connection, args.device_id)
 
-    ic = dashio.iotConnectionThread(args.connection, args.server, args.port, args.username, args.password, use_ssl=True)
+
+    ic = dashio.iotConnectionThread(args.connection, args.device_id, args.server, args.port, args.username, args.password, use_ssl=True)
 
     ic.start()
 
