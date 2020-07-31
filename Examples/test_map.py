@@ -43,6 +43,11 @@ def parse_commandline_arguments():
                         dest="connection",
                         default='NETWORK_TRAFFIC',
                         help="IotDashboard Connection name")
+    parser.add_argument("-d",
+                        "--device_id",
+                        dest="device_id",
+                        default='00001',
+                        help="IotDashboard Device ID.")
     parser.add_argument("-u",
                         "--username",
                         help="MQTT Username",
@@ -70,10 +75,10 @@ def main():
     args = parse_commandline_arguments()
     print('Connecting to server: {}'.format(args.server))
     print('       Connection ID: {}'.format(args.connection))
-    print('       Control topic: {}_control'.format(args.connection))
-    print('          Data topic: {}_data'.format(args.connection))
+    print('       Control topic: %s/%s/%s/control', args.username, args.connection, args.device_id)
+    print('          Data topic: %s/%s/%s/data', args.username, args.connection, args.device_id)
 
-    ic = dashio.iotConnectionThread(args.connection, args.server, args.port, args.username, args.password, use_ssl=True)
+    ic = dashio.iotConnectionThread(args.connection, args.device_id, args.server, args.port, args.username, args.password, use_ssl=True)
     ic.start()
 
     my_map = dashio.Map('MAP1')

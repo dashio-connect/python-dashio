@@ -66,6 +66,11 @@ class BBB_Temperature():
                             dest="connection",
                             default='TestMQTT',
                             help="IotDashboard Connection name")
+        parser.add_argument("-d",
+                            "--device_id",
+                            dest="device_id",
+                            default='00001',
+                            help="IotDashboard Device ID.")
         parser.add_argument("-u",
                             "--username",
                             help="MQTT Username",
@@ -107,15 +112,17 @@ class BBB_Temperature():
 
         logging.info('Connecting to server: %s', args.server)
         logging.info('       Connection ID: %s', args.connection)
-        logging.info('       Control topic: %s/%s/control', args.username, args.connection)
-        logging.info('          Data topic: %s/%s/data', args.username, args.connection)
+        logging.info('       Control topic: %s/%s/%s/control', args.username, args.connection, args.device_id)
+        logging.info('          Data topic: %s/%s/%s/data', args.username, args.connection, args.device_id)
+
 
         ic = dashio.iotconnection.iotConnectionThread(args.connection,
-                                                        args.server,
-                                                        args.port,
-                                                        args.username,
-                                                        args.password,
-                                                        use_ssl=True)
+                                                      args.device_id, 
+                                                      args.server,
+                                                      args.port,
+                                                      args.username,
+                                                      args.password,
+                                                      use_ssl=True)
 
         gph_15_minutes = dashio.TimeGraph('Temperature15M')
         gph_15_minutes.title = 'Temp15M:{}'.format(args.connection)
@@ -125,9 +132,9 @@ class BBB_Temperature():
         gph_15_minutes.y_axis_max = 50.0
         gph_15_minutes.y_axis_num_bars = 5
         line_15_minutes = dashio.TimeGraphLine('DegC', 
-                                                 dashio.TimeGraphLineType.LINE,
-                                                 colour=dashio.Colour.BLACK,
-                                                 max_data_points=15 * 60 / LOGGER_PERIOD)
+                                               dashio.TimeGraphLineType.LINE,
+                                               colour=dashio.Colour.BLACK,
+                                               max_data_points=15 * 60 / LOGGER_PERIOD)
         gph_15_minutes.add_line('DegC', line_15_minutes)
 
         gph_1_day = dashio.TimeGraph('Temperature1D')
@@ -138,9 +145,9 @@ class BBB_Temperature():
         gph_1_day.y_axis_max = 50.0
         gph_1_day.y_axis_num_bars = 5
         line_1_day = dashio.TimeGraphLine('DegC',
-                                            dashio.TimeGraphLineType.LINE,
-                                            colour=dashio.Colour.BLACK,
-                                            max_data_points=24 * 4)
+                                          dashio.TimeGraphLineType.LINE,
+                                          colour=dashio.Colour.BLACK,
+                                          max_data_points=24 * 4)
         gph_1_day.add_line('DegC', line_1_day)
 
         gph_1_week = dashio.TimeGraph('Temperature1W')
@@ -151,9 +158,9 @@ class BBB_Temperature():
         gph_1_week.y_axis_max = 50.0
         gph_1_week.y_axis_num_bars = 5
         line_1_week = dashio.TimeGraphLine('DegC',
-                                             dashio.TimeGraphLineType.LINE,
-                                             colour=dashio.Colour.BLACK,
-                                             max_data_points=24 * 4 * 7)
+                                           dashio.TimeGraphLineType.LINE,
+                                           colour=dashio.Colour.BLACK,
+                                           max_data_points=24 * 4 * 7)
         gph_1_week.add_line('DegC', line_1_week)
 
         gph_1_year = dashio.TimeGraph('Temperature1Y')
@@ -164,9 +171,9 @@ class BBB_Temperature():
         gph_1_year.y_axis_max = 50.0
         gph_1_year.y_axis_num_bars = 5
         line_1_year = dashio.TimeGraphLine('DegC',
-                                             dashio.TimeGraphLineType.LINE,
-                                             colour=dashio.Colour.BLACK,
-                                             max_data_points=360)
+                                           dashio.TimeGraphLineType.LINE,
+                                           colour=dashio.Colour.BLACK,
+                                           max_data_points=360)
         gph_1_year.add_line('DegC', line_1_year)
 
         dl_temperature_ctrl = dashio.Dial('TemperatureDial')

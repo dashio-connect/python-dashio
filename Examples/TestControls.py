@@ -201,7 +201,7 @@ class TestControls():
         self.ic.add_control(self.text_cntrl)
         self.page_test.add_control(self.text_cntrl)
 
-        self.alarm_ctrl = dashio.Alarm('TestingAlarms', 'Test Alarms', 'Hello', 'Test of Shared Alarms', 'A test Alarm')
+        self.alarm_ctrl = dashio.Alarm('TestingAlarms', 'Test Alarms', 'Hello', 'Test of Shared Alarms')
         self.ic.add_alarm(self.alarm_ctrl)
         self.comp_control = dashio.Compass('COMP1')
         self.comp_control.title = 'A compass'
