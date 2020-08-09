@@ -70,6 +70,11 @@ class TestControls():
                             dest="device_id",
                             default='00001',
                             help="IotDashboard Device ID.")
+        parser.add_argument("-n",
+                            "--device_name",
+                            dest="device_name",
+                            default='',
+                            help="Alias name for device.")
         parser.add_argument("-u",
                             "--user_name",
                             help="MQTT Username",
@@ -133,7 +138,7 @@ class TestControls():
         logging.info('       Control topic: %s/%s/%s/control', args.username, args.connection, args.device_id)
         logging.info('          Data topic: %s/%s/%s/data', args.username, args.connection, args.device_id)
 
-        self.ic = dashio.iotConnectionThread(args.connection, args.device_id, args.server, args.port, args.username, args.password, use_ssl=True)
+        self.ic = dashio.iotConnectionThread(args.connection, args.device_id, args.device_name, args.server, args.port, args.username, args.password, use_ssl=True)
         self.ic.start()
         self.connection = args.connection
 

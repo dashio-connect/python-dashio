@@ -113,6 +113,7 @@ class iotConnectionThread(threading.Thread):
     def __init__(self,
                  connection_name,
                  device_id,
+                 device_name,
                  host,
                  port,
                  username,
@@ -141,6 +142,7 @@ class iotConnectionThread(threading.Thread):
         self.running = True
         self.name = connection_name
         self.username = username
+        self.device_name = device_name
         self.who = "\tWHO\t{name}\n".format(name=connection_name)
         self.mqttc = mqtt.Client()
 
@@ -178,7 +180,7 @@ class iotConnectionThread(threading.Thread):
         # Continue the network loop, exit when an error occurs
         rc = 0
         self.watch_dog_counter = 1  # If watch_dog is zero don't send watchdog message.
-        self.mqttc.publish(self.announce_topic, 'connect')
+        self.mqttc.publish(self.announce_topic, '\tCONNECT\t{}\n'.format(self.device_name))
         while self.running:
             rc = self.mqttc.loop()
             if rc != 0:
@@ -188,7 +190,7 @@ class iotConnectionThread(threading.Thread):
                     try:
                         self.mqttc.connect(self.host, self.port)
                         connect_error = False
-                    except ConnectionRefusedError:
+                    except socket.gaierror:
                         connect_error = True
                 self.mqttc.subscribe(self.control_topic, 0)
                 logging.info('Reconnecting to MQTT')
