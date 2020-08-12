@@ -4,6 +4,8 @@ import paho.mqtt.client as mqtt
 import ssl
 import logging
 from .iotcontrol.alarm import Alarm
+from .iotcontrol.page import Page
+
 # TODO: Add documentation
 
 
@@ -47,6 +49,7 @@ class iotConnectionThread(threading.Thread):
 
     def __make_cfg(self):
         all_cfg = ''
+        all_cfg += '\tCFG\tCFG\t{{"numPages": {}}}\n'.format(self.number_of_pages)
         for key in self.control_dict.keys():
             all_cfg += self.control_dict[key].get_cfg()
         for key in self.alarm_dict.keys():
@@ -95,20 +98,11 @@ class iotConnectionThread(threading.Thread):
             key = iot_control.msg_type + '_' + iot_control.control_id
             self.alarm_dict[key] = iot_control
         else:
+            if isinstance(iot_control, Page):
+                self.number_of_pages += 1
             iot_control.message_tx_event += self.send_data
             key = iot_control.msg_type + '_' + iot_control.control_id
             self.control_dict[key] = iot_control
-
-    def add_alarm(self, iot_control):
-        """Add an alarm control to the connection.
-
-        Parameters
-        ----------
-        iot_control : alarm iotControl
-        """
-        iot_control.message_tx_event += self.send_alarm
-        key = iot_control.msg_type + '_' + iot_control.control_id
-        self.alarm_dict[key] = iot_control
 
     def __init__(self,
                  connection_name,
@@ -136,6 +130,7 @@ class iotConnectionThread(threading.Thread):
         """
 
         threading.Thread.__init__(self)
+        self.number_of_pages = 0
         self.LWD = "OFFLINE"
         self.watch_dog = watch_dog
         self.watch_dog_counter = 1  # If watch_dog is zero don't send anything

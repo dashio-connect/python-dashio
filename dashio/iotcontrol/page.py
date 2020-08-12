@@ -8,7 +8,6 @@ class Page(Control):
     def __init__(self,
                  control_id,
                  control_title='A page',
-                 number_pages=1,
                  icon_name=Icon.SQUARE,
                  page_colour=Colour.BLACK,
                  control_title_box_colour=Colour.BLACK,
@@ -22,7 +21,6 @@ class Page(Control):
                  control_background_transparency=0):
         super().__init__('PAGE', control_id)
         self.title = control_title
-        self.number_pages = number_pages
         self.page_colour = page_colour
         self.control_title_box_colour = control_title_box_colour
         self.control_title_box_transparency = control_title_box_transparency
@@ -37,14 +35,6 @@ class Page(Control):
 
     def add_control(self, control):
         control.parent_id = self.control_id
-
-    @property
-    def number_pages(self) -> int:
-        return self._cfg['numPages']
-
-    @number_pages.setter
-    def number_pages(self, val: int):
-        self._cfg['numPages'] = val
 
     @property
     def icon_name(self) -> Icon:
