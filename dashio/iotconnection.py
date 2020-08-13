@@ -5,7 +5,7 @@ import ssl
 import logging
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.page import Page
-
+from .iotcontrol.name import Name
 # TODO: Add documentation
 
 
@@ -130,6 +130,8 @@ class iotConnectionThread(threading.Thread):
         """
 
         threading.Thread.__init__(self)
+        self.control_dict = {}
+        self.alarm_dict = {}
         self.number_of_pages = 0
         self.LWD = "OFFLINE"
         self.watch_dog = watch_dog
@@ -137,7 +139,9 @@ class iotConnectionThread(threading.Thread):
         self.running = True
         self.name = connection_name
         self.username = username
+        self.name_cntrl = Name(device_name)
         self.device_name = device_name
+        self.add_control(self.name_cntrl)
         self.who = "\tWHO\t{name}\n".format(name=connection_name)
         self.mqttc = mqtt.Client()
 
@@ -155,8 +159,6 @@ class iotConnectionThread(threading.Thread):
                                ciphers=None)
             self.mqttc.tls_insecure_set(False)
 
-        self.control_dict = {}
-        self.alarm_dict = {}
         self.control_topic = '{}/{}/{}/control'.format(username, connection_name, device_id)
         self.data_topic = '{}/{}/{}/data'.format(username, connection_name, device_id)
         self.alarm_topic = '{}/{}/{}/alarm'.format(username, connection_name, device_id)
