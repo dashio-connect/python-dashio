@@ -57,6 +57,22 @@ class iotConnectionThread(threading.Thread):
         logging.debug(all_cfg)
         return all_cfg
 
+    def send_popup_message(self, title, header, message):
+        """Send a popup message to the Dash server.
+
+        Parameters
+        ----------
+        title : str
+            Title of the message.
+        header : str
+            Header of the message.
+        message : str
+            Message body.
+        """
+        data = '\tMSSG\t{}\t{}\t{}\n'.format(title, header, message)
+        logging.debug('Tx: %s', data)
+        self.mqttc.publish(self.data_topic, data)
+
     def send_data(self, data):
         """Send data to the Dash server.
 
