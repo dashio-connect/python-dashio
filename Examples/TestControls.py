@@ -233,6 +233,7 @@ class TestControls():
 
             self.comp_control.direction_value = random.random() * 360
 
+        self.ic.send_popup_message('TestControls', 'Shutting down', 'Goodbye')
         self.ic.running = False
 
 
