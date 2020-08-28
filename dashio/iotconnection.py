@@ -203,7 +203,7 @@ class iotConnectionThread(threading.Thread):
                     try:
                         self.mqttc.connect(self.host, self.port)
                         connect_error = False
-                    except socket.gaierror:
+                    except ConnectionError:
                         connect_error = True
                 self.mqttc.subscribe(self.control_topic, 0)
                 logging.info('Reconnecting to MQTT')
