@@ -58,6 +58,8 @@ class Icon(Enum):
     RIGHT_DOUBLE_2 = "Right Double 2"
     LOCATION = "Location"
     DIRECTION = "Direction"
+    SWITCH = "Switch"
+
 
 class LabelStyle(Enum):
     BASIC = 'BASIC'
