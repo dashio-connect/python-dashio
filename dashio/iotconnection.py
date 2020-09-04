@@ -22,7 +22,7 @@ class iotConnectionThread(threading.Thread):
         cntrl_type = data_array[1]
         if cntrl_type == 'WHO':
             self.mqttc.publish(self.data_topic, self.who)
-            self.mqttc.publish(self.data_topic, self.__make_status())
+            # self.mqttc.publish(self.data_topic, self.__make_status())
         elif cntrl_type == 'STATUS':
             self.mqttc.publish(self.data_topic, self.__make_status())
         elif cntrl_type == 'CFG':
