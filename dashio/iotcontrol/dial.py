@@ -3,22 +3,23 @@ from .control import Control
 
 
 class Dial(Control):
-
-    def __init__(self,
-                 control_id,
-                 control_title='A Dial',
-                 min=0.0,
-                 max=100.0,
-                 red_value=75.0,
-                 dial_fill_colour=Colour.RED,
-                 pointer_colour=Colour.BLUE,
-                 number_position=DialPosition.LEFT,
-                 show_min_max=False,
-                 style=DialStyle.STD,
-                 precision=Precision.OFF,
-                 units='',
-                 control_position=None):
-        super().__init__('DIAL', control_id, control_position=control_position)
+    def __init__(
+        self,
+        control_id,
+        control_title="A Dial",
+        min=0.0,
+        max=100.0,
+        red_value=75.0,
+        dial_fill_colour=Colour.RED,
+        pointer_colour=Colour.BLUE,
+        number_position=DialPosition.LEFT,
+        show_min_max=False,
+        style=DialStyle.STD,
+        precision=Precision.OFF,
+        units="",
+        control_position=None,
+    ):
+        super().__init__("DIAL", control_id, control_position=control_position)
         self._dial_value = 0
         self.title = control_title
         self.min = min
@@ -31,7 +32,7 @@ class Dial(Control):
         self.style = style
         self.precision = precision
         self.units = units
-        self.state_str = '\t{}\t{}\t{}\n'.format(self.msg_type, self.control_id, self._dial_value)
+        self.state_str = "\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, self._dial_value)
 
     @property
     def dial_value(self):
@@ -40,39 +41,39 @@ class Dial(Control):
     @dial_value.setter
     def dial_value(self, val):
         self._dial_value = val
-        self.state_str = '\t{}\t{}\t{}\n'.format(self.msg_type, self.control_id, self._dial_value)
+        self.state_str = "\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, self._dial_value)
 
     @property
     def min(self):
-        return self._cfg['min']
+        return self._cfg["min"]
 
     @min.setter
     def min(self, val):
-        self._cfg['min'] = val
+        self._cfg["min"] = val
 
     @property
     def max(self):
-        return self._cfg['max']
+        return self._cfg["max"]
 
     @max.setter
     def max(self, val):
-        self._cfg['max'] = val
+        self._cfg["max"] = val
 
     @property
     def red_value(self):
-        return self._cfg['redValue']
+        return self._cfg["redValue"]
 
     @red_value.setter
     def red_value(self, val):
-        self._cfg['redValue'] = val
+        self._cfg["redValue"] = val
 
     @property
     def show_min_max(self):
-        return self._cfg['showMinMax']
+        return self._cfg["showMinMax"]
 
     @show_min_max.setter
     def show_min_max(self, val):
-        self._cfg['showMinMax'] = val
+        self._cfg["showMinMax"] = val
 
     @property
     def dial_fill_colour(self) -> Colour:
@@ -81,7 +82,7 @@ class Dial(Control):
     @dial_fill_colour.setter
     def dial_fill_colour(self, val):
         self._dial_fill_colour = val
-        self._cfg['dialFillColour'] = str(val.value)
+        self._cfg["dialFillColour"] = str(val.value)
 
     @property
     def pointer_colour(self) -> Colour:
@@ -90,7 +91,7 @@ class Dial(Control):
     @pointer_colour.setter
     def pointer_colour(self, val: Colour):
         self._pointer_colour = val
-        self._cfg['pointerColour'] = str(val.value)
+        self._cfg["pointerColour"] = str(val.value)
 
     @property
     def number_positions(self) -> DialPosition:
@@ -99,7 +100,7 @@ class Dial(Control):
     @number_positions.setter
     def number_positions(self, val: DialPosition):
         self._number_position = val
-        self._cfg['numberPosition'] = val.value
+        self._cfg["numberPosition"] = val.value
 
     @property
     def style(self) -> DialStyle:
@@ -108,21 +109,21 @@ class Dial(Control):
     @style.setter
     def style(self, val: DialStyle):
         self._style = val
-        self._cfg['style'] = val.value
+        self._cfg["style"] = val.value
 
     @property
     def precision(self) -> Precision:
-        return self._cfg['precision']
+        return self._cfg["precision"]
 
     @precision.setter
     def precision(self, val: Precision):
         self._precision = val
-        self._cfg['precision'] = val.value
+        self._cfg["precision"] = val.value
 
     @property
     def units(self):
-        return self._cfg['units']
+        return self._cfg["units"]
 
     @units.setter
     def units(self, val):
-        self._cfg['units'] = val
+        self._cfg["units"] = val

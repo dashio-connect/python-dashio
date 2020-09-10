@@ -3,21 +3,22 @@ from .control import Control
 
 
 class Knob(Control):
-
-    def __init__(self,
-                 control_id,
-                 control_title='A Knob',
-                 min=0.0,
-                 max=100.0,
-                 red_value=75.0,
-                 show_min_max=False,
-                 send_only_on_release=True,
-                 dial_follows_knob=False,
-                 dial_colour=Colour.BLUE,
-                 control_position=None):
-        super().__init__('KNOB', control_id, control_position=control_position)
+    def __init__(
+        self,
+        control_id,
+        control_title="A Knob",
+        min=0.0,
+        max=100.0,
+        red_value=75.0,
+        show_min_max=False,
+        send_only_on_release=True,
+        dial_follows_knob=False,
+        dial_colour=Colour.BLUE,
+        control_position=None,
+    ):
+        super().__init__("KNOB", control_id, control_position=control_position)
         self.title = control_title
-        self._control_id_dial = 'KBDL'
+        self._control_id_dial = "KBDL"
         self._knob_value = 0
         self._knob_dial_value = 0
 
@@ -28,8 +29,8 @@ class Knob(Control):
         self.send_only_on_release = send_only_on_release
         self.dial_follows_knob = dial_follows_knob
         self.dial_colour = dial_colour
-        self._state_str_knob = '\t{}\t{}\t{}\n'.format(self.msg_type, self.control_id, self._knob_value)
-        self._state_str_dial = '\t{}\t{}\t{}\n'.format(self._control_id_dial, self.control_id, self._knob_dial_value)
+        self._state_str_knob = "\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, self._knob_value)
+        self._state_str_dial = "\t{}\t{}\t{}\n".format(self._control_id_dial, self.control_id, self._knob_dial_value)
         self._state_str = self._state_str_knob + self._state_str_dial
 
     @property
@@ -39,7 +40,7 @@ class Knob(Control):
     @knob_value.setter
     def knob_value(self, val):
         self._knob_value = val
-        self._state_str_knob = '\t{}\t{}\t{}\n'.format(self.msg_type, self.control_id, val)
+        self._state_str_knob = "\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, val)
         self.message_tx_event(self._state_str_knob)
         self._state_str = self._state_str_knob + self._state_str_dial
 
@@ -50,57 +51,57 @@ class Knob(Control):
     @knob_dial_value.setter
     def knob_dial_value(self, val):
         self._knob_dial_value = val
-        self._state_str_dial = '\t{}\t{}\t{}\n'.format(self._control_id_dial, self.control_id, val)
+        self._state_str_dial = "\t{}\t{}\t{}\n".format(self._control_id_dial, self.control_id, val)
         self.message_tx_event(self._state_str_dial)
         self._state_str = self._state_str_knob + self._state_str_dial
 
     @property
     def min(self):
-        return self._cfg['min']
+        return self._cfg["min"]
 
     @min.setter
     def min(self, val):
-        self._cfg['min'] = val
+        self._cfg["min"] = val
 
     @property
     def max(self):
-        return self._cfg['max']
+        return self._cfg["max"]
 
     @max.setter
     def max(self, val):
-        self._cfg['max'] = val
+        self._cfg["max"] = val
 
     @property
     def red_value(self):
-        return self._cfg['redValue']
+        return self._cfg["redValue"]
 
     @red_value.setter
     def red_value(self, val):
-        self._cfg['redValue'] = val
+        self._cfg["redValue"] = val
 
     @property
     def show_min_max(self):
-        return self._cfg['showMinMax']
+        return self._cfg["showMinMax"]
 
     @show_min_max.setter
     def show_min_max(self, val):
-        self._cfg['showMinMax'] = val
+        self._cfg["showMinMax"] = val
 
     @property
     def send_only_on_release(self):
-        return self._cfg['sendOnlyOnRelease']
+        return self._cfg["sendOnlyOnRelease"]
 
     @send_only_on_release.setter
     def send_only_on_release(self, val):
-        self._cfg['sendOnlyOnRelease'] = val
+        self._cfg["sendOnlyOnRelease"] = val
 
     @property
     def dial_follows_knob(self):
-        return self._cfg['dialFollowsKnob']
+        return self._cfg["dialFollowsKnob"]
 
     @dial_follows_knob.setter
     def dial_follows_knob(self, val):
-        self._cfg['dialFollowsKnob'] = val
+        self._cfg["dialFollowsKnob"] = val
 
     @property
     def dial_colour(self) -> Colour:
@@ -109,4 +110,4 @@ class Knob(Control):
     @dial_colour.setter
     def dial_colour(self, val: Colour):
         self._dial_colour = val
-        self._cfg['dialColour'] = str(val.value)
+        self._cfg["dialColour"] = str(val.value)

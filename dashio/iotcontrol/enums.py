@@ -62,8 +62,9 @@ class Icon(Enum):
 
 
 class LabelStyle(Enum):
-    BASIC = 'BASIC'
-    GROUP = 'GROUP'
+    BASIC = "BASIC"
+    GROUP = "GROUP"
+
 
 class Precision(Enum):
     OFF = 0
@@ -74,68 +75,72 @@ class Precision(Enum):
     FIVE = 5
     SIX = 6
 
+
 class TitlePosition(Enum):
-    NONE = 'None'
-    TOP = 'Top'
-    BOTTOM = 'Bottom'
+    NONE = "None"
+    TOP = "Top"
+    BOTTOM = "Bottom"
+
 
 class ButtonState(Enum):
-    ON = 'ON'
-    OFF = 'OFF'
-    FLASH = 'FLASH'
+    ON = "ON"
+    OFF = "OFF"
+    FLASH = "FLASH"
+
 
 class Keyboard(Enum):
-    NONE = 'NONE'
-    ALL_CHARS = 'ALL'
-    NUMERIC = 'NUM'
-    HEX = 'HEX'
+    NONE = "NONE"
+    ALL_CHARS = "ALL"
+    NUMERIC = "NUM"
+    HEX = "HEX"
 
 
 class TextAlignment(Enum):
-    LEFT = 'left'
-    CENTER = 'center'
-    RIGHT = 'right'
+    LEFT = "left"
+    CENTER = "center"
+    RIGHT = "right"
 
 
 class SliderBarType(Enum):
-    SEGMENTED = 'seg'
-    SOLID = 'solid'
+    SEGMENTED = "seg"
+    SOLID = "solid"
 
 
 class DialPosition(Enum):
-    OFF = 'off'
-    LEFT = 'left'
-    RIGHT = 'right'
+    OFF = "off"
+    LEFT = "left"
+    RIGHT = "right"
 
 
 class DialStyle(Enum):
-    STD = 'upright'
-    INVERTED = 'inverted'
+    STD = "upright"
+    INVERTED = "inverted"
 
 
 class GraphLineType(Enum):
-    LINE = 'LINE'
-    BAR = 'BAR'
-    SEGBAR = 'SEGBAR'
-    PEAKBAR = 'PEAKBAR'
-    DELETE = 'DEL'
+    LINE = "LINE"
+    BAR = "BAR"
+    SEGBAR = "SEGBAR"
+    PEAKBAR = "PEAKBAR"
+    DELETE = "DEL"
+
 
 class GraphXAxisLabelsStyle(Enum):
-    ON = 'on'
-    BETWEEN = 'between'
+    ON = "on"
+    BETWEEN = "between"
 
 
 class TimeGraphLineType(Enum):
-    LINE = 'LINE'
-    BAR = 'BAR'
-    BOOL = 'BOOL'
-    DEL = 'DEL'
+    LINE = "LINE"
+    BAR = "BAR"
+    BOOL = "BOOL"
+    DEL = "DEL"
 
 
 class MapType(Enum):
-    STANDARD = 'Standard'
-    SATELLITE = 'Satellite'
-    HYBRID = 'Hybrid'
+    STANDARD = "Standard"
+    SATELLITE = "Satellite"
+    HYBRID = "Hybrid"
 
 
 class TimeGraphTimeScale(Enum):

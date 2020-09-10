@@ -5,7 +5,7 @@ import datetime
 import dateutil.parser
 
 
-class DataPoint():
+class DataPoint:
     def __init__(self, data):
         self.timestamp = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
         self.data_point = data
@@ -15,13 +15,10 @@ class DataPoint():
         return data_str
 
 
-class TimeGraphLine():
-    def __init__(self,
-                 name='',
-                 line_type=TimeGraphLineType.LINE,
-                 colour=Colour.BLACK,
-                 transparency=1.0,
-                 max_data_points=60):
+class TimeGraphLine:
+    def __init__(
+        self, name="", line_type=TimeGraphLineType.LINE, colour=Colour.BLACK, transparency=1.0, max_data_points=60
+    ):
         self.max_data_points = max_data_points
         self.name = name
         self.line_type = line_type
@@ -31,30 +28,28 @@ class TimeGraphLine():
 
     def get_line_data(self):
         if not self.data:
-            return ''
-        data_str = '\t{l_name}\t{l_type}\t{l_colour}\t{l_transparency}'.format(l_name=self.name,
-                                                                               l_type=self.line_type.value,
-                                                                               l_colour=self.colour.value,
-                                                                               l_transparency=self.transparency)
+            return ""
+        data_str = "\t{l_name}\t{l_type}\t{l_colour}\t{l_transparency}".format(
+            l_name=self.name, l_type=self.line_type.value, l_colour=self.colour.value, l_transparency=self.transparency
+        )
         for d in self.data:
-            data_str += '\t' + d.to_string()
-        data_str += '\n'
+            data_str += "\t" + d.to_string()
+        data_str += "\n"
         return data_str
 
     def get_line_from_timestamp(self, timestamp):
         if not self.data:
-            return ''
-        data_str = '\t{l_name}\t{l_type}\t{l_colour}\t{l_transparency}'.format(l_name=self.name,
-                                                                               l_type=self.line_type.value,
-                                                                               l_colour=self.colour.value,
-                                                                               l_transparency=self.transparency)
+            return ""
+        data_str = "\t{l_name}\t{l_type}\t{l_colour}\t{l_transparency}".format(
+            l_name=self.name, l_type=self.line_type.value, l_colour=self.colour.value, l_transparency=self.transparency
+        )
 
         dt = dateutil.parser.isoparse(timestamp)
 
         for d in self.data:
             if d.timestamp > dt:
-                data_str += '\t' + d.to_string()
-        data_str += '\n'
+                data_str += "\t" + d.to_string()
+        data_str += "\n"
         return data_str
 
     def add_data_point(self, data_point):
@@ -75,37 +70,37 @@ class TimeGraphLine():
 
     def get_latest_data(self):
         if not self.data:
-            return ''
-        data_str = '\t{l_name}\t{l_type}\t{l_colour}\t{l_transparency}'.format(l_name=self.name,
-                                                                               l_type=self.line_type.value,
-                                                                               l_colour=self.colour.value,
-                                                                               l_transparency=self.transparency)
-        data_str += '\t' + self.data[-1].to_string()
-        data_str += '\n'
+            return ""
+        data_str = "\t{l_name}\t{l_type}\t{l_colour}\t{l_transparency}".format(
+            l_name=self.name, l_type=self.line_type.value, l_colour=self.colour.value, l_transparency=self.transparency
+        )
+        data_str += "\t" + self.data[-1].to_string()
+        data_str += "\n"
         return data_str
 
 
 class TimeGraph(Control):
-
     def get_state(self):
-        state_str = ''
+        state_str = ""
         for key in self.line_dict.keys():
             if self.line_dict[key].data:
                 state_str += self.get_state_str + key + self.line_dict[key].get_latest_data()
         return state_str
 
-    def __init__(self,
-                 control_id,
-                 timescale=TimeGraphTimeScale.FIFTEENMINS,
-                 y_axis_label='',
-                 y_axis_min='0.0',
-                 y_axis_max=100.0,
-                 y_axis_num_bars=5,
-                 graph_key_font_size=12,
-                 show_connection_in_key=False,
-                 position_of_key=TimeGraphPositionOfKey.TOPLEFT,
-                 control_position=None):
-        super().__init__('TGRPH', control_id, control_position=control_position)
+    def __init__(
+        self,
+        control_id,
+        timescale=TimeGraphTimeScale.FIFTEENMINS,
+        y_axis_label="",
+        y_axis_min="0.0",
+        y_axis_max=100.0,
+        y_axis_num_bars=5,
+        graph_key_font_size=12,
+        show_connection_in_key=False,
+        position_of_key=TimeGraphPositionOfKey.TOPLEFT,
+        control_position=None,
+    ):
+        super().__init__("TGRPH", control_id, control_position=control_position)
 
         self.message_rx_event += self.__get_lines_from_timestamp
 
@@ -119,26 +114,26 @@ class TimeGraph(Control):
         self.position_of_key = position_of_key
 
         self.line_dict = {}
-        self.get_state_str = '\t{}\t{}\t'.format(self.msg_type, self.control_id)
+        self.get_state_str = "\t{}\t{}\t".format(self.msg_type, self.control_id)
 
     def add_line(self, line_id, gline):
         self.line_dict[line_id] = gline
 
     def send_graph(self):
-        state_str = ''
+        state_str = ""
         for key in self.line_dict.keys():
             state_str += self.get_state_str + key + self.line_dict[key].get_line_data()
         self.state_str = state_str
 
     def __get_lines_from_timestamp(self, msg):
-        state_str = ''
+        state_str = ""
         for key in self.line_dict.keys():
             if self.line_dict[key].data:
                 state_str += self.get_state_str + key + self.line_dict[key].get_line_from_timestamp(msg[1])
         self.state_str = state_str
 
     def send_data(self):
-        state_str = ''
+        state_str = ""
         for key in self.line_dict.keys():
             if self.line_dict[key].data:
                 state_str += self.get_state_str + key + self.line_dict[key].get_latest_data()
@@ -151,55 +146,55 @@ class TimeGraph(Control):
     @time_scale.setter
     def time_scale(self, val: TimeGraphTimeScale):
         self._time_scale = val
-        self._cfg['timeScale'] = val.value
+        self._cfg["timeScale"] = val.value
 
     @property
     def y_axis_label(self):
-        return self._cfg['yAxisLabel']
+        return self._cfg["yAxisLabel"]
 
     @y_axis_label.setter
     def y_axis_label(self, val):
-        self._cfg['yAxisLabel'] = val
+        self._cfg["yAxisLabel"] = val
 
     @property
     def y_axis_min(self):
-        return self._cfg['yAxisMin']
+        return self._cfg["yAxisMin"]
 
     @y_axis_min.setter
     def y_axis_min(self, val):
-        self._cfg['yAxisMin'] = val
+        self._cfg["yAxisMin"] = val
 
     @property
     def y_axis_max(self):
-        return self._cfg['yAxisMax']
+        return self._cfg["yAxisMax"]
 
     @y_axis_max.setter
     def y_axis_max(self, val):
-        self._cfg['yAxisMax'] = val
+        self._cfg["yAxisMax"] = val
 
     @property
     def y_axis_num_bars(self):
-        return self._cfg['yAxisNumBars']
+        return self._cfg["yAxisNumBars"]
 
     @y_axis_num_bars.setter
     def y_axis_num_bars(self, val):
-        self._cfg['yAxisNumBars'] = val
+        self._cfg["yAxisNumBars"] = val
 
     @property
     def graph_key_font_size(self):
-        return self._cfg['graphKeyFontSize']
+        return self._cfg["graphKeyFontSize"]
 
     @graph_key_font_size.setter
     def graph_key_font_size(self, val):
-        self._cfg['graphKeyFontSize'] = val
+        self._cfg["graphKeyFontSize"] = val
 
     @property
     def show_connection_in_key(self):
-        return self._cfg['showConnectionInKey']
+        return self._cfg["showConnectionInKey"]
 
     @show_connection_in_key.setter
     def show_connection_in_key(self, val):
-        self._cfg['showConnectionInKey'] = val
+        self._cfg["showConnectionInKey"] = val
 
     @property
     def position_of_key(self) -> TimeGraphPositionOfKey:
@@ -208,4 +203,5 @@ class TimeGraph(Control):
     @position_of_key.setter
     def position_of_key(self, val: TimeGraphPositionOfKey):
         self._position_of_key = val
-        self._cfg['positionOfKey'] = val.value
+        self._cfg["positionOfKey"] = val.value
+
