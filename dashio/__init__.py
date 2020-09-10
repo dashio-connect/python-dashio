@@ -1,6 +1,20 @@
-from .iotconnection import iotConnectionThread
-from .iotcontrol.enums import Colour, Icon, Precision, Keyboard, TextAlignment, SliderBarType, DialPosition, DialStyle, \
-    GraphLineType, TimeGraphLineType, MapType, TimeGraphTimeScale, TimeGraphPositionOfKey, ButtonState
+from .iotconnection import mqttConnectionThread
+from .iotcontrol.enums import (
+    Colour,
+    Icon,
+    Precision,
+    Keyboard,
+    TextAlignment,
+    SliderBarType,
+    DialPosition,
+    DialStyle,
+    GraphLineType,
+    TimeGraphLineType,
+    MapType,
+    TimeGraphTimeScale,
+    TimeGraphPositionOfKey,
+    ButtonState,
+)
 from .iotcontrol.graph import Graph, GraphLine
 from .iotcontrol.slider_single_bar import SliderSingleBar
 from .iotcontrol.slider_double_bar import SliderDoubleBar

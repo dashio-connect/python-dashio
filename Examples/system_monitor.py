@@ -32,67 +32,46 @@ def init_logging(logfilename, level):
     elif level == 2:
         log_level = logging.DEBUG
     if not logfilename:
-        formatter = logging.Formatter('%(asctime)s.%(msecs)03d, %(message)s')
+        formatter = logging.Formatter("%(asctime)s.%(msecs)03d, %(message)s")
         handler = logging.StreamHandler()
         handler.setFormatter(formatter)
         logger = logging.getLogger()
         logger.addHandler(handler)
         logger.setLevel(log_level)
     else:
-        logging.basicConfig(filename=logfilename,
-                            level=log_level,
-                            format='%(asctime)s.%(msecs)03d, %(message)s',
-                            datefmt="%Y-%m-%d %H:%M:%S")
-    logging.info('==== Started ====')
+        logging.basicConfig(
+            filename=logfilename,
+            level=log_level,
+            format="%(asctime)s.%(msecs)03d, %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
+    logging.info("==== Started ====")
 
 
 def parse_commandline_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-v",
-                        "--verbose",
-                        const=1,
-                        default=1,
-                        type=int,
-                        nargs="?",
-                        help='''increase verbosity:
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        const=1,
+        default=1,
+        type=int,
+        nargs="?",
+        help="""increase verbosity:
                         0 = only warnings, 1 = info, 2 = debug.
-                        No number means info. Default is no verbosity.''')
-    parser.add_argument("-s",
-                        "--server",
-                        help="Server URL.",
-                        dest='server',
-                        default='localhost')
-    parser.add_argument("-p",
-                        "--port",
-                        type=int,
-                        help="Port number.",
-                        default=1883,
-                        dest='port',)
-    parser.add_argument("-c",
-                        "--connection_name",
-                        dest="connection",
-                        default='NETWORK_TRAFFIC',
-                        help="IotDashboard Connection name")
-    parser.add_argument("-d",
-                        "--device_id",
-                        dest="device_id",
-                        default='00001',
-                        help="IotDashboard Device ID.")
-    parser.add_argument("-u",
-                        "--username",
-                        help="mqtt Username",
-                        dest='username',
-                        default='')
-    parser.add_argument("-w",
-                        "--password",
-                        help='MQTT Password',
-                        default='')
-    parser.add_argument("-l",
-                        "--logfile",
-                        dest="logfilename",
-                        default="",
-                        help="logfile location",
-                        metavar="FILE")
+                        No number means info. Default is no verbosity.""",
+    )
+    parser.add_argument("-s", "--server", help="Server URL.", dest="server", default="localhost")
+    parser.add_argument(
+        "-p", "--port", type=int, help="Port number.", default=1883, dest="port",
+    )
+    parser.add_argument(
+        "-c", "--connection_name", dest="connection", default="NETWORK_TRAFFIC", help="IotDashboard Connection name"
+    )
+    parser.add_argument("-d", "--device_id", dest="device_id", default="00001", help="IotDashboard Device ID.")
+    parser.add_argument("-u", "--username", help="mqtt Username", dest="username", default="")
+    parser.add_argument("-w", "--password", help="MQTT Password", default="")
+    parser.add_argument("-l", "--logfile", dest="logfilename", default="", help="logfile location", metavar="FILE")
     args = parser.parse_args()
     return args
 
@@ -106,39 +85,38 @@ def main():
     args = parse_commandline_arguments()
     init_logging(args.logfilename, args.verbose)
 
-    logging.info('Connecting to server: %s', args.server)
-    logging.info('       Connection ID: %s', args.connection)
-    logging.info('       Control topic: %s/%s/%s/control', args.username, args.connection, args.device_id)
-    logging.info('          Data topic: %s/%s/%s/data', args.username, args.connection, args.device_id)
+    logging.info("Connecting to server: %s", args.server)
+    logging.info("       Connection ID: %s", args.connection)
+    logging.info("       Control topic: %s/%s/%s/control", args.username, args.connection, args.device_id)
+    logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
 
-
-    ic = dashio.iotConnectionThread(args.connection, args.device_id, args.server, args.port, args.username, args.password, use_ssl=True)
+    ic = dashio.mqttConnectionThread(
+        args.connection, args.device_id, args.server, args.port, args.username, args.password, use_ssl=True
+    )
 
     ic.start()
 
-    monitor_page = dashio.Page('monpg','Dash Server Moniter')
-    gph_network = dashio.TimeGraph('NETWORKGRAPH')
-    gph_network.title = 'Server Network Traffic: {}'.format(args.connection)
-    gph_network.y_axis_label = 'Kbytes'
+    monitor_page = dashio.Page("monpg", "Dash Server Moniter")
+    gph_network = dashio.TimeGraph("NETWORKGRAPH")
+    gph_network.title = "Server Network Traffic: {}".format(args.connection)
+    gph_network.y_axis_label = "Kbytes"
     gph_network.y_axis_min = 0.0
     gph_network.y_axis_max = 1000.0
     gph_network.y_axis_num_bars = 11
-    Network_Rx = dashio.TimeGraphLine('RX',
-                                        dashio.TimeGraphLineType.LINE,
-                                        colour=dashio.Colour.FUSCIA,
-                                        max_data_points=no_datapoints)
-    Network_Tx = dashio.TimeGraphLine('TX',
-                                        dashio.TimeGraphLineType.LINE,
-                                        colour=dashio.Colour.AQUA, 
-                                        max_data_points=no_datapoints)
+    Network_Rx = dashio.TimeGraphLine(
+        "RX", dashio.TimeGraphLineType.LINE, colour=dashio.Colour.FUSCIA, max_data_points=no_datapoints
+    )
+    Network_Tx = dashio.TimeGraphLine(
+        "TX", dashio.TimeGraphLineType.LINE, colour=dashio.Colour.AQUA, max_data_points=no_datapoints
+    )
 
-    gph_network.add_line('NET_RX', Network_Rx)
-    gph_network.add_line('NET_TX', Network_Tx)
+    gph_network.add_line("NET_RX", Network_Rx)
+    gph_network.add_line("NET_TX", Network_Tx)
     last_Tx, last_Rx = get_network_rx_tx()
 
-    gph_cpu = dashio.TimeGraph('CPULOAD')
-    gph_cpu.title = 'CPU load: {}'.format(args.connection)
-    gph_cpu.y_axis_label = 'Percent'
+    gph_cpu = dashio.TimeGraph("CPULOAD")
+    gph_cpu.title = "CPU load: {}".format(args.connection)
+    gph_cpu.y_axis_label = "Percent"
     gph_cpu.y_axis_max = 100
     gph_cpu.y_axis_min = 0
     gph_cpu.y_axis_num_bars = 8
@@ -151,17 +129,19 @@ def main():
     cpu_core_line_array = []
     cpu_data = psutil.cpu_percent(percpu=True)
     for cpu in range(0, number_of_cores):
-        line = dashio.TimeGraphLine(name='CPU:{}'.format(cpu),
-                                      line_type=dashio.TimeGraphLineType.LINE,
-                                      colour=dashio.Colour(cpu + 1),
-                                      transparency=1.0,
-                                      max_data_points=no_datapoints)
+        line = dashio.TimeGraphLine(
+            name="CPU:{}".format(cpu),
+            line_type=dashio.TimeGraphLineType.LINE,
+            colour=dashio.Colour(cpu + 1),
+            transparency=1.0,
+            max_data_points=no_datapoints,
+        )
         cpu_core_line_array.append(line)
-        gph_cpu.add_line('CPU:{}'.format(cpu), line)
+        gph_cpu.add_line("CPU:{}".format(cpu), line)
 
-    hd_dial = dashio.Dial('HD_USAGE')
-    hd_dial.title = 'Disk Usage'
-    hd_dial.dial_value = psutil.disk_usage('/').percent
+    hd_dial = dashio.Dial("HD_USAGE")
+    hd_dial.title = "Disk Usage"
+    hd_dial.dial_value = psutil.disk_usage("/").percent
     hd_dial.min = 0.0
     hd_dial.max = 100.0
     hd_dial.red_value = 95.0
@@ -190,10 +170,10 @@ def main():
             l.add_data_point(cpu_data[i])
             i += 1
         gph_cpu.send_data()
-        hd_dial.dial_value = psutil.disk_usage('/').percent
+        hd_dial.dial_value = psutil.disk_usage("/").percent
 
     ic.running = False
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
