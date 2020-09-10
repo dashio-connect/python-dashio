@@ -5,7 +5,7 @@ import datetime
 import dateutil.parser
 
 
-class EventData():
+class EventData:
     def __init__(self, header, body, colour=Colour.BLACK):
         self.colour = colour
         self.timestamp = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
@@ -13,32 +13,30 @@ class EventData():
         self.body = body
 
     def to_string(self):
-        data_str = "{ts}\t{colour}\t{header}\t{body}\n".format(ts=self.timestamp.isoformat(), colour=self.colour, header=self.header, body=self.body)
+        data_str = "{ts}\t{colour}\t{header}\t{body}\n".format(
+            ts=self.timestamp.isoformat(), colour=self.colour, header=self.header, body=self.body
+        )
         return data_str
 
 
 class EventLog(Control):
-
     def get_state(self):
-        state_str = ''
+        state_str = ""
         return state_str
 
-    def __init__(self,
-                 control_id,
-                 title='An Event Log',
-                 control_position=None):
-        super().__init__('LOG', control_id, control_position=control_position)
+    def __init__(self, control_id, title="An Event Log", control_position=None):
+        super().__init__("LOG", control_id, control_position=control_position)
 
         self.message_rx_event += self.__get_log_from_timestamp
 
         self.log_list = []
-        self.get_state_str = '\t{}\t{}\t'.format(self.msg_type, self.control_id)
+        self.get_state_str = "\t{}\t{}\t".format(self.msg_type, self.control_id)
 
     def __get_log_from_timestamp(self, msg):
-        
+
         dt = dateutil.parser.isoparse(msg[1])
-        print (msg[1])
-        data_str = ''
+        print(msg[1])
+        data_str = ""
         for log in self.log_list:
             if log.timestamp > dt:
                 data_str += self.get_state_str + log.to_string()
