@@ -12,8 +12,7 @@ import psutil
 import logging
 
 
-class TestControls():
-
+class TestControls:
     def signal_cntrl_c(self, os_signal, os_frame):
         self.shutdown = True
 
@@ -25,66 +24,45 @@ class TestControls():
         elif level == 2:
             log_level = logging.DEBUG
         if not logfilename:
-            formatter = logging.Formatter('%(asctime)s.%(msecs)03d, %(message)s')
+            formatter = logging.Formatter("%(asctime)s.%(msecs)03d, %(message)s")
             handler = logging.StreamHandler()
             handler.setFormatter(formatter)
             logger = logging.getLogger()
             logger.addHandler(handler)
             logger.setLevel(log_level)
         else:
-            logging.basicConfig(filename=logfilename,
-                                level=log_level,
-                                format='%(asctime)s.%(msecs)03d, %(message)s',
-                                datefmt="%Y-%m-%d %H:%M:%S")
-        logging.info('==== Started ====')
+            logging.basicConfig(
+                filename=logfilename,
+                level=log_level,
+                format="%(asctime)s.%(msecs)03d, %(message)s",
+                datefmt="%Y-%m-%d %H:%M:%S",
+            )
+        logging.info("==== Started ====")
 
     def parse_commandline_arguments(self):
         parser = argparse.ArgumentParser()
-        parser.add_argument("-v",
-                            "--verbose",
-                            const=1,
-                            default=1,
-                            type=int,
-                            nargs="?",
-                            help='''increase verbosity:
+        parser.add_argument(
+            "-v",
+            "--verbose",
+            const=1,
+            default=1,
+            type=int,
+            nargs="?",
+            help="""increase verbosity:
                             0 = only warnings, 1 = info, 2 = debug.
-                            No number means info. Default is no verbosity.''')
-        parser.add_argument("-s",
-                            "--server",
-                            help="Server URL.",
-                            dest='server',
-                            default='mqtt://localhost')
-        parser.add_argument("-p",
-                            "--port",
-                            type=int,
-                            help="Port number.",
-                            default=1883,
-                            dest='port',)
-        parser.add_argument("-c",
-                            "--connection_name",
-                            dest="connection",
-                            default='TestMQTT',
-                            help="IotDashboard Connection name")
-        parser.add_argument("-d",
-                            "--device_id",
-                            dest="device_id",
-                            default='00001',
-                            help="IotDashboard Device ID.")
-        parser.add_argument("-u",
-                            "--username",
-                            help="MQTT Username",
-                            dest='username',
-                            default='')
-        parser.add_argument("-w",
-                            "--password",
-                            help='MQTT Password',
-                            default='')
-        parser.add_argument("-l",
-                            "--logfile",
-                            dest="logfilename",
-                            default="",
-                            help="logfile location",
-                            metavar="FILE")
+                            No number means info. Default is no verbosity.""",
+        )
+        parser.add_argument("-s", "--server", help="Server URL.", dest="server", default="mqtt://localhost")
+        parser.add_argument(
+            "-p", "--port", type=int, help="Port number.", default=1883, dest="port",
+        )
+        parser.add_argument(
+            "-c", "--connection_name", dest="connection", default="TestMQTT", help="IotDashboard Connection name"
+        )
+        parser.add_argument("-d", "--device_id", dest="device_id", default="00001", help="IotDashboard Device ID.")
+        parser.add_argument("-u", "--username", help="MQTT Username", dest="username", default="")
+        parser.add_argument("-w", "--password", help="MQTT Password", default="")
+        parser.add_argument("-l", "--logfile", dest="logfilename", default="", help="logfile location", metavar="FILE")
         args = parser.parse_args()
         return args
 
@@ -100,44 +78,50 @@ class TestControls():
         args = self.parse_commandline_arguments()
         self.init_logging(args.logfilename, args.verbose)
 
-        logging.info('Connecting to server: %s', args.server)
-        logging.info('       Connection ID: %s', args.connection)
-        logging.info('       Control topic: %s/%s/%s/control', args.username, args.connection, args.device_id)
-        logging.info('          Data topic: %s/%s/%s/data', args.username, args.connection, args.device_id)
+        logging.info("Connecting to server: %s", args.server)
+        logging.info("       Connection ID: %s", args.connection)
+        logging.info("       Control topic: %s/%s/%s/control", args.username, args.connection, args.device_id)
+        logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
 
+        self.ic = dashio.mqttConnectionThread(
+            args.connection, args.device_id, args.server, args.port, args.username, args.password, use_ssl=True
+        )
 
-        self.ic = dashio.iotConnectionThread(args.connection, args.device_id, args.server, args.port, args.username, args.password, use_ssl=True)
-
-        self.gph_15_minutes = dashio.TimeGraph('TestGraph')
-        self.gph_15_minutes.title = 'Test: {}'.format(args.connection)
+        self.gph_15_minutes = dashio.TimeGraph("TestGraph")
+        self.gph_15_minutes.title = "Test: {}".format(args.connection)
         self.gph_15_minutes.timeScale = dashio.TimeGraphTimeScale.FIFTEENMINS
-        self.gph_15_minutes.y_axis_label = 'Units'
+        self.gph_15_minutes.y_axis_label = "Units"
         self.gph_15_minutes.y_axis_min = -10.0
         self.gph_15_minutes.y_axis_max = 10.0
         self.gph_15_minutes.y_axis_num_bars = 9
-        self.line_15_minutes = dashio.TimeGraphLine('Line',
-                                                    dashio.TimeGraphLineType.LINE,
-                                                    colour=dashio.Colour.BLACK,
-                                                    max_data_points=15 * 60 / LOGGER_PERIOD)
-        self.bar_15_minutes = dashio.TimeGraphLine('Bar',
-                                                   dashio.TimeGraphLineType.BAR,
-                                                   transparency=0.45,
-                                                   colour=dashio.Colour.ORANGE,
-                                                   max_data_points=15 * 60 / LOGGER_PERIOD)
-        self.bin_15_minutes = dashio.TimeGraphLine('Bin',
-                                                   dashio.TimeGraphLineType.BOOL,
-                                                   transparency=0.45,
-                                                   colour=dashio.Colour.YELLOW,
-                                                   max_data_points=15 * 60 / LOGGER_PERIOD)
-        self.am_pm_15_minutes = dashio.TimeGraphLine('Hour',
-                                                     dashio.TimeGraphLineType.BOOL,
-                                                     transparency=0.30,
-                                                     colour=dashio.Colour.SILVER,
-                                                     max_data_points=15 * 60 / LOGGER_PERIOD)
-        self.gph_15_minutes.add_line('line', self.line_15_minutes)
-        self.gph_15_minutes.add_line('Bar', self.bar_15_minutes)
-        self.gph_15_minutes.add_line('Bin', self.bin_15_minutes)
-        self.gph_15_minutes.add_line('Hour', self.am_pm_15_minutes)
+        self.line_15_minutes = dashio.TimeGraphLine(
+            "Line", dashio.TimeGraphLineType.LINE, colour=dashio.Colour.BLACK, max_data_points=15 * 60 / LOGGER_PERIOD
+        )
+        self.bar_15_minutes = dashio.TimeGraphLine(
+            "Bar",
+            dashio.TimeGraphLineType.BAR,
+            transparency=0.45,
+            colour=dashio.Colour.ORANGE,
+            max_data_points=15 * 60 / LOGGER_PERIOD,
+        )
+        self.bin_15_minutes = dashio.TimeGraphLine(
+            "Bin",
+            dashio.TimeGraphLineType.BOOL,
+            transparency=0.45,
+            colour=dashio.Colour.YELLOW,
+            max_data_points=15 * 60 / LOGGER_PERIOD,
+        )
+        self.am_pm_15_minutes = dashio.TimeGraphLine(
+            "Hour",
+            dashio.TimeGraphLineType.BOOL,
+            transparency=0.30,
+            colour=dashio.Colour.SILVER,
+            max_data_points=15 * 60 / LOGGER_PERIOD,
+        )
+        self.gph_15_minutes.add_line("line", self.line_15_minutes)
+        self.gph_15_minutes.add_line("Bar", self.bar_15_minutes)
+        self.gph_15_minutes.add_line("Bin", self.bin_15_minutes)
+        self.gph_15_minutes.add_line("Hour", self.am_pm_15_minutes)
         self.gph_15_minutes.message_rx_event += self.gph_15_minutes_event_handler
         self.ic.add_control(self.gph_15_minutes)
 
@@ -199,5 +183,5 @@ def main():
     tc = TestControls()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
