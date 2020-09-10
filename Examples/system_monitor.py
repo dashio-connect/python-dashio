@@ -166,8 +166,8 @@ def main():
         cpu_data = psutil.cpu_percent(percpu=True)
 
         i = 0
-        for l in cpu_core_line_array:
-            l.add_data_point(cpu_data[i])
+        for line in cpu_core_line_array:
+            line.add_data_point(cpu_data[i])
             i += 1
         gph_cpu.send_data()
         hd_dial.dial_value = psutil.disk_usage("/").percent
