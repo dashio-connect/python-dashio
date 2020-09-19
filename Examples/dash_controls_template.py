@@ -60,6 +60,7 @@ class TestControls:
             "-c", "--connection_name", dest="connection", default="TestMQTT", help="IotDashboard Connection name"
         )
         parser.add_argument("-d", "--device_id", dest="device_id", default="00001", help="IotDashboard Device ID.")
+        parser.add_argument("-n", "--device_name", dest="device_name", default="Template", help="IotDashboard Device name alias.")
         parser.add_argument("-u", "--username", help="MQTT Username", dest="username", default="")
         parser.add_argument("-w", "--password", help="MQTT Password", default="")
         parser.add_argument("-l", "--logfile", dest="logfilename", default="", help="logfile location", metavar="FILE")
@@ -81,7 +82,7 @@ class TestControls:
         logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
 
         self.ic = dashio.mqttConnectionThread(
-            args.connection, args.device_id, args.server, args.port, args.username, args.password, use_ssl=True
+            args.connection, args.device_id, args.device_name, args.server, args.port, args.username, args.password, use_ssl=True
         )
         self.ic.start()
 
