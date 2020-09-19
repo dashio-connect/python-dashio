@@ -17,9 +17,8 @@ class TestControls:
         self.shutdown = True
 
     def init_logging(self, logfilename, level):
-        if level == 0:
-            log_level = logging.WARN
-        elif level == 1:
+        log_level = logging.WARN
+        if level == 1:
             log_level = logging.INFO
         elif level == 2:
             log_level = logging.DEBUG
