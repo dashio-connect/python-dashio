@@ -1,4 +1,5 @@
 from .mqttconnection import mqttConnectionThread
+from .tcpconnection import tcpConnectionThread
 from .iotcontrol.enums import (
     Colour,
     Icon,
