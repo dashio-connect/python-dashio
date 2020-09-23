@@ -37,7 +37,7 @@ def parse_commandline_arguments():
         "-c", "--connection_name", dest="connection", default="NETWORK_TRAFFIC", help="IotDashboard Connection name"
     )
     parser.add_argument("-d", "--device_id", dest="device_id", default="00001", help="IotDashboard Device ID.")
-    parser.add_argument("-n", "--device_name", dest="device_name", default="SystemMon", help="IotDashboard Device name alias.")
+    parser.add_argument("-n", "--device_name", dest="device_name", default="TestMap", help="IotDashboard Device name alias.")
     parser.add_argument("-u", "--username", help="MQTT Username", dest="username", default="")
     parser.add_argument("-w", "--password", help="MQTT Password", default="")
     parser.add_argument(
