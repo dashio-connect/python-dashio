@@ -37,7 +37,6 @@ class tcpConnectionThread(threading.Thread):
                 all_status += self.control_dict[key].get_state()
             except TypeError:
                 pass
-        logging.debug(all_status)
         return all_status
 
     def __make_cfg(self):
@@ -47,7 +46,6 @@ class tcpConnectionThread(threading.Thread):
             all_cfg += self.control_dict[key].get_cfg()
         for key in self.alarm_dict.keys():
             all_cfg += self.alarm_dict[key].get_cfg()
-        logging.debug(all_cfg)
         return all_cfg
 
     def send_popup_message(self, title, header, message):
@@ -108,8 +106,7 @@ class tcpConnectionThread(threading.Thread):
             connection_name {str} --  The connection name as advertised to iotdashboard.
             device_id {str} -- A string to uniquely identify the device connection. (In case of other connections with the same name.)
             device_name {str} -- A string for iotdashboard to use as an alias for the connection.
-            host {str} -- The server name of the mqtt host.
-            port {int} -- Port number to connect to.
+            url {str} -- The address and port to set up a connection.
 
         Keyword Arguments:
             watch_dog {int} -- Time in seconds between watch dog signals to iotdashboard.
@@ -151,7 +148,7 @@ class tcpConnectionThread(threading.Thread):
             if self.socket in socks:
                 id = self.socket.recv()
                 if id not in self.socket_ids:
-                    logging.debug("ID: " + str(id))
+                    logging.debug("Added Socket ID: " + str(id))
                     self.socket_ids.append(id)
                 data = self.socket.recv()
                 message = str(data, "utf-8")
@@ -164,6 +161,7 @@ class tcpConnectionThread(threading.Thread):
                         self.socket.send_string(reply)
                 else:
                     if id in self.socket_ids:
+                        logging.debug("Removed Socket ID: " + str(id))
                         self.socket_ids.remove(id)
             time.sleep(0.1)
 
