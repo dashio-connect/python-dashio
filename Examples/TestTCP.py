@@ -90,9 +90,8 @@ class TestControls:
         self.sldr_dbl_cntrl.bar2_value = float(msg[1])
 
     def text_cntrl_message_handler(self, msg):
-        self.alarm_ctrl.body = msg[1]
-        self.alarm_ctrl.send()
-        self.text_cntrl.text = "Alarm sent: " + msg[1]
+        self.ic.send_popup_message("TCPTest", "Text Box message", msg[1])
+        self.text_cntrl.text = "Popup sent: " + msg[1]
         logging.info(msg)
 
     def selector_ctrl_handler(self, msg):
