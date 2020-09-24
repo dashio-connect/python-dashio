@@ -116,7 +116,7 @@ class tcpConnectionThread(threading.Thread):
                                Set to 0 to not send watchdog signal. (default: {60})
         """
 
-        threading.Thread.__init__(self)
+        threading.Thread.__init__(self, daemon=True)
         self.context = context or zmq.Context.instance()
         self.socket = self.context.socket(zmq.STREAM)
         self.socket.bind(url)
