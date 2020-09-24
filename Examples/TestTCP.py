@@ -113,8 +113,9 @@ class TestControls:
 
         self.connection = args.connection
 
-        self.page_test = dashio.Page("TestPage", "Testing Pages", 1)
-        self.up_btn = dashio.Button("UP_BTN")
+        
+        self.page_test = dashio.Page("TestTCP", "Testing TCP", 1)
+        self.up_btn = dashio.Button("UP_BTN", control_position=dashio.ControlPosition(0.05, 0.02857, 0.2, 0.114286))
         self.up_btn.btn_state = dashio.ButtonState.OFF
         self.up_btn.icon_name = dashio.Icon.UP
         self.up_btn.on_colour = dashio.Colour.GREEN
@@ -125,7 +126,7 @@ class TestControls:
         self.ic.add_control(self.up_btn)
         self.page_test.add_control(self.up_btn)
 
-        self.down_btn = dashio.Button("DOWN_BTN")
+        self.down_btn = dashio.Button("DOWN_BTN", control_position=dashio.ControlPosition(0.05, 0.771429, 0.2, 0.114286))
         self.down_btn.btn_state = dashio.ButtonState.OFF
         self.down_btn.icon_name = dashio.Icon.DOWN
         self.down_btn.on_colour = dashio.Colour.GREEN
@@ -136,7 +137,7 @@ class TestControls:
         self.ic.add_control(self.down_btn)
         self.page_test.add_control(self.down_btn)
 
-        self.sldr_cntrl = dashio.SliderSingleBar("SLDR")
+        self.sldr_cntrl = dashio.SliderSingleBar("SLDR", control_position=dashio.ControlPosition(0.05, 0.1428567, 0.2, 0.628571))
         self.sldr_cntrl.title = "Slider"
         self.sldr_cntrl.max = 10
         self.sldr_cntrl.slider_enabled = True
@@ -145,7 +146,7 @@ class TestControls:
         self.ic.add_control(self.sldr_cntrl)
         self.page_test.add_control(self.sldr_cntrl)
 
-        self.sldr_dbl_cntrl = dashio.SliderDoubleBar("SLDR_DBL")
+        self.sldr_dbl_cntrl = dashio.SliderDoubleBar("SLDR_DBL", control_position=dashio.ControlPosition(0.75, 0.028571, 0.2, 0.857143) )
         self.sldr_dbl_cntrl.title = "Slider Double"
         self.sldr_dbl_cntrl.max = 5
         self.sldr_dbl_cntrl.slider_enabled = True
@@ -154,7 +155,7 @@ class TestControls:
         self.ic.add_control(self.sldr_dbl_cntrl)
         self.page_test.add_control(self.sldr_dbl_cntrl)
 
-        self.knb_control = dashio.Knob("KNB")
+        self.knb_control = dashio.Knob("KNB", control_position=dashio.ControlPosition(0.25, 0.171429, 0.5, 0.2))
         self.knb_control.title = "A Knob"
         self.knb_control.max = 10
         self.knb_control.red_value = 10
@@ -162,13 +163,13 @@ class TestControls:
         self.ic.add_control(self.knb_control)
         self.page_test.add_control(self.knb_control)
 
-        self.dl_control = dashio.Dial("DIAL1")
+        self.dl_control = dashio.Dial("DIAL1", control_position=dashio.ControlPosition(0.25, 0.571429, 0.5, 0.2))
         self.dl_control.title = "A Dial"
         self.dl_control.max = 10
         self.ic.add_control(self.dl_control)
         self.page_test.add_control(self.dl_control)
 
-        self.text_cntrl = dashio.TextBox("TXT1")
+        self.text_cntrl = dashio.TextBox("TXT1", control_position=dashio.ControlPosition(0.25, 0.771429, 0.5, 0.114286))
         self.text_cntrl.text = "Hello"
         self.text_cntrl.title = "A text control"
         self.text_cntrl.keyboard_type = dashio.Keyboard.ALL_CHARS
@@ -179,12 +180,12 @@ class TestControls:
 
         self.alarm_ctrl = dashio.Alarm("TestingAlarms", "Test Alarms", "Hello", "Test of Shared Alarms")
         self.ic.add_control(self.alarm_ctrl)
-        self.comp_control = dashio.Compass("COMP1")
+        self.comp_control = dashio.Compass("COMP1", control_position=dashio.ControlPosition(0.25, 0.371429, 0.5, 0.2))
         self.comp_control.title = "A compass"
         self.ic.add_control(self.comp_control)
         self.page_test.add_control(self.comp_control)
 
-        self.selector_ctrl = dashio.Selector("TestSelector", "A Selector")
+        self.selector_ctrl = dashio.Selector("TestSelector", "A Selector", control_position=dashio.ControlPosition(0.25, 0.028571, 0.5, 0.142857))
         self.selector_ctrl.message_rx_event += self.selector_ctrl_handler
         self.selector_ctrl.add_selection("First")
         self.selector_ctrl.add_selection("Second")
@@ -194,7 +195,7 @@ class TestControls:
         self.ic.add_control(self.selector_ctrl)
         self.page_test.add_control(self.selector_ctrl)
 
-        self.label_ctrl = dashio.Label("LabelID", "A label", text="Hello from Label", text_colour=dashio.Colour.BLUE)
+        self.label_ctrl = dashio.Label("LabelID", "A label", text="Hello from Label", text_colour=dashio.Colour.BLUE, control_position=dashio.ControlPosition(0.0, 0.0, 1, 0.914286))
         self.ic.add_control(self.label_ctrl)
         self.page_test.add_control(self.label_ctrl)
         self.ic.add_control(self.page_test)
