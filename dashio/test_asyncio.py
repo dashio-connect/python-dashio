@@ -1,29 +1,36 @@
 import asyncio
 
+class ProcServer:
+    async def _transfer(self, src, dest):
+        while True:
+            data = await src.read(1024)
+            if data == b'':
+                break
+            dest.write(data)
 
-async def handle_echo(reader, writer):
-    data = await reader.read(100)
-    message = data.decode()
-    addr = writer.get_extra_info("peername")
+    async def _handle_client(self, r, w):
+        loop = asyncio.get_event_loop()
+        print(f'Connection from {w.get_extra_info("peername")}')
+        child = await asyncio.create_subprocess_exec(
+            *TARGET_PROGRAM, stdin=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE)
+        sock_to_child = loop.create_task(self._transfer(r, child.stdin))
+        child_to_sock = loop.create_task(self._transfer(child.stdout, w))
+        await child.wait()
+        sock_to_child.cancel()
+        child_to_sock.cancel()
+        w.write(b'Process exited with status %d\n' % child.returncode)
+        w.close()
 
-    print(f"Received {message!r} from {addr!r}")
+    async def start_serving(self):
+        await asyncio.start_server(self._handle_client,
+                                   '0.0.0.0', SERVER_PORT)
 
-    print(f"Send: {message!r}")
-    writer.write(data)
-    await writer.drain()
+SERVER_PORT    = 6666
+TARGET_PROGRAM = ['./test']
 
-    print("Close the connection")
-    writer.close()
-
-
-async def main():
-    server = await asyncio.start_server(handle_echo, "127.0.0.1", 8888)
-
-    addr = server.sockets[0].getsockname()
-    print(f"Serving on {addr}")
-
-    async with server:
-        await server.serve_forever()
-
-
-asyncio.run(main())
+if __name__ == '__main__':
+    loop = asyncio.get_event_loop()
+    server = ProcServer()
+    loop.run_until_complete(server.start_serving())
+    loop.run_forever()

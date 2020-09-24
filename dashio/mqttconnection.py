@@ -28,8 +28,11 @@ class mqttConnectionThread(threading.Thread):
         elif cntrl_type == "CFG":
             self.mqttc.publish(self.data_topic, self.__make_cfg())
         else:
-            key = cntrl_type + "_" + data_array[2]
-            self.control_dict[key].message_rx_event(data_array[2:])
+            try:
+                key = cntrl_type + "_" + data_array[2]
+                self.control_dict[key].message_rx_event(data_array[2:])
+            except KeyError:
+                pass
 
     def __on_publish(self, client, obj, mid):
         self.watch_dog_counter = 1
@@ -48,8 +51,7 @@ class mqttConnectionThread(threading.Thread):
         return all_status
 
     def __make_cfg(self):
-        all_cfg = ""
-        all_cfg += '\tCFG\tCFG\t{{"numPages": {}}}\n'.format(self.number_of_pages)
+        all_cfg = '\tCFG\tDVCE\t{{"numPages": {}}}\n'.format(self.number_of_pages)
         for key in self.control_dict.keys():
             all_cfg += self.control_dict[key].get_cfg()
         for key in self.alarm_dict.keys():
