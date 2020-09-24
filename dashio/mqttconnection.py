@@ -141,7 +141,7 @@ class mqttConnectionThread(threading.Thread):
                                Set to 0 to not send watchdog signal. (default: {60})
         """
 
-        threading.Thread.__init__(self)
+        threading.Thread.__init__(self, daemon=True)
         self.control_dict = {}
         self.alarm_dict = {}
         self.number_of_pages = 0
