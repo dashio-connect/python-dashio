@@ -292,6 +292,8 @@ def main():
 
     adapter_props = dbus.Interface(adapter_obj, "org.freedesktop.DBus.Properties")
 
+    # powered property on the controller to on
+    adapter_props.Set("org.bluez.Adapter1", "Powered", dbus.Boolean(1))
     # Get manager objs
     service_manager = dbus.Interface(adapter_obj, GATT_MANAGER_IFACE)
     ad_manager = dbus.Interface(adapter_obj, LE_ADVERTISING_MANAGER_IFACE)
@@ -318,8 +320,6 @@ def main():
     service_manager.RegisterApplication(
         app.get_path(), {}, reply_handler=register_app_cb, error_handler=[register_app_error_cb],
     )
-    # powered property on the controller to on
-    adapter_props.Set("org.bluez.Adapter1", "Powered", dbus.Boolean(1))
 
     agent_manager.RequestDefaultAgent(AGENT_PATH)
 
