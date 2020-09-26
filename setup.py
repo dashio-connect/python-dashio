@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="dashio",
-    version="1.42.2",
+    version="1.42.3",
     # py_modules=['iotcontrol', 'iotconnection'],
     description="Dashio interface library",
     long_description=long_description,
@@ -17,5 +17,5 @@ setup(
     packages=find_packages(),
     license="MIT",
     classifiers=["Programming Language :: Python :: 3", "Operating System :: OS Independent"],
-    install_requires=["paho-mqtt", "zmq", "dateutil"],
+    install_requires=["paho-mqtt", "zmq", "python-dateutil"],
 )
