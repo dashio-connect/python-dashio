@@ -10,14 +10,14 @@ from .iotcontrol.name import Name
 class tcpConnectionThread(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via TCP."""
 
-    def __on_message(self, data):
+    def __on_message(self, id, data):
         data_array = data.split("\t")
         cntrl_type = data_array[0]
         reply = ""
         if cntrl_type == "CONNECT":
             reply = "\tCONNECT\t{}\t{}\t{}\n".format(self.device_name, self.device_id, self.name)
         elif cntrl_type == "WHO":
-            reply = self.who
+           reply = self.who
         elif cntrl_type == "STATUS":
             reply = self.__make_status()
         elif cntrl_type == "CFG":
@@ -31,22 +31,21 @@ class tcpConnectionThread(threading.Thread):
         return reply
 
     def __make_status(self):
-        all_status = ""
+        reply = ""
         for key in self.control_dict.keys():
             try:
-                all_status += self.control_dict[key].get_state()
+                reply += self.control_dict[key].get_state()
             except TypeError:
                 pass
-        return all_status
+        return reply
 
     def __make_cfg(self):
-        all_cfg = ""
-        all_cfg += '\tCFG\tDVCE\t{{"numPages": {}}}\n'.format(self.number_of_pages)
+        reply = '\tCFG\tDVCE\t{{"numPages": {}}}\n'.format(self.number_of_pages)
         for key in self.control_dict.keys():
-            all_cfg += self.control_dict[key].get_cfg()
+            reply += self.control_dict[key].get_cfg()
         for key in self.alarm_dict.keys():
-            all_cfg += self.alarm_dict[key].get_cfg()
-        return all_cfg
+            reply += self.alarm_dict[key].get_cfg()
+        return reply
 
     def send_popup_message(self, title, header, message):
         """Send a popup message to the Dash server.
@@ -63,8 +62,16 @@ class tcpConnectionThread(threading.Thread):
         data = "\tMSSG\t{}\t{}\t{}\n".format(title, header, message)
         logging.debug("Tx: %s", data)
         for id in self.socket_ids:
+            self._zmq_send(id, data)
+
+    def _zmq_send(self, id, data):
+        logging.debug("TX: " + data)
+        try:
             self.socket.send(id, zmq.SNDMORE)
             self.socket.send_string(data, zmq.NOBLOCK)
+        except zmq.error.ZMQError:
+            logging.debug("Sending TX Error.")
+        time.sleep(0.1)
 
     def send_data(self, data):
         """Send data to the Dash server.
@@ -76,13 +83,8 @@ class tcpConnectionThread(threading.Thread):
         """
 
         for id in self.socket_ids:
-
             logging.debug("ID: %s, Tx: %s", str(id), data)
-            try:
-                self.socket.send(id, zmq.SNDMORE)
-                self.socket.send_string(data, zmq.NOBLOCK)
-            except zmq.error.ZMQError:
-                logging.debug("Sending TX Error.")
+            self._zmq_send(id, data)
 
     def add_control(self, iot_control):
         """Add a control to the connection.
@@ -154,14 +156,9 @@ class tcpConnectionThread(threading.Thread):
                 message = str(data, "utf-8")
                 logging.debug("RX: " + message)
                 if message:
-                    reply = self.__on_message(message.strip())
+                    reply = self.__on_message(id, message.strip())
                     if reply:
-                        logging.debug("TX: " + reply)
-                        try:
-                            self.socket.send(id, zmq.SNDMORE)
-                            self.socket.send_string(reply, zmq.NOBLOCK)
-                        except  zmq.error.ZMQError:
-                            logging.debug("Sending TX Error.")
+                        self._zmq_send(id, reply)
                 else:
                     if id in self.socket_ids:
                         logging.debug("Removed Socket ID: " + str(id))
@@ -169,10 +166,6 @@ class tcpConnectionThread(threading.Thread):
             time.sleep(0.1)
 
         for id in self.socket_ids:
-            try:
-                self.socket.send(id, zmq.SNDMORE)
-                self.socket.send_string("", zmq.NOBLOCK)
-            except zmq.error.ZMQError:
-                pass
+            self._zmq_send(id, "")
         self.socket.close()
         self.context.term()
