@@ -1,16 +1,12 @@
 #!/bin/python3
 
 import time
-import datetime
 import random
 import argparse
-import sys
 import signal
 import dashio
-import platform
-import psutil
 import logging
-
+import platform
 
 class TestControls:
     def signal_cntrl_c(self, os_signal, os_frame):
@@ -110,9 +106,10 @@ class TestControls:
         self.ic = dashio.tcpConnectionThread(args.connection, args.device_id, args.device_name, url=args.server)
 
         self.connection = args.connection
+        self.page_name = "TestTCP: " + platform.node()
 
         
-        self.page_test = dashio.Page("TestTCP", "Testing TCP", 1)
+        self.page_test = dashio.Page("TestTCP", self.page_name, 1)
         self.up_btn = dashio.Button("UP_BTN", control_position=dashio.ControlPosition(0.05, 0.02857, 0.2, 0.114286))
         self.up_btn.btn_state = dashio.ButtonState.OFF
         self.up_btn.icon_name = dashio.Icon.UP

@@ -2,13 +2,9 @@
 
 import time
 import datetime
-import random
 import argparse
-import sys
 import signal
 import dashio
-import platform
-import psutil
 import logging
 import Adafruit_BBIO.ADC as ADC
 

@@ -107,8 +107,7 @@ class TestControls:
 
         self.connection = args.connection
 
-        
-        self.page_test = dashio.Page("TestTCP", "Testing TCP", 1)
+        self.page_test = dashio.Page("Buggy", "Testing TCP", 1)
         self.up_btn = dashio.Button("UP_BTN", control_position=dashio.ControlPosition(0.05, 0.02857, 0.2, 0.114286))
         self.up_btn.btn_state = dashio.ButtonState.OFF
         self.up_btn.icon_name = dashio.Icon.UP
