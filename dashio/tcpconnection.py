@@ -41,7 +41,7 @@ class tcpConnectionThread(threading.Thread):
 
     def __make_cfg(self):
         all_cfg = ""
-        all_cfg += '\tCFG\tCFG\t{{"numPages": {}}}\n'.format(self.number_of_pages)
+        all_cfg += '\tCFG\tDVCE\t{{"numPages": {}}}\n'.format(self.number_of_pages)
         for key in self.control_dict.keys():
             all_cfg += self.control_dict[key].get_cfg()
         for key in self.alarm_dict.keys():
@@ -64,7 +64,7 @@ class tcpConnectionThread(threading.Thread):
         logging.debug("Tx: %s", data)
         for id in self.socket_ids:
             self.socket.send(id, zmq.SNDMORE)
-            self.socket.send_string(data)
+            self.socket.send_string(data, zmq.NOBLOCK)
 
     def send_data(self, data):
         """Send data to the Dash server.
@@ -80,9 +80,9 @@ class tcpConnectionThread(threading.Thread):
             logging.debug("ID: %s, Tx: %s", str(id), data)
             try:
                 self.socket.send(id, zmq.SNDMORE)
-                self.socket.send_string(data)
+                self.socket.send_string(data, zmq.NOBLOCK)
             except zmq.error.ZMQError:
-                pass
+                logging.debug("Sending TX Error.")
 
     def add_control(self, iot_control):
         """Add a control to the connection.
@@ -157,8 +157,11 @@ class tcpConnectionThread(threading.Thread):
                     reply = self.__on_message(message.strip())
                     if reply:
                         logging.debug("TX: " + reply)
-                        self.socket.send(id, zmq.SNDMORE)
-                        self.socket.send_string(reply)
+                        try:
+                            self.socket.send(id, zmq.SNDMORE)
+                            self.socket.send_string(reply, zmq.NOBLOCK)
+                        except  zmq.error.ZMQError:
+                            logging.debug("Sending TX Error.")
                 else:
                     if id in self.socket_ids:
                         logging.debug("Removed Socket ID: " + str(id))
@@ -168,7 +171,7 @@ class tcpConnectionThread(threading.Thread):
         for id in self.socket_ids:
             try:
                 self.socket.send(id, zmq.SNDMORE)
-                self.socket.send_string("")
+                self.socket.send_string("", zmq.NOBLOCK)
             except zmq.error.ZMQError:
                 pass
         self.socket.close()
