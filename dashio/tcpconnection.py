@@ -71,7 +71,7 @@ class tcpConnectionThread(threading.Thread):
             self.socket.send_string(data, zmq.NOBLOCK)
         except zmq.error.ZMQError:
             logging.debug("Sending TX Error.")
-        time.sleep(0.1)
+        time.sleep(0.01)
 
     def send_data(self, data):
         """Send data to the Dash server.
