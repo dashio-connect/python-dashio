@@ -205,7 +205,7 @@ class Descriptor(dbus.service.Object):
         dbus.service.Object.__init__(self, bus, self.path)
 
     def get_properties(self):
-        return {GATT_DESC_IFACE: {"Characteristic": self.chrc.get_path(), "UUID": self.uuid, "Flags": self.flags,}}
+        return {GATT_DESC_IFACE: {"Characteristic": self.chrc.get_path(), "UUID": self.uuid, "Flags": self.flags, }}
 
     def get_path(self):
         return dbus.ObjectPath(self.path)
