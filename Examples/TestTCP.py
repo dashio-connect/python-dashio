@@ -204,8 +204,8 @@ class TestControls:
             "LabelID",
             "A label",
             text="Hello from Label",
-            text_colour=dashio.Colour.BLUE,
-            control_position=dashio.ControlPosition(0.0, 0.0, 1, 0.914286),
+            colour=dashio.Colour.BLUE,
+            control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.914286),
         )
         self.ic.add_control(self.label_ctrl)
         self.page_test.add_control(self.label_ctrl)
