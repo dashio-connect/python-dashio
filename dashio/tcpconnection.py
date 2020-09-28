@@ -17,7 +17,7 @@ class tcpConnectionThread(threading.Thread):
         if cntrl_type == "CONNECT":
             reply = "\tCONNECT\t{}\t{}\t{}\n".format(self.device_name, self.device_id, self.name)
         elif cntrl_type == "WHO":
-           reply = self.who
+            reply = self.who
         elif cntrl_type == "STATUS":
             reply = self.__make_status()
         elif cntrl_type == "CFG":
@@ -71,6 +71,9 @@ class tcpConnectionThread(threading.Thread):
             self.socket.send_string(data, zmq.NOBLOCK)
         except zmq.error.ZMQError:
             logging.debug("Sending TX Error.")
+            self.socket.send(id, zmq.SNDMORE)
+            self.socket.send("")
+            self.socket_ids.remove(id)
         time.sleep(0.1)
 
     def send_data(self, data):
@@ -149,10 +152,10 @@ class tcpConnectionThread(threading.Thread):
 
             if self.socket in socks:
                 id = self.socket.recv()
+                data = self.socket.recv()
                 if id not in self.socket_ids:
                     logging.debug("Added Socket ID: " + str(id))
                     self.socket_ids.append(id)
-                data = self.socket.recv()
                 message = str(data, "utf-8")
                 logging.debug("RX: " + message)
                 if message:
