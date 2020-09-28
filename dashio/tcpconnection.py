@@ -11,13 +11,20 @@ class tcpConnectionThread(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via TCP."""
 
     def __on_message(self, id, data):
+        command_array = data.split("\n")
+        reply = ""
+        for ca in command_array:
+            reply += self.__on_command(id, ca.strip())
+        return reply
+
+    def __on_command(self, id, data):
         data_array = data.split("\t")
         cntrl_type = data_array[0]
         reply = ""
         if cntrl_type == "CONNECT":
             reply = "\tCONNECT\t{}\t{}\t{}\n".format(self.device_name, self.device_id, self.name)
         elif cntrl_type == "WHO":
-           reply = self.who
+            reply = self.who
         elif cntrl_type == "STATUS":
             reply = self.__make_status()
         elif cntrl_type == "CFG":
@@ -65,13 +72,13 @@ class tcpConnectionThread(threading.Thread):
             self._zmq_send(id, data)
 
     def _zmq_send(self, id, data):
-        logging.debug("TX: " + data)
+        logging.debug("ID: %s, Tx: %s", str(id), data.rstrip())
         try:
             self.socket.send(id, zmq.SNDMORE)
             self.socket.send_string(data, zmq.NOBLOCK)
-        except zmq.error.ZMQError:
-            logging.debug("Sending TX Error.")
-        time.sleep(0.01)
+        except zmq.error.ZMQError as e:
+            logging.debug("Sending TX Error: " + str(e))
+            self.socket_ids.remove(id)
 
     def send_data(self, data):
         """Send data to the Dash server.
@@ -83,7 +90,6 @@ class tcpConnectionThread(threading.Thread):
         """
 
         for id in self.socket_ids:
-            logging.debug("ID: %s, Tx: %s", str(id), data)
             self._zmq_send(id, data)
 
     def add_control(self, iot_control):
@@ -119,6 +125,7 @@ class tcpConnectionThread(threading.Thread):
         self.context = context or zmq.Context.instance()
         self.socket = self.context.socket(zmq.STREAM)
         self.socket.bind(url)
+        self.socket.set(zmq.SNDTIMEO, 5)
 
         # Initialize poll set
         self.poller = zmq.Poller()
@@ -149,12 +156,12 @@ class tcpConnectionThread(threading.Thread):
 
             if self.socket in socks:
                 id = self.socket.recv()
+                data = self.socket.recv()
                 if id not in self.socket_ids:
                     logging.debug("Added Socket ID: " + str(id))
                     self.socket_ids.append(id)
-                data = self.socket.recv()
                 message = str(data, "utf-8")
-                logging.debug("RX: " + message)
+                logging.debug("RX: " + message.rstrip())
                 if message:
                     reply = self.__on_message(id, message.strip())
                     if reply:
