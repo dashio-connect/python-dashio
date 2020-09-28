@@ -204,6 +204,7 @@ class TestControls:
             "LabelID",
             "A label",
             text="Hello from Label",
+            style=dashio.LabelStyle.GROUP,
             colour=dashio.Colour.BLUE,
             control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.914286)
         )
