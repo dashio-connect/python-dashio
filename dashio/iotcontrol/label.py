@@ -17,7 +17,7 @@ class Label(Control):
         super().__init__("LBL", control_id, control_position=control_position)
         self.title = control_title
         self.text = text
-        self.colour = text_colour
+        self.colour = colour
         self.style = style
         self._state_str = ""
 
@@ -37,3 +37,11 @@ class Label(Control):
     @colour.setter
     def colour(self, val: Colour):
         self._cfg["colour"] = str(val.value)
+
+    @property
+    def text(self):
+        return self._cfg["text"]
+
+    @text.setter
+    def text(self, val):
+        self._cfg["text"] = val
