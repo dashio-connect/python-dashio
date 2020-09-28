@@ -118,7 +118,6 @@ class TestControls:
         self.up_btn.text_colour = dashio.Colour.WHITE
         self.up_btn.title = "Up"
         self.up_btn.message_rx_event += self.up_btn_event_handler
-        self.ic.add_control(self.up_btn)
         self.page_test.add_control(self.up_btn)
 
         self.down_btn = dashio.Button(
@@ -131,7 +130,6 @@ class TestControls:
         self.down_btn.text_colour = dashio.Colour.WHITE
         self.down_btn.title = "Down"
         self.down_btn.message_rx_event += self.down_btn_event_handler
-        self.ic.add_control(self.down_btn)
         self.page_test.add_control(self.down_btn)
 
         self.sldr_cntrl = dashio.SliderSingleBar(
@@ -142,7 +140,6 @@ class TestControls:
         self.sldr_cntrl.slider_enabled = True
         self.sldr_cntrl.red_value
         self.sldr_cntrl.message_rx_event += self.slider_event_handler
-        self.ic.add_control(self.sldr_cntrl)
         self.page_test.add_control(self.sldr_cntrl)
 
         self.sldr_dbl_cntrl = dashio.SliderDoubleBar(
@@ -153,7 +150,6 @@ class TestControls:
         self.sldr_dbl_cntrl.slider_enabled = True
         self.sldr_dbl_cntrl.red_value
         self.sldr_dbl_cntrl.message_rx_event += self.slider_dbl_event_handler
-        self.ic.add_control(self.sldr_dbl_cntrl)
         self.page_test.add_control(self.sldr_dbl_cntrl)
 
         self.knb_control = dashio.Knob("KNB", control_position=dashio.ControlPosition(0.25, 0.171429, 0.5, 0.2))
@@ -161,13 +157,11 @@ class TestControls:
         self.knb_control.max = 10
         self.knb_control.red_value = 10
         self.knb_control.message_rx_event += self.knob_event_handler
-        self.ic.add_control(self.knb_control)
         self.page_test.add_control(self.knb_control)
 
         self.dl_control = dashio.Dial("DIAL1", control_position=dashio.ControlPosition(0.25, 0.571429, 0.5, 0.2))
         self.dl_control.title = "A Dial"
         self.dl_control.max = 10
-        self.ic.add_control(self.dl_control)
         self.page_test.add_control(self.dl_control)
 
         self.text_cntrl = dashio.TextBox(
@@ -178,14 +172,12 @@ class TestControls:
         self.text_cntrl.keyboard_type = dashio.Keyboard.ALL_CHARS
         self.text_cntrl.close_key_board_on_send = True
         self.text_cntrl.message_rx_event += self.text_cntrl_message_handler
-        self.ic.add_control(self.text_cntrl)
         self.page_test.add_control(self.text_cntrl)
 
         self.alarm_ctrl = dashio.Alarm("TestingAlarms", "Test Alarms", "Hello", "Test of Shared Alarms")
         self.ic.add_control(self.alarm_ctrl)
         self.comp_control = dashio.Compass("COMP1", control_position=dashio.ControlPosition(0.25, 0.371429, 0.5, 0.2))
         self.comp_control.title = "A compass"
-        self.ic.add_control(self.comp_control)
         self.page_test.add_control(self.comp_control)
 
         self.selector_ctrl = dashio.Selector(
@@ -197,7 +189,7 @@ class TestControls:
         self.selector_ctrl.add_selection("Third")
         self.selector_ctrl.add_selection("Forth")
         self.selector_ctrl.add_selection("Fifth")
-        self.ic.add_control(self.selector_ctrl)
+
         self.page_test.add_control(self.selector_ctrl)
 
         self.label_ctrl = dashio.Label(
@@ -206,11 +198,22 @@ class TestControls:
             text="Hello from Label",
             style=dashio.LabelStyle.GROUP,
             colour=dashio.Colour.BLUE,
-            control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.914286)
+            control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.914286),
         )
-        self.ic.add_control(self.label_ctrl)
         self.page_test.add_control(self.label_ctrl)
+
+        self.ic.add_control(self.label_ctrl)
         self.ic.add_control(self.page_test)
+        self.ic.add_control(self.selector_ctrl)
+        self.ic.add_control(self.comp_control)
+        self.ic.add_control(self.text_cntrl)
+        self.ic.add_control(self.dl_control)
+        self.ic.add_control(self.knb_control)
+        self.ic.add_control(self.sldr_dbl_cntrl)
+        self.ic.add_control(self.sldr_cntrl)
+        self.ic.add_control(self.down_btn)
+        self.ic.add_control(self.up_btn)
+
         self.ic.start()
         while not self.shutdown:
             time.sleep(5)
