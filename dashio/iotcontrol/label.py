@@ -5,11 +5,20 @@ from .control import Control
 class Label(Control):
     """A Config only control"""
 
-    def __init__(self, control_id, control_title="A label", text="", text_colour=Colour.WHITE, control_position=None):
+    def __init__(
+        self,
+        control_id,
+        control_title="A label",
+        text="",
+        colour=Colour.WHITE,
+        style=LabelStyle.BASIC,
+        control_position=None,
+    ):
         super().__init__("LBL", control_id, control_position=control_position)
         self.title = control_title
         self.text = text
-        self.text_colour = text_colour
+        self.colour = text_colour
+        self.style = style
         self._state_str = ""
 
     @property
@@ -26,6 +35,5 @@ class Label(Control):
         return self._colour
 
     @colour.setter
-    def sent_text_colour(self, val: Colour):
-        self._colour = val
+    def colour(self, val: Colour):
         self._cfg["colour"] = str(val.value)
