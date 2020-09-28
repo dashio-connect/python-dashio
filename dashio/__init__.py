@@ -15,6 +15,7 @@ from .iotcontrol.enums import (
     TimeGraphTimeScale,
     TimeGraphPositionOfKey,
     ButtonState,
+    LabelStyle
 )
 from .iotcontrol.graph import Graph, GraphLine
 from .iotcontrol.slider_single_bar import SliderSingleBar
