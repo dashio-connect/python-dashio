@@ -69,8 +69,8 @@ class tcpConnectionThread(threading.Thread):
         try:
             self.socket.send(id, zmq.SNDMORE)
             self.socket.send_string(data, zmq.NOBLOCK)
-        except zmq.error.ZMQError:
-            logging.debug("Sending TX Error.")
+        except zmq.error.ZMQError as e:
+            logging.debug("Sending TX Error: " + e)
             self.socket.send(id, zmq.SNDMORE)
             self.socket.send("")
             self.socket_ids.remove(id)
@@ -151,12 +151,17 @@ class tcpConnectionThread(threading.Thread):
             socks = dict(self.poller.poll())
 
             if self.socket in socks:
-                id = self.socket.recv()
-                data = self.socket.recv()
+                try:
+                    id = self.socket.recv
+                    message = self.socket.recv_string()
+                except zmq.error.ZMQError as e:
+                    logging.debug("Sending RX Error: " + e)
+                    self.socket.send(id, zmq.SNDMORE)
+                    self.socket.send("")
+                    continue
                 if id not in self.socket_ids:
                     logging.debug("Added Socket ID: " + str(id))
                     self.socket_ids.append(id)
-                message = str(data, "utf-8")
                 logging.debug("RX: " + message)
                 if message:
                     reply = self.__on_message(id, message.strip())
