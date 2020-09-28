@@ -20,13 +20,6 @@ class tcpClientThread(threading.Thread):
         time.sleep(0.1)
 
     def send_data(self, data):
-        """Send data to the Dash server.
-
-        Parameters
-        ----------
-        data : str
-            Data to be sent to the server
-        """
         self._zmq_send(self.id, data)
 
     def _connect(self, url):
@@ -38,6 +31,7 @@ class tcpClientThread(threading.Thread):
         threading.Thread.__init__(self, daemon=True)
         self.context = context or zmq.Context.instance()
         self.socket = self.context.socket(zmq.STREAM)
+        self.socket.set(zmq.SNDTIMEO, 5)
         self._connect("tcp://localhost:5000")
 
         self.id = self.socket.getsockopt(zmq.IDENTITY)
@@ -75,7 +69,7 @@ def init_logging(logfilename, level):
     elif level == 2:
         log_level = logging.DEBUG
     if not logfilename:
-        formatter = logging.Formatter("%(asctime)s.%(msecs)03d, %(message)s")
+        formatter = logging.Formatter("%(asctime)s, %(message)s")
         handler = logging.StreamHandler()
         handler.setFormatter(formatter)
         logger = logging.getLogger()
@@ -83,10 +77,7 @@ def init_logging(logfilename, level):
         logger.setLevel(log_level)
     else:
         logging.basicConfig(
-            filename=logfilename,
-            level=log_level,
-            format="%(asctime)s.%(msecs)03d, %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
+            filename=logfilename, level=log_level, format="%(asctime)s, %(message)s", datefmt="%Y-%m-%d %H:%M:%S",
         )
     logging.info("==== Started ====")
 

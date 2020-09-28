@@ -77,11 +77,10 @@ class tcpConnectionThread(threading.Thread):
             self.socket.send(id, zmq.SNDMORE)
             self.socket.send_string(data, zmq.NOBLOCK)
         except zmq.error.ZMQError as e:
-            logging.debug("Sending TX Error: " + e)
+            logging.debug("Sending TX Error: " + str(e))
             self.socket.send(id, zmq.SNDMORE)
             self.socket.send("")
             self.socket_ids.remove(id)
-        time.sleep(0.1)
 
     def send_data(self, data):
         """Send data to the Dash server.
@@ -164,7 +163,7 @@ class tcpConnectionThread(threading.Thread):
                     logging.debug("Added Socket ID: " + str(id))
                     self.socket_ids.append(id)
                 message = str(data, "utf-8")
-                logging.debug("RX: " + message)
+                logging.debug("RX: " + message.rstrip())
                 if message:
                     reply = self.__on_message(id, message.strip())
                     if reply:
