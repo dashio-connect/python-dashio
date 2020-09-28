@@ -8,6 +8,7 @@ import dashio
 import logging
 import platform
 
+
 class TestControls:
     def signal_cntrl_c(self, os_signal, os_frame):
         self.shutdown = True
@@ -108,7 +109,6 @@ class TestControls:
         self.connection = args.connection
         self.page_name = "TestTCP: " + platform.node()
 
-        
         self.page_test = dashio.Page("TestTCP", self.page_name, 1)
         self.up_btn = dashio.Button("UP_BTN", control_position=dashio.ControlPosition(0.05, 0.02857, 0.2, 0.114286))
         self.up_btn.btn_state = dashio.ButtonState.OFF
@@ -121,7 +121,9 @@ class TestControls:
         self.ic.add_control(self.up_btn)
         self.page_test.add_control(self.up_btn)
 
-        self.down_btn = dashio.Button("DOWN_BTN", control_position=dashio.ControlPosition(0.05, 0.771429, 0.2, 0.114286))
+        self.down_btn = dashio.Button(
+            "DOWN_BTN", control_position=dashio.ControlPosition(0.05, 0.771429, 0.2, 0.114286)
+        )
         self.down_btn.btn_state = dashio.ButtonState.OFF
         self.down_btn.icon_name = dashio.Icon.DOWN
         self.down_btn.on_colour = dashio.Colour.GREEN
@@ -132,7 +134,9 @@ class TestControls:
         self.ic.add_control(self.down_btn)
         self.page_test.add_control(self.down_btn)
 
-        self.sldr_cntrl = dashio.SliderSingleBar("SLDR", control_position=dashio.ControlPosition(0.05, 0.1428567, 0.2, 0.628571))
+        self.sldr_cntrl = dashio.SliderSingleBar(
+            "SLDR", control_position=dashio.ControlPosition(0.05, 0.1428567, 0.2, 0.628571)
+        )
         self.sldr_cntrl.title = "Slider"
         self.sldr_cntrl.max = 10
         self.sldr_cntrl.slider_enabled = True
@@ -141,7 +145,9 @@ class TestControls:
         self.ic.add_control(self.sldr_cntrl)
         self.page_test.add_control(self.sldr_cntrl)
 
-        self.sldr_dbl_cntrl = dashio.SliderDoubleBar("SLDR_DBL", control_position=dashio.ControlPosition(0.75, 0.028571, 0.2, 0.857143) )
+        self.sldr_dbl_cntrl = dashio.SliderDoubleBar(
+            "SLDR_DBL", control_position=dashio.ControlPosition(0.75, 0.028571, 0.2, 0.857143)
+        )
         self.sldr_dbl_cntrl.title = "Slider Double"
         self.sldr_dbl_cntrl.max = 5
         self.sldr_dbl_cntrl.slider_enabled = True
@@ -164,7 +170,9 @@ class TestControls:
         self.ic.add_control(self.dl_control)
         self.page_test.add_control(self.dl_control)
 
-        self.text_cntrl = dashio.TextBox("TXT1", control_position=dashio.ControlPosition(0.25, 0.771429, 0.5, 0.114286))
+        self.text_cntrl = dashio.TextBox(
+            "TXT1", control_position=dashio.ControlPosition(0.25, 0.771429, 0.5, 0.114286)
+        )
         self.text_cntrl.text = "Hello"
         self.text_cntrl.title = "A text control"
         self.text_cntrl.keyboard_type = dashio.Keyboard.ALL_CHARS
@@ -180,7 +188,9 @@ class TestControls:
         self.ic.add_control(self.comp_control)
         self.page_test.add_control(self.comp_control)
 
-        self.selector_ctrl = dashio.Selector("TestSelector", "A Selector", control_position=dashio.ControlPosition(0.25, 0.028571, 0.5, 0.142857))
+        self.selector_ctrl = dashio.Selector(
+            "TestSelector", "A Selector", control_position=dashio.ControlPosition(0.25, 0.028571, 0.5, 0.142857)
+        )
         self.selector_ctrl.message_rx_event += self.selector_ctrl_handler
         self.selector_ctrl.add_selection("First")
         self.selector_ctrl.add_selection("Second")
@@ -190,7 +200,13 @@ class TestControls:
         self.ic.add_control(self.selector_ctrl)
         self.page_test.add_control(self.selector_ctrl)
 
-        self.label_ctrl = dashio.Label("LabelID", "A label", text="Hello from Label", text_colour=dashio.Colour.BLUE, control_position=dashio.ControlPosition(0.0, 0.0, 1, 0.914286))
+        self.label_ctrl = dashio.Label(
+            "LabelID",
+            "A label",
+            text="Hello from Label",
+            text_colour=dashio.Colour.BLUE,
+            control_position=dashio.ControlPosition(0.0, 0.0, 1, 0.914286),
+        )
         self.ic.add_control(self.label_ctrl)
         self.page_test.add_control(self.label_ctrl)
         self.ic.add_control(self.page_test)

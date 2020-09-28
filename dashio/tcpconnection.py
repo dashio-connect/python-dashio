@@ -11,6 +11,13 @@ class tcpConnectionThread(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via TCP."""
 
     def __on_message(self, id, data):
+        command_array = data.split("\n")
+        reply = ""
+        for ca in command_array:
+            reply += self.__on_command(id, ca.strip())
+        return reply
+
+    def __on_command(self, id, data):
         data_array = data.split("\t")
         cntrl_type = data_array[0]
         reply = ""
@@ -65,7 +72,7 @@ class tcpConnectionThread(threading.Thread):
             self._zmq_send(id, data)
 
     def _zmq_send(self, id, data):
-        logging.debug("TX: " + data)
+        logging.debug("ID: %s, Tx: %s", str(id), data.rstrip())
         try:
             self.socket.send(id, zmq.SNDMORE)
             self.socket.send_string(data, zmq.NOBLOCK)
@@ -86,7 +93,6 @@ class tcpConnectionThread(threading.Thread):
         """
 
         for id in self.socket_ids:
-            logging.debug("ID: %s, Tx: %s", str(id), data)
             self._zmq_send(id, data)
 
     def add_control(self, iot_control):
@@ -122,6 +128,7 @@ class tcpConnectionThread(threading.Thread):
         self.context = context or zmq.Context.instance()
         self.socket = self.context.socket(zmq.STREAM)
         self.socket.bind(url)
+        self.socket.set(zmq.SNDTIMEO, 5)
 
         # Initialize poll set
         self.poller = zmq.Poller()
@@ -151,17 +158,12 @@ class tcpConnectionThread(threading.Thread):
             socks = dict(self.poller.poll())
 
             if self.socket in socks:
-                try:
-                    id = self.socket.recv
-                    message = self.socket.recv_string()
-                except zmq.error.ZMQError as e:
-                    logging.debug("Sending RX Error: " + e)
-                    self.socket.send(id, zmq.SNDMORE)
-                    self.socket.send("")
-                    continue
+                id = self.socket.recv()
+                data = self.socket.recv()
                 if id not in self.socket_ids:
                     logging.debug("Added Socket ID: " + str(id))
                     self.socket_ids.append(id)
+                message = str(data, "utf-8")
                 logging.debug("RX: " + message)
                 if message:
                     reply = self.__on_message(id, message.strip())
