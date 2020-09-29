@@ -67,18 +67,7 @@ class tcpConnectionThread(threading.Thread):
             Message body.
         """
         data = "\tMSSG\t{}\t{}\t{}\n".format(title, header, message)
-        logging.debug("Tx: %s", data)
-        for id in self.socket_ids:
-            self._zmq_send(id, data)
-
-    def _zmq_send(self, id, data):
-        logging.debug("ID: %s, Tx: %s", str(id), data.rstrip())
-        try:
-            self.socket.send(id, zmq.SNDMORE)
-            self.socket.send_string(data, zmq.NOBLOCK)
-        except zmq.error.ZMQError as e:
-            logging.debug("Sending TX Error: " + str(e))
-            self.socket_ids.remove(id)
+        self.send_data(data)
 
     def send_data(self, data):
         """Send data to the Dash server.
@@ -88,9 +77,7 @@ class tcpConnectionThread(threading.Thread):
         data : str
             Data to be sent to the server
         """
-
-        for id in self.socket_ids:
-            self._zmq_send(id, data)
+        self.frontend.send_string(data)
 
     def add_control(self, iot_control):
         """Add a control to the connection.
@@ -123,13 +110,26 @@ class tcpConnectionThread(threading.Thread):
 
         threading.Thread.__init__(self, daemon=True)
         self.context = context or zmq.Context.instance()
-        self.socket = self.context.socket(zmq.STREAM)
-        self.socket.bind(url)
-        self.socket.set(zmq.SNDTIMEO, 5)
+        self.tcpsocket = self.context.socket(zmq.STREAM)
+        self.tcpsocket.bind(url)
+        self.tcpsocket.set(zmq.SNDTIMEO, 5)
+
+        url_internal = "inproc://workers"
+        # This is where the weather server sits
+        self.frontend = self.context.socket(zmq.PUB)
+        self.frontend.bind(url_internal)
+
+        # This is our public endpoint for subscribers
+        self.backend = self.context.socket(zmq.SUB)
+        self.backend.connect(url_internal)
+
+        # Subscribe on everything
+        self.backend.setsockopt(zmq.SUBSCRIBE, b"")
 
         # Initialize poll set
         self.poller = zmq.Poller()
-        self.poller.register(self.socket, zmq.POLLIN)
+        self.poller.register(self.tcpsocket, zmq.POLLIN)
+        self.poller.register(self.backend, zmq.POLLIN)
 
         self.control_dict = {}
         self.alarm_dict = {}
@@ -147,32 +147,45 @@ class tcpConnectionThread(threading.Thread):
         self.connect = "\tCONNECT\t{}\t{}\t{}\n".format(device_name, device_id, connection_name)
 
     def run(self):
+        def __zmq_tcp_send(id, data):
+            try:
+                self.tcpsocket.send(id, zmq.SNDMORE)
+                self.tcpsocket.send_string(data, zmq.NOBLOCK)
+            except zmq.error.ZMQError as e:
+                logging.debug("Sending TX Error: " + str(e))
+                self.socket_ids.remove(id)
+
         # Continue the network loop, exit when an error occurs
         rc = 0
-        id = self.socket.recv()
-        self.socket.recv()  # empty data here
+        id = self.tcpsocket.recv()
+        self.tcpsocket.recv()  # empty data here
         while self.running:
             socks = dict(self.poller.poll())
 
-            if self.socket in socks:
-                id = self.socket.recv()
-                data = self.socket.recv()
+            if self.tcpsocket in socks:
+                id = self.tcpsocket.recv()
+                message = self.tcpsocket.recv_string()
                 if id not in self.socket_ids:
                     logging.debug("Added Socket ID: " + str(id))
                     self.socket_ids.append(id)
-                message = str(data, "utf-8")
-                logging.debug("RX: " + message.rstrip())
+                # message = str(data, "utf-8")
+                logging.debug("ID: %s, RX: %s", str(id), message.rstrip())
                 if message:
                     reply = self.__on_message(id, message.strip())
                     if reply:
-                        self._zmq_send(id, reply)
+                        logging.debug("TX: " + reply.rstrip())
+                        __zmq_tcp_send(id, reply)
                 else:
                     if id in self.socket_ids:
                         logging.debug("Removed Socket ID: " + str(id))
                         self.socket_ids.remove(id)
-            time.sleep(0.1)
+            if self.backend in socks:
+                data = self.backend.recv_string()
+                for id in self.socket_ids:
+                    logging.debug("ID: %s, Tx: %s", str(id), data.rstrip())
+                    __zmq_tcp_send(id, data)
 
         for id in self.socket_ids:
             self._zmq_send(id, "")
-        self.socket.close()
+        self.tcpsocket.close()
         self.context.term()
