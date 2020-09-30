@@ -169,7 +169,7 @@ class tcpConnectionThread(threading.Thread):
                 if message:
                     reply = self.__on_message(id, message.strip())
                     if reply:
-                        logging.debug("TX: " + reply.rstrip())
+                        logging.debug("ID: %s, TX: %s", str(id), reply.rstrip())
                         __zmq_tcp_send(id, reply)
                 else:
                     if id in self.socket_ids:

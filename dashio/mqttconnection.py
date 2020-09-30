@@ -17,20 +17,25 @@ class mqttConnectionThread(threading.Thread):
         logging.debug("rc: %s", str(rc))
 
     def __on_message(self, client, obj, msg):
-        data = str(msg.payload, "utf-8").rstrip()
-        logging.debug("RX: %s", data)
+        data = str(msg.payload, "utf-8").strip()
+        logging.debug("MQTT RX: %s", data)
         data_array = data.split("\t")
-        cntrl_type = data_array[1]
-        if cntrl_type == "WHO":
-            self.send_data(self.data_topic, self.who)
+        cntrl_type = data_array[0]
+        if cntrl_type == "CONNECT":
+            self.send_data("\tCONNECT\t{}\t{}\t{}\n".format(self.device_name, self.device_id, self.name))
+        elif cntrl_type == "WHO":
+            self.send_data(self.who)
         elif cntrl_type == "STATUS":
-            self.send_data(self.data_topic, self.__make_status())
+            self.send_data(self.__make_status())
         elif cntrl_type == "CFG":
-            self.send_data(self.data_topic, self.__make_cfg())
+            self.send_data(self.__make_cfg())
         else:
             try:
-                key = cntrl_type + "_" + data_array[2]
-                self.control_dict[key].message_rx_event(data_array[2:])
+                try:
+                    key = cntrl_type + "_" + data_array[1]
+                except IndexError:
+                    return
+                self.control_dict[key].message_rx_event(data_array[1:])
             except KeyError:
                 pass
 
@@ -47,7 +52,6 @@ class mqttConnectionThread(threading.Thread):
         all_status = ""
         for key in self.control_dict.keys():
             all_status += self.control_dict[key].get_state()
-        logging.debug(all_status)
         return all_status
 
     def __make_cfg(self):
@@ -56,7 +60,6 @@ class mqttConnectionThread(threading.Thread):
             all_cfg += self.control_dict[key].get_cfg()
         for key in self.alarm_dict.keys():
             all_cfg += self.alarm_dict[key].get_cfg()
-        logging.debug(all_cfg)
         return all_cfg
 
     def send_popup_message(self, title, header, message):
@@ -72,7 +75,7 @@ class mqttConnectionThread(threading.Thread):
             Message body.
         """
         data = "\tMSSG\t{}\t{}\t{}\n".format(title, header, message)
-        logging.debug("Tx: %s", data)
+        logging.debug("MQTT Tx: %s", data)
         self.mqttc.publish(self.data_topic, data)
 
     def send_data(self, data):
@@ -84,7 +87,7 @@ class mqttConnectionThread(threading.Thread):
             Data to be sent to the server
         """
 
-        logging.debug("Tx: %s", data)
+        logging.debug("MQTT Tx: %s", data)
         self.mqttc.publish(self.data_topic, data)
 
     def send_alarm(self, alarm_id, message_header, message_body):
@@ -184,6 +187,7 @@ class mqttConnectionThread(threading.Thread):
         self.mqttc.connect(host, port)
         self.host = host
         self.port = port
+        self.device_id = device_id
         # Start subscribe, with QoS level 0
         self.mqttc.subscribe(self.control_topic, 0)
 
