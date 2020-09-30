@@ -22,11 +22,11 @@ class mqttConnectionThread(threading.Thread):
         data_array = data.split("\t")
         cntrl_type = data_array[1]
         if cntrl_type == "WHO":
-            self.mqttc.publish(self.data_topic, self.who)
+            self.send_data(self.data_topic, self.who)
         elif cntrl_type == "STATUS":
-            self.mqttc.publish(self.data_topic, self.__make_status())
+            self.send_data(self.data_topic, self.__make_status())
         elif cntrl_type == "CFG":
-            self.mqttc.publish(self.data_topic, self.__make_cfg())
+            self.send_data(self.data_topic, self.__make_cfg())
         else:
             try:
                 key = cntrl_type + "_" + data_array[2]
