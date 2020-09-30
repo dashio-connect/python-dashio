@@ -14,8 +14,10 @@ class tcpConnectionThread(threading.Thread):
         command_array = data.split("\n")
         reply = ""
         for ca in command_array:
-            if ca:
+            try:
                 reply += self.__on_command(id, ca.strip())
+            except TypeError:
+                pass
         return reply
 
     def __on_command(self, id, data):
