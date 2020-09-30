@@ -14,7 +14,8 @@ class tcpConnectionThread(threading.Thread):
         command_array = data.split("\n")
         reply = ""
         for ca in command_array:
-            reply += self.__on_command(id, ca.strip())
+            if ca:
+                reply += self.__on_command(id, ca.strip())
         return reply
 
     def __on_command(self, id, data):
