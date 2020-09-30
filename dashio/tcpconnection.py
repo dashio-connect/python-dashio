@@ -30,7 +30,10 @@ class tcpConnectionThread(threading.Thread):
         elif cntrl_type == "CFG":
             reply = self.__make_cfg()
         else:
-            key = cntrl_type + "_" + data_array[1]
+            try:
+                key = cntrl_type + "_" + data_array[1]
+            except IndexError:
+                return
             try:
                 self.control_dict[key].message_rx_event(data_array[1:])
             except KeyError:
@@ -165,11 +168,11 @@ class tcpConnectionThread(threading.Thread):
                 if id not in self.socket_ids:
                     logging.debug("Added Socket ID: " + str(id))
                     self.socket_ids.append(id)
-                logging.debug("ID: %s, RX: %s", str(id), message.rstrip())
+                logging.debug("TCP ID: %s, RX: %s", str(id), message.rstrip())
                 if message:
                     reply = self.__on_message(id, message.strip())
                     if reply:
-                        logging.debug("ID: %s, TX: %s", str(id), reply.rstrip())
+                        logging.debug("TCP ID: %s, TX: %s", str(id), reply.rstrip())
                         __zmq_tcp_send(id, reply)
                 else:
                     if id in self.socket_ids:
@@ -178,7 +181,7 @@ class tcpConnectionThread(threading.Thread):
             if self.backend in socks:
                 data = self.backend.recv_string()
                 for id in self.socket_ids:
-                    logging.debug("ID: %s, Tx: %s", str(id), data.rstrip())
+                    logging.debug("TCP ID: %s, Tx: %s", str(id), data.rstrip())
                     __zmq_tcp_send(id, data)
 
         for id in self.socket_ids:

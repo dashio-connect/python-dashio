@@ -10,8 +10,8 @@ class Name(Control):
         self.message_rx_event += self.__get_device_name
 
     def __get_device_name(self, msg):
-        self.control_id = msg[1]
-        self.state_str = "\t{}\t{}\n".format(self.msg_type, msg[1])
+        self.control_id = msg[0]
+        self.state_str = "\t{}\t{}\n".format(self.msg_type, msg[0])
 
     def set_device_name(self, device_name):
         self.control_id = device_name
