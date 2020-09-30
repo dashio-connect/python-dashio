@@ -52,11 +52,11 @@ class Control:
 
     @property
     def control_id(self):
-        return self._cfg["identifier"]
+        return self._cfg["controlID"]
 
     @control_id.setter
     def control_id(self, val):
-        self._cfg["identifier"] = val
+        self._cfg["controlID"] = val
 
     @property
     def title(self):
