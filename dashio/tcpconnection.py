@@ -114,19 +114,16 @@ class tcpConnectionThread(threading.Thread):
         self.tcpsocket.bind(url)
         self.tcpsocket.set(zmq.SNDTIMEO, 5)
 
-        url_internal = "inproc://workers"
-        # This is where the weather server sits
+        url_internal = "inproc://{}".format(device_id)
         self.frontend = self.context.socket(zmq.PUB)
         self.frontend.bind(url_internal)
 
-        # This is our public endpoint for subscribers
         self.backend = self.context.socket(zmq.SUB)
         self.backend.connect(url_internal)
 
         # Subscribe on everything
         self.backend.setsockopt(zmq.SUBSCRIBE, b"")
 
-        # Initialize poll set
         self.poller = zmq.Poller()
         self.poller.register(self.tcpsocket, zmq.POLLIN)
         self.poller.register(self.backend, zmq.POLLIN)
@@ -168,7 +165,6 @@ class tcpConnectionThread(threading.Thread):
                 if id not in self.socket_ids:
                     logging.debug("Added Socket ID: " + str(id))
                     self.socket_ids.append(id)
-                # message = str(data, "utf-8")
                 logging.debug("ID: %s, RX: %s", str(id), message.rstrip())
                 if message:
                     reply = self.__on_message(id, message.strip())
