@@ -6,7 +6,7 @@ from .iotcontrol.alarm import Alarm
 from .iotcontrol.page import Page
 from .iotcontrol.name import Name
 
-
+# “\t CONNECT \t Device_Name \t DeviceID \t Connection_Name \n”
 class tcpConnectionThread(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via TCP."""
 
@@ -25,7 +25,7 @@ class tcpConnectionThread(threading.Thread):
         cntrl_type = data_array[0]
         reply = ""
         if cntrl_type == "CONNECT":
-            reply = "\tCONNECT\t{}\t{}\t{}\n".format(self.device_name, self.device_id, self.name)
+            reply = "\tCONNECT\t{}\t{}\t{}\n".format(self.name_cntrl.control_id, self.device_id, self.connection_id)
         elif cntrl_type == "WHO":
             reply = self.who
         elif cntrl_type == "STATUS":
@@ -101,10 +101,10 @@ class tcpConnectionThread(threading.Thread):
             key = iot_control.msg_type + "_" + iot_control.control_id
             self.control_dict[key] = iot_control
 
-    def __init__(self, connection_name, device_id, device_name, context=None, url="tcp://*:5000", watch_dog=60):
+    def __init__(self, connection_id, device_id, device_name, context=None, url="tcp://*:5000", watch_dog=60):
         """
         Arguments:
-            connection_name {str} --  The connection name as advertised to iotdashboard.
+            connection_id {str} --  The connection name as advertised to iotdashboard.
             device_id {str} -- A string to uniquely identify the device connection. (In case of other connections with the same name.)
             device_name {str} -- A string for iotdashboard to use as an alias for the connection.
             url {str} -- The address and port to set up a connection.
@@ -141,13 +141,11 @@ class tcpConnectionThread(threading.Thread):
         self.watch_dog = watch_dog
         self.watch_dog_counter = 1  # If watch_dog is zero don't send anything
         self.running = True
-        self.name = connection_name
+        self.connection_id = connection_id
         self.name_cntrl = Name(device_name)
-        self.device_name = device_name
         self.device_id = device_id
         self.add_control(self.name_cntrl)
         self.who = "\tWHO\n"
-        self.connect = "\tCONNECT\t{}\t{}\t{}\n".format(device_name, device_id, connection_name)
 
     def run(self):
         def __zmq_tcp_send(id, data):
