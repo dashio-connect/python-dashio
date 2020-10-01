@@ -22,7 +22,7 @@ class mqttConnectionThread(threading.Thread):
         data_array = data.split("\t")
         cntrl_type = data_array[0]
         if cntrl_type == "CONNECT":
-            self.send_data("\tCONNECT\t{}\t{}\t{}\n".format(self.device_name, self.device_id, self.name))
+            self.send_data("\tCONNECT\t{}\t{}\t{}\n".format(self.name_cntrl.control_id, self.device_id, self.connection_id))
         elif cntrl_type == "WHO":
             self.send_data(self.who)
         elif cntrl_type == "STATUS":
@@ -126,11 +126,11 @@ class mqttConnectionThread(threading.Thread):
             self.control_dict[key] = iot_control
 
     def __init__(
-        self, connection_name, device_id, device_name, host, port, username, password, use_ssl=False, watch_dog=60
+        self, connection_id, device_id, device_name, host, port, username, password, use_ssl=False, watch_dog=60
     ):
         """
         Arguments:
-            connection_name {str} --  The connection name as advertised to iotdashboard.
+            connection_id {str} --  The connection name as advertised to iotdashboard.
             device_id {str} -- A string to uniquely identify the device connection. (In case of other connections with the same name.)
             device_name {str} -- A string for iotdashboard to use as an alias for the connection.
             host {str} -- The server name of the mqtt host.
@@ -152,10 +152,10 @@ class mqttConnectionThread(threading.Thread):
         self.watch_dog = watch_dog
         self.watch_dog_counter = 1  # If watch_dog is zero don't send anything
         self.running = True
-        self.name = connection_name
         self.username = username
         self.name_cntrl = Name(device_name)
         self.device_name = device_name
+        self.connection_id = connection_id
         self.add_control(self.name_cntrl)
         self.who = "\tWHO\n"
         self.mqttc = mqtt.Client()
@@ -176,10 +176,10 @@ class mqttConnectionThread(threading.Thread):
             )
             self.mqttc.tls_insecure_set(False)
 
-        self.control_topic = "{}/{}/{}/control".format(username, connection_name, device_id)
-        self.data_topic = "{}/{}/{}/data".format(username, connection_name, device_id)
-        self.alarm_topic = "{}/{}/{}/alarm".format(username, connection_name, device_id)
-        self.announce_topic = "{}/{}/{}/announce".format(username, connection_name, device_id)
+        self.control_topic = "{}/{}/{}/control".format(username, connection_id, device_id)
+        self.data_topic = "{}/{}/{}/data".format(username, connection_id, device_id)
+        self.alarm_topic = "{}/{}/{}/alarm".format(username, connection_id, device_id)
+        self.announce_topic = "{}/{}/{}/announce".format(username, connection_id, device_id)
         self.mqttc.on_log = self.__on_log
         self.mqttc.will_set(self.data_topic, self.LWD, qos=1, retain=False)
         # Connect
@@ -195,7 +195,7 @@ class mqttConnectionThread(threading.Thread):
         # Continue the network loop, exit when an error occurs
         rc = 0
         self.watch_dog_counter = 1  # If watch_dog is zero don't send watchdog message.
-        self.mqttc.publish(self.announce_topic, "\tCONNECT\t{}\n".format(self.device_name))
+        self.mqttc.publish(self.announce_topic, "\tCONNECT\t{}\n".format(self.name_cntrl.control_id))
         while self.running:
             rc = self.mqttc.loop()
             if rc != 0:

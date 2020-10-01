@@ -51,7 +51,7 @@ class TestControls:
         parser.add_argument("-s", "--server", help="Server URL.", dest="server", default="mqtt://localhost")
         parser.add_argument("-q", "--hostname", help="Host URL.", dest="hostname", default="tcp://*:5000")
         parser.add_argument(
-            "-c", "--connection_name", dest="connection", default="TestDualTCPDash", help="IotDashboard Connection name"
+            "-c", "--connection_id", dest="connection_id", default="TestDualTCPDash", help="IotDashboard Connection name"
         )
         parser.add_argument(
             "-p", "--port", type=int, help="Port number.", default=1883, dest="port",
@@ -106,14 +106,14 @@ class TestControls:
         self.init_logging(args.logfilename, args.verbose)
 
         logging.info("   Serving on: %s", args.server)
-        logging.info("Connection ID: %s", args.connection)
+        logging.info("Connection ID: %s", args.connection_id)
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
 
-        self.tcp_ic = dashio.tcpConnectionThread(args.connection, args.device_id, args.device_name, url=args.hostname)
+        self.tcp_ic = dashio.tcpConnectionThread(args.connection_id, args.device_id, args.device_name, url=args.hostname)
 
         self.mqtt_ic = dashio.mqttConnectionThread(
-            args.connection,
+            args.connection_id,
             args.device_id,
             args.device_name,
             args.server,
@@ -123,7 +123,6 @@ class TestControls:
             use_ssl=True,
         )
 
-        self.connection = args.connection
         self.page_name = "TestTCP: " + platform.node()
 
         self.page_test = dashio.Page("TestTCP", self.page_name, 1)
