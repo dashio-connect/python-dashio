@@ -48,11 +48,12 @@ class TestControls:
                             0 = only warnings, 1 = info, 2 = debug.
                             No number means info. Default is no verbosity.""",
         )
-        parser.add_argument("-s", "--server", help="Server URL.", dest="server", default="tcp://*:5000")
+        parser.add_argument("-h", "--host", help="Host URL.", dest="server", default="tcp://*")
         parser.add_argument(
             "-c", "--connection_name", dest="connection", default="TestTCP", help="IotDashboard Connection name"
         )
         parser.add_argument("-d", "--device_id", dest="device_id", default="00001", help="IotDashboard Device ID.")
+        parser.add_argument("-p", "--port", dest="port", default=5000, help="Port number")
         parser.add_argument(
             "-n", "--device_name", dest="device_name", default="TCPTest", help="Alias name for device."
         )
@@ -71,25 +72,25 @@ class TestControls:
             self.sldr_dbl_cntrl.bar1_value -= 1
 
     def slider_event_handler(self, msg):
-        self.sldr_cntrl.slider_value = float(msg[1])
-        self.knb_control.knob_dial_value = float(msg[1])
+        self.sldr_cntrl.slider_value = float(msg[0])
+        self.knb_control.knob_dial_value = float(msg[0])
 
     def slider_dbl_event_handler(self, msg):
-        self.sldr_dbl_cntrl.slider_value = float(msg[1])
-        self.selector_ctrl.position = int(float(msg[1]))
+        self.sldr_dbl_cntrl.slider_value = float(msg[0])
+        self.selector_ctrl.position = int(float(msg[0]))
 
     def knob_event_handler(self, msg):
-        self.knb_control.knob_value = float(msg[1])
-        self.dl_control.dial_value = float(msg[1])
-        self.sldr_dbl_cntrl.bar2_value = float(msg[1])
+        self.knb_control.knob_value = float(msg[0])
+        self.dl_control.dial_value = float(msg[0])
+        self.sldr_dbl_cntrl.bar2_value = float(msg[0])
 
     def text_cntrl_message_handler(self, msg):
-        self.ic.send_popup_message("TCPTest", "Text Box message", msg[1])
-        self.text_cntrl.text = "Popup sent: " + msg[1]
+        self.device.send_popup_message("TCPTest", "Text Box message", msg[0])
+        self.text_cntrl.text = "Popup sent: " + msg[0]
         logging.info(msg)
 
     def selector_ctrl_handler(self, msg):
-        print(self.selector_ctrl.selection_list[int(msg[1])])
+        print(self.selector_ctrl.selection_list[int(msg[0])])
 
     def __init__(self):
 
@@ -99,12 +100,13 @@ class TestControls:
         args = self.parse_commandline_arguments()
         self.init_logging(args.logfilename, args.verbose)
 
-        logging.info("   Serving on: %s", args.server)
+        logging.info("   Serving on: %s:%s", args.server, str(args.port))
         logging.info("Connection ID: %s", args.connection)
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
 
-        self.ic = dashio.tcpConnectionThread(args.connection, args.device_id, args.device_name, url=args.server)
+        self.device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
+        self.device.add_tcp_connection(args.server, args.port)
 
         self.connection = args.connection
         self.page_name = "TestTCP: " + platform.node()
@@ -175,7 +177,7 @@ class TestControls:
         self.page_test.add_control(self.text_cntrl)
 
         self.alarm_ctrl = dashio.Alarm("TestingAlarms", "Test Alarms", "Hello", "Test of Shared Alarms")
-        self.ic.add_control(self.alarm_ctrl)
+        self.device.add_control(self.alarm_ctrl)
         self.comp_control = dashio.Compass("COMP1", control_position=dashio.ControlPosition(0.25, 0.371429, 0.5, 0.2))
         self.comp_control.title = "A compass"
         self.page_test.add_control(self.comp_control)
@@ -202,26 +204,25 @@ class TestControls:
         )
         self.page_test.add_control(self.label_ctrl)
 
-        self.ic.add_control(self.label_ctrl)
-        self.ic.add_control(self.page_test)
-        self.ic.add_control(self.selector_ctrl)
-        self.ic.add_control(self.comp_control)
-        self.ic.add_control(self.text_cntrl)
-        self.ic.add_control(self.dl_control)
-        self.ic.add_control(self.knb_control)
-        self.ic.add_control(self.sldr_dbl_cntrl)
-        self.ic.add_control(self.sldr_cntrl)
-        self.ic.add_control(self.down_btn)
-        self.ic.add_control(self.up_btn)
+        self.device.add_control(self.label_ctrl)
+        self.device.add_control(self.page_test)
+        self.device.add_control(self.selector_ctrl)
+        self.device.add_control(self.comp_control)
+        self.device.add_control(self.text_cntrl)
+        self.device.add_control(self.dl_control)
+        self.device.add_control(self.knb_control)
+        self.device.add_control(self.sldr_dbl_cntrl)
+        self.device.add_control(self.sldr_cntrl)
+        self.device.add_control(self.down_btn)
+        self.device.add_control(self.up_btn)
 
-        self.ic.start()
         while not self.shutdown:
             time.sleep(5)
 
             self.comp_control.direction_value = random.random() * 360
 
-        self.ic.send_popup_message("TestControls", "Shutting down", "Goodbye")
-        self.ic.running = False
+        self.device.send_popup_message("TestControls", "Shutting down", "Goodbye")
+        self.device.close()
 
 
 def main():

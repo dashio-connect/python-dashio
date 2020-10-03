@@ -75,16 +75,14 @@ class TestEventLog:
         logging.info("       Control topic: %s/%s/%s/control", args.username, args.connection, args.device_id)
         logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
 
-        self.ic = dashio.mqttConnectionThread(
-            args.connection, args.device_id, args.device_name, args.server, args.port, args.username, args.password, use_ssl=True
-        )
-        self.ic.start()
+        device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
+        device.add_mqtt_connection(args.server, args.port, args.username, args.password, use_ssl=True)
 
         el = dashio.EventLog("ELTest")
         el_page = dashio.Page("el_page", "Event Log Test")
         el_page.add_control(el)
-        self.ic.add_control(el)
-        self.ic.add_control(el_page)
+        device.add_control(el)
+        device.add_control(el_page)
 
         self.connection = args.connection
         count = 1
@@ -92,7 +90,7 @@ class TestEventLog:
             time.sleep(5)
             el.add_event_data("Hello:{}".format(count), "Testing")
             count += 1
-        self.ic.running = False
+        device.close()
 
 
 def main():

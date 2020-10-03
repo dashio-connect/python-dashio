@@ -89,13 +89,12 @@ class BBB_Temperature:
         logging.info("       Control topic: %s/%s/%s/control", args.username, args.connection, args.device_id)
         logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
 
-        ic = dashio.iotconnection.mqttConnectionThread(
-            args.connection, args.device_id, args.device.name, args.server, args.port, args.username, args.password, use_ssl=True
-        )
+        device = dashio.dashDevice(args.connection, args.device_id, args.device.name)
+        device.add_mqtt_connection(args.server, args.port, args.username, args.password, use_ssl=True)
 
         gph_15_minutes = dashio.TimeGraph("Temperature15M")
         gph_15_minutes.title = "Temp15M:{}".format(args.connection)
-        gph_15_minutes.timeScale = "15 minutes"
+        gph_15_minutes.time_scale = "15 minutes"
         gph_15_minutes.y_axis_label = "Degrees C"
         gph_15_minutes.y_axis_min = 0.0
         gph_15_minutes.y_axis_max = 50.0
@@ -107,7 +106,7 @@ class BBB_Temperature:
 
         gph_1_day = dashio.TimeGraph("Temperature1D")
         gph_1_day.title = "Temp1D:{}".format(args.connection)
-        gph_1_day.timeScale = "1 day"
+        gph_1_day.time_scale = "1 day"
         gph_1_day.y_axis_label = "Degrees C"
         gph_1_day.y_axis_min = 0.0
         gph_1_day.y_axis_max = 50.0
@@ -119,7 +118,7 @@ class BBB_Temperature:
 
         gph_1_week = dashio.TimeGraph("Temperature1W")
         gph_1_week.title = "Temp1W:{}".format(args.connection)
-        gph_1_week.timeScale = "1 week"
+        gph_1_week.time_scale = "1 week"
         gph_1_week.y_axis_label = "Degrees C"
         gph_1_week.y_axis_min = 0.0
         gph_1_week.y_axis_max = 50.0
@@ -131,7 +130,7 @@ class BBB_Temperature:
 
         gph_1_year = dashio.TimeGraph("Temperature1Y")
         gph_1_year.title = "Temp1Y:{}".format(args.connection)
-        gph_1_year.timeScale = "1 year"
+        gph_1_year.time_scale = "1 year"
         gph_1_year.y_axis_label = "Degrees C"
         gph_1_year.y_axis_min = 0.0
         gph_1_year.y_axis_max = 50.0
@@ -153,14 +152,14 @@ class BBB_Temperature:
         dl_daily_min_ctrl.title = "Daily Min"
         dl_daily_min_ctrl.max = 50
 
-        ic.add_control(dl_temperature_ctrl)
-        ic.add_control(dl_daily_max_ctrl)
-        ic.add_control(dl_daily_min_ctrl)
-        ic.add_control(gph_15_minutes)
-        ic.add_control(gph_1_day)
-        ic.add_control(gph_1_week)
-        ic.add_control(gph_1_year)
-        ic.start()
+        device.add_control(dl_temperature_ctrl)
+        device.add_control(dl_daily_max_ctrl)
+        device.add_control(dl_daily_min_ctrl)
+        device.add_control(gph_15_minutes)
+        device.add_control(gph_1_day)
+        device.add_control(gph_1_week)
+        device.add_control(gph_1_year)
+
         self.connection = args.connection
         count = 0
         reset_daily = False
@@ -203,7 +202,7 @@ class BBB_Temperature:
             div, sleep_time = divmod(seconds_left, LOGGER_PERIOD)
             sleep_time = LOGGER_PERIOD - sleep_time
             time.sleep(sleep_time)
-        ic.running = False
+        device.close()
 
 
 def main():

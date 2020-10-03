@@ -59,21 +59,19 @@ def main():
     print("       Control topic: %s/%s/%s/control", args.username, args.connection, args.device_id)
     print("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
 
-    ic = dashio.mqttConnectionThread(
-        args.connection, args.device_id, args.device_name, args.server, args.port, args.username, args.password, use_ssl=True
-    )
-    ic.start()
+    device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
+    device.add_mqtt_connection(args.server, args.port, args.username, args.password, use_ssl=True)
 
     my_map = dashio.Map("MAP1")
     my_map.title = "A cool map"
     myloc = dashio.MapLocation("Me", -43.5201298, 172.5425513, "13 Bentley")
     my_map.add_location(myloc)
-    ic.add_control(my_map)
+    device.add_control(my_map)
 
     while not shutdown:
         time.sleep(1)
 
-    ic.running = False
+    device.close()
 
 
 if __name__ == "__main__":

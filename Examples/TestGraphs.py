@@ -80,13 +80,12 @@ class TestControls:
         logging.info("       Control topic: %s/%s/%s/control", args.username, args.connection, args.device_id)
         logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
 
-        self.ic = dashio.mqttConnectionThread(
-            args.connection, args.device_id, args.device_name, args.server, args.port, args.username, args.password, use_ssl=True
-        )
+        device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
+        device.add_mqtt_connection(args.server, args.port, args.username, args.password, use_ssl=True)
 
         self.gph_15_minutes = dashio.TimeGraph("TestGraph")
         self.gph_15_minutes.title = "Test: {}".format(args.connection)
-        self.gph_15_minutes.timeScale = dashio.TimeGraphTimeScale.FIFTEENMINS
+        self.gph_15_minutes.time_scale = dashio.TimeGraphTimeScale.FIFTEENMINS
         self.gph_15_minutes.y_axis_label = "Units"
         self.gph_15_minutes.y_axis_min = -10.0
         self.gph_15_minutes.y_axis_max = 10.0
@@ -120,11 +119,8 @@ class TestControls:
         self.gph_15_minutes.add_line("Bin", self.bin_15_minutes)
         self.gph_15_minutes.add_line("Hour", self.am_pm_15_minutes)
         self.gph_15_minutes.message_rx_event += self.gph_15_minutes_event_handler
-        self.ic.add_control(self.gph_15_minutes)
+        device.add_control(self.gph_15_minutes)
 
-        self.ic.start()
-
-        self.connection = args.connection
         line_data = 0
         bar_data = 0
         line_dir_up = True
@@ -173,7 +169,7 @@ class TestControls:
             sleep_time = LOGGER_PERIOD - sleep_time
             time.sleep(sleep_time)
 
-        self.ic.running = False
+        device.close()
 
 
 def main():
