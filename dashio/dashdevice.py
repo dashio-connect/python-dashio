@@ -20,7 +20,6 @@ class dashDevice():
         self.connections[connection_id] = new_mqtt_con
 
     def add_tcp_connection(self, url, port):
-        self.num_mqtt_connections += 1
         connection_id = self.device_type + "_TCP:{}".format(str(port))
         new_tcp_con = tcpConnectionThread(connection_id ,self.device_id, self.name_control, url, port)
         new_tcp_con.start()
