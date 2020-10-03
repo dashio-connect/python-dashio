@@ -34,8 +34,7 @@ class EventLog(Control):
 
     def __get_log_from_timestamp(self, msg):
 
-        dt = dateutil.parser.isoparse(msg[1])
-        print(msg[1])
+        dt = dateutil.parser.isoparse(msg[0])
         data_str = ""
         for log in self.log_list:
             if log.timestamp > dt:

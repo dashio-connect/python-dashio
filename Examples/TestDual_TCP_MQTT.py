@@ -49,7 +49,7 @@ class TestControls:
                             No number means info. Default is no verbosity.""",
         )
         parser.add_argument("-s", "--server", help="Server URL.", dest="server", default="mqtt://localhost")
-        parser.add_argument("-q", "--hostname", help="Host URL.", dest="hostname", default="tcp://*:5000")
+        parser.add_argument("-q", "--hostname", help="Host URL.", dest="hostname", default="tcp://*")
         parser.add_argument(
             "-c", "--connection_id", dest="connection_id", default="TestDualTCPDash", help="IotDashboard Connection name"
         )
@@ -77,25 +77,25 @@ class TestControls:
             self.sldr_dbl_cntrl.bar1_value -= 1
 
     def slider_event_handler(self, msg):
-        self.sldr_cntrl.slider_value = float(msg[1])
-        self.knb_control.knob_dial_value = float(msg[1])
+        self.sldr_cntrl.slider_value = float(msg[0])
+        self.knb_control.knob_dial_value = float(msg[0])
 
     def slider_dbl_event_handler(self, msg):
-        self.sldr_dbl_cntrl.slider_value = float(msg[1])
-        self.selector_ctrl.position = int(float(msg[1]))
+        self.sldr_dbl_cntrl.slider_value = float(msg[0])
+        self.selector_ctrl.position = int(float(msg[0]))
 
     def knob_event_handler(self, msg):
-        self.knb_control.knob_value = float(msg[1])
-        self.dl_control.dial_value = float(msg[1])
-        self.sldr_dbl_cntrl.bar2_value = float(msg[1])
+        self.knb_control.knob_value = float(msg[0])
+        self.dl_control.dial_value = float(msg[0])
+        self.sldr_dbl_cntrl.bar2_value = float(msg[0])
 
     def text_cntrl_message_handler(self, msg):
-        self.tcp_ic.send_popup_message("TCPTest", "Text Box message", msg[1])
-        self.text_cntrl.text = "Popup sent: " + msg[1]
+        self.device.send_popup_message("TCPTest", "Text Box message", msg[0])
+        self.text_cntrl.text = "Popup sent: " + msg[0]
         logging.info(msg)
 
     def selector_ctrl_handler(self, msg):
-        print(self.selector_ctrl.selection_list[int(msg[1])])
+        print(self.selector_ctrl.selection_list[int(msg[0])])
 
     def __init__(self):
 
@@ -110,18 +110,9 @@ class TestControls:
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
 
-        self.tcp_ic = dashio.tcpConnectionThread(args.connection_id, args.device_id, args.device_name, url=args.hostname)
-
-        self.mqtt_ic = dashio.mqttConnectionThread(
-            args.connection_id,
-            args.device_id,
-            args.device_name,
-            args.server,
-            args.port,
-            args.username,
-            args.password,
-            use_ssl=True,
-        )
+        self.device = dashio.dashDevice(args.connection_id, args.device_id, args.device_name)
+        self.device.add_tcp_connection(args.hostname, 5000)
+        self.device.add_mqtt_connection(args.server, args.port, args.username, args.password, use_ssl=True)
 
         self.page_name = "TestTCP: " + platform.node()
 
@@ -191,7 +182,7 @@ class TestControls:
         self.page_test.add_control(self.text_cntrl)
 
         self.alarm_ctrl = dashio.Alarm("TestingAlarms", "Test Alarms", "Hello", "Test of Shared Alarms")
-        self.tcp_ic.add_control(self.alarm_ctrl)
+
         self.comp_control = dashio.Compass("COMP1", control_position=dashio.ControlPosition(0.25, 0.371429, 0.5, 0.2))
         self.comp_control.title = "A compass"
         self.page_test.add_control(self.comp_control)
@@ -218,38 +209,26 @@ class TestControls:
         )
         self.page_test.add_control(self.label_ctrl)
 
-        self.tcp_ic.add_control(self.label_ctrl)
-        self.tcp_ic.add_control(self.page_test)
-        self.tcp_ic.add_control(self.selector_ctrl)
-        self.tcp_ic.add_control(self.comp_control)
-        self.tcp_ic.add_control(self.text_cntrl)
-        self.tcp_ic.add_control(self.dl_control)
-        self.tcp_ic.add_control(self.knb_control)
-        self.tcp_ic.add_control(self.sldr_dbl_cntrl)
-        self.tcp_ic.add_control(self.sldr_cntrl)
-        self.tcp_ic.add_control(self.down_btn)
-        self.tcp_ic.add_control(self.up_btn)
+        self.device.add_control(self.label_ctrl)
+        self.device.add_control(self.page_test)
+        self.device.add_control(self.selector_ctrl)
+        self.device.add_control(self.comp_control)
+        self.device.add_control(self.text_cntrl)
+        self.device.add_control(self.dl_control)
+        self.device.add_control(self.knb_control)
+        self.device.add_control(self.sldr_dbl_cntrl)
+        self.device.add_control(self.sldr_cntrl)
+        self.device.add_control(self.down_btn)
+        self.device.add_control(self.up_btn)
+        self.device.add_control(self.alarm_ctrl)
 
-        self.mqtt_ic.add_control(self.label_ctrl)
-        self.mqtt_ic.add_control(self.page_test)
-        self.mqtt_ic.add_control(self.selector_ctrl)
-        self.mqtt_ic.add_control(self.comp_control)
-        self.mqtt_ic.add_control(self.text_cntrl)
-        self.mqtt_ic.add_control(self.dl_control)
-        self.mqtt_ic.add_control(self.knb_control)
-        self.mqtt_ic.add_control(self.sldr_dbl_cntrl)
-        self.mqtt_ic.add_control(self.sldr_cntrl)
-        self.mqtt_ic.add_control(self.down_btn)
-        self.mqtt_ic.add_control(self.up_btn)
-        self.mqtt_ic.start()
-        self.tcp_ic.start()
         while not self.shutdown:
             time.sleep(5)
 
             # self.comp_control.direction_value = random.random() * 360
 
-        self.tcp_ic.send_popup_message("TestControls", "Shutting down", "Goodbye")
-        self.tcp_ic.running = False
+        self.device.send_popup_message("TestControls", "Shutting down", "Goodbye")
+        self.device.close()
 
 
 def main():

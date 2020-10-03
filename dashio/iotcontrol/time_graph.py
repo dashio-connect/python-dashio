@@ -129,7 +129,7 @@ class TimeGraph(Control):
         state_str = ""
         for key in self.line_dict.keys():
             if self.line_dict[key].data:
-                state_str += self.get_state_str + key + self.line_dict[key].get_line_from_timestamp(msg[1])
+                state_str += self.get_state_str + key + self.line_dict[key].get_line_from_timestamp(msg[0])
         self.state_str = state_str
 
     def send_data(self):

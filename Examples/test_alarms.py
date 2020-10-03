@@ -86,10 +86,9 @@ class TestControls:
         logging.info("       Control topic: %s/%s/%s/control", args.username, args.connection, args.device_id)
         logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
 
-        self.ic = dashio.mqttConnectionThread(
-            args.connection, args.device_id, args.device_name, args.server, args.port, args.username, args.password, use_ssl=True
-        )
-        self.ic.start()
+        device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
+        device.add_tcp_connection(args.server, args.port, args.username, args.password, use_ssl=True)
+
         self.tapage = dashio.Page("testAlarm", "Test Alarm")
         self.alarm_btn1 = dashio.Button("ALARM_BTN1")
         self.tapage.add_control(self.alarm_btn1)
@@ -99,7 +98,7 @@ class TestControls:
         self.alarm_btn1.on_colour = dashio.Colour.RED
         self.alarm_btn1.text_colour = dashio.Colour.BLUE
         self.alarm_btn1.message_rx_event += self.alarm_btn1_handler
-        self.ic.add_control(self.alarm_btn1)
+        device.add_control(self.alarm_btn1)
 
         self.alarm_btn2 = dashio.Button("ALARM_BTN2")
         self.alarm_btn2.title = "A2"
@@ -108,7 +107,7 @@ class TestControls:
         self.alarm_btn2.on_colour = dashio.Colour.RED
         self.alarm_btn2.text_colour = dashio.Colour.BLUE
         self.alarm_btn2.message_rx_event += self.alarm_btn2_handler
-        self.ic.add_control(self.alarm_btn2)
+        device.add_control(self.alarm_btn2)
         self.tapage.add_control(self.alarm_btn2)
 
         self.alarm_btn3 = dashio.Button("ALARM_BTN3")
@@ -118,24 +117,24 @@ class TestControls:
         self.alarm_btn3.on_colour = dashio.Colour.RED
         self.alarm_btn3.text_colour = dashio.Colour.BLUE
         self.alarm_btn3.message_rx_event += self.alarm_btn3_handler
-        self.ic.add_control(self.alarm_btn3)
+        device.add_control(self.alarm_btn3)
         self.tapage.add_control(self.alarm_btn3)
 
         self.alarm1_ctrl = dashio.Alarm("TestingAlarms1", "Alarm1", "Hello from Alarm1", "Alarm1")
         self.alarm2_ctrl = dashio.Alarm("TestingAlarms2", "Alarm2", "Hello from Alarm2", "Alarm2")
         self.alarm3_ctrl = dashio.Alarm("TestingAlarms3", "Alarm3", "Hello from Alarm3", "Alarm3")
-        self.ic.add_control(self.alarm1_ctrl)
-        self.ic.add_control(self.alarm2_ctrl)
-        self.ic.add_control(self.alarm3_ctrl)
+        device.add_control(self.alarm1_ctrl)
+        device.add_control(self.alarm2_ctrl)
+        device.add_control(self.alarm3_ctrl)
         self.tapage.add_control(self.alarm1_ctrl)
         self.tapage.add_control(self.alarm2_ctrl)
         self.tapage.add_control(self.alarm3_ctrl)
-        self.ic.add_control(self.tapage)
+        device.add_control(self.tapage)
 
         while not self.shutdown:
             time.sleep(1)
 
-        self.ic.running = False
+        device.close()
 
 
 def main():

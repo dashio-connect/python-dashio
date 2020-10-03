@@ -73,26 +73,26 @@ class TestControls:
             self.sldr_dbl_cntrl.bar1_value -= 1
 
     def slider_event_handler(self, msg):
-        self.sldr_cntrl.slider_value = float(msg[1])
-        self.knb_control.knob_dial_value = float(msg[1])
+        self.sldr_cntrl.slider_value = float(msg[0])
+        self.knb_control.knob_dial_value = float(msg[0])
 
     def slider_dbl_event_handler(self, msg):
-        self.sldr_dbl_cntrl.slider_value = float(msg[1])
-        self.selector_ctrl.position = int(float(msg[1]))
+        self.sldr_dbl_cntrl.slider_value = float(msg[0])
+        self.selector_ctrl.position = int(float(msg[0]))
 
     def knob_event_handler(self, msg):
-        self.knb_control.knob_value = float(msg[1])
-        self.dl_control.dial_value = float(msg[1])
-        self.sldr_dbl_cntrl.bar2_value = float(msg[1])
+        self.knb_control.knob_value = float(msg[0])
+        self.dl_control.dial_value = float(msg[0])
+        self.sldr_dbl_cntrl.bar2_value = float(msg[0])
 
     def text_cntrl_message_handler(self, msg):
-        self.alarm_ctrl.body = msg[1]
+        self.alarm_ctrl.body = msg[0]
         self.alarm_ctrl.send()
-        self.text_cntrl.text = "Alarm sent: " + msg[1]
+        self.text_cntrl.text = "Alarm sent: " + msg[0]
         logging.info(msg)
 
     def selector_ctrl_handler(self, msg):
-        print(self.selector_ctrl.selection_list[int(msg[1])])
+        print(self.selector_ctrl.selection_list[int(msg[0])])
 
     def __init__(self):
 
@@ -107,18 +107,9 @@ class TestControls:
         logging.info("       Control topic: %s/%s/%s/control", args.username, args.connection, args.device_id)
         logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
 
-        self.ic = dashio.mqttConnectionThread(
-            args.connection,
-            args.device_id,
-            args.device_name,
-            args.server,
-            args.port,
-            args.username,
-            args.password,
-            use_ssl=True,
-        )
-        self.ic.start()
-        self.connection = args.connection
+        device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
+        device.add_mqtt_connection(args.server, args.port, args.username, args.password, use_ssl=True)
+        
 
         self.page_test = dashio.Page("TestPage", "Testing Pages", 1)
         self.up_btn = dashio.Button("UP_BTN")
@@ -129,7 +120,7 @@ class TestControls:
         self.up_btn.text_colour = dashio.Colour.WHITE
         self.up_btn.title = "Up"
         self.up_btn.message_rx_event += self.up_btn_event_handler
-        self.ic.add_control(self.up_btn)
+        device.add_control(self.up_btn)
         self.page_test.add_control(self.up_btn)
 
         self.down_btn = dashio.Button("DOWN_BTN")
@@ -140,7 +131,7 @@ class TestControls:
         self.down_btn.text_colour = dashio.Colour.WHITE
         self.down_btn.title = "Down"
         self.down_btn.message_rx_event += self.down_btn_event_handler
-        self.ic.add_control(self.down_btn)
+        device.add_control(self.down_btn)
         self.page_test.add_control(self.down_btn)
 
         self.sldr_cntrl = dashio.SliderSingleBar("SLDR")
@@ -149,7 +140,7 @@ class TestControls:
         self.sldr_cntrl.slider_enabled = True
         self.sldr_cntrl.red_value
         self.sldr_cntrl.message_rx_event += self.slider_event_handler
-        self.ic.add_control(self.sldr_cntrl)
+        device.add_control(self.sldr_cntrl)
         self.page_test.add_control(self.sldr_cntrl)
 
         self.sldr_dbl_cntrl = dashio.SliderDoubleBar("SLDR_DBL")
@@ -158,7 +149,7 @@ class TestControls:
         self.sldr_dbl_cntrl.slider_enabled = True
         self.sldr_dbl_cntrl.red_value
         self.sldr_dbl_cntrl.message_rx_event += self.slider_dbl_event_handler
-        self.ic.add_control(self.sldr_dbl_cntrl)
+        device.add_control(self.sldr_dbl_cntrl)
         self.page_test.add_control(self.sldr_dbl_cntrl)
 
         self.knb_control = dashio.Knob("KNB")
@@ -166,13 +157,13 @@ class TestControls:
         self.knb_control.max = 10
         self.knb_control.red_value = 10
         self.knb_control.message_rx_event += self.knob_event_handler
-        self.ic.add_control(self.knb_control)
+        device.add_control(self.knb_control)
         self.page_test.add_control(self.knb_control)
 
         self.dl_control = dashio.Dial("DIAL1")
         self.dl_control.title = "A Dial"
         self.dl_control.max = 10
-        self.ic.add_control(self.dl_control)
+        device.add_control(self.dl_control)
         self.page_test.add_control(self.dl_control)
 
         self.text_cntrl = dashio.TextBox("TXT1")
@@ -181,14 +172,14 @@ class TestControls:
         self.text_cntrl.keyboard_type = dashio.Keyboard.ALL_CHARS
         self.text_cntrl.close_key_board_on_send = True
         self.text_cntrl.message_rx_event += self.text_cntrl_message_handler
-        self.ic.add_control(self.text_cntrl)
+        device.add_control(self.text_cntrl)
         self.page_test.add_control(self.text_cntrl)
 
         self.alarm_ctrl = dashio.Alarm("TestingAlarms", "Test Alarms", "Hello", "Test of Shared Alarms")
-        self.ic.add_control(self.alarm_ctrl)
+        device.add_control(self.alarm_ctrl)
         self.comp_control = dashio.Compass("COMP1")
         self.comp_control.title = "A compass"
-        self.ic.add_control(self.comp_control)
+        device.add_control(self.comp_control)
         self.page_test.add_control(self.comp_control)
 
         self.selector_ctrl = dashio.Selector("TestSelector", "A Selector")
@@ -198,21 +189,21 @@ class TestControls:
         self.selector_ctrl.add_selection("Third")
         self.selector_ctrl.add_selection("Forth")
         self.selector_ctrl.add_selection("Fifth")
-        self.ic.add_control(self.selector_ctrl)
+        device.add_control(self.selector_ctrl)
         self.page_test.add_control(self.selector_ctrl)
 
         self.label_ctrl = dashio.Label("LabelID", "A label", text="Hello from Label", text_colour=dashio.Colour.BLUE)
-        self.ic.add_control(self.label_ctrl)
+        device.add_control(self.label_ctrl)
         self.page_test.add_control(self.label_ctrl)
-        self.ic.add_control(self.page_test)
+        device.add_control(self.page_test)
 
         while not self.shutdown:
             time.sleep(5)
 
             self.comp_control.direction_value = random.random() * 360
 
-        self.ic.send_popup_message("TestControls", "Shutting down", "Goodbye")
-        self.ic.running = False
+        device.send_popup_message("TestControls", "Shutting down", "Goodbye")
+        device.close()
 
 
 def main():

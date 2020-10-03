@@ -75,17 +75,13 @@ class TestControls:
         logging.info("       Control topic: %s/%s/%s/control", args.username, args.connection, args.device_id)
         logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
 
-        self.ic = dashio.mqttConnectionThread(
-            args.connection, args.device_id, args.device_name, args.server, args.port, args.username, args.password, use_ssl=True
-        )
-        self.ic.start()
-
-        self.connection = args.connection
+        device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
+        device.add_mqtt_connection(args.server, args.port, args.username, args.password, use_ssl=True)
 
         while not self.shutdown:
             time.sleep(5)
 
-        self.ic.running = False
+        device.close()
 
 
 def main():

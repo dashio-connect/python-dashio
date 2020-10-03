@@ -1,5 +1,6 @@
 #!/bin/python3
 
+from dashio.dashdevice import dashDevice
 import time
 import argparse
 import signal
@@ -62,7 +63,7 @@ class TestControls:
         return args
 
     def selector_ctrl_handler(self, msg):
-        self.selector_ctrl.position = int(msg[1])
+        self.selector_ctrl.position = int(msg[0])
 
     def __init__(self):
 
@@ -77,15 +78,13 @@ class TestControls:
         logging.info("       Control topic: %s/%s/%s/control", args.username, args.connection, args.device_id)
         logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
 
-        self.ic = dashio.mqttConnectionThread(
-            args.connection, args.device_id, args.device_name, args.server, args.port, args.username, args.password, use_ssl=True
-        )
-        self.ic.start()
-
+        device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
+        device.add_mqtt_connection(args.server, args.port, args.username, args.password, use_ssl=True)
+       
         self.tmpage = dashio.Page("tmpage", "Test Alarm")
         self.test_menu = dashio.Menu("TestTheMenu", control_position=dashio.ControlPosition(0.3, 0.5, 0.5, 0.5))
         self.test_page = dashio.Page("TestCFG", "Test the Menus")
-        self.ic.add_control(self.test_page)
+        device.add_control(self.test_page)
 
         self.up_btn = dashio.Button("UP_BTN")
         self.up_btn.btn_state = dashio.ButtonState.OFF
@@ -94,7 +93,7 @@ class TestControls:
         self.up_btn.text = "Up Button"
         self.up_btn.text_colour = dashio.Colour.WHITE
         self.up_btn.title = "Up"
-        self.ic.add_control(self.up_btn)
+        device.add_control(self.up_btn)
         self.test_menu.add_control(self.up_btn)
 
         self.down_btn = dashio.Button("DOWN_BTN")
@@ -104,7 +103,7 @@ class TestControls:
         self.down_btn.text = ""
         self.down_btn.text_colour = dashio.Colour.WHITE
         self.down_btn.title = "Down"
-        self.ic.add_control(self.down_btn)
+        device.add_control(self.down_btn)
         self.test_menu.add_control(self.down_btn)
 
         self.sldr_cntrl = dashio.SliderSingleBar("SLDR")
@@ -112,7 +111,7 @@ class TestControls:
         self.sldr_cntrl.max = 10
         self.sldr_cntrl.slider_enabled = True
         self.sldr_cntrl.red_value
-        self.ic.add_control(self.sldr_cntrl)
+        device.add_control(self.sldr_cntrl)
         self.test_menu.add_control(self.sldr_cntrl)
 
         self.text_cntrl1 = dashio.TextBox("TXT1")
@@ -120,7 +119,7 @@ class TestControls:
         self.text_cntrl1.title = "TextBx1"
         self.text_cntrl1.keyboard_type = dashio.Keyboard.ALL_CHARS
         self.text_cntrl1.close_key_board_on_send = True
-        self.ic.add_control(self.text_cntrl1)
+        device.add_control(self.text_cntrl1)
         self.test_menu.add_control(self.text_cntrl1)
 
         self.text_cntrl2 = dashio.TextBox("TXT2")
@@ -128,7 +127,7 @@ class TestControls:
         self.text_cntrl2.title = "TextBx2"
         self.text_cntrl2.keyboard_type = dashio.Keyboard.ALL_CHARS
         self.text_cntrl2.close_key_board_on_send = True
-        self.ic.add_control(self.text_cntrl2)
+        device.add_control(self.text_cntrl2)
         self.test_menu.add_control(self.text_cntrl2)
 
         self.selector_ctrl = dashio.Selector("TestSelector", "A Selector")
@@ -138,20 +137,20 @@ class TestControls:
         self.selector_ctrl.add_selection("Third")
         self.selector_ctrl.add_selection("Forth")
         self.selector_ctrl.add_selection("Fifth")
-        self.ic.add_control(self.selector_ctrl)
+        device.add_control(self.selector_ctrl)
         self.test_menu.add_control(self.selector_ctrl)
         self.test_page.add_control(self.test_menu)
         self.button_group_test = dashio.ButtonGroup("TestButtonGRP", "A group of buttons")
         self.test_page.add_control(self.button_group_test)
         self.button_group_test.add_button(self.up_btn)
         self.button_group_test.add_button(self.down_btn)
-        self.ic.add_control(self.test_menu)
-        self.ic.add_control(self.button_group_test)
+        device.add_control(self.test_menu)
+        device.add_control(self.button_group_test)
 
         while not self.shutdown:
             time.sleep(5)
 
-        self.ic.running = False
+        device.close()
 
 
 def main():

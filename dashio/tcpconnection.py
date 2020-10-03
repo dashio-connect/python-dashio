@@ -1,10 +1,8 @@
 import zmq
 import threading
 import logging
-import time
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.page import Page
-from .iotcontrol.name import Name
 
 class tcpConnectionThread(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via TCP."""
@@ -31,13 +29,15 @@ class tcpConnectionThread(threading.Thread):
             reply = self.__make_status()
         elif cntrl_type == "CFG":
             reply = self.__make_cfg()
+        elif cntrl_type == "NAME":
+            self.name_cntrl.message_rx_event(data_array[1:])
         else:
             try:
                 key = cntrl_type + "_" + data_array[1]
             except IndexError:
                 return
             try:
-                self.control_dict[key].message_rx_event(data_array[1:])
+                self.control_dict[key].message_rx_event(data_array[2:])
             except KeyError:
                 pass
         return reply

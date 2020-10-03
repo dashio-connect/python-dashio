@@ -86,11 +86,8 @@ def main():
     logging.info("       Control topic: %s/%s/%s/control", args.username, args.connection, args.device_id)
     logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
 
-    ic = dashio.mqttConnectionThread(
-        args.connection, args.device_id, args.device_name, args.server, args.port, args.username, args.password, use_ssl=True
-    )
-
-    ic.start()
+    device = dashio.dashDevice( args.connection, args.device_id, args.device_name)
+    device.add_mqtt_connection(args.server, args.port, args.username, args.password, use_ssl=True)
 
     monitor_page = dashio.Page("monpg", "Dash Server Moniter")
     gph_network = dashio.TimeGraph("NETWORKGRAPH")
@@ -118,8 +115,8 @@ def main():
     gph_cpu.y_axis_num_bars = 8
     monitor_page.add_control(gph_network)
     monitor_page.add_control(gph_cpu)
-    ic.add_control(gph_network)
-    ic.add_control(gph_cpu)
+    device.add_control(gph_network)
+    device.add_control(gph_cpu)
     number_of_cores = psutil.cpu_count()
 
     cpu_core_line_array = []
@@ -143,9 +140,9 @@ def main():
     hd_dial.red_value = 95.0
     hd_dial.show_min_max = True
 
-    ic.add_control(hd_dial)
+    device.add_control(hd_dial)
     monitor_page.add_control(hd_dial)
-    ic.add_control(monitor_page)
+    device.add_control(monitor_page)
     while not shutdown:
         time.sleep(10)
 
@@ -168,7 +165,7 @@ def main():
         gph_cpu.send_data()
         hd_dial.dial_value = psutil.disk_usage("/").percent
 
-    ic.running = False
+    device.close()
 
 
 if __name__ == "__main__":

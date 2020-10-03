@@ -5,7 +5,6 @@ import ssl
 import logging
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.page import Page
-from .iotcontrol.name import Name
 
 # TODO: Add documentation
 
@@ -29,13 +28,15 @@ class mqttConnectionThread(threading.Thread):
             self.send_data(self.__make_status())
         elif cntrl_type == "CFG":
             self.send_data(self.__make_cfg())
+        elif cntrl_type == "NAME":
+            self.name_cntrl.message_rx_event(data_array[1:])
         else:
             try:
                 try:
                     key = cntrl_type + "_" + data_array[1]
                 except IndexError:
                     return
-                self.control_dict[key].message_rx_event(data_array[1:])
+                self.control_dict[key].message_rx_event(data_array[2:])
             except KeyError:
                 pass
 
