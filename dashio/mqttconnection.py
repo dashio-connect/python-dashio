@@ -76,7 +76,7 @@ class mqttConnectionThread(threading.Thread):
             Message body.
         """
         data = "\tMSSG\t{}\t{}\t{}\n".format(title, header, message)
-        logging.debug("MQTT Tx: %s", data)
+        logging.debug("MQTT Tx: %s", data.rstrip())
         self.mqttc.publish(self.data_topic, data)
 
     def send_data(self, data):
@@ -88,7 +88,7 @@ class mqttConnectionThread(threading.Thread):
             Data to be sent to the server
         """
 
-        logging.debug("MQTT Tx: %s", data)
+        logging.debug("MQTT Tx: %s", data.rstrip())
         self.mqttc.publish(self.data_topic, data)
 
     def send_alarm(self, alarm_id, message_header, message_body):

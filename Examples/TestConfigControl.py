@@ -19,7 +19,7 @@ class TestControls:
         elif level == 2:
             log_level = logging.DEBUG
         if not logfilename:
-            formatter = logging.Formatter("%(asctime)s.%(msecs)03d, %(message)s")
+            formatter = logging.Formatter("%(asctime)s, %(message)s")
             handler = logging.StreamHandler()
             handler.setFormatter(formatter)
             logger = logging.getLogger()
@@ -29,7 +29,7 @@ class TestControls:
             logging.basicConfig(
                 filename=logfilename,
                 level=log_level,
-                format="%(asctime)s.%(msecs)03d, %(message)s",
+                format="%(asctime)s, %(message)s",
                 datefmt="%Y-%m-%d %H:%M:%S",
             )
         logging.info("==== Started ====")
