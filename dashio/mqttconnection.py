@@ -126,7 +126,7 @@ class mqttConnectionThread(threading.Thread):
             self.control_dict[key] = iot_control
 
     def __init__(
-        self, connection_id, device_id, device_name, host, port, username, password, use_ssl=False, watch_dog=60
+        self, connection_id, device_id, name_control, host, port, username, password, use_ssl=False, watch_dog=60
     ):
         """
         Arguments:
@@ -153,8 +153,7 @@ class mqttConnectionThread(threading.Thread):
         self.watch_dog_counter = 1  # If watch_dog is zero don't send anything
         self.running = True
         self.username = username
-        self.name_cntrl = Name(device_name)
-        self.device_name = device_name
+        self.name_cntrl = name_control
         self.connection_id = connection_id
         self.add_control(self.name_cntrl)
         self.who = "\tWHO\n"
@@ -165,7 +164,7 @@ class mqttConnectionThread(threading.Thread):
         self.mqttc.on_connect = self.__on_connect
         self.mqttc.on_publish = self.__on_publish
         self.mqttc.on_subscribe = self.__on_subscribe
-        if ssl:
+        if use_ssl:
             self.mqttc.tls_set(
                 ca_certs=None,
                 certfile=None,

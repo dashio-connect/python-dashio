@@ -6,21 +6,20 @@ from .iotcontrol.alarm import Alarm
 from .iotcontrol.page import Page
 from .iotcontrol.name import Name
 
-# “\t CONNECT \t Device_Name \t DeviceID \t Connection_Name \n”
 class tcpConnectionThread(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via TCP."""
 
-    def __on_message(self, id, data):
+    def __on_message(self, data):
         command_array = data.split("\n")
         reply = ""
         for ca in command_array:
             try:
-                reply += self.__on_command(id, ca.strip())
+                reply += self.__on_command(ca.strip())
             except TypeError:
                 pass
         return reply
 
-    def __on_command(self, id, data):
+    def __on_command(self, data):
         data_array = data.split("\t")
         cntrl_type = data_array[0]
         reply = ""
@@ -101,7 +100,8 @@ class tcpConnectionThread(threading.Thread):
             key = iot_control.msg_type + "_" + iot_control.control_id
             self.control_dict[key] = iot_control
 
-    def __init__(self, connection_id, device_id, device_name, context=None, url="tcp://*:5000", watch_dog=60):
+
+    def __init__(self, connection_id, device_id, name_control, url="tcp://*", port=5000, watch_dog=60, context=None, ):
         """
         Arguments:
             connection_id {str} --  The connection name as advertised to iotdashboard.
@@ -117,7 +117,9 @@ class tcpConnectionThread(threading.Thread):
         threading.Thread.__init__(self, daemon=True)
         self.context = context or zmq.Context.instance()
         self.tcpsocket = self.context.socket(zmq.STREAM)
-        self.tcpsocket.bind(url)
+
+        ext_url = url + ":" + str(port)
+        self.tcpsocket.bind(ext_url)
         self.tcpsocket.set(zmq.SNDTIMEO, 5)
 
         url_internal = "inproc://{}".format(device_id)
@@ -142,7 +144,7 @@ class tcpConnectionThread(threading.Thread):
         self.watch_dog_counter = 1  # If watch_dog is zero don't send anything
         self.running = True
         self.connection_id = connection_id
-        self.name_cntrl = Name(device_name)
+        self.name_cntrl = name_control
         self.device_id = device_id
         self.add_control(self.name_cntrl)
         self.who = "\tWHO\n"
@@ -171,7 +173,7 @@ class tcpConnectionThread(threading.Thread):
                     self.socket_ids.append(id)
                 logging.debug("TCP ID: %s, RX: %s", str(id), message.rstrip())
                 if message:
-                    reply = self.__on_message(id, message.strip())
+                    reply = self.__on_message(message.strip())
                     if reply:
                         logging.debug("TCP ID: %s, TX: %s", str(id), reply.rstrip())
                         __zmq_tcp_send(id, reply)
