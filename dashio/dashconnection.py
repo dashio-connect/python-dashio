@@ -31,7 +31,7 @@ class dashConnectionThread(threading.Thread):
         logging.debug(string)
 
     def __init__(
-        self, connection_id, device_id, username, password, host='dash.dashio.io', port=8883, context = None
+        self, connection_id, device_id, username, password, host='dash.dashio.io', port=8883, context=None
     ):
         """
         Arguments:
@@ -73,15 +73,15 @@ class dashConnectionThread(threading.Thread):
         self.LWD = "OFFLINE"
         self.running = True
         self.username = username
-        self.mqttc = mqtt.Client()
+        self.dash_c = mqtt.Client()
 
         # Assign event callbacks
-        self.mqttc.on_message = self.__on_message
-        self.mqttc.on_connect = self.__on_connect
-        self.mqttc.on_publish = self.__on_publish
-        self.mqttc.on_subscribe = self.__on_subscribe
+        self.dash_c.on_message = self.__on_message
+        self.dash_c.on_connect = self.__on_connect
+        self.dash_c.on_publish = self.__on_publish
+        self.dash_c.on_subscribe = self.__on_subscribe
         
-        self.mqttc.tls_set(
+        self.dash_c.tls_set(
             ca_certs=None,
             certfile=None,
             keyfile=None,
@@ -89,23 +89,23 @@ class dashConnectionThread(threading.Thread):
             tls_version=ssl.PROTOCOL_TLSv1_2,
             ciphers=None,
         )
-        self.mqttc.tls_insecure_set(False)
+        self.dash_c.tls_insecure_set(False)
 
         self.control_topic = "{}/{}/{}/control".format(username, connection_id, device_id)
         self.data_topic = "{}/{}/{}/data".format(username, connection_id, device_id)
         self.alarm_topic = "{}/{}/{}/alarm".format(username, connection_id, device_id)
         self.announce_topic = "{}/{}/{}/announce".format(username, connection_id, device_id)
-        self.mqttc.on_log = self.__on_log
-        self.mqttc.will_set(self.data_topic, self.LWD, qos=1, retain=False)
+        self.dash_c.on_log = self.__on_log
+        self.dash_c.will_set(self.data_topic, self.LWD, qos=1, retain=False)
         # Connect
-        self.mqttc.username_pw_set(username, password)
-        self.mqttc.connect(host, port)
+        self.dash_c.username_pw_set(username, password)
+        self.dash_c.connect(host, port)
         # Start subscribe, with QoS level 0
-        self.mqttc.subscribe(self.control_topic, 0)
+        self.dash_c.subscribe(self.control_topic, 0)
 
     def run(self):
         # Continue the network loop, exit when an error occurs
-        self.mqttc.loop_start()
+        self.dash_c.loop_start()
 
         while self.running:
             socks = dict(self.poller.poll())
@@ -114,13 +114,11 @@ class dashConnectionThread(threading.Thread):
                 [address, data] = self.rx_zmq_sub.recv_multipart()
                 logging.debug("%s TX: %s", self.b_connection_id, data.rstrip())
                 if address == b'ANNOUNCE':
-                    self.mqttc.publish(self.announce_topic, data)
+                    self.dash_c.publish(self.announce_topic, data)
                 elif address == b'ALARM':
-                    self.mqttc.publish(self.announce_topic, data)
+                    self.dash_c.publish(self.alarm_topic, data)
                 else:
-                    self.mqttc.publish(self.data_topic, data)
+                    self.dash_c.publish(self.data_topic, data)
 
-
-                
-        self.mqttc.publish(self.announce_topic, "disconnect")
-        self.mqttc.loop_stop()
+        self.dash_c.publish(self.announce_topic, "disconnect")
+        self.dash_c.loop_stop()
