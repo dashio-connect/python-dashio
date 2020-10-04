@@ -81,7 +81,7 @@ class dashDevice(threading.Thread):
             Message body.
         """
         data = "\tMSSG\t{}\t{}\t{}\n".format(title, header, message)
-        self.tx_zmq_pub.send_multipart([b"ALL", data.encode('utf-8')])
+        self.tx_zmq_pub.send_multipart([b"ALL", b'', data.encode('utf-8')])
 
     def send_alarm(self, alarm_id, message_header, message_body):
         """Send an Alarm to the Dash server.
@@ -98,11 +98,11 @@ class dashDevice(threading.Thread):
 
         payload = "\t{}\t{}\t{}\n".format(alarm_id, message_header, message_body)
         logging.debug("ALARM: %s", payload)
-        self.tx_zmq_pub.send_multipart([b"ALL", payload.encode('utf-8')])
+        self.tx_zmq_pub.send_multipart([b"ALL", b'', payload.encode('utf-8')])
 
     def __send_connect(self):
         data = "\tCONNECT\t{}\n".format(self.name_control.control_id)
-        self.tx_zmq_pub.send_multipart([b'ANNOUNCE', data.encode('utf-8')])
+        self.tx_zmq_pub.send_multipart([b'ANNOUNCE', b'', data.encode('utf-8')])
 
     def send_data(self, data):
         """Send data to the Dash server.
@@ -112,7 +112,7 @@ class dashDevice(threading.Thread):
         data : str
             Data to be sent to the server
         """
-        self.tx_zmq_pub.send_multipart([b"ALL", data.encode('utf-8')])
+        self.tx_zmq_pub.send_multipart([b"ALL", b'', data.encode('utf-8')])
 
     def add_control(self, iot_control):
         """Add a control to the connection.
@@ -195,10 +195,10 @@ class dashDevice(threading.Thread):
             socks = dict(self.poller.poll())
             if self.rx_zmq_sub in socks:
                 msg = self.rx_zmq_sub.recv_multipart()
-                if len(msg) == 2:
-                    reply = self.__on_message(msg[0], msg[1])
+                if len(msg) == 3:
+                    reply = self.__on_message(msg[0], msg[2])
                     if reply:
-                        self.tx_zmq_pub.send_multipart([msg[0], reply.encode('utf-8')])
+                        self.tx_zmq_pub.send_multipart([msg[0], msg[1], reply.encode('utf-8')])
 
         self.mqttc.publish(self.announce_topic, "disconnect")
         self.mqttc.loop_stop()

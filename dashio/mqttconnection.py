@@ -19,7 +19,7 @@ class mqttConnectionThread(threading.Thread):
     def __on_message(self, client, obj, msg):
         data = str(msg.payload, "utf-8").strip()
         logging.debug("MQTT RX: %s", data)
-        self.tx_zmq_pub.send_multipart([self.b_connection_id, msg.payload])
+        self.tx_zmq_pub.send_multipart([self.b_connection_id, b'', msg.payload])
 
     def __on_publish(self, client, obj, mid):
         pass
@@ -105,7 +105,7 @@ class mqttConnectionThread(threading.Thread):
         while self.running:
             socks = dict(self.poller.poll())
             if self.rx_zmq_sub in socks:
-                [address, data] = self.rx_zmq_sub.recv_multipart()
+                [address, _, data] = self.rx_zmq_sub.recv_multipart()
                 logging.debug("%s TX: %s", self.b_connection_id, data.rstrip())
                 self.mqttc.publish(self.data_topic, data)
 

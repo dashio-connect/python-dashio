@@ -19,7 +19,7 @@ class dashConnectionThread(threading.Thread):
     def __on_message(self, client, obj, msg):
         data = str(msg.payload, "utf-8").strip()
         logging.debug("DASH RX: %s", data)
-        self.tx_zmq_pub.send_multipart([self.b_connection_id, msg.payload])
+        self.tx_zmq_pub.send_multipart([self.b_connection_id, b'', msg.payload])
 
     def __on_publish(self, client, obj, mid):
         pass
@@ -52,7 +52,7 @@ class dashConnectionThread(threading.Thread):
         self.context = context or zmq.Context.instance()
         self.b_connection_id = connection_id.encode('utf-8')
 
-        tx_url_internal = "inproc://TX_{}".format(device_id) 
+        tx_url_internal = "inproc://TX_{}".format(device_id)
         rx_url_internal = "inproc://RX_{}".format(device_id)
 
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
@@ -80,7 +80,7 @@ class dashConnectionThread(threading.Thread):
         self.dash_c.on_connect = self.__on_connect
         self.dash_c.on_publish = self.__on_publish
         self.dash_c.on_subscribe = self.__on_subscribe
-        
+
         self.dash_c.tls_set(
             ca_certs=None,
             certfile=None,
@@ -104,7 +104,6 @@ class dashConnectionThread(threading.Thread):
         self.dash_c.subscribe(self.control_topic, 0)
 
     def run(self):
-        # Continue the network loop, exit when an error occurs
         self.dash_c.loop_start()
 
         while self.running:
