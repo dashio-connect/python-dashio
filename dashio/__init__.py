@@ -1,4 +1,4 @@
-from .dashdevice2 import dashDevice
+from .dashdevice import dashDevice
 from .iotcontrol.enums import (
     Colour,
     Icon,
