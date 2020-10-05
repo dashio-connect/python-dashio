@@ -6,7 +6,7 @@ import logging
 class tcpConnectionThread(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via TCP."""
 
-    def __init__(self, connection_id, device_id, name_control, url="tcp://*", port=5000, context=None):
+    def __init__(self, connection_id, device_id, url="tcp://*", port=5000, context=None):
         """
         Arguments:
             connection_id {str} --  The connection name as advertised to iotdashboard.
@@ -51,18 +51,11 @@ class tcpConnectionThread(threading.Thread):
         self.poller.register(self.tcpsocket, zmq.POLLIN)
         self.poller.register(self.rx_zmq_sub, zmq.POLLIN)
 
-        self.control_dict = {}
-        self.alarm_dict = {}
         self.socket_ids = []
-        self.number_of_pages = 0
-        self.watch_dog = watch_dog
-        self.watch_dog_counter = 1  # If watch_dog is zero don't send anything
         self.running = True
         self.connection_id = connection_id
-        self.name_cntrl = name_control
         self.device_id = device_id
-        self.add_control(self.name_cntrl)
-        self.who = "\tWHO\n"
+        self.start()
 
     def run(self):
         def __zmq_tcp_send(id, data):
@@ -86,9 +79,9 @@ class tcpConnectionThread(threading.Thread):
                 if id not in self.socket_ids:
                     logging.debug("Added Socket ID: " + str(id))
                     self.socket_ids.append(id)
-                logging.debug("TCP ID: %s, RX: %s", str(id), message.encode('utf-8').rstrip())
+                logging.debug("TCP ID: %s, RX: %s", str(id), message.decode('utf-8').rstrip())
                 if message:
-                    self.tx_zmq_pub.send_multipart([self.b_connection_id, message])
+                    self.tx_zmq_pub.send_multipart([self.b_connection_id, id, message])
                 else:
                     if id in self.socket_ids:
                         logging.debug("Removed Socket ID: " + str(id))
@@ -100,6 +93,7 @@ class tcpConnectionThread(threading.Thread):
                         logging.debug("TCP ID: %s, Tx: %s", str(id), data.rstrip())
                         __zmq_tcp_send(id, data)
                 elif address == self.b_connection_id:
+                    print('TCP SEND')
                     if msg_id in self.socket_ids:
                         logging.debug("TCP ID: %s, Tx: %s", str(id), data.rstrip())
                         __zmq_tcp_send(msg_id, data)

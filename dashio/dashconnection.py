@@ -19,7 +19,7 @@ class dashConnectionThread(threading.Thread):
     def __on_message(self, client, obj, msg):
         data = str(msg.payload, "utf-8").strip()
         logging.debug("DASH RX: %s", data)
-        self.tx_zmq_pub.send_multipart([self.b_connection_id, b'', msg.payload])
+        self.tx_zmq_pub.send_multipart([self.b_connection_id, b'1', msg.payload])
 
     def __on_publish(self, client, obj, mid):
         pass
@@ -102,6 +102,7 @@ class dashConnectionThread(threading.Thread):
         self.dash_c.connect(host, port)
         # Start subscribe, with QoS level 0
         self.dash_c.subscribe(self.control_topic, 0)
+        self.start()
 
     def run(self):
         self.dash_c.loop_start()
@@ -110,7 +111,7 @@ class dashConnectionThread(threading.Thread):
             socks = dict(self.poller.poll())
 
             if self.rx_zmq_sub in socks:
-                [address, data] = self.rx_zmq_sub.recv_multipart()
+                [address, id, data] = self.rx_zmq_sub.recv_multipart()
                 logging.debug("%s TX: %s", self.b_connection_id, data.rstrip())
                 if address == b'ANNOUNCE':
                     self.dash_c.publish(self.announce_topic, data)
