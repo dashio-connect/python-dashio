@@ -77,28 +77,28 @@ class tcpConnectionThread(threading.Thread):
                 id = self.tcpsocket.recv()
                 message = self.tcpsocket.recv()
                 if id not in self.socket_ids:
-                    logging.debug("Added Socket ID: " + str(id))
+                    logging.debug("Added Socket ID: " + id.hex())
                     self.socket_ids.append(id)
-                logging.debug("TCP ID: %s, RX: %s", str(id), message.decode('utf-8').rstrip())
+                logging.debug("TCP ID: %s, RX: %s", id.hex(), message.decode('utf-8').rstrip())
                 if message:
                     self.tx_zmq_pub.send_multipart([self.b_connection_id, id, message])
                 else:
                     if id in self.socket_ids:
-                        logging.debug("Removed Socket ID: " + str(id))
+                        logging.debug("Removed Socket ID: " + id.hex())
                         self.socket_ids.remove(id)
             if self.rx_zmq_sub in socks:
                 [address, msg_id, data] = self.rx_zmq_sub.recv_multipart()
                 if address == b'ALL':
                     for id in self.socket_ids:
-                        logging.debug("TCP ID: %s, Tx: %s", str(id), data.rstrip())
+                        logging.debug("TCP ID: %s, Tx: %s", id.hex(), data.decode('utf-8').rstrip())
                         __zmq_tcp_send(id, data)
                 elif address == self.b_connection_id:
-                    print('TCP SEND')
                     if msg_id in self.socket_ids:
-                        logging.debug("TCP ID: %s, Tx: %s", str(id), data.rstrip())
+                        logging.debug("TCP ID: %s, Tx: %s", id.hex(), data.decode('utf-8').rstrip())
                         __zmq_tcp_send(msg_id, data)
 
         for id in self.socket_ids:
             self._zmq_send(id, "")
         self.tcpsocket.close()
-        self.context.term()
+        self.tx_zmq_pub.close()
+        self.rx_zmq_sub.close()

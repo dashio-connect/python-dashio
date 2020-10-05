@@ -112,7 +112,7 @@ class dashConnectionThread(threading.Thread):
 
             if self.rx_zmq_sub in socks:
                 [address, id, data] = self.rx_zmq_sub.recv_multipart()
-                logging.debug("%s TX: %s", self.b_connection_id, data.rstrip())
+                logging.debug("%s TX: %s", self.b_connection_id.decode('utf-8'), data.decode('utf-8').rstrip())
                 if address == b'ANNOUNCE':
                     self.dash_c.publish(self.announce_topic, data)
                 elif address == b'ALARM':
@@ -122,3 +122,6 @@ class dashConnectionThread(threading.Thread):
 
         self.dash_c.publish(self.announce_topic, "disconnect")
         self.dash_c.loop_stop()
+
+        self.tx_zmq_pub.close()
+        self.rx_zmq_sub.close()

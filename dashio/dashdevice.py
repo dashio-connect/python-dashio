@@ -199,3 +199,7 @@ class dashDevice(threading.Thread):
 
         self.mqttc.publish(self.announce_topic, "disconnect")
         self.mqttc.loop_stop()
+
+        self.tx_zmq_pub.close()
+        self.rx_zmq_pub.close()
+        self.context.term()
