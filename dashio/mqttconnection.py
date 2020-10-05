@@ -18,8 +18,8 @@ class mqttConnectionThread(threading.Thread):
 
     def __on_message(self, client, obj, msg):
         data = str(msg.payload, "utf-8").strip()
-        logging.debug("MQTT RX: %s", data)
-        self.tx_zmq_pub.send_multipart([self.b_connection_id, b'0', msg.payload])
+        logging.debug("DASH RX: %s", data)
+        self.tx_zmq_pub.send_multipart([self.b_connection_id, b'1', msg.payload])
 
     def __on_publish(self, client, obj, mid):
         pass
@@ -41,8 +41,6 @@ class mqttConnectionThread(threading.Thread):
 
         Keyword Arguments:
             use_ssl {bool} -- Whether to use ssl for the connection or not. (default: {False})
-            watch_dog {int} -- Time in seconds between watch dog signals to iotdashboard.
-                               Set to 0 to not send watchdog signal. (default: {60})
         """
 
         threading.Thread.__init__(self, daemon=True)
@@ -107,7 +105,9 @@ class mqttConnectionThread(threading.Thread):
             socks = dict(self.poller.poll())
             if self.rx_zmq_sub in socks:
                 [address, id, data] = self.rx_zmq_sub.recv_multipart()
-                logging.debug("%s TX: %s", self.b_connection_id, data.rstrip())
+                logging.debug("%s TX: %s", self.b_connection_id.decode('utf-8'), data.decode('utf-8').rstrip())
                 self.mqttc.publish(self.data_topic, data)
 
         self.mqttc.loop_stop()
+        self.tx_zmq_pub.close()
+        self.rx_zmq_sub.close()
