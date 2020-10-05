@@ -81,7 +81,7 @@ class dashDevice(threading.Thread):
             Message body.
         """
         data = "\tMSSG\t{}\t{}\t{}\n".format(title, header, message)
-        self.tx_zmq_pub.send_multipart([b"ALL", b'', data.encode('utf-8')])
+        self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
 
     def send_alarm(self, alarm_id, message_header, message_body):
         """Send an Alarm to the Dash server.
@@ -98,7 +98,7 @@ class dashDevice(threading.Thread):
 
         payload = "\t{}\t{}\t{}\n".format(alarm_id, message_header, message_body)
         logging.debug("ALARM: %s", payload)
-        self.tx_zmq_pub.send_multipart([b"ALL", b'', payload.encode('utf-8')])
+        self.tx_zmq_pub.send_multipart([b"ALL", b'0', payload.encode('utf-8')])
 
     def __send_connect(self):
         data = "\tCONNECT\t{}\n".format(self.name_control.control_id)
@@ -112,7 +112,7 @@ class dashDevice(threading.Thread):
         data : str
             Data to be sent to the server
         """
-        self.tx_zmq_pub.send_multipart([b"ALL", b'', data.encode('utf-8')])
+        self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
 
     def add_control(self, iot_control):
         """Add a control to the connection.
@@ -161,27 +161,24 @@ class dashDevice(threading.Thread):
         self.who = "\tWHO\n"
         self.number_of_pages = 0
         self.running = True
+        self.start()
 
     def add_mqtt_connection(self, username, password, host, port, use_ssl=False):
         self.num_mqtt_connections += 1
         connection_id = self.device_type + "_MQTT" + str(self.num_mqtt_connections)
         new_mqtt_con = mqttConnectionThread(connection_id, self.device_id, host, port, username, password, use_ssl, self.context)
-        new_mqtt_con.start()
         new_mqtt_con.add_control(self.name_control)
         self.connections[connection_id] = new_mqtt_con
 
     def add_tcp_connection(self, url, port):
         connection_id = self.device_type + "_TCP:{}".format(str(port))
-        new_tcp_con = tcpConnectionThread(connection_id, self.device_id, self.name_control, url, port)
-        new_tcp_con.start()
-        new_tcp_con.add_control(self.name_control)
+        new_tcp_con = tcpConnectionThread(connection_id, self.device_id, url, port, self.context)
         self.connections[connection_id] = new_tcp_con
 
     def add_dash_connection(self, username, password, host="dash.dashio.io", port=8883):
         self.num_dash_connections += 1
         connection_id = self.device_type + "_DASH" + str(self.num_dash_connections)
         new_dash_con = dashConnectionThread(connection_id, self.device_id, username, password, host, port, self.context)
-        new_dash_con.start()
         self.connections[connection_id] = new_dash_con
         self.__send_connect()
 

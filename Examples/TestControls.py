@@ -47,7 +47,7 @@ class TestControls:
                             0 = only warnings, 1 = info, 2 = debug.
                             No number means info. Default is no verbosity.""",
         )
-        parser.add_argument("-s", "--server", help="Server URL.", dest="server", default="mqtt://localhost")
+        parser.add_argument("-s", "--server", help="Server URL.", dest="server", default="dash.dashio.io")
         parser.add_argument(
             "-p", "--port", type=int, help="Port number.", default=1883, dest="port",
         )
@@ -108,8 +108,8 @@ class TestControls:
         logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
 
         device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
-        device.add_mqtt_connection(args.server, args.port, args.username, args.password, use_ssl=True)
-        
+        #device.start()
+        device.add_dash_connection(args.username, args.password)
 
         self.page_test = dashio.Page("TestPage", "Testing Pages", 1)
         self.up_btn = dashio.Button("UP_BTN")
@@ -192,7 +192,7 @@ class TestControls:
         device.add_control(self.selector_ctrl)
         self.page_test.add_control(self.selector_ctrl)
 
-        self.label_ctrl = dashio.Label("LabelID", "A label", text="Hello from Label", text_colour=dashio.Colour.BLUE)
+        self.label_ctrl = dashio.Label("LabelID", "A label", text="Hello from Label", colour=dashio.Colour.BLUE)
         device.add_control(self.label_ctrl)
         self.page_test.add_control(self.label_ctrl)
         device.add_control(self.page_test)
