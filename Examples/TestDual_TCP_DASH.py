@@ -111,7 +111,6 @@ class TestControls:
         logging.info("  Device Name: %s", args.device_name)
 
         self.device = dashio.dashDevice(args.connection_id, args.device_id, args.device_name)
-        #self.device.start()
         self.device.add_tcp_connection(args.hostname, 5000)
         self.device.add_dash_connection(args.username, args.password)
 

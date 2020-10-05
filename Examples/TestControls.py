@@ -108,7 +108,6 @@ class TestControls:
         logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
 
         device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
-        #device.start()
         device.add_dash_connection(args.username, args.password)
 
         self.page_test = dashio.Page("TestPage", "Testing Pages", 1)
