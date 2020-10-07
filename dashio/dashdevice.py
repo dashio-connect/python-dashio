@@ -30,10 +30,10 @@ class dashDevice(threading.Thread):
         data_array = data.split("\t")
         cntrl_type = data_array[0]
         reply = ""
-        if cntrl_type == "CONNECT":
-            reply = "\tCONNECT\t{}\t{}\t{}\n".format(self.name_control.control_id, self.device_id, id.decode("utf-8"))
-        elif cntrl_type == "WHO":
-            reply = self.who
+        if cntrl_type == "WHO":
+            reply = "\tWHO\t{}\t{}\t{}\n".format(self.name_control.control_id, self.device_id, id.decode("utf-8"))
+        elif cntrl_type == "CONNECT":
+            reply = self.connect
         elif cntrl_type == "STATUS":
             reply = self.__make_status()
         elif cntrl_type == "CFG":
@@ -102,7 +102,7 @@ class dashDevice(threading.Thread):
 
     def __send_connect(self):
         data = "\tCONNECT\t{}\n".format(self.name_control.control_id)
-        self.tx_zmq_pub.send_multipart([b'ANNOUNCE', b'', data.encode('utf-8')])
+        self.tx_zmq_pub.send_multipart([b'ANNOUNCE', b'0', data.encode('utf-8')])
 
     def send_data(self, data):
         """Send data to the Dash server.
@@ -158,7 +158,7 @@ class dashDevice(threading.Thread):
         self.connections = {}
         self.control_dict = {}
         self.alarm_dict = {}
-        self.who = "\tWHO\n"
+        self.who = "\tCONNECT\n"
         self.number_of_pages = 0
         self.running = True
         self.start()
