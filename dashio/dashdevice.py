@@ -101,7 +101,7 @@ class dashDevice(threading.Thread):
         self.tx_zmq_pub.send_multipart([b"ALL", b'0', payload.encode('utf-8')])
 
     def __send_connect(self):
-        data = "\tCONNECT\t{}\n".format(self.name_control.control_id)
+        data = "\tWHO\t{}\n".format(self.name_control.control_id)
         self.tx_zmq_pub.send_multipart([b'ANNOUNCE', b'0', data.encode('utf-8')])
 
     def send_data(self, data):
