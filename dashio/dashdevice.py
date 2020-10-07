@@ -98,7 +98,7 @@ class dashDevice(threading.Thread):
 
         payload = "\t{}\t{}\t{}\n".format(alarm_id, message_header, message_body)
         logging.debug("ALARM: %s", payload)
-        self.tx_zmq_pub.send_multipart([b"ALL", b'0', payload.encode('utf-8')])
+        self.tx_zmq_pub.send_multipart([b"ALARM", b'0', payload.encode('utf-8')])
 
     def __send_connect(self):
         data = "\tWHO\t{}\n".format(self.name_control.control_id)
