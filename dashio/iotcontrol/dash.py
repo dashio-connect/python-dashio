@@ -1,7 +1,7 @@
 from .control import Control
 from .event import Event
 
-class Dash():
+class Dash(Control):
     """A connection only control"""
 
     def __init__(self, username="", password=""):

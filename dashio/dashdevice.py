@@ -158,7 +158,7 @@ class dashDevice(threading.Thread):
         self.connections = {}
         self.control_dict = {}
         self.alarm_dict = {}
-        self.who = "\tCONNECT\n"
+        self.connect = "\tCONNECT\n"
         self.number_of_pages = 0
         self.running = True
         self.start()
