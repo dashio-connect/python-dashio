@@ -53,8 +53,6 @@ class tcpConnectionThread(threading.Thread):
 
         self.socket_ids = []
         self.running = True
-        self.connection_id = connection_id
-        self.device_id = device_id
         self.start()
 
     def run(self):
@@ -66,10 +64,9 @@ class tcpConnectionThread(threading.Thread):
                 logging.debug("Sending TX Error: " + str(e))
                 self.socket_ids.remove(id)
 
-        # Continue the network loop, exit when an error occurs
-        rc = 0
         id = self.tcpsocket.recv()
         self.tcpsocket.recv()  # empty data here
+
         while self.running:
             socks = dict(self.poller.poll())
 
