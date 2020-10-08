@@ -28,31 +28,35 @@ class dashDevice(threading.Thread):
 
     def __on_command(self, id, data):
         data_array = data.split("\t")
-        cntrl_type = data_array[0]
+        rx_device_id = data_array[0]
         reply = ""
-        if cntrl_type == "WHO":
-            reply = "\tWHO\t{}\t{}\t{}\n".format(self.name_control.control_id, self.device_id, id.decode("utf-8"))
-        elif cntrl_type == "CONNECT":
+        if rx_device_id == "WHO":
+            reply = self.device_id_str + "\tWHO\t{}\t{}\n".format(self.device_type, self.device_name.control_id)
+            return reply
+        elif rx_device_id != self.device_id:
+            return reply
+        cntrl_type = data_array[1]
+        if cntrl_type == "CONNECT":
             reply = self.connect
         elif cntrl_type == "STATUS":
             reply = self.__make_status()
         elif cntrl_type == "CFG":
             reply = self.__make_cfg()
         elif cntrl_type == "NAME":
-            self.name_cntrl.message_rx_event(data_array[1:])
+            self.name_cntrl.message_rx_event(data_array[2:])
         else:
             try:
-                key = cntrl_type + "_" + data_array[1]
+                key = cntrl_type + "_" + data_array[2]
             except IndexError:
                 return
             try:
-                self.control_dict[key].message_rx_event(data_array[2:])
+                self.control_dict[key].message_rx_event(data_array[3:])
             except KeyError:
                 pass
         return reply
 
     def __make_status(self):
-        reply = ""
+        reply = self.device_id_str
         for key in self.control_dict.keys():
             try:
                 reply += self.control_dict[key].get_state()
@@ -61,7 +65,7 @@ class dashDevice(threading.Thread):
         return reply
 
     def __make_cfg(self):
-        reply = '\tCFG\tDVCE\t{{"numPages": {}}}\n'.format(self.number_of_pages)
+        reply = self.device_id_str + '\tCFG\tDVCE\t{{"numPages": {}}}\n'.format(self.number_of_pages)
         for key in self.control_dict.keys():
             reply += self.control_dict[key].get_cfg()
         for key in self.alarm_dict.keys():
@@ -80,7 +84,7 @@ class dashDevice(threading.Thread):
         message : str
             Message body.
         """
-        data = "\tMSSG\t{}\t{}\t{}\n".format(title, header, message)
+        data = self.device_id_str + "\tMSSG\t{}\t{}\t{}\n".format(title, header, message)
         self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
 
     def send_alarm(self, alarm_id, message_header, message_body):
@@ -96,12 +100,12 @@ class dashDevice(threading.Thread):
             The text body of the Alarm.
         """
 
-        payload = "\t{}\t{}\t{}\n".format(alarm_id, message_header, message_body)
+        payload = self.device_id_str + "\t{}\t{}\t{}\n".format(alarm_id, message_header, message_body)
         logging.debug("ALARM: %s", payload)
         self.tx_zmq_pub.send_multipart([b"ALARM", b'0', payload.encode('utf-8')])
 
     def __send_connect(self):
-        data = "\tWHO\t{}\n".format(self.name_control.control_id)
+        data = self.device_id_str + "\tWHO\t{}\n".format(self.name_control.control_id)
         self.tx_zmq_pub.send_multipart([b'ANNOUNCE', b'0', data.encode('utf-8')])
 
     def send_data(self, data):
@@ -112,7 +116,8 @@ class dashDevice(threading.Thread):
         data : str
             Data to be sent to the server
         """
-        self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
+        msg = self.device_id_str + data
+        self.tx_zmq_pub.send_multipart([b"ALL", b'0', msg.encode('utf-8')])
 
     def add_control(self, iot_control):
         """Add a control to the connection.
@@ -152,13 +157,14 @@ class dashDevice(threading.Thread):
 
         self.device_type = device_type
         self.device_id = device_id
-        self.name_control = Name(device_name)
+        self.device_name = Name(device_name)
         self.num_mqtt_connections = 0
         self.num_dash_connections = 0
         self.connections = {}
         self.control_dict = {}
         self.alarm_dict = {}
-        self.connect = "\tCONNECT\n"
+        self.device_id_str = "\t{}".format(device_id)
+        self.connect = self.device_id_str + "\tCONNECT\n"
         self.number_of_pages = 0
         self.running = True
         self.start()

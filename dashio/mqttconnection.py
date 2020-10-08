@@ -86,8 +86,8 @@ class mqttConnectionThread(threading.Thread):
             )
             self.mqttc.tls_insecure_set(False)
 
-        self.control_topic = "{}/{}/{}/control".format(username, connection_id, device_id)
-        self.data_topic = "{}/{}/{}/data".format(username, connection_id, device_id)
+        self.control_topic = "{}/{}/control".format(username, device_id)
+        self.data_topic = "{}/{}/data".format(username, device_id)
         self.mqttc.on_log = self.__on_log
         self.mqttc.will_set(self.data_topic, self.LWD, qos=1, retain=False)
         # Connect
