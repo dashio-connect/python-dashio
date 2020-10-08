@@ -92,10 +92,10 @@ class dashConnectionThread(threading.Thread):
         )
         self.dash_c.tls_insecure_set(False)
 
-        self.control_topic = "{}/{}/{}/control".format(username, connection_id, device_id)
-        self.data_topic = "{}/{}/{}/data".format(username, connection_id, device_id)
-        self.alarm_topic = "{}/{}/{}/alarm".format(username, connection_id, device_id)
-        self.announce_topic = "{}/{}/{}/announce".format(username, connection_id, device_id)
+        self.control_topic = "{}/{}/control".format(username, device_id)
+        self.data_topic = "{}/{}/data".format(username, device_id)
+        self.alarm_topic = "{}/{}/alarm".format(username, device_id)
+        self.announce_topic = "{}/{}/announce".format(username, device_id)
         self.dash_c.on_log = self.__on_log
         self.dash_c.will_set(self.data_topic, self.LWD, qos=1, retain=False)
         # Connect
