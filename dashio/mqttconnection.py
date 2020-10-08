@@ -33,7 +33,6 @@ class mqttConnectionThread(threading.Thread):
     def __init__(self, connection_id, device_id, host, port, username="", password="", use_ssl=False, context=None):
         """
         Arguments:
-            device_type {str} --  The connection name as advertised to iotdashboard.
             host {str} -- The server name of the mqtt host.
             port {int} -- Port number to connect to.
             username {str} -- username for the mqtt connection.
@@ -46,6 +45,7 @@ class mqttConnectionThread(threading.Thread):
         threading.Thread.__init__(self, daemon=True)
 
         self.context = context or zmq.Context.instance()
+
         self.b_connection_id = connection_id.encode('utf-8')
 
         tx_url_internal = "inproc://TX_{}".format(device_id)

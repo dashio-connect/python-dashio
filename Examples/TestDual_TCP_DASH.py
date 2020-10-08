@@ -51,14 +51,14 @@ class TestControls:
         parser.add_argument("-s", "--server", help="Server URL.", dest="server", default="dash.dashio.io")
         parser.add_argument("-q", "--hostname", help="Host URL.", dest="hostname", default="tcp://*")
         parser.add_argument(
-            "-c", "--connection_id", dest="connection_id", default="TestDualTCPDash", help="IotDashboard Connection name"
+            "-t", "--device_type", dest="device_type", default="TestDualTCPDash", help="IotDashboard device type"
         )
         parser.add_argument(
             "-p", "--port", type=int, help="Port number.", default=5000, dest="port",
         )
         parser.add_argument("-d", "--device_id", dest="device_id", default="00001", help="IotDashboard Device ID.")
         parser.add_argument(
-            "-n", "--device_name", dest="device_name", default="TCPDualZMQ", help="Alias name for device."
+            "-n", "--device_name", dest="device_name", default="DualTCPDash-Name", help="Alias name for device."
         )
         parser.add_argument("-u", "--user_name", help="MQTT Username", dest="username", default="")
         parser.add_argument("-w", "--password", help="MQTT Password", default="")
@@ -106,11 +106,11 @@ class TestControls:
         self.init_logging(args.logfilename, args.verbose)
 
         logging.info("   Serving on: %s", args.server)
-        logging.info("Connection ID: %s", args.connection_id)
+        logging.info("  Device Type: %s", args.device_type)
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
 
-        self.device = dashio.dashDevice(args.connection_id, args.device_id, args.device_name)
+        self.device = dashio.dashDevice(args.device_type, args.device_id, args.device_name)
         self.device.add_tcp_connection(args.hostname, 5000)
         self.device.add_dash_connection(args.username, args.password)
 
