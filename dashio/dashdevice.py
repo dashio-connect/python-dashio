@@ -31,7 +31,7 @@ class dashDevice(threading.Thread):
         rx_device_id = data_array[0]
         reply = ""
         if rx_device_id == "WHO":
-            reply = self.device_id_str + "\tWHO\t{}\t{}\n".format(self.device_type, self.device_name.control_id)
+            reply = self.device_id_str + "\tWHO\t{}\t{}\n".format(self.device_type, self.device_name_cntrl.control_id)
             return reply
         elif rx_device_id != self.device_id:
             return reply
@@ -43,7 +43,7 @@ class dashDevice(threading.Thread):
         elif cntrl_type == "CFG":
             reply = self.__make_cfg()
         elif cntrl_type == "NAME":
-            self.name_cntrl.message_rx_event(data_array[2:])
+            self.device_name_cntrl.message_rx_event(data_array[2:])
         else:
             try:
                 key = cntrl_type + "_" + data_array[2]
@@ -59,7 +59,7 @@ class dashDevice(threading.Thread):
         reply = self.device_id_str
         for key in self.control_dict.keys():
             try:
-                reply += self.control_dict[key].get_state()
+                reply += self.device_id_str + self.control_dict[key].get_state()
             except TypeError:
                 pass
         return reply
@@ -67,9 +67,9 @@ class dashDevice(threading.Thread):
     def __make_cfg(self):
         reply = self.device_id_str + '\tCFG\tDVCE\t{{"numPages": {}}}\n'.format(self.number_of_pages)
         for key in self.control_dict.keys():
-            reply += self.control_dict[key].get_cfg()
+            reply += self.device_id_str + self.control_dict[key].get_cfg()
         for key in self.alarm_dict.keys():
-            reply += self.alarm_dict[key].get_cfg()
+            reply += self.device_id_str + self.alarm_dict[key].get_cfg()
         return reply
 
     def send_popup_message(self, title, header, message):
@@ -105,7 +105,7 @@ class dashDevice(threading.Thread):
         self.tx_zmq_pub.send_multipart([b"ALARM", b'0', payload.encode('utf-8')])
 
     def __send_connect(self):
-        data = self.device_id_str + "\tWHO\t{}\n".format(self.name_control.control_id)
+        data = self.device_id_str + "\tWHO\t{}\t{}\n".format(self.device_type, self.device_name_cntrl.control_id)
         self.tx_zmq_pub.send_multipart([b'ANNOUNCE', b'0', data.encode('utf-8')])
 
     def send_data(self, data):
@@ -157,7 +157,7 @@ class dashDevice(threading.Thread):
 
         self.device_type = device_type
         self.device_id = device_id
-        self.device_name = Name(device_name)
+        self.device_name_cntrl = Name(device_name)
         self.num_mqtt_connections = 0
         self.num_dash_connections = 0
         self.connections = {}
@@ -173,7 +173,6 @@ class dashDevice(threading.Thread):
         self.num_mqtt_connections += 1
         connection_id = self.device_type + "_MQTT" + str(self.num_mqtt_connections)
         new_mqtt_con = mqttConnectionThread(connection_id, self.device_id, host, port, username, password, use_ssl, self.context)
-        new_mqtt_con.add_control(self.name_control)
         self.connections[connection_id] = new_mqtt_con
 
     def add_tcp_connection(self, url, port):
@@ -191,6 +190,7 @@ class dashDevice(threading.Thread):
     def close(self):
         for conn in self.connections:
             self.connections[conn].running = False
+        self.running = False
 
     def run(self):
         # Continue the network loop, exit when an error occurs
@@ -203,9 +203,6 @@ class dashDevice(threading.Thread):
                     if reply:
                         self.tx_zmq_pub.send_multipart([msg[0], msg[1], reply.encode('utf-8')])
 
-        self.mqttc.publish(self.announce_topic, "disconnect")
-        self.mqttc.loop_stop()
-
         self.tx_zmq_pub.close()
-        self.rx_zmq_pub.close()
+        self.rx_zmq_sub.close()
         self.context.term()

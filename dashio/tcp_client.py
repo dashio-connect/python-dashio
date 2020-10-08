@@ -87,13 +87,14 @@ def main():
     init_logging("", 2)
     tcp = tcpClientThread()
     tcp.start()
-    tcp.send_data("\tCONNECT\n")
     tcp.send_data("\tWHO\n")
-    tcp.send_data("\tSTATUS\n")
-    tcp.send_data("\tCFG\n")
+    tcp.send_data("\t00001\tCONNECT\n")
+    tcp.send_data("\t00001\tSTATUS\n")
+    tcp.send_data("\t00001\tCFG\n")
 
     while not shutdown:
         time.sleep(5)
+        tcp.send_data("\t00002\tSTATUS\n")
 
 
 if __name__ == "__main__":
