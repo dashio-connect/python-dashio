@@ -18,7 +18,7 @@ class EventData:
         )
         return data_str
 
-
+# TODO: Finish the Event log
 class EventLog(Control):
     def get_state(self):
         state_str = ""
