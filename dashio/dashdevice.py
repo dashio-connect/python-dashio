@@ -1,8 +1,11 @@
 import logging
 import zmq
 import threading
+import socket
 
 from .iotcontrol.name import Name
+from .iotcontrol.mqtt import MQTT
+from .iotcontrol.tcp import TCP
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.page import Page
 
@@ -163,27 +166,43 @@ class dashDevice(threading.Thread):
         self.connections = {}
         self.control_dict = {}
         self.alarm_dict = {}
+
+        self.add_control(self.device_name_cntrl)
         self.device_id_str = "\t{}".format(device_id)
         self.connect = self.device_id_str + "\tCONNECT\n"
         self.number_of_pages = 0
         self.running = True
         self.start()
 
+
+        #  Badness 10000
+    def __get_local_ip_address(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        return s.getsockname()[0]
+
     def add_mqtt_connection(self, username, password, host, port, use_ssl=False):
         self.num_mqtt_connections += 1
         connection_id = self.device_type + "_MQTT" + str(self.num_mqtt_connections)
         new_mqtt_con = mqttConnectionThread(connection_id, self.device_id, host, port, username, password, use_ssl, self.context)
+        mqtt_cntrl = MQTT(connection_id, username, host)
+        self.add_control(mqtt_cntrl)
         self.connections[connection_id] = new_mqtt_con
 
     def add_tcp_connection(self, url, port):
         connection_id = self.device_type + "_TCP:{}".format(str(port))
         new_tcp_con = tcpConnectionThread(connection_id, self.device_id, url, port, self.context)
+        ip_address = self.__get_local_ip_address()
+        tcp_ctrl = TCP(ip_address, str(port))
+        self.add_control(tcp_ctrl)
         self.connections[connection_id] = new_tcp_con
 
     def add_dash_connection(self, username, password, host="dash.dashio.io", port=8883):
         self.num_dash_connections += 1
         connection_id = self.device_type + "_DASH" + str(self.num_dash_connections)
         new_dash_con = dashConnectionThread(connection_id, self.device_id, username, password, host, port, self.context)
+        dash_cntrl = MQTT(connection_id, username, host)
+        self.add_control(dash_cntrl)
         self.connections[connection_id] = new_dash_con
         self.__send_connect()
 
