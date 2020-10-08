@@ -59,20 +59,24 @@ class dashDevice(threading.Thread):
         return reply
 
     def __make_status(self):
-        reply = self.device_id_str
+        reply = ""
         for key in self.control_dict.keys():
             try:
-                reply += self.device_id_str + self.control_dict[key].get_state()
+                status = self.control_dict[key].get_state()
+                if status:
+                    reply += self.device_id_str + self.__insert_device_id(self.control_dict[key].get_state())
             except TypeError:
                 pass
         return reply
 
     def __make_cfg(self):
-        reply = self.device_id_str + '\tCFG\tDVCE\t{{"numPages": {}}}\n'.format(self.number_of_pages)
+        reply = ""
+        if self.number_of_pages:
+            reply = self.device_id_str + '\tCFG\tDVCE\t{{"numPages": {}}}\n'.format(self.number_of_pages)
         for key in self.control_dict.keys():
             reply += self.device_id_str + self.control_dict[key].get_cfg()
         for key in self.alarm_dict.keys():
-            reply += self.device_id_str + self.alarm_dict[key].get_cfg()
+            reply += self.alarm_dict[key].get_cfg()
         return reply
 
     def send_popup_message(self, title, header, message):
@@ -111,15 +115,20 @@ class dashDevice(threading.Thread):
         data = self.device_id_str + "\tWHO\t{}\t{}\n".format(self.device_type, self.device_name_cntrl.control_id)
         self.tx_zmq_pub.send_multipart([b'ANNOUNCE', b'0', data.encode('utf-8')])
 
+    def __insert_device_id(self, data):
+        msg = data.rstrip()
+        reply = msg.replace("\n", "\n\t{}".format(self.device_id))
+        return reply + "\n"
+
     def send_data(self, data):
-        """Send data to the Dash server.
+        """Send data.
 
         Parameters
         ----------
         data : str
-            Data to be sent to the server
+            Data to be sent
         """
-        msg = self.device_id_str + data
+        msg = self.device_id_str + self.__insert_device_id(data)
         self.tx_zmq_pub.send_multipart([b"ALL", b'0', msg.encode('utf-8')])
 
     def add_control(self, iot_control):

@@ -94,7 +94,7 @@ def main():
 
     while not shutdown:
         time.sleep(5)
-        tcp.send_data("\t00002\tSTATUS\n")
+        # tcp.send_data("\t00001\tSTATUS\n")
 
 
 if __name__ == "__main__":
