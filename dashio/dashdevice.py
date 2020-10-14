@@ -202,7 +202,7 @@ class dashDevice(threading.Thread):
         connection_id = self.device_type + "_TCP:{}".format(str(port))
         new_tcp_con = tcpConnectionThread(connection_id, self.device_id, url, port, self.context)
         ip_address = self.__get_local_ip_address()
-        tcp_ctrl = TCP(ip_address, str(port))
+        tcp_ctrl = TCP(connection_id, ip_address, str(port))
         self.add_control(tcp_ctrl)
         self.connections[connection_id] = new_tcp_con
 
