@@ -12,6 +12,7 @@ from .iotcontrol.page import Page
 from .mqttconnection import mqttConnectionThread
 from .tcpconnection import tcpConnectionThread
 from .dashconnection import dashConnectionThread
+from .zmqconnection import zmqConnectionThread
 
 
 class dashDevice(threading.Thread):
@@ -172,6 +173,7 @@ class dashDevice(threading.Thread):
         self.device_name_cntrl = Name(device_name)
         self.num_mqtt_connections = 0
         self.num_dash_connections = 0
+        self.num_zmq_connections = 0
         self.connections = {}
         self.control_dict = {}
         self.alarm_dict = {}
@@ -205,6 +207,11 @@ class dashDevice(threading.Thread):
         tcp_ctrl = TCP(connection_id, ip_address, str(port))
         self.add_control(tcp_ctrl)
         self.connections[connection_id] = new_tcp_con
+
+    def add_zmq_connection(self):
+        connection_id = self.device_type + "_ZMQ"
+        new_zmq_con = zmqConnectionThread(connection_id, self.device_id, zmq_out_url='localhost', context=self.context)
+        self.connections[connection_id] = new_zmq_con
 
     def add_dash_connection(self, username, password, host="dash.dashio.io", port=8883):
         self.num_dash_connections += 1
