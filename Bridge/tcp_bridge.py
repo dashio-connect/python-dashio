@@ -1,12 +1,12 @@
 import zmq
 import threading
 import logging
+import time
 
-
-class tcpConnectionThread(threading.Thread):
+class tcpBridge(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via TCP."""
 
-    def __init__(self, connection_id, device_id, url="tcp://*", port=5000, context=None):
+    def __init__(self, zmq_in_url="localhost", tcp_out_url="tcp://*", tcp_out_port=5000, context=None):
         """
         Arguments:
             connection_id {str} --  The connection name as advertised to iotdashboard.
@@ -21,26 +21,25 @@ class tcpConnectionThread(threading.Thread):
 
         threading.Thread.__init__(self, daemon=True)
         self.context = context or zmq.Context.instance()
-        self.b_connection_id = connection_id.encode('utf-8')
 
-        tx_url_internal = "inproc://TX_{}".format(device_id)
-        rx_url_internal = "inproc://RX_{}".format(device_id)
+        tx_url_internal = "tcp://{}:5555".format(zmq_in_url)
+        rx_url_internal = "tcp://{}:5556".format(zmq_in_url)
 
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.tx_zmq_pub.connect(tx_url_internal)
+        self.tx_zmq_pub.bind(tx_url_internal)
 
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
-        self.rx_zmq_sub.connect(rx_url_internal)
+        self.rx_zmq_sub.bind(rx_url_internal)
 
         # Subscribe on ALL, and my connection
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"")
 
         self.tcpsocket = self.context.socket(zmq.STREAM)
 
-        ext_url = url + ":" + str(port)
+        ext_url = tcp_out_url + ":" + str(tcp_out_port)
         self.tcpsocket.bind(ext_url)
         self.tcpsocket.set(zmq.SNDTIMEO, 5)
+
 
         self.poller = zmq.Poller()
         self.poller.register(self.tcpsocket, zmq.POLLIN)
@@ -73,15 +72,16 @@ class tcpConnectionThread(threading.Thread):
                     self.socket_ids.append(id)
                 logging.debug("TCP ID: %s, RX: %s", id.hex(), message.decode('utf-8').rstrip())
                 if message:
-                    self.tx_zmq_pub.send_multipart([self.b_connection_id, id, message])
+                    logging.debug("ZMQ PUB: %s, TX: %s", id.hex(), message.decode('utf-8').rstrip())
+                    data_l = message.split(b'\t')
+                    self.tx_zmq_pub.send_multipart([data_l[1], message])
                 else:
                     if id in self.socket_ids:
                         logging.debug("Removed Socket ID: " + id.hex())
                         self.socket_ids.remove(id)
             if self.rx_zmq_sub in socks:
-                [address, msg_id, data] = self.rx_zmq_sub.recv_multipart()
-                if address == b'ALL' or address == self.b_connection_id:
-                    for id in self.socket_ids:
+                data = self.rx_zmq_sub.recv()
+                for id in self.socket_ids:
                         logging.debug("TCP ID: %s, Tx: %s", id.hex(), data.decode('utf-8').rstrip())
                         __zmq_tcp_send(id, data)
 
@@ -90,3 +90,41 @@ class tcpConnectionThread(threading.Thread):
         self.tcpsocket.close()
         self.tx_zmq_pub.close()
         self.rx_zmq_sub.close()
+    
+
+
+def init_logging(logfilename, level):
+    log_level = logging.WARN
+    if level == 1:
+        log_level = logging.INFO
+    elif level == 2:
+        log_level = logging.DEBUG
+    if not logfilename:
+        formatter = logging.Formatter("%(asctime)s, %(message)s")
+        handler = logging.StreamHandler()
+        handler.setFormatter(formatter)
+        logger = logging.getLogger()
+        logger.addHandler(handler)
+        logger.setLevel(log_level)
+    else:
+        logging.basicConfig(
+            filename=logfilename,
+            level=log_level,
+            format="%(asctime)s, %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
+    logging.info("==== Started ====")
+
+
+def main():
+    init_logging("", 2)
+    shutdown = False
+    b = tcpBridge("*")
+
+    while not shutdown:
+        time.sleep(5)
+        # tcp.send_data("\t00001\tSTATUS\n")
+
+
+if __name__ == "__main__":
+    main()
