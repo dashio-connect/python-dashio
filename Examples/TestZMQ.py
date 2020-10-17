@@ -100,7 +100,7 @@ class TestControls:
         args = self.parse_commandline_arguments()
         self.init_logging(args.logfilename, args.verbose)
 
-        logging.info("   Serving on: %s:%s", args.url, str(args.port))
+        logging.info("   Serving on: ZMQ")
         logging.info("Connection ID: %s", args.connection)
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)

@@ -80,7 +80,7 @@ class tcpBridge(threading.Thread):
                         logging.debug("Removed Socket ID: " + id.hex())
                         self.socket_ids.remove(id)
             if self.rx_zmq_sub in socks:
-                data = self.rx_zmq_sub.recv()
+                data = self.rx_zmq_sub.multipart()
                 for id in self.socket_ids:
                         logging.debug("TCP ID: %s, Tx: %s", id.hex(), data.decode('utf-8').rstrip())
                         __zmq_tcp_send(id, data)
