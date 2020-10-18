@@ -8,15 +8,7 @@ class tcpBridge(threading.Thread):
 
     def __init__(self, zmq_in_url="localhost", tcp_out_url="tcp://*", tcp_out_port=5000, context=None):
         """
-        Arguments:
-            connection_id {str} --  The connection name as advertised to iotdashboard.
-            device_id {str} -- A string to uniquely identify the device connection. (In case of other connections with the same name.)
-            device_name {str} -- A string for iotdashboard to use as an alias for the connection.
-            url {str} -- The address and port to set up a connection.
-
-        Keyword Arguments:
-            watch_dog {int} -- Time in seconds between watch dog signals to iotdashboard.
-                               Set to 0 to not send watchdog signal. (default: {60})
+        
         """
 
         threading.Thread.__init__(self, daemon=True)
@@ -72,9 +64,8 @@ class tcpBridge(threading.Thread):
                     self.socket_ids.append(id)
                 logging.debug("TCP ID: %s, RX: %s", id.hex(), message.decode('utf-8').rstrip())
                 if message:
-                    logging.debug("ZMQ PUB: %s, TX: %s", id.hex(), message.decode('utf-8').rstrip())
-                    data_l = message.split(b'\t')
-                    self.tx_zmq_pub.send_multipart([data_l[1], message])
+                    logging.debug("ZMQ PUB TX: %s", message.decode('utf-8').rstrip())
+                    self.tx_zmq_pub.send(message)
                 else:
                     if id in self.socket_ids:
                         logging.debug("Removed Socket ID: " + id.hex())

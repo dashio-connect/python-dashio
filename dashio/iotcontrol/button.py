@@ -84,7 +84,7 @@ class Button(Control):
     def icon_name(self, val: Icon):
         self._icon_name = val
         self._cfg["iconName"] = val.value
-        self.state_str = "\t{}\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, self._btn_state.value, val.value)
+        self._state_str = "\t{}\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, self._btn_state.value, val.value)
 
     @property
     def text(self):
@@ -93,8 +93,8 @@ class Button(Control):
     @text.setter
     def text(self, val):
         self._cfg["text"] = val
-        self.state_str = "\t{}\t{}\t{}\t{}\t{}\n".format(
-            self.msg_type, self.control_id, self._btn_state.value, self._icon_name, val
+        self._state_str = "\t{}\t{}\t{}\t{}\t{}\n".format(
+            self.msg_type, self.control_id, self._btn_state.value, self._icon_name.value, val
         )
 
     @property

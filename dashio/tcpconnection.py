@@ -6,17 +6,8 @@ import logging
 class tcpConnectionThread(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via TCP."""
 
-    def __init__(self, connection_id, device_id, url="tcp://*", port=5000, context=None):
+    def __init__(self, connection_id, device_id, ip="*", port=5000, context=None):
         """
-        Arguments:
-            connection_id {str} --  The connection name as advertised to iotdashboard.
-            device_id {str} -- A string to uniquely identify the device connection. (In case of other connections with the same name.)
-            device_name {str} -- A string for iotdashboard to use as an alias for the connection.
-            url {str} -- The address and port to set up a connection.
-
-        Keyword Arguments:
-            watch_dog {int} -- Time in seconds between watch dog signals to iotdashboard.
-                               Set to 0 to not send watchdog signal. (default: {60})
         """
 
         threading.Thread.__init__(self, daemon=True)
@@ -38,7 +29,7 @@ class tcpConnectionThread(threading.Thread):
 
         self.tcpsocket = self.context.socket(zmq.STREAM)
 
-        ext_url = url + ":" + str(port)
+        ext_url = "tcp://" + ip + ":" + str(port)
         self.tcpsocket.bind(ext_url)
         self.tcpsocket.set(zmq.SNDTIMEO, 5)
 
