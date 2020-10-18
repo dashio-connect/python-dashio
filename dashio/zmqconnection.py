@@ -38,9 +38,10 @@ class zmqConnectionThread(threading.Thread):
         self.ext_rx_zmq_sub = self.context.socket(zmq.SUB)
         self.ext_rx_zmq_sub.connect(rx_url_external)
 
-        # Subscribe on ALL, and my connection
-        self.ext_rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, device_id.encode('utf-8'))
-        self.ext_rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b'WHO')
+        # Subscribe on WHO, and my deviceID
+        sub_topic = "\t{}".format(device_id)
+        self.ext_rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, sub_topic.encode('utf-8'))
+        self.ext_rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b'\tWHO')
 
         self.poller = zmq.Poller()
         self.poller.register(self.ext_rx_zmq_sub, zmq.POLLIN)
@@ -55,7 +56,7 @@ class zmqConnectionThread(threading.Thread):
             socks = dict(self.poller.poll())
 
             if self.ext_rx_zmq_sub in socks:
-                _, message = self.ext_rx_zmq_sub.recv_multipart()
+                message = self.ext_rx_zmq_sub.recv()
                 logging.debug("ZMQ Rx: %s", message.decode('utf-8').rstrip())
                 self.tx_zmq_pub.send_multipart([self.b_connection_id, b'', message])
 
