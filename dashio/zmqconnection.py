@@ -66,8 +66,6 @@ class zmqConnectionThread(threading.Thread):
                     logging.debug("ZMQ Tx: %s", data.decode('utf-8').rstrip())
                     self.ext_tx_zmq_pub.send(data)
             
-        for id in self.socket_ids:
-            self._zmq_send(id, "")
         self.tcpsocket.close()
         self.tx_zmq_pub.close()
         self.rx_zmq_sub.close()
