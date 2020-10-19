@@ -9,11 +9,9 @@ from zeroconf import IPVersion, ServiceInfo, Zeroconf, ServiceBrowser
 
 class ZeroConfListener:
     def __init__(self, context=None):
-
         self.context = context or zmq.Context.instance()
         self.zmq_socket = self.context.socket(zmq.PUSH)
         self.zmq_socket.bind("inproc://zconf")
-        # Start your result manager and workers before you start your producers
 
     def remove_service(self, zeroconf, type, name):
         info = zeroconf.get_service_info(type, name)
@@ -73,7 +71,7 @@ class tcpBridge(threading.Thread):
         self.zeroconf.register_service(zconf_info)
         self.zero_service_list.append(zconf_info)
         
-    def __init__(self, tcp_out_port=5000, context=None):
+    def __init__(self, tcp_port=5000, context=None):
         """
         """
 
@@ -86,7 +84,7 @@ class tcpBridge(threading.Thread):
         self.host_name = "{}.local".format(hs[0])
         self.zeroconf = Zeroconf(ip_version=IPVersion.V4Only)
         self.zero_service_list = []
-        self.__zconf_publish_tcp(tcp_out_port)
+        self.__zconf_publish_tcp(tcp_port)
 
 
         logging.debug("HostName: %s", self.host_name)
@@ -106,7 +104,7 @@ class tcpBridge(threading.Thread):
         # Subscribe on ALL, and my connection
 
         self.tcpsocket = self.context.socket(zmq.STREAM)
-        ext_url = "tcp://" + self.local_ip + ":" + str(tcp_out_port)
+        ext_url = "tcp://" + self.local_ip + ":" + str(tcp_port)
         self.tcpsocket.bind(ext_url)
         self.tcpsocket.set(zmq.SNDTIMEO, 5)
 
@@ -202,11 +200,10 @@ def main():
     listener = ZeroConfListener(context)
     browser = ServiceBrowser(zeroconf, "_DashZMQ._tcp.local.", listener)
 
-    b = tcpBridge(port=5000, context=context)
+    b = tcpBridge(tcp_port=5000, context=context)
 
     while not shutdown:
         time.sleep(5)
-        # tcp.send_data("\t00001\tSTATUS\n")
 
 
 if __name__ == "__main__":
