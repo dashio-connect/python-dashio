@@ -16,6 +16,7 @@ from .zmqconnection import zmqConnectionThread
 
 from zeroconf import IPVersion, ServiceInfo, Zeroconf
 
+
 class dashDevice(threading.Thread):
 
     """Setups and manages a connection thread to iotdashboard via TCP."""
@@ -187,6 +188,13 @@ class dashDevice(threading.Thread):
         self.running = True
         self.local_ip = self.__get_local_ip_address()
         self.host_name = socket.gethostname()
+        hs = self.host_name.split(".")
+        # rename for .local mDNS advertising
+        self.host_name = "{}.local".format(hs[0])
+
+        logging.debug("HostName: %s", self.host_name)
+        logging.debug("      IP: %s", self.local_ip)
+
         self.zeroconf = Zeroconf(ip_version=IPVersion.V4Only)
         self.start()
 
@@ -208,10 +216,12 @@ class dashDevice(threading.Thread):
         connection_id = self.device_type + "_TCP:{}".format(str(port))
         if connection_id in self.connections:
             return
-        zconf_desc = {'device_id': self.device_id}
+        zconf_desc = {'device_id': self.device_id,
+                      'device_type': self.device_type,
+                      'device_name': self.device_name_cntrl.control_id}
         zconf_info = ServiceInfo(
-            "_dash._tcp.local.",
-            "tcp._dash._tcp.local.",
+            "_dashTCP._tcp.local.",
+            "{} {}._dashTCP._tcp.local.".format(self.device_type, self.device_id),
             addresses=[socket.inet_aton(self.local_ip)],
             port=port,
             properties=zconf_desc,
@@ -224,15 +234,16 @@ class dashDevice(threading.Thread):
         self.add_control(tcp_ctrl)
         self.connections[connection_id] = new_tcp_con
 
-
     def add_zmq_connection(self):
         self.num_zmq_connections += 1
         if self.num_zmq_connections > 1:
             return
-        zconf_desc = {'device_id': self.device_id}
+        zconf_desc = {'device_id': self.device_id,
+                      'device_type': self.device_type,
+                      'device_name': self.device_name_cntrl.control_id}
         zconf_info = ServiceInfo(
-            "_dash._tcp.local.",
-            "zmq._dash._tcp.local.",
+            "_dashZMQ._tcp.local.",
+            "{} {}._dashZMQ._tcp.local.".format(self.device_type, self.device_id),
             addresses=[socket.inet_aton(self.local_ip)],
             port=5555,
             properties=zconf_desc,
