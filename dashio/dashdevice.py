@@ -114,7 +114,7 @@ class dashDevice(threading.Thread):
         logging.debug("ALARM: %s", payload)
         self.tx_zmq_pub.send_multipart([b"ALARM", b'0', payload.encode('utf-8')])
 
-    def __send_connect(self):
+    def __send_dash_connect(self):
         data = self.device_id_str + "\tWHO\t{}\t{}\n".format(self.device_type, self.device_name_cntrl.control_id)
         self.tx_zmq_pub.send_multipart([b'ANNOUNCE', b'0', data.encode('utf-8')])
 
@@ -204,15 +204,33 @@ class dashDevice(threading.Thread):
         s.connect(("8.8.8.8", 80))
         return s.getsockname()[0]
 
-    def __zconf_publish(self, protocol, port):
+    def __zconf_publish_tcp(self, port):
         zconf_desc = {'device_id': self.device_id,
                       'device_type': self.device_type,
                       'device_name': self.device_name_cntrl.control_id}
         zconf_info = ServiceInfo(
-            "_{}._tcp.local.".format(protocol),
-            "{} {}._{}._tcp.local.".format(self.device_type, self.device_id, protocol),
+            "_DashTCP._tcp.local.",
+            "{} {}._DashTCP._tcp.local.".format(self.device_type, self.device_id),
             addresses=[socket.inet_aton(self.local_ip)],
             port=port,
+            properties=zconf_desc,
+            server=self.host_name + ".",
+        )
+        self.zeroconf.register_service(zconf_info)
+        self.zero_service_list.append(zconf_info)
+
+    
+    def __zconf_publish_zmq(self, sub_port, pub_port):
+        zconf_desc = {'device_id': self.device_id,
+                      'device_type': self.device_type,
+                      'device_name': self.device_name_cntrl.control_id,
+                      'sub_port': str(sub_port),
+                      'pub_port': str(pub_port)}
+        zconf_info = ServiceInfo(
+            "_DashZMQ._tcp.local.",
+            "{} {}._DashZMQ._tcp.local.".format(self.device_type, self.device_id),
+            addresses=[socket.inet_aton(self.local_ip)],
+            port=pub_port,
             properties=zconf_desc,
             server=self.host_name + ".",
         )
@@ -231,31 +249,17 @@ class dashDevice(threading.Thread):
         connection_id = self.device_type + "_TCP:{}".format(str(port))
         if connection_id in self.connections:
             return
-        self.__zconf_publish("DashTCP", port)
+        self.__zconf_publish_tcp(port)
         new_tcp_con = tcpConnectionThread(connection_id, self.device_id, self.local_ip, port, self.context)
         tcp_ctrl = TCP(connection_id, self.local_ip, str(port))
         self.add_control(tcp_ctrl)
         self.connections[connection_id] = new_tcp_con
 
     def add_zmq_connection(self, pub_port=5555, sub_port=5556):
-        self.num_zmq_connections += 1
-        if self.num_zmq_connections > 1:
-            return
-        zconf_desc = {'device_id': self.device_id,
-                      'device_type': self.device_type,
-                      'device_name': self.device_name_cntrl.control_id}
-        zconf_info = ServiceInfo(
-            "_DashZMQ-PUB._tcp.local.",
-            "{} {}._DashZMQ-PUB._tcp.local.".format(self.device_type, self.device_id),
-            addresses=[socket.inet_aton(self.local_ip)],
-            port=pub_port,
-            properties=zconf_desc,
-            server=self.host_name + ".",
-        )
-        self.zeroconf.register_service(zconf_info)
-        self.zero_service_list.append(zconf_info)
-
-        connection_id = self.device_type + "_ZMQ"
+        connection_id = self.device_type + "_ZMQ_PUB:{}_SUB:{}".format(pub_port, sub_port)
+        if connection_id in self.connections:
+            return         
+        self.__zconf_publish_zmq(sub_port, pub_port)
         new_zmq_con = zmqConnectionThread(connection_id, self.device_id, zmq_out_url=self.local_ip, context=self.context)
         self.connections[connection_id] = new_zmq_con
 
@@ -266,7 +270,7 @@ class dashDevice(threading.Thread):
         dash_cntrl = MQTT(connection_id, username, host)
         self.add_control(dash_cntrl)
         self.connections[connection_id] = new_dash_con
-        self.__send_connect()
+        self.__send_dash_connect()
 
     def close(self):
         for conn in self.connections:
@@ -289,3 +293,4 @@ class dashDevice(threading.Thread):
         self.tx_zmq_pub.close()
         self.rx_zmq_sub.close()
         self.context.term()
+        self.zeroconf.close()
