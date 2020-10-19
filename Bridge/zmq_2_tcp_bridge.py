@@ -3,12 +3,38 @@ import threading
 import logging
 import time
 
+
+class ZeroConfListener:
+    def __init__(self, context=None):
+
+        self.context = context or zmq.Context.instance()
+        self.zmq_socket = self.context.socket(zmq.PUSH)
+        self.zmq_socket.bind("inproc://zconf")
+        # Start your result manager and workers before you start your producers
+
+    def remove_service(self, zeroconf, type, name):
+        logging.debug("Service %s removed" % (name,))
+        self.zmq_socket.send_multipart([name, b"removed", "", ""])
+
+    def add_service(self, zeroconf, type, name):
+        info = zeroconf.get_service_info(type, name)
+        if info:
+            self.zmq_socket.send_multipart([name, b"added", socket.inet_ntoa(info.addresses[0]), info.port])
+            logging.debug("Service %s added, service info: %s" % (name, info))
+            logging.debug("Service %s added, IP address: %s" % (name, socket.inet_ntoa(info.addresses[0])))
+
+    def update_service(self, zeroconf, type, name):
+        info = zeroconf.get_service_info(type, name)
+        if info:
+            self.zmq_socket.send_multipart([name, b"added", socket.inet_ntoa(info.addresses[0]), info.port])
+            logging.debug("Service %s updated, service info: %s" % (name, info))
+
+
 class tcpBridge(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via TCP."""
 
     def __init__(self, zmq_in_url="localhost", tcp_out_url="tcp://*", tcp_out_port=5000, context=None):
         """
-        
         """
 
         threading.Thread.__init__(self, daemon=True)
@@ -23,6 +49,9 @@ class tcpBridge(threading.Thread):
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         self.rx_zmq_sub.bind(rx_url_internal)
 
+        self.rx_zconf_pull = self.context.socket(zmq.PULL)
+        self.rx_zconf_pull.connect("inproc://zconf")
+
         # Subscribe on ALL, and my connection
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"")
 
@@ -32,10 +61,10 @@ class tcpBridge(threading.Thread):
         self.tcpsocket.bind(ext_url)
         self.tcpsocket.set(zmq.SNDTIMEO, 5)
 
-
         self.poller = zmq.Poller()
         self.poller.register(self.tcpsocket, zmq.POLLIN)
         self.poller.register(self.rx_zmq_sub, zmq.POLLIN)
+        self.poller.register(self.rx_zconf_pull, zmq.POLLIN)
 
         self.socket_ids = []
         self.running = True
@@ -73,15 +102,14 @@ class tcpBridge(threading.Thread):
             if self.rx_zmq_sub in socks:
                 data = self.rx_zmq_sub.recv()
                 for id in self.socket_ids:
-                        logging.debug("TCP ID: %s, Tx: %s", id.hex(), data.decode('utf-8').rstrip())
-                        __zmq_tcp_send(id, data)
+                    logging.debug("TCP ID: %s, Tx: %s", id.hex(), data.decode('utf-8').rstrip())
+                    __zmq_tcp_send(id, data)
 
         for id in self.socket_ids:
             self._zmq_send(id, "")
         self.tcpsocket.close()
         self.tx_zmq_pub.close()
         self.rx_zmq_sub.close()
-    
 
 
 def init_logging(logfilename, level):
