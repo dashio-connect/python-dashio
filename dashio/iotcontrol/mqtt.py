@@ -1,5 +1,6 @@
 from .control import Control
 
+
 class MQTT(Control):
     """A connection only control"""
 
