@@ -16,7 +16,6 @@ class ZeroConfListener:
         # Start your result manager and workers before you start your producers
 
     def remove_service(self, zeroconf, type, name):
-        logging.debug("Service %s removed" % (name))
         info = zeroconf.get_service_info(type, name)
         if info:
             self.zmq_socket.send_multipart([name.encode('utf-8'), b"remove", socket.inet_ntoa(info.addresses[0]).encode('utf-8'), info.properties[b'sub_port'], info.properties[b'pub_port']])
@@ -24,15 +23,12 @@ class ZeroConfListener:
     def add_service(self, zeroconf, type, name):
         info = zeroconf.get_service_info(type, name)
         if info:
-            logging.debug("Service %s added, service info: %s" % (name, info))
-            logging.debug("Service %s added, IP address: %s" % (name, socket.inet_ntoa(info.addresses[0])))
             self.zmq_socket.send_multipart([name.encode('utf-8'), b"add", socket.inet_ntoa(info.addresses[0]).encode('utf-8'), info.properties[b'sub_port'], info.properties[b'pub_port']])
 
     def update_service(self, zeroconf, type, name):
         info = zeroconf.get_service_info(type, name)
         if info:
             self.zmq_socket.send_multipart([name.encode('utf-8'), b"update", socket.inet_ntoa(info.addresses[0]).encode('utf-8'), info.properties[b'sub_port'], info.properties[b'pub_port']])
-            logging.debug("Service %s updated, service info: %s" % (name, info))
 
 
 class tcpBridge(threading.Thread):
@@ -77,7 +73,7 @@ class tcpBridge(threading.Thread):
         self.zeroconf.register_service(zconf_info)
         self.zero_service_list.append(zconf_info)
         
-    def __init__(self, tcp_out_url="tcp://*", tcp_out_port=5000, context=None):
+    def __init__(self, tcp_out_port=5000, context=None):
         """
         """
 
@@ -161,10 +157,10 @@ class tcpBridge(threading.Thread):
             if self.rx_zconf_pull in socks:
                 name, action, ip_address, sub_port, pub_port = self.rx_zconf_pull.recv_multipart()
                 if action == b'add':
-                    logging.debug("Added device: %s", name)
+                    logging.debug("Added device: %s", name.decode('utf-8'))
                     self.connect_zmq_device(name, ip_address, sub_port, pub_port)
                 elif action == b'remove':
-                    logging.debug("Remove device: %s", name)
+                    logging.debug("Remove device: %s", name.decode('utf-8'))
                     self.disconnect_zmq_device(name, ip_address, sub_port, pub_port)
 
 
@@ -206,7 +202,7 @@ def main():
     listener = ZeroConfListener(context)
     browser = ServiceBrowser(zeroconf, "_DashZMQ._tcp.local.", listener)
 
-    b = tcpBridge("*")
+    b = tcpBridge(port=5000, context=context)
 
     while not shutdown:
         time.sleep(5)
