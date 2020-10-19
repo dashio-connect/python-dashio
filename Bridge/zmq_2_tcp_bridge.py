@@ -2,6 +2,9 @@ import zmq
 import threading
 import logging
 import time
+import socket
+
+from zeroconf import IPVersion, ServiceInfo, Zeroconf, ServiceBrowser
 
 
 class ZeroConfListener:
@@ -13,51 +16,101 @@ class ZeroConfListener:
         # Start your result manager and workers before you start your producers
 
     def remove_service(self, zeroconf, type, name):
-        logging.debug("Service %s removed" % (name,))
-        self.zmq_socket.send_multipart([name, b"removed", "", ""])
+        logging.debug("Service %s removed" % (name))
+        info = zeroconf.get_service_info(type, name)
+        if info:
+            self.zmq_socket.send_multipart([name.encode('utf-8'), b"remove", socket.inet_ntoa(info.addresses[0]).encode('utf-8'), info.properties[b'sub_port'], info.properties[b'pub_port']])
 
     def add_service(self, zeroconf, type, name):
         info = zeroconf.get_service_info(type, name)
         if info:
-            self.zmq_socket.send_multipart([name, b"added", socket.inet_ntoa(info.addresses[0]), info.port])
             logging.debug("Service %s added, service info: %s" % (name, info))
             logging.debug("Service %s added, IP address: %s" % (name, socket.inet_ntoa(info.addresses[0])))
+            self.zmq_socket.send_multipart([name.encode('utf-8'), b"add", socket.inet_ntoa(info.addresses[0]).encode('utf-8'), info.properties[b'sub_port'], info.properties[b'pub_port']])
 
     def update_service(self, zeroconf, type, name):
         info = zeroconf.get_service_info(type, name)
         if info:
-            self.zmq_socket.send_multipart([name, b"added", socket.inet_ntoa(info.addresses[0]), info.port])
+            self.zmq_socket.send_multipart([name.encode('utf-8'), b"update", socket.inet_ntoa(info.addresses[0]).encode('utf-8'), info.properties[b'sub_port'], info.properties[b'pub_port']])
             logging.debug("Service %s updated, service info: %s" % (name, info))
 
 
 class tcpBridge(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via TCP."""
 
-    def __init__(self, zmq_in_url="localhost", tcp_out_url="tcp://*", tcp_out_port=5000, context=None):
+    def connect_zmq_device(self, name, ip_address, sub_port, pub_port):
+        if name not in self.devices:
+            self.devices.append(name)
+            logging.debug("Connect: %s, %s, %s, %s", name.decode('utf-8'), ip_address.decode('utf-8'), sub_port.decode('utf-8'), pub_port.decode('utf-8'))
+            tx_url = "tcp://{}:{}".format(ip_address.decode('utf-8'), sub_port.decode('utf-8'))
+            rx_url = "tcp://{}:{}".format(ip_address.decode('utf-8'), pub_port.decode('utf-8'))
+
+            self.tx_zmq_pub.connect(tx_url)
+            self.rx_zmq_sub.connect(rx_url)
+
+
+    def disconnect_zmq_device(self, name, ip_address, sub_port, pub_port):
+        if name in self.devices:
+            self.devices.remove(name)
+            tx_url = "tcp://{}:{}".format(ip_address, sub_port)
+            rx_url = "tcp://{}:{}".format(ip_address, pub_port)
+
+            self.tx_zmq_pub.disconnect(tx_url)
+            self.rx_zmq_sub.disconnect(rx_url)
+
+        #  Badness 10000
+    def __get_local_ip_address(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        return s.getsockname()[0]
+
+    def __zconf_publish_tcp(self, port):
+        zconf_desc = {'device_type': 'Bridge'}
+        zconf_info = ServiceInfo(
+            "_DashTCP._tcp.local.",
+            "Bridge-{}._DashTCP._tcp.local.".format(port),
+            addresses=[socket.inet_aton(self.local_ip)],
+            port=port,
+            properties=zconf_desc,
+            server=self.host_name + ".",
+        )
+        self.zeroconf.register_service(zconf_info)
+        self.zero_service_list.append(zconf_info)
+        
+    def __init__(self, tcp_out_url="tcp://*", tcp_out_port=5000, context=None):
         """
         """
 
         threading.Thread.__init__(self, daemon=True)
+
+        self.local_ip = self.__get_local_ip_address()
+        self.host_name = socket.gethostname()
+        hs = self.host_name.split(".")
+        # rename for .local mDNS advertising
+        self.host_name = "{}.local".format(hs[0])
+        self.zeroconf = Zeroconf(ip_version=IPVersion.V4Only)
+        self.zero_service_list = []
+        self.__zconf_publish_tcp(tcp_out_port)
+
+
+        logging.debug("HostName: %s", self.host_name)
+        logging.debug("      IP: %s", self.local_ip)
+
         self.context = context or zmq.Context.instance()
 
-        tx_url_internal = "tcp://{}:5555".format(zmq_in_url)
-        rx_url_internal = "tcp://{}:5556".format(zmq_in_url)
-
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.tx_zmq_pub.bind(tx_url_internal)
-
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
-        self.rx_zmq_sub.bind(rx_url_internal)
 
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b'')
+    
         self.rx_zconf_pull = self.context.socket(zmq.PULL)
+
         self.rx_zconf_pull.connect("inproc://zconf")
 
         # Subscribe on ALL, and my connection
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"")
 
         self.tcpsocket = self.context.socket(zmq.STREAM)
-
-        ext_url = tcp_out_url + ":" + str(tcp_out_port)
+        ext_url = "tcp://" + self.local_ip + ":" + str(tcp_out_port)
         self.tcpsocket.bind(ext_url)
         self.tcpsocket.set(zmq.SNDTIMEO, 5)
 
@@ -67,6 +120,7 @@ class tcpBridge(threading.Thread):
         self.poller.register(self.rx_zconf_pull, zmq.POLLIN)
 
         self.socket_ids = []
+        self.devices = []
         self.running = True
         self.start()
 
@@ -104,13 +158,22 @@ class tcpBridge(threading.Thread):
                 for id in self.socket_ids:
                     logging.debug("TCP ID: %s, Tx: %s", id.hex(), data.decode('utf-8').rstrip())
                     __zmq_tcp_send(id, data)
+            if self.rx_zconf_pull in socks:
+                name, action, ip_address, sub_port, pub_port = self.rx_zconf_pull.recv_multipart()
+                if action == b'add':
+                    logging.debug("Added device: %s", name)
+                    self.connect_zmq_device(name, ip_address, sub_port, pub_port)
+                elif action == b'remove':
+                    logging.debug("Remove device: %s", name)
+                    self.disconnect_zmq_device(name, ip_address, sub_port, pub_port)
+
 
         for id in self.socket_ids:
             self._zmq_send(id, "")
         self.tcpsocket.close()
         self.tx_zmq_pub.close()
         self.rx_zmq_sub.close()
-
+        self.rx_zconf_pull.close()
 
 def init_logging(logfilename, level):
     log_level = logging.WARN
@@ -138,6 +201,11 @@ def init_logging(logfilename, level):
 def main():
     init_logging("", 2)
     shutdown = False
+    context = zmq.Context.instance()
+    zeroconf = Zeroconf()
+    listener = ZeroConfListener(context)
+    browser = ServiceBrowser(zeroconf, "_DashZMQ._tcp.local.", listener)
+
     b = tcpBridge("*")
 
     while not shutdown:

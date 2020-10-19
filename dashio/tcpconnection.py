@@ -77,7 +77,7 @@ class tcpConnectionThread(threading.Thread):
                         __zmq_tcp_send(id, data)
 
         for id in self.socket_ids:
-            self._zmq_send(id, "")
+            __zmq_tcp_send(id, b'')
         self.tcpsocket.close()
         self.tx_zmq_pub.close()
         self.rx_zmq_sub.close()
