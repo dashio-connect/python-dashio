@@ -6,7 +6,7 @@ import logging
 class zmqConnectionThread(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via TCP."""
 
-    def __init__(self, connection_id, device_id, zmq_out_url="*", context=None):
+    def __init__(self, connection_id, device_id, zmq_out_url="*", pub_port=5555, sub_port=5556, context=None):
         """
         Arguments: figure it out for yourself.
         """
@@ -28,15 +28,14 @@ class zmqConnectionThread(threading.Thread):
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
 
-
-        tx_url_external = "tcp://{}:5556".format(zmq_out_url)
-        rx_url_external = "tcp://{}:5555".format(zmq_out_url)
+        tx_url_external = "tcp://{}:{}".format(zmq_out_url, pub_port)
+        rx_url_external = "tcp://{}:{}".format(zmq_out_url, sub_port)
 
         self.ext_tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.ext_tx_zmq_pub.connect(tx_url_external)
+        self.ext_tx_zmq_pub.bind(tx_url_external)
 
         self.ext_rx_zmq_sub = self.context.socket(zmq.SUB)
-        self.ext_rx_zmq_sub.connect(rx_url_external)
+        self.ext_rx_zmq_sub.bind(rx_url_external)
 
         # Subscribe on WHO, and my deviceID
         sub_topic = "\t{}".format(device_id)
@@ -51,7 +50,7 @@ class zmqConnectionThread(threading.Thread):
         self.start()
 
     def run(self):
-        
+
         while self.running:
             socks = dict(self.poller.poll())
 

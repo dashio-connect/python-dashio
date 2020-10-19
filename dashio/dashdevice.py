@@ -204,6 +204,21 @@ class dashDevice(threading.Thread):
         s.connect(("8.8.8.8", 80))
         return s.getsockname()[0]
 
+    def __zconf_publish(self, protocol, port):
+        zconf_desc = {'device_id': self.device_id,
+                      'device_type': self.device_type,
+                      'device_name': self.device_name_cntrl.control_id}
+        zconf_info = ServiceInfo(
+            "_{}._tcp.local.".format(protocol),
+            "{} {}._{}._tcp.local.".format(self.device_type, self.device_id, protocol),
+            addresses=[socket.inet_aton(self.local_ip)],
+            port=port,
+            properties=zconf_desc,
+            server=self.host_name + ".",
+        )
+        self.zeroconf.register_service(zconf_info)
+        self.zero_service_list.append(zconf_info)
+
     def add_mqtt_connection(self, username, password, host, port, use_ssl=False):
         self.num_mqtt_connections += 1
         connection_id = self.device_type + "_MQTT" + str(self.num_mqtt_connections)
@@ -216,25 +231,13 @@ class dashDevice(threading.Thread):
         connection_id = self.device_type + "_TCP:{}".format(str(port))
         if connection_id in self.connections:
             return
-        zconf_desc = {'device_id': self.device_id,
-                      'device_type': self.device_type,
-                      'device_name': self.device_name_cntrl.control_id}
-        zconf_info = ServiceInfo(
-            "_dashTCP._tcp.local.",
-            "{} {}._dashTCP._tcp.local.".format(self.device_type, self.device_id),
-            addresses=[socket.inet_aton(self.local_ip)],
-            port=port,
-            properties=zconf_desc,
-            server=self.host_name + ".",
-        )
-        self.zeroconf.register_service(zconf_info)
-        self.zero_service_list.append(zconf_info)
+        self.__zconf_publish("DashTCP", port)
         new_tcp_con = tcpConnectionThread(connection_id, self.device_id, self.local_ip, port, self.context)
         tcp_ctrl = TCP(connection_id, self.local_ip, str(port))
         self.add_control(tcp_ctrl)
         self.connections[connection_id] = new_tcp_con
 
-    def add_zmq_connection(self):
+    def add_zmq_connection(self, pub_port=5555, sub_port=5556):
         self.num_zmq_connections += 1
         if self.num_zmq_connections > 1:
             return
@@ -242,15 +245,16 @@ class dashDevice(threading.Thread):
                       'device_type': self.device_type,
                       'device_name': self.device_name_cntrl.control_id}
         zconf_info = ServiceInfo(
-            "_dashZMQ._tcp.local.",
-            "{} {}._dashZMQ._tcp.local.".format(self.device_type, self.device_id),
+            "_DashZMQ-PUB._tcp.local.",
+            "{} {}._DashZMQ-PUB._tcp.local.".format(self.device_type, self.device_id),
             addresses=[socket.inet_aton(self.local_ip)],
-            port=5555,
+            port=pub_port,
             properties=zconf_desc,
             server=self.host_name + ".",
         )
         self.zeroconf.register_service(zconf_info)
         self.zero_service_list.append(zconf_info)
+
         connection_id = self.device_type + "_ZMQ"
         new_zmq_con = zmqConnectionThread(connection_id, self.device_id, zmq_out_url=self.local_ip, context=self.context)
         self.connections[connection_id] = new_zmq_con
