@@ -159,8 +159,10 @@ class tcpBridge(threading.Thread):
                     self.connect_zmq_device(name, ip_address, sub_port, pub_port)
                 elif action == b'remove':
                     logging.debug("Remove device: %s", name.decode('utf-8'))
-                    self.disconnect_zmq_device(name, ip_address, sub_port, pub_port)
-
+                    try:
+                        self.disconnect_zmq_device(name, ip_address, sub_port, pub_port)
+                    except zmq.error.ZMQError:
+                        pass
 
         for id in self.socket_ids:
             self._zmq_send(id, "")
