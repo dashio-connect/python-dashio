@@ -29,7 +29,7 @@ class ZeroConfListener:
             self.zmq_socket.send_multipart([name.encode('utf-8'), b"update", socket.inet_ntoa(info.addresses[0]).encode('utf-8'), info.properties[b'sub_port'], info.properties[b'pub_port']])
 
 
-class tcpBridge(threading.Thread):
+class zmq_tcpBridge(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via TCP."""
 
     def connect_zmq_device(self, name, ip_address, sub_port, pub_port):
@@ -41,7 +41,6 @@ class tcpBridge(threading.Thread):
 
             self.tx_zmq_pub.connect(tx_url)
             self.rx_zmq_sub.connect(rx_url)
-
 
     def disconnect_zmq_device(self, name, ip_address, sub_port, pub_port):
         if name in self.devices:
@@ -171,6 +170,7 @@ class tcpBridge(threading.Thread):
         self.rx_zmq_sub.close()
         self.rx_zconf_pull.close()
 
+
 def init_logging(logfilename, level):
     log_level = logging.WARN
     if level == 1:
@@ -202,7 +202,7 @@ def main():
     listener = ZeroConfListener(context)
     browser = ServiceBrowser(zeroconf, "_DashZMQ._tcp.local.", listener)
 
-    b = tcpBridge(tcp_port=5000, context=context)
+    b = zmq_tcpBridge(tcp_port=5000, context=context)
 
     while not shutdown:
         time.sleep(5)
