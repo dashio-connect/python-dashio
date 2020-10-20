@@ -53,7 +53,8 @@ class TestControls:
             "-c", "--connection_name", dest="connection", default="TestTCP", help="IotDashboard Connection name"
         )
         parser.add_argument("-d", "--device_id", dest="device_id", default="00001", help="IotDashboard Device ID.")
-        parser.add_argument("-p", "--port", dest="port", default=5000, help="Port number")
+        parser.add_argument("-s", "--sub_port", dest="sub_port", type=int, default=5556, help="Port number")
+        parser.add_argument("-p", "--pub_port", dest="pub_port", type=int, default=5555, help="Port number")
         parser.add_argument(
             "-n", "--device_name", dest="device_name", default="TCPTest", help="Alias name for device."
         )
@@ -106,7 +107,7 @@ class TestControls:
         logging.info("  Device Name: %s", args.device_name)
 
         self.device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
-        self.device.add_zmq_connection()
+        self.device.add_zmq_connection(pub_port=args.pub_port, sub_port=args.sub_port)
 
         self.connection = args.connection
         self.page_name = "TestTCP: " + platform.node()
