@@ -10,7 +10,7 @@ from .iotcontrol.page import Page
 # TODO: Add documentation
 
 
-class ZeroConfListener:
+class ZeroConfDashTCPListener:
     def __init__(self, context=None):
         self.context = context or zmq.Context.instance()
         self.zmq_socket = self.context.socket(zmq.PUSH)
@@ -32,31 +32,20 @@ class ZeroConfListener:
             self.zmq_socket.send_multipart([name.encode('utf-8'), b"update", socket.inet_ntoa(info.addresses[0]).encode('utf-8'), info.port])
 
 
-class ZeroConfDashTCPListener:
-   def __init__(self, context=None):
+class TCPPinger(threading.Thread): 
+    def __init__(self, port=5000, context=None):
+        """
+
+        """
+        threading.Thread.__init__(self, daemon=True)
         self.context = context or zmq.Context.instance()
-        self.zmq_socket = self.context.socket(zmq.PUSH)
-        self.zmq_socket.bind("inproc://zconf")
 
-    def remove_service(self, zeroconf, type, name):
-        info = zeroconf.get_service_info(type, name)
-        if info:
-            self.zmq_socket.send_multipart([name.encode('utf-8'), b"remove", socket.inet_ntoa(info.addresses[0]).encode('utf-8'), info.port])
-
-    def add_service(self, zeroconf, type, name):
-        info = zeroconf.get_service_info(type, name)
-        if info:
-            self.zmq_socket.send_multipart([name.encode('utf-8'), b"add", socket.inet_ntoa(info.addresses[0]).encode('utf-8'), info.port])
-
-    def update_service(self, zeroconf, type, name):
-        info = zeroconf.get_service_info(type, name)
-        if info:
-            self.zmq_socket.send_multipart([name.encode('utf-8'), b"update", socket.inet_ntoa(info.addresses[0]).encode('utf-8'), info.port])
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip_address = s.getsockname()[0]
 
 
-
-
-class zmq_dashBridge(threading.Thread):
+class tcp_dashBridge(threading.Thread):
     """Setups and manages a connection thread to the Dash Server."""
 
     def __on_connect(self, client, userdata, flags, rc):
@@ -80,7 +69,7 @@ class zmq_dashBridge(threading.Thread):
         self, username, password, host='dash.dashio.io', port=8883, context=None
     ):
         """
-       
+
         """
 
         threading.Thread.__init__(self, daemon=True)
@@ -164,16 +153,15 @@ class zmq_dashBridge(threading.Thread):
         self.rx_zmq_sub.close()
 
 
-
 def main():
     init_logging("", 2)
     shutdown = False
     context = zmq.Context.instance()
     zeroconf = Zeroconf()
-    listener = ZeroConfListener(context)
+    listener = ZeroConfDashTCPListener(context)
     browser = ServiceBrowser(zeroconf, "_DashTCP._tcp.local.", listener)
 
-    b = tcpBridge(tcp_port=5000, context=context)
+    b = tcp_dashBridge(tcp_port=5000, context=context)
 
     while not shutdown:
         time.sleep(5)

@@ -64,6 +64,6 @@ class zmqConnectionThread(threading.Thread):
                 if address == b'ALL' or address == self.b_connection_id:
                     logging.debug("ZMQ Tx: %s", data.decode('utf-8').rstrip())
                     self.ext_tx_zmq_pub.send(data)
-            
+
         self.tx_zmq_pub.close()
         self.rx_zmq_sub.close()

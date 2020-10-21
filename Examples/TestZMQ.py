@@ -110,9 +110,9 @@ class TestControls:
         self.device.add_zmq_connection(pub_port=args.pub_port, sub_port=args.sub_port)
 
         self.connection = args.connection
-        self.page_name = "TestTCP: " + platform.node()
+        self.page_name = "TestZMQ: " + platform.node()
 
-        self.page_test = dashio.Page("TestTCP", self.page_name, 1)
+        self.page_test = dashio.Page("TestZMQ", self.page_name, 1)
         self.up_btn = dashio.Button("UP_BTN", control_position=dashio.ControlPosition(0.05, 0.02857, 0.2, 0.114286))
         self.up_btn.btn_state = dashio.ButtonState.OFF
         self.up_btn.icon_name = dashio.Icon.UP
@@ -222,6 +222,7 @@ class TestControls:
             self.comp_control.direction_value = random.random() * 360
 
         self.device.send_popup_message("TestControls", "Shutting down", "Goodbye")
+        time.sleep(1)
         self.device.close()
 
 

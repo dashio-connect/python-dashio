@@ -3,6 +3,7 @@ import threading
 import logging
 import time
 import socket
+import signal
 
 from zeroconf import IPVersion, ServiceInfo, Zeroconf, ServiceBrowser
 
@@ -69,7 +70,7 @@ class zmq_tcpBridge(threading.Thread):
         )
         self.zeroconf.register_service(zconf_info)
         self.zero_service_list.append(zconf_info)
-        
+
     def __init__(self, tcp_port=5000, context=None):
         """
         """
@@ -85,7 +86,6 @@ class zmq_tcpBridge(threading.Thread):
         self.zero_service_list = []
         self.__zconf_publish_tcp(tcp_port)
 
-
         logging.debug("HostName: %s", self.host_name)
         logging.debug("      IP: %s", self.local_ip)
 
@@ -93,11 +93,9 @@ class zmq_tcpBridge(threading.Thread):
 
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
-
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b'')
-    
-        self.rx_zconf_pull = self.context.socket(zmq.PULL)
 
+        self.rx_zconf_pull = self.context.socket(zmq.PULL)
         self.rx_zconf_pull.connect("inproc://zconf")
 
         # Subscribe on ALL, and my connection
@@ -117,6 +115,14 @@ class zmq_tcpBridge(threading.Thread):
         self.running = True
         self.start()
 
+    def close(self):
+        for id in self.socket_ids:
+            self._zmq_send(id, "")
+
+        self.zeroconf.unregister_all_services()
+        self.zeroconf.close()
+        self.running = False
+
     def run(self):
         def __zmq_tcp_send(id, data):
             try:
@@ -126,12 +132,8 @@ class zmq_tcpBridge(threading.Thread):
                 logging.debug("Sending TX Error: " + str(e))
                 self.socket_ids.remove(id)
 
-        id = self.tcpsocket.recv()
-        self.tcpsocket.recv()  # empty data here
-
         while self.running:
             socks = dict(self.poller.poll())
-
             if self.tcpsocket in socks:
                 id = self.tcpsocket.recv()
                 message = self.tcpsocket.recv()
@@ -165,6 +167,9 @@ class zmq_tcpBridge(threading.Thread):
 
         for id in self.socket_ids:
             self._zmq_send(id, "")
+
+        self.zeroconf.unregister_all_services()
+        self.zeroconf.close()
         self.tcpsocket.close()
         self.tx_zmq_pub.close()
         self.rx_zmq_sub.close()
@@ -194,9 +199,20 @@ def init_logging(logfilename, level):
     logging.info("==== Started ====")
 
 
+shutdown = False
+
+
+def signal_cntrl_c(os_signal, os_frame):
+    global shutdown
+    shutdown = True
+
+
 def main():
+    # Catch CNTRL-C signel
+    global shutdown
+    signal.signal(signal.SIGINT, signal_cntrl_c)
+
     init_logging("", 2)
-    shutdown = False
     context = zmq.Context.instance()
     zeroconf = Zeroconf()
     listener = ZeroConfListener(context)
@@ -205,7 +221,13 @@ def main():
     b = zmq_tcpBridge(tcp_port=5000, context=context)
 
     while not shutdown:
-        time.sleep(5)
+        time.sleep(1)
+
+    print("Goodbye")
+    zeroconf.unregister_all_services()
+    b.close()
+    time.sleep(1)
+    zeroconf.close()
 
 
 if __name__ == "__main__":
