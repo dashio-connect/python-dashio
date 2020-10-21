@@ -21,18 +21,18 @@ class dashDevice(threading.Thread):
 
     """Setups and manages a connection thread to iotdashboard via TCP."""
 
-    def __on_message(self, id, payload):
+    def __on_message(self, payload):
         data = str(payload, "utf-8").strip()
         command_array = data.split("\n")
         reply = ""
         for ca in command_array:
             try:
-                reply += self.__on_command(id, ca.strip())
+                reply += self.__on_command(ca.strip())
             except TypeError:
                 pass
         return reply
 
-    def __on_command(self, id, data):
+    def __on_command(self, data):
         data_array = data.split("\t")
         rx_device_id = data_array[0]
         reply = ""
@@ -285,7 +285,7 @@ class dashDevice(threading.Thread):
             if self.rx_zmq_sub in socks:
                 msg = self.rx_zmq_sub.recv_multipart()
                 if len(msg) == 3:
-                    reply = self.__on_message(msg[0], msg[2])
+                    reply = self.__on_message(msg[2])
                     if reply:
                         self.tx_zmq_pub.send_multipart([msg[0], msg[1], reply.encode('utf-8')])
 

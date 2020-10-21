@@ -71,10 +71,13 @@ class tcpConnectionThread(threading.Thread):
                         self.socket_ids.remove(id)
             if self.rx_zmq_sub in socks:
                 [address, msg_id, data] = self.rx_zmq_sub.recv_multipart()
-                if address == b'ALL' or address == self.b_connection_id:
+                if address == b'ALL':
                     for id in self.socket_ids:
                         logging.debug("TCP ID: %s, Tx: %s", id.hex(), data.decode('utf-8').rstrip())
                         __zmq_tcp_send(id, data)
+                elif address == self.b_connection_id:
+                    logging.debug("TCP ID: %s, Tx: %s", msg_id.hex(), data.decode('utf-8').rstrip())
+                    __zmq_tcp_send(msg_id, data)
 
         for id in self.socket_ids:
             __zmq_tcp_send(id, b'')
