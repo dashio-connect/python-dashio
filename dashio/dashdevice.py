@@ -219,7 +219,6 @@ class dashDevice(threading.Thread):
         self.zeroconf.register_service(zconf_info)
         self.zero_service_list.append(zconf_info)
 
-    
     def __zconf_publish_zmq(self, sub_port, pub_port):
         zconf_desc = {'device_id': self.device_id,
                       'device_type': self.device_type,
@@ -258,7 +257,7 @@ class dashDevice(threading.Thread):
     def add_zmq_connection(self, pub_port=5555, sub_port=5556):
         connection_id = self.device_type + "_ZMQ_PUB:{}_SUB:{}".format(pub_port, sub_port)
         if connection_id in self.connections:
-            return         
+            return
         self.__zconf_publish_zmq(sub_port, pub_port)
         new_zmq_con = zmqConnectionThread(connection_id, self.device_id, zmq_out_url=self.local_ip, pub_port=pub_port, sub_port=sub_port, context=self.context)
         self.connections[connection_id] = new_zmq_con
@@ -273,11 +272,11 @@ class dashDevice(threading.Thread):
         self.__send_dash_connect()
 
     def close(self):
+        self.running = False
         for conn in self.connections:
             self.connections[conn].running = False
-        for zeroc in self.zero_service_list:
-            self.zeroconf.unregister_service(zeroc)
-        self.running = False
+        self.zeroconf.unregister_all_services()
+        self.zeroconf.close()
 
     def run(self):
         # Continue the network loop, exit when an error occurs
@@ -292,5 +291,7 @@ class dashDevice(threading.Thread):
 
         self.tx_zmq_pub.close()
         self.rx_zmq_sub.close()
+
+        for conn in self.connections:
+            self.connections[conn].running = False
         self.context.term()
-        self.zeroconf.close()
