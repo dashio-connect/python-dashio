@@ -4,8 +4,12 @@ import paho.mqtt.client as mqtt
 import ssl
 import logging
 import zmq
-from .iotcontrol.alarm import Alarm
-from .iotcontrol.page import Page
+import signal
+import socket
+import multiping
+import ipaddress
+import netifaces
+from zeroconf import IPVersion, ServiceInfo, Zeroconf, ServiceBrowser
 
 # TODO: Add documentation
 
@@ -19,30 +23,65 @@ class ZeroConfDashTCPListener:
     def remove_service(self, zeroconf, type, name):
         info = zeroconf.get_service_info(type, name)
         if info:
-            self.zmq_socket.send_multipart([name.encode('utf-8'), b"remove", socket.inet_ntoa(info.addresses[0]).encode('utf-8'), info.port])
+            self.zmq_socket.send_multipart([b"remove", socket.inet_ntoa(info.addresses[0]).encode('utf-8'), str(info.port).encode('utf-8')])
 
     def add_service(self, zeroconf, type, name):
         info = zeroconf.get_service_info(type, name)
         if info:
-            self.zmq_socket.send_multipart([name.encode('utf-8'), b"add", socket.inet_ntoa(info.addresses[0]).encode('utf-8'), info.port])
+            self.zmq_socket.send_multipart([b"add", socket.inet_ntoa(info.addresses[0]).encode('utf-8'), str(info.port).encode('utf-8')])
 
     def update_service(self, zeroconf, type, name):
         info = zeroconf.get_service_info(type, name)
         if info:
-            self.zmq_socket.send_multipart([name.encode('utf-8'), b"update", socket.inet_ntoa(info.addresses[0]).encode('utf-8'), info.port])
+            self.zmq_socket.send_multipart([b"update", socket.inet_ntoa(info.addresses[0]).encode('utf-8'), str(info.port).encode('utf-8')])
 
 
-class TCPPinger(threading.Thread): 
+class TCPPoller(threading.Thread):
+
+    def check_port(self, ip, port):
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # TCP
+            #  sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
+            socket.setdefaulttimeout(1.0)  # seconds (float)
+            result = sock.connect_ex((ip, port))
+            if result == 0:
+                if ip not in self.open_address_list:
+                    self.open_address_list.append(ip)
+            sock.close()
+        except:
+            pass
+
     def __init__(self, port=5000, context=None):
         """
 
         """
+        self.port = port
+        self.finish = False
         threading.Thread.__init__(self, daemon=True)
-        self.context = context or zmq.Context.instance()
+        self.max_threads = 50
 
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))
-        ip_address = s.getsockname()[0]
+        self.context = context or zmq.Context.instance()
+        self.zmq_socket = self.context.socket(zmq.PUSH)
+        self.zmq_socket.bind("inproc://tcp_poller")
+        self.open_address_list = []
+        gws = netifaces.gateways()
+        net_dict = netifaces.ifaddresses(gws['default'][netifaces.AF_INET][1])[netifaces.AF_INET]
+        net_str = '{}/{}'.format(net_dict[0]['addr'], net_dict[0]['netmask'])
+        self.network = ipaddress.IPv4Network(net_str, strict=False)
+        self.start()
+
+    def run(self):
+        while not self.finish:
+            for ip in self.network:
+                threading.Thread(target=self.check_port, args=[str(ip), self.port]).start()
+                #  sleep(0.1)
+
+            # limit the number of threads.
+            while threading.active_count() > self.max_threads:
+                time.sleep(1)
+            print(self.open_address_list)
+
+            time.sleep(60)
 
 
 class tcp_dashBridge(threading.Thread):
@@ -153,15 +192,50 @@ class tcp_dashBridge(threading.Thread):
         self.rx_zmq_sub.close()
 
 
+def init_logging(logfilename, level):
+    log_level = logging.WARN
+    if level == 1:
+        log_level = logging.INFO
+    elif level == 2:
+        log_level = logging.DEBUG
+    if not logfilename:
+        formatter = logging.Formatter("%(asctime)s, %(message)s")
+        handler = logging.StreamHandler()
+        handler.setFormatter(formatter)
+        logger = logging.getLogger()
+        logger.addHandler(handler)
+        logger.setLevel(log_level)
+    else:
+        logging.basicConfig(
+            filename=logfilename,
+            level=log_level,
+            format="%(asctime)s, %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
+    logging.info("==== Started ====")
+
+
+shutdown = False
+
+
+def signal_cntrl_c(os_signal, os_frame):
+    global shutdown
+    shutdown = True
+
+
 def main():
+    # Catch CNTRL-C signel
+    global shutdown
+    signal.signal(signal.SIGINT, signal_cntrl_c)
+
     init_logging("", 2)
-    shutdown = False
+
     context = zmq.Context.instance()
     zeroconf = Zeroconf()
     listener = ZeroConfDashTCPListener(context)
     browser = ServiceBrowser(zeroconf, "_DashTCP._tcp.local.", listener)
-
-    b = tcp_dashBridge(tcp_port=5000, context=context)
+    pinger = TCPPoller()
+    # b = tcp_dashBridge(context=context)
 
     while not shutdown:
         time.sleep(5)
