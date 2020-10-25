@@ -6,7 +6,7 @@ import logging
 import zmq
 import signal
 import socket
-import multiping
+import configparser
 import ipaddress
 import netifaces
 from zeroconf import IPVersion, ServiceInfo, Zeroconf, ServiceBrowser
@@ -70,7 +70,7 @@ class TCPPoller(threading.Thread):
         self.context = context
         self.finish = False
         threading.Thread.__init__(self, daemon=True)
-        self.max_threads = 50
+        self.max_threads = 255
 
         self.open_address_list = []
         gws = netifaces.gateways()
@@ -99,8 +99,11 @@ class tcp_dashBridge(threading.Thread):
 
     def __on_message(self, client, obj, msg):
         data = str(msg.payload, "utf-8").strip()
-        logging.debug("DASH RX: %s", data)
-        self.tx_zmq_pub.send_multipart([self.b_connection_id, b'1', msg.payload])
+        topic_array = msg.topic.split("/")
+        device_id = topic_array[1]
+        logging.debug("BRIDGE Dash: RX: %s", data)
+        self.tcp_socket.send(self.tcp_device_dict[device_id.encode('utf-8')], zmq.SNDMORE)
+        self.tcp_socket.send(msg.payload)
 
     def __on_publish(self, client, obj, mid):
         pass
@@ -111,6 +114,22 @@ class tcp_dashBridge(threading.Thread):
     def __on_log(self, client, obj, level, string):
         logging.debug(string)
 
+    def add_device(self, ip_address, port):
+        url = "tcp://{}:{}".format(ip_address.decode('utf-8'), port.decode('utf-8'))
+        print(url)
+        self.tcp_socket.connect(url)
+        id = self.tcp_socket.getsockopt(zmq.IDENTITY)
+        try:
+            self.tcp_socket.send(id, zmq.SNDMORE)
+            self.tcp_socket.send_string('\tWHO\n')
+        except zmq.error.ZMQError:
+            logging.debug("Sending TX Error.")
+            self.tcp_socket.send(b'')
+
+
+    def remove_device(self, ip_address, port):
+        pass
+
     def __init__(self, username, password, host='dash.dashio.io', port=8883, context=None):
         """
 
@@ -119,11 +138,18 @@ class tcp_dashBridge(threading.Thread):
         threading.Thread.__init__(self, daemon=True)
 
         self.context = context or zmq.Context.instance()
+
+        self.tcp_socket = self.context.socket(zmq.STREAM)
+        self.tcp_socket.set(zmq.SNDTIMEO, 1)
+
         self.rx_zconf_pull = self.context.socket(zmq.PULL)
         self.rx_zconf_pull.bind("inproc://zconf")
 
         self.poller = zmq.Poller()
         self.poller.register(self.rx_zconf_pull, zmq.POLLIN)
+        self.poller.register(self.tcp_socket, zmq.POLLIN)
+        self.tcp_id_dict = {}
+        self.tcp_device_dict = {}
 
         self.LWD = "OFFLINE"
         self.running = True
@@ -146,7 +172,7 @@ class tcp_dashBridge(threading.Thread):
         )
         self.dash_c.tls_insecure_set(False)
 
-        #self.control_topic = "{}/{}/control".format(username, device_id)
+        self.control_topic = "{}/{}/control"
         #self.data_topic = "{}/{}/data".format(username, device_id)
         #self.alarm_topic = "{}/{}/alarm".format(username, device_id)
         #self.announce_topic = "{}/{}/announce".format(username, device_id)
@@ -155,9 +181,17 @@ class tcp_dashBridge(threading.Thread):
         # Connect
         self.dash_c.username_pw_set(username, password)
         self.dash_c.connect(host, port)
+        self.username=username
         # Start subscribe, with QoS level 0
         #self.dash_c.subscribe(self.control_topic, 0)
         self.start()
+
+    def announce_device(self, device_id, message):
+        control_topic = "{}/{}/control".format(self.username, device_id)
+        announce_topic = "{}/{}/announce".format(self.username, device_id)
+        self.dash_c.subscribe(control_topic, 0)
+        self.dash_c.publish(announce_topic, message)
+
 
     def run(self):
         self.dash_c.loop_start()
@@ -168,15 +202,34 @@ class tcp_dashBridge(threading.Thread):
             if self.rx_zconf_pull in socks:
                 action, ip_address, port = self.rx_zconf_pull.recv_multipart()
                 if action == b'add':
-                    logging.debug("Added device: %s:%s", ip_address.decode('utf-8'), port.decode('utf-8'))
+                    logging.debug("Adding device: %s:%s", ip_address.decode('utf-8'), port.decode('utf-8'))
+                    self.add_device(ip_address, port)
                     #self.connect_zmq_device(name, ip_address, sub_port, pub_port)
                 elif action == b'remove':
                     logging.debug("Remove device: %s:%s", ip_address.decode('utf-8'), port.decode('utf-8'))
-                    #try:
-                    #    self.disconnect_zmq_device(name, ip_address, sub_port, pub_port)
-                    #except zmq.error.ZMQError:
-                    #    pass
-
+                    self.remove_device(ip_address, port)
+            if self.tcp_socket in socks:
+                id = self.tcp_socket.recv()
+                message = self.tcp_socket.recv()
+                #  logging.debug("RX: " + message.decode('utf-8').strip())
+                if message:
+                    if id not in self.tcp_id_dict:
+                        msg_l = message.split(b"\t")
+                        print(msg_l)
+                        if len(msg_l) > 3 :
+                            if msg_l[2] == b'WHO':
+                                if msg_l[1] not in self.tcp_device_dict:
+                                    logging.debug("Added device: %s", msg_l[1].decode('utf-8'))
+                                    self.tcp_id_dict[id] = msg_l[1]
+                                    self.tcp_device_dict[msg_l[1]] = id
+                                    self.announce_device(msg_l[1].decode('utf-8'), message)
+                                    continue
+                        self.tcp_socket.send(id, zmq.SNDMORE)
+                        self.tcp_socket.send(b'')
+                    else:
+                        logging.debug("BRIDGE  TCP: RX: %s", message.decode('utf-8').strip())
+                        data_topic = "{}/{}/data".format(self.username,self.tcp_id_dict[id].decode('utf-8'))
+                        self.dash_c.publish(data_topic, message)
         #self.dash_c.publish(self.announce_topic, "disconnect")
         self.dash_c.loop_stop()
 
@@ -213,6 +266,12 @@ def signal_cntrl_c(os_signal, os_frame):
     global shutdown
     shutdown = True
 
+def load_configfile(filename):
+    config_file_parser = configparser.ConfigParser()
+    config_file_parser.defaults()
+    config_file_parser.read(filename)
+    return config_file_parser
+
 
 def main():
     # Catch CNTRL-C signel
@@ -221,12 +280,19 @@ def main():
 
     init_logging("", 2)
 
+    configs = load_configfile("bridge.ini")
     context = zmq.Context.instance()
     zeroconf = Zeroconf()
     listener = ZeroConfDashTCPListener(context)
     browser = ServiceBrowser(zeroconf, "_DashTCP._tcp.local.", listener)
     pinger = TCPPoller(port=5000, context=context)
-    b = tcp_dashBridge(username='user', password='username', context=context)
+    b = tcp_dashBridge(
+        configs.get('Dash', 'Username'),
+        configs.get('Dash', 'Password'),
+        host=configs.get('Dash', 'Server'),
+        port=configs.getint('Dash', 'Port'),
+        context=context
+    )
 
     while not shutdown:
         time.sleep(5)
