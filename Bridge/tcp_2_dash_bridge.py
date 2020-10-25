@@ -189,9 +189,9 @@ class tcp_dashBridge(threading.Thread):
         self.dash_c.publish(announce_topic, message)
 
     def clear_device(self, device_id):
+        logging.debug("Removing device: %s", device_id)
         control_topic = "{}/{}/control".format(self.username, device_id)
         self.dash_c.unsubscribe(control_topic)
-
 
     def run(self):
         self.dash_c.loop_start()
