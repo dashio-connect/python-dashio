@@ -48,7 +48,7 @@ class tcpConnectionThread(threading.Thread):
                 self.tcpsocket.send(data, zmq.NOBLOCK)
             except zmq.error.ZMQError as e:
                 logging.debug("Sending TX Error: " + str(e))
-                self.socket_ids.remove(id)
+                # self.socket_ids.remove(id)
 
         id = self.tcpsocket.recv()
         self.tcpsocket.recv()  # empty data here
