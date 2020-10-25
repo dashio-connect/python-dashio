@@ -63,9 +63,6 @@ class TCPPoller(threading.Thread):
             pass
 
     def __init__(self, port=5000, context=None):
-        """
-
-        """
         self.port = port
         self.context = context
         self.finish = False
@@ -83,7 +80,6 @@ class TCPPoller(threading.Thread):
         while not self.finish:
             for ip in self.network:
                 threading.Thread(target=self.check_port, args=[str(ip), self.port, self.context]).start()
-                #  sleep(0.1)
 
             # limit the number of threads.
             while threading.active_count() > self.max_threads:
@@ -192,6 +188,10 @@ class tcp_dashBridge(threading.Thread):
         self.dash_c.subscribe(control_topic, 0)
         self.dash_c.publish(announce_topic, message)
 
+    def clear_device(self, device_id):
+        control_topic = "{}/{}/control".format(self.username, device_id)
+        self.dash_c.unsubscribe(control_topic)
+
 
     def run(self):
         self.dash_c.loop_start()
@@ -204,18 +204,15 @@ class tcp_dashBridge(threading.Thread):
                 if action == b'add':
                     logging.debug("Adding device: %s:%s", ip_address.decode('utf-8'), port.decode('utf-8'))
                     self.add_device(ip_address, port)
-                    #self.connect_zmq_device(name, ip_address, sub_port, pub_port)
                 elif action == b'remove':
                     logging.debug("Remove device: %s:%s", ip_address.decode('utf-8'), port.decode('utf-8'))
                     self.remove_device(ip_address, port)
             if self.tcp_socket in socks:
                 id = self.tcp_socket.recv()
                 message = self.tcp_socket.recv()
-                #  logging.debug("RX: " + message.decode('utf-8').strip())
                 if message:
                     if id not in self.tcp_id_dict:
-                        msg_l = message.split(b"\t")
-                        print(msg_l)
+                        msg_l = message.split(b'\t')
                         if len(msg_l) > 3 :
                             if msg_l[2] == b'WHO':
                                 if msg_l[1] not in self.tcp_device_dict:
@@ -228,9 +225,11 @@ class tcp_dashBridge(threading.Thread):
                         self.tcp_socket.send(b'')
                     else:
                         logging.debug("BRIDGE  TCP: RX: %s", message.decode('utf-8').strip())
-                        data_topic = "{}/{}/data".format(self.username,self.tcp_id_dict[id].decode('utf-8'))
+                        data_topic = "{}/{}/data".format(self.username, self.tcp_id_dict[id].decode('utf-8'))
                         self.dash_c.publish(data_topic, message)
-        #self.dash_c.publish(self.announce_topic, "disconnect")
+                elif id in self.tcp_id_dict:
+                    self.clear_device(self.tcp_id_dict[id].decode('utf-8'))
+
         self.dash_c.loop_stop()
 
         self.rx_zconf_pull.close()
