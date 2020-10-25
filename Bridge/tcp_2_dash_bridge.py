@@ -23,17 +23,22 @@ class ZeroConfDashTCPListener:
     def remove_service(self, zeroconf, type, name):
         info = zeroconf.get_service_info(type, name)
         if info:
-            self.zmq_socket.send_multipart([b"remove", socket.inet_ntoa(info.addresses[0]).encode('utf-8'), str(info.port).encode('utf-8')])
+            for address in info.addresses:
+                self.zmq_socket.send_multipart([b"remove", socket.inet_ntoa(address).encode('utf-8'), str(info.port).encode('utf-8')])
 
     def add_service(self, zeroconf, type, name):
         info = zeroconf.get_service_info(type, name)
         if info:
-            self.zmq_socket.send_multipart([b"add", socket.inet_ntoa(info.addresses[0]).encode('utf-8'), str(info.port).encode('utf-8')])
+            logging.debug("Info: %s", info)
+            for address in info.addresses:
+                logging.debug('IP: %s', socket.inet_ntoa(address).encode('utf-8'))
+                self.zmq_socket.send_multipart([b"add", socket.inet_ntoa(address).encode('utf-8'), str(info.port).encode('utf-8')])
 
     def update_service(self, zeroconf, type, name):
         info = zeroconf.get_service_info(type, name)
         if info:
-            self.zmq_socket.send_multipart([b"update", socket.inet_ntoa(info.addresses[0]).encode('utf-8'), str(info.port).encode('utf-8')])
+            for address in info.addresses:
+                self.zmq_socket.send_multipart([b"update", socket.inet_ntoa(address).encode('utf-8'), str(info.port).encode('utf-8')])
 
 
 class TCPPoller(threading.Thread):
