@@ -119,10 +119,12 @@ class tcp_dashBridge(threading.Thread):
         try:
             self.tcp_socket.send(id, zmq.SNDMORE)
             self.tcp_socket.send_string('\tWHO\n')
+            logging.debug("BRIDGE TX: \tWHO")
         except zmq.error.ZMQError:
             logging.debug("Sending TX Error.")
             self.tcp_socket.send(b'')
-
+        time.sleep(0.1)
+        return id
 
     def remove_device(self, ip_address, port):
         pass
@@ -184,6 +186,7 @@ class tcp_dashBridge(threading.Thread):
         self.start()
 
     def announce_device(self, device_id, message):
+        logging.debug("Adding device: %s", device_id)
         control_topic = "{}/{}/control".format(self.username, device_id)
         announce_topic = "{}/{}/announce".format(self.username, device_id)
         self.dash_c.subscribe(control_topic, 0)
