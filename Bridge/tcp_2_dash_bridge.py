@@ -29,7 +29,6 @@ class ZeroConfDashTCPListener:
     def add_service(self, zeroconf, type, name):
         info = zeroconf.get_service_info(type, name)
         if info:
-            logging.debug("Info: %s", info)
             for address in info.addresses:
                 logging.debug('IP: %s', socket.inet_ntoa(address).encode('utf-8'))
                 self.zmq_socket.send_multipart([b"add", socket.inet_ntoa(address).encode('utf-8'), str(info.port).encode('utf-8')])
@@ -44,12 +43,9 @@ class ZeroConfDashTCPListener:
 class TCPPoller(threading.Thread):
 
     def check_port(self, ip, port, context):
-
         self.context = context or zmq.Context.instance()
-
         self.zmq_socket = self.context.socket(zmq.PUSH)
         self.zmq_socket.connect("inproc://zconf")
-
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # TCP
             #  sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
@@ -131,7 +127,7 @@ class tcp_dashBridge(threading.Thread):
     def remove_device(self, ip_address, port):
         pass
 
-    def __init__(self, username, password, host='dash.dashio.io', port=8883, context=None):
+    def __init__(self, username, password, host='dash.dashio.io', port=8883, context=None, ignore_devices=None):
         """
 
         """
@@ -139,7 +135,7 @@ class tcp_dashBridge(threading.Thread):
         threading.Thread.__init__(self, daemon=True)
 
         self.context = context or zmq.Context.instance()
-
+        self.ignore_list = ignore_devices
         self.tcp_socket = self.context.socket(zmq.STREAM)
         self.tcp_socket.set(zmq.SNDTIMEO, 1)
 
@@ -218,14 +214,12 @@ class tcp_dashBridge(threading.Thread):
                 if message:
                     if id not in self.tcp_id_dict:
                         msg_l = message.split(b'\t')
-                        if len(msg_l) > 3 :
-                            if msg_l[2] == b'WHO':
-                                if msg_l[1] not in self.tcp_device_dict:
-                                    logging.debug("Added device: %s", msg_l[1].decode('utf-8'))
-                                    self.tcp_id_dict[id] = msg_l[1]
-                                    self.tcp_device_dict[msg_l[1]] = id
-                                    self.announce_device(msg_l[1].decode('utf-8'), message)
-                                    continue
+                        if (len(msg_l) > 3) and (msg_l[2] == b'WHO') and (msg_l[1] not in self.tcp_device_dict) and (msg_l[1].decode('utf-8') not in self.ignore_list):
+                            logging.debug("Added device: %s", msg_l[1].decode('utf-8'))
+                            self.tcp_id_dict[id] = msg_l[1]
+                            self.tcp_device_dict[msg_l[1]] = id
+                            self.announce_device(msg_l[1].decode('utf-8'), message)
+                            continue
                         self.tcp_socket.send(id, zmq.SNDMORE)
                         self.tcp_socket.send(b'')
                     else:
@@ -271,7 +265,7 @@ def signal_cntrl_c(os_signal, os_frame):
     shutdown = True
 
 def load_configfile(filename):
-    config_file_parser = configparser.ConfigParser()
+    config_file_parser = configparser.ConfigParser(converters={'list': lambda x: [i.strip() for i in x.split(',')]})
     config_file_parser.defaults()
     config_file_parser.read(filename)
     return config_file_parser
@@ -285,6 +279,7 @@ def main():
     init_logging("", 2)
 
     configs = load_configfile("bridge.ini")
+    ignore_list = configs.getlist('Device', 'Ignore')
     context = zmq.Context.instance()
     zeroconf = Zeroconf()
     listener = ZeroConfDashTCPListener(context)
@@ -295,6 +290,7 @@ def main():
         configs.get('Dash', 'Password'),
         host=configs.get('Dash', 'Server'),
         port=configs.getint('Dash', 'Port'),
+        ignore_devices = ignore_list,
         context=context
     )
 
