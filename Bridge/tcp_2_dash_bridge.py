@@ -63,6 +63,14 @@ class TCPPoller(threading.Thread):
         except:
             pass
 
+    def remove_ip(self, ip_address):
+        if ipaddress in self.network:
+            self.network.remove(ip_address)
+
+    def add_ip(self, ip_address):
+        if ipaddress not in self.network:
+            self.network.append(ip_address)
+
     def __init__(self, port=5000, context=None):
         self.port = port
         self.context = context
@@ -74,13 +82,13 @@ class TCPPoller(threading.Thread):
         gws = netifaces.gateways()
         net_dict = netifaces.ifaddresses(gws['default'][netifaces.AF_INET][1])[netifaces.AF_INET]
         net_str = '{}/{}'.format(net_dict[0]['addr'], net_dict[0]['netmask'])
-        self.network = ipaddress.IPv4Network(net_str, strict=False)
+        self.network = [str(ip) for ip in ipaddress.IPv4Network(net_str, strict=False)]
         self.start()
 
     def run(self):
         while not self.finish:
             for ip in self.network:
-                threading.Thread(target=self.check_port, args=[str(ip), self.port, self.context]).start()
+                threading.Thread(target=self.check_port, args=[ip, self.port, self.context]).start()
 
             # limit the number of threads.
             while threading.active_count() > self.max_threads:
@@ -135,7 +143,6 @@ class tcp_dashBridge(threading.Thread):
         """
 
         threading.Thread.__init__(self, daemon=True)
-
         self.context = context or zmq.Context.instance()
         self.ignore_list = ignore_devices
         self.tcp_socket = self.context.socket(zmq.STREAM)
