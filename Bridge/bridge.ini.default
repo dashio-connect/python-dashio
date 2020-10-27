@@ -1,0 +1,13 @@
+[defaults]
+Devicename=Bridge
+
+[Device]
+Ignore = 0987654321,
+         0987654322,
+         0987654323 
+
+[Dash]
+Server = dash.dashio.io
+username = username
+password = password
+port = 8883
