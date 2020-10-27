@@ -25,6 +25,7 @@ class tcpConnectionThread(threading.Thread):
 
         # Subscribe on ALL, and my connection
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
 
         self.tcpsocket = self.context.socket(zmq.STREAM)
