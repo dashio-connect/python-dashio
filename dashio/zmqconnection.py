@@ -26,6 +26,7 @@ class zmqConnectionThread(threading.Thread):
 
         # Subscribe on ALL, and my connection
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
 
         tx_url_external = "tcp://{}:{}".format(zmq_out_url, pub_port)

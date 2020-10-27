@@ -60,7 +60,7 @@ class TCPPoller(threading.Thread):
                     self.open_address_list.remove(ip)
                     self.zmq_socket.send_multipart([b"remove", ip.encode('utf-8'), str(port).encode('utf-8')])
             sock.close()
-        except:
+        except socket.error:
             pass
 
     def remove_ip(self, ip_address):
@@ -138,9 +138,6 @@ class tcp_dashBridge(threading.Thread):
         pass
 
     def __init__(self, username, password, host='dash.dashio.io', port=8883, context=None, ignore_devices=None):
-        """
-
-        """
 
         threading.Thread.__init__(self, daemon=True)
         self.context = context or zmq.Context.instance()
@@ -178,18 +175,9 @@ class tcp_dashBridge(threading.Thread):
         )
         self.dash_c.tls_insecure_set(False)
 
-        self.control_topic = "{}/{}/control"
-        #self.data_topic = "{}/{}/data".format(username, device_id)
-        #self.alarm_topic = "{}/{}/alarm".format(username, device_id)
-        #self.announce_topic = "{}/{}/announce".format(username, device_id)
-        #self.dash_c.on_log = self.__on_log
-        #self.dash_c.will_set(self.data_topic, self.LWD, qos=1, retain=False)
-        # Connect
         self.dash_c.username_pw_set(username, password)
         self.dash_c.connect(host, port)
-        self.username=username
-        # Start subscribe, with QoS level 0
-        #self.dash_c.subscribe(self.control_topic, 0)
+        self.username = username
         self.start()
 
     def announce_device(self, device_id, message):
@@ -202,6 +190,9 @@ class tcp_dashBridge(threading.Thread):
     def clear_device(self, device_id):
         logging.debug("Removing device: %s", device_id)
         control_topic = "{}/{}/control".format(self.username, device_id)
+        id = self.tcp_device_dict[device_id.encode('utf-8')]
+        self.tcp_device_dict.pop(device_id.encode('utf-8'))
+        self.tcp_id_dict.pop(id)
         self.dash_c.unsubscribe(control_topic)
 
     def run(self):
@@ -234,14 +225,18 @@ class tcp_dashBridge(threading.Thread):
                         self.tcp_socket.send(b'')
                     else:
                         logging.debug("BRIDGE  TCP: RX: %s", message.decode('utf-8').strip())
-                        data_topic = "{}/{}/data".format(self.username, self.tcp_id_dict[id].decode('utf-8'))
+                        msg_l = message.split(b'\t')
+                        if msg_l[2] == b'ALM':
+                            data_topic = "{}/{}/alarm".format(self.username, self.tcp_id_dict[id].decode('utf-8'))
+                        else:
+                            data_topic = "{}/{}/data".format(self.username, self.tcp_id_dict[id].decode('utf-8'))
                         self.dash_c.publish(data_topic, message)
                 elif id in self.tcp_id_dict:
                     self.clear_device(self.tcp_id_dict[id].decode('utf-8'))
 
         self.dash_c.loop_stop()
-
         self.rx_zconf_pull.close()
+        self.tcp_socket.close()
 
 
 def init_logging(logfilename, level):
@@ -274,6 +269,7 @@ def signal_cntrl_c(os_signal, os_frame):
     global shutdown
     shutdown = True
 
+
 def load_configfile(filename):
     config_file_parser = configparser.ConfigParser(converters={'list': lambda x: [i.strip() for i in x.split(',')]})
     config_file_parser.defaults()
@@ -300,7 +296,7 @@ def main():
         configs.get('Dash', 'Password'),
         host=configs.get('Dash', 'Server'),
         port=configs.getint('Dash', 'Port'),
-        ignore_devices = ignore_list,
+        ignore_devices=ignore_list,
         context=context
     )
 
