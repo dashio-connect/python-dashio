@@ -220,9 +220,9 @@ class dashDevice(threading.Thread):
         self.zero_service_list.append(zconf_info)
 
     def __zconf_publish_zmq(self, sub_port, pub_port):
-        zconf_desc = {'device_id': self.device_id,
-                      'device_type': self.device_type,
-                      'device_name': self.device_name_cntrl.control_id,
+        zconf_desc = {'deviceID': self.device_id,
+                      'deviceType': self.device_type,
+                      'deviceName': self.device_name_cntrl.control_id,
                       'sub_port': str(sub_port),
                       'pub_port': str(pub_port)}
         zconf_info = ServiceInfo(

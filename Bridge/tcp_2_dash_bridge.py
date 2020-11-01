@@ -289,7 +289,7 @@ def main():
     context = zmq.Context.instance()
     zeroconf = Zeroconf()
     listener = ZeroConfDashTCPListener(context)
-    browser = ServiceBrowser(zeroconf, "_DashTCP._tcp.local.", listener)
+    browser = ServiceBrowser(zeroconf, "_DashIO._tcp.local.", listener)
     pinger = TCPPoller(port=5000, context=context)
     b = tcp_dashBridge(
         configs.get('Dash', 'Username'),
