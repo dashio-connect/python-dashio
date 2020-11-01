@@ -59,10 +59,12 @@ class zmq_tcpBridge(threading.Thread):
         return s.getsockname()[0]
 
     def __zconf_publish_tcp(self, port):
-        zconf_desc = {'device_type': 'Bridge'}
+        zconf_desc = {'deviceID': self.device_id,
+                      'deviceType': self.device_type,
+                      'deviceName': self.device_name}
         zconf_info = ServiceInfo(
-            "_DashTCP._tcp.local.",
-            "Bridge-{}._DashTCP._tcp.local.".format(port),
+            "_DashIO._tcp.local.",
+            "Bridge-{}._DashIO._tcp.local.".format(port),
             addresses=[socket.inet_aton(self.local_ip)],
             port=port,
             properties=zconf_desc,
@@ -76,7 +78,9 @@ class zmq_tcpBridge(threading.Thread):
         """
 
         threading.Thread.__init__(self, daemon=True)
-
+        self.device_id = "3141592654"
+        self.device_type = "TCPBridge"
+        self.device_name = "MulipleTCP"
         self.local_ip = self.__get_local_ip_address()
         self.host_name = socket.gethostname()
         hs = self.host_name.split(".")
