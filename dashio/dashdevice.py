@@ -205,12 +205,12 @@ class dashDevice(threading.Thread):
         return s.getsockname()[0]
 
     def __zconf_publish_tcp(self, port):
-        zconf_desc = {'device_id': self.device_id,
-                      'device_type': self.device_type,
-                      'device_name': self.device_name_cntrl.control_id}
+        zconf_desc = {'deviceID': self.device_id,
+                      'deviceType': self.device_type,
+                      'deviceName': self.device_name_cntrl.control_id}
         zconf_info = ServiceInfo(
-            "_DashTCP._tcp.local.",
-            "{} {}._DashTCP._tcp.local.".format(self.device_type, self.device_id),
+            "_DashIO._tcp.local.",
+            "{} {}._DashIO._tcp.local.".format(self.device_type, self.device_id),
             addresses=[socket.inet_aton(self.local_ip)],
             port=port,
             properties=zconf_desc,
