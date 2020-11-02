@@ -261,8 +261,8 @@ class dashDevice(threading.Thread):
         if connection_id in self.connections:
             return
         self.__zconf_publish_tcp(port)
-        new_tcp_con = tcpConnectionThread(connection_id, self.device_id, self.local_ip, port, self.context)
-        tcp_ctrl = TCP(connection_id, self.local_ip, str(port))
+        new_tcp_con = tcpConnectionThread(connection_id, self.device_id, self.host_name, port, self.context)
+        tcp_ctrl = TCP(connection_id, self.host_name, str(port))
         self.add_control(tcp_ctrl)
         self.connections[connection_id] = new_tcp_con
 
@@ -271,7 +271,7 @@ class dashDevice(threading.Thread):
         if connection_id in self.connections:
             return
         self.__zconf_publish_zmq(sub_port, pub_port)
-        new_zmq_con = zmqConnectionThread(connection_id, self.device_id, zmq_out_url=self.local_ip, pub_port=pub_port, sub_port=sub_port, context=self.context)
+        new_zmq_con = zmqConnectionThread(connection_id, self.device_id, pub_port=pub_port, sub_port=sub_port, context=self.context)
         self.connections[connection_id] = new_zmq_con
 
     def add_dash_connection(self, username, password, host="dash.dashio.io", port=8883):
