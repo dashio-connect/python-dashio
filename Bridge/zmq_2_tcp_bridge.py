@@ -17,17 +17,20 @@ class ZeroConfListener:
     def remove_service(self, zeroconf, type, name):
         info = zeroconf.get_service_info(type, name)
         if info:
-            self.zmq_socket.send_multipart([name.encode('utf-8'), b"remove", socket.inet_ntoa(info.addresses[0]).encode('utf-8'), info.properties[b'sub_port'], info.properties[b'pub_port']])
+            for address in info.addresses:
+                self.zmq_socket.send_multipart([name.encode('utf-8'), b"remove", socket.inet_ntoa(info.address).encode('utf-8'), info.properties[b'sub_port'], info.properties[b'pub_port']])
 
     def add_service(self, zeroconf, type, name):
         info = zeroconf.get_service_info(type, name)
         if info:
-            self.zmq_socket.send_multipart([name.encode('utf-8'), b"add", socket.inet_ntoa(info.addresses[0]).encode('utf-8'), info.properties[b'sub_port'], info.properties[b'pub_port']])
+            for address in info.addresses:
+                self.zmq_socket.send_multipart([name.encode('utf-8'), b"add", socket.inet_ntoa(info.address).encode('utf-8'), info.properties[b'sub_port'], info.properties[b'pub_port']])
 
     def update_service(self, zeroconf, type, name):
         info = zeroconf.get_service_info(type, name)
         if info:
-            self.zmq_socket.send_multipart([name.encode('utf-8'), b"update", socket.inet_ntoa(info.addresses[0]).encode('utf-8'), info.properties[b'sub_port'], info.properties[b'pub_port']])
+            for address in info.addresses:
+                self.zmq_socket.send_multipart([name.encode('utf-8'), b"update", socket.inet_ntoa(info.address).encode('utf-8'), info.properties[b'sub_port'], info.properties[b'pub_port']])
 
 
 class zmq_tcpBridge(threading.Thread):
