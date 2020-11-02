@@ -199,10 +199,22 @@ class dashDevice(threading.Thread):
         self.start()
 
         #  Badness 10000
+    #def __get_local_ip_address(self):
+    #    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    #    s.connect(("8.8.8.8", 80))
+    #    return s.getsockname()[0]
+
     def __get_local_ip_address(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))
-        return s.getsockname()[0]
+        try:
+            # doesn't even have to be reachable
+            s.connect(('10.255.255.255', 1))
+            IP = s.getsockname()[0]
+        except Exception:
+            IP = '127.0.0.1'
+        finally:
+            s.close()
+        return IP
 
     def __zconf_publish_tcp(self, port):
         zconf_desc = {'deviceID': self.device_id,
