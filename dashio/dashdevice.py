@@ -4,15 +4,8 @@ import threading
 import socket
 
 from .iotcontrol.name import Name
-from .iotcontrol.mqtt import MQTT
-from .iotcontrol.tcp import TCP
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.page import Page
-
-from .mqttconnection import mqttConnectionThread
-from .tcpconnection import tcpConnectionThread
-from .dashconnection import dashConnectionThread
-from .zmqconnection import zmqConnectionThread
 
 from zeroconf import IPVersion, ServiceInfo, Zeroconf
 
@@ -152,21 +145,21 @@ class dashDevice(threading.Thread):
             key = iot_control.msg_type + "_" + iot_control.control_id
             self.control_dict[key] = iot_control
 
-    def __init__(self, device_type, device_id, device_name) -> None:
+    def add_connection(self, connection_id):
+        tx_url_internal = "inproc://RX_{}".format(connection_id.hex)
+        rx_url_internal = "inproc://TX_{}".format(connection_id.hex)
+        self.tx_zmq_pub.connect(tx_url_internal)
+        self.rx_zmq_sub.connect(rx_url_internal)
+
+    def __init__(self, device_type, device_id, device_name, context=None) -> None:
         threading.Thread.__init__(self, daemon=True)
 
-        self.context = zmq.Context.instance()
-
-        tx_url_internal = "inproc://RX_{}".format(device_id)
-        rx_url_internal = "inproc://TX_{}".format(device_id)
+        self.context = context or zmq.Context.instance()
 
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.tx_zmq_pub.bind(tx_url_internal)
-
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
-        self.rx_zmq_sub.bind(rx_url_internal)
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"")
 
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"")
         self.poller = zmq.Poller()
         self.poller.register(self.rx_zmq_sub, zmq.POLLIN)
 
@@ -197,12 +190,6 @@ class dashDevice(threading.Thread):
 
         self.zeroconf = Zeroconf(ip_version=IPVersion.V4Only)
         self.start()
-
-        #  Badness 10000
-    #def __get_local_ip_address(self):
-    #    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    #    s.connect(("8.8.8.8", 80))
-    #    return s.getsockname()[0]
 
     def __get_local_ip_address(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -248,41 +235,6 @@ class dashDevice(threading.Thread):
         self.zeroconf.register_service(zconf_info)
         self.zero_service_list.append(zconf_info)
 
-    def add_mqtt_connection(self, username, password, host, port, use_ssl=False):
-        self.num_mqtt_connections += 1
-        connection_id = self.device_type + "_MQTT" + str(self.num_mqtt_connections)
-        new_mqtt_con = mqttConnectionThread(connection_id, self.device_id, host, port, username, password, use_ssl, self.context)
-        mqtt_cntrl = MQTT(connection_id, username, host)
-        self.add_control(mqtt_cntrl)
-        self.connections[connection_id] = new_mqtt_con
-
-    def add_tcp_connection(self, port):
-        connection_id = self.device_type + "_TCP:{}".format(str(port))
-        if connection_id in self.connections:
-            return
-        self.__zconf_publish_tcp(port)
-        new_tcp_con = tcpConnectionThread(connection_id, self.device_id, self.host_name, port, self.context)
-        tcp_ctrl = TCP(connection_id, self.host_name, str(port))
-        self.add_control(tcp_ctrl)
-        self.connections[connection_id] = new_tcp_con
-
-    def add_zmq_connection(self, pub_port=5555, sub_port=5556):
-        connection_id = self.device_type + "_ZMQ_PUB:{}_SUB:{}".format(pub_port, sub_port)
-        if connection_id in self.connections:
-            return
-        self.__zconf_publish_zmq(sub_port, pub_port)
-        new_zmq_con = zmqConnectionThread(connection_id, self.device_id, pub_port=pub_port, sub_port=sub_port, context=self.context)
-        self.connections[connection_id] = new_zmq_con
-
-    def add_dash_connection(self, username, password, host="dash.dashio.io", port=8883):
-        self.num_dash_connections += 1
-        connection_id = self.device_type + "_DASH" + str(self.num_dash_connections)
-        new_dash_con = dashConnectionThread(connection_id, self.device_id, username, password, host, port, self.context)
-        dash_cntrl = MQTT(connection_id, username, host)
-        self.add_control(dash_cntrl)
-        self.connections[connection_id] = new_dash_con
-        self.__send_dash_connect()
-
     def close(self):
         self.running = False
         for conn in self.connections:
@@ -292,6 +244,7 @@ class dashDevice(threading.Thread):
 
     def run(self):
         # Continue the network loop, exit when an error occurs
+        print("Hello")
         while self.running:
             socks = dict(self.poller.poll())
             if self.rx_zmq_sub in socks:

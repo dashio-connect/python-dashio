@@ -1,16 +1,14 @@
 import threading
-import time
 import paho.mqtt.client as mqtt
 import ssl
 import logging
 import zmq
-from .iotcontrol.alarm import Alarm
-from .iotcontrol.page import Page
+import uuid
 
 # TODO: Add documentation
 
 
-class dashConnectionThread(threading.Thread):
+class dashConnection(threading.Thread):
     """Setups and manages a connection thread to the Dash Server."""
 
     def __on_connect(self, client, userdata, flags, rc):
@@ -30,12 +28,14 @@ class dashConnectionThread(threading.Thread):
     def __on_log(self, client, obj, level, string):
         logging.debug(string)
 
-    def __init__(
-        self, connection_id, device_id, username, password, host='dash.dashio.io', port=8883, context=None
-    ):
+    def add_device(self, device):
+        device.add_connection(self.connection_id)
+        control_topic = "{}/{}/control".format(self.username, device.device_id)
+        self.dash_c.subscribe(control_topic, 0)
+
+    def __init__(self, username, password, host='dash.dashio.io', port=8883, context=None):
         """
         Arguments:
-            device_type {str} --  The connection name as advertised to iotdashboard.
             host {str} -- The server name of the mqtt host.
             port {int} -- Port number to connect to.
             username {str} -- username for the mqtt connection.
@@ -51,16 +51,17 @@ class dashConnectionThread(threading.Thread):
 
         self.context = context or zmq.Context.instance()
 
-        self.b_connection_id = connection_id.encode('utf-8')
+        self.connection_id = uuid.uuid4()
+        self.b_connection_id = self.connection_id.bytes
 
-        tx_url_internal = "inproc://TX_{}".format(device_id)
-        rx_url_internal = "inproc://RX_{}".format(device_id)
+        tx_url_internal = "inproc://TX_{}".format(self.connection_id.hex)
+        rx_url_internal = "inproc://RX_{}".format(self.connection_id.hex)
 
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.tx_zmq_pub.connect(tx_url_internal)
+        self.tx_zmq_pub.bind(tx_url_internal)
 
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
-        self.rx_zmq_sub.connect(rx_url_internal)
+        self.rx_zmq_sub.bind(rx_url_internal)
 
         # Subscribe on ALL, and my connection
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
@@ -92,17 +93,12 @@ class dashConnectionThread(threading.Thread):
         )
         self.dash_c.tls_insecure_set(False)
 
-        self.control_topic = "{}/{}/control".format(username, device_id)
-        self.data_topic = "{}/{}/data".format(username, device_id)
-        self.alarm_topic = "{}/{}/alarm".format(username, device_id)
-        self.announce_topic = "{}/{}/announce".format(username, device_id)
         self.dash_c.on_log = self.__on_log
         self.dash_c.will_set(self.data_topic, self.LWD, qos=1, retain=False)
         # Connect
         self.dash_c.username_pw_set(username, password)
         self.dash_c.connect(host, port)
         # Start subscribe, with QoS level 0
-        self.dash_c.subscribe(self.control_topic, 0)
         self.start()
 
     def run(self):
@@ -114,12 +110,14 @@ class dashConnectionThread(threading.Thread):
             if self.rx_zmq_sub in socks:
                 [address, id, data] = self.rx_zmq_sub.recv_multipart()
                 logging.debug("%s TX: %s", self.b_connection_id.decode('utf-8'), data.decode('utf-8').rstrip())
+                msg_l = data.split(b'\t')
                 if address == b'ANNOUNCE':
-                    self.dash_c.publish(self.announce_topic, data)
+                    data_topic = "{}/{}/announce".format(self.username, msg_l[1].decode('utf-8'))
                 elif address == b'ALARM':
-                    self.dash_c.publish(self.alarm_topic, data)
+                    data_topic = "{}/{}/alarm".format(self.username, msg_l[1].decode('utf-8'))
                 else:
-                    self.dash_c.publish(self.data_topic, data)
+                    data_topic = "{}/{}/data".format(self.username, msg_l[1].decode('utf-8'))
+                self.dash_c.publish(data_topic, data)
 
         self.dash_c.publish(self.announce_topic, "disconnect")
         self.dash_c.loop_stop()
