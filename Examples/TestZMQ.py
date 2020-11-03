@@ -11,6 +11,8 @@ import platform
 
 class TestControls:
     def signal_cntrl_c(self, os_signal, os_frame):
+        self.zmq_con.close()
+        self.device.close()
         self.shutdown = True
 
     def init_logging(self, logfilename, level):
@@ -106,8 +108,9 @@ class TestControls:
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
 
+        self.zmq_con = dashio.zmqConnection(pub_port=args.pub_port, sub_port=args.sub_port)
         self.device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
-        self.device.add_zmq_connection(pub_port=args.pub_port, sub_port=args.sub_port)
+        self.zmq_con.add_device(self.device)
 
         self.connection = args.connection
         self.page_name = "TestZMQ: " + platform.node()

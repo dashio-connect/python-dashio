@@ -2,10 +2,37 @@ import zmq
 import threading
 import logging
 import uuid
+from zeroconf import ServiceInfo, Zeroconf, IPVersion
+import socket
 
 
 class tcpConnection(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via TCP."""
+
+    def __get_local_ip_address(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            # doesn't even have to be reachable
+            s.connect(('10.255.255.255', 1))
+            IP = s.getsockname()[0]
+        except Exception:
+            IP = '127.0.0.1'
+        finally:
+            s.close()
+        return IP
+
+    def __zconf_publish_tcp(self, port):
+        zconf_desc = {'ConnectionUUID': self.connection_id.hex}
+        zconf_info = ServiceInfo(
+            "_DashIO._tcp.local.",
+            "{}._DashIO._tcp.local.".format(self.connection_id.hex),
+            addresses=[socket.inet_aton(self.local_ip)],
+            port=port,
+            properties=zconf_desc,
+            server=self.host_name + ".",
+        )
+        self.zeroconf.register_service(zconf_info)
+        self.zero_service_list.append(zconf_info)
 
     def add_device(self, device):
         device.add_connection(self.connection_id)
@@ -43,9 +70,24 @@ class tcpConnection(threading.Thread):
         self.poller.register(self.tcpsocket, zmq.POLLIN)
         self.poller.register(self.rx_zmq_sub, zmq.POLLIN)
 
+        self.zeroconf = Zeroconf(ip_version=IPVersion.V4Only)
         self.socket_ids = []
         self.running = True
+
+        host_name = socket.gethostname()
+        hs = host_name.split(".")
+        # rename for .local mDNS advertising
+        self.host_name = "{}.local".format(hs[0])
+
+        self.local_ip = self.__get_local_ip_address()
+        self.zeroconf = Zeroconf(ip_version=IPVersion.V4Only)
+        self.__zconf_publish_tcp(port)
         self.start()
+
+    def close(self):
+        self.zeroconf.unregister_all_services()
+        self.zeroconf.close()
+        self.running = False
 
     def run(self):
         def __zmq_tcp_send(id, data):
@@ -87,6 +129,7 @@ class tcpConnection(threading.Thread):
 
         for id in self.socket_ids:
             __zmq_tcp_send(id, b'')
+
         self.tcpsocket.close()
         self.tx_zmq_pub.close()
         self.rx_zmq_sub.close()

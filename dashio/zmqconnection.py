@@ -2,15 +2,50 @@ import zmq
 import threading
 import logging
 import uuid
+from zeroconf import ServiceInfo, Zeroconf, IPVersion
+import socket
 
 
 class zmqConnection(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via TCP."""
 
+    def __get_local_ip_address(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            # doesn't even have to be reachable
+            s.connect(('10.255.255.255', 1))
+            IP = s.getsockname()[0]
+        except Exception:
+            IP = '127.0.0.1'
+        finally:
+            s.close()
+        return IP
+
+    def __zconf_publish_zmq(self, sub_port, pub_port):
+        zconf_desc = {'sub_port': str(sub_port),
+                      'pub_port': str(pub_port)}
+
+        zconf_info = ServiceInfo(
+            "_DashZMQ._tcp.local.",
+            "{}._DashZMQ._tcp.local.".format(self.connection_id.hex),
+            addresses=[socket.inet_aton(self.local_ip)],
+            port=pub_port,
+            properties=zconf_desc,
+            server=self.host_name + ".",
+        )
+        self.zeroconf.register_service(zconf_info)
+
     def add_device(self, device):
         device.add_connection(self.connection_id)
+        sub_topic = "\t{}".format(device.device_id)
+        self.ext_rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, sub_topic.encode('utf-8'))
 
-    def __init__(self, connection_id, device_id, zmq_out_url="*", pub_port=5555, sub_port=5556, context=None):
+    def close(self):
+        self.zeroconf.unregister_all_services()
+        self.zeroconf.close()
+        self.running = False
+
+    def __init__(self, zmq_out_url="*", pub_port=5555, sub_port=5556, context=None):
         """
         Arguments: figure it out for yourself.
         """
@@ -45,8 +80,6 @@ class zmqConnection(threading.Thread):
         self.ext_rx_zmq_sub.bind(rx_url_external)
 
         # Subscribe on WHO, and my deviceID
-        sub_topic = "\t{}".format(device_id)
-        self.ext_rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, sub_topic.encode('utf-8'))
         self.ext_rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b'\tWHO')
 
         self.poller = zmq.Poller()
@@ -54,6 +87,15 @@ class zmqConnection(threading.Thread):
         self.poller.register(self.rx_zmq_sub, zmq.POLLIN)
 
         self.running = True
+
+        host_name = socket.gethostname()
+        hs = host_name.split(".")
+        # rename for .local mDNS advertising
+        self.host_name = "{}.local".format(hs[0])
+
+        self.local_ip = self.__get_local_ip_address()
+        self.zeroconf = Zeroconf(ip_version=IPVersion.V4Only)
+        self.__zconf_publish_zmq(sub_port, pub_port)
         self.start()
 
     def run(self):
