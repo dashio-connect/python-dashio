@@ -7,7 +7,7 @@ import signal
 import dashio
 import logging
 import platform
-
+import zmq
 
 class TestControls:
     def signal_cntrl_c(self, os_signal, os_frame):
@@ -106,9 +106,9 @@ class TestControls:
         logging.info("Connection ID: %s", args.connection)
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
-
-        self.tcp_con = dashio.tcpConnection()
-        self.device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
+        self.context = zmq.Context.instance()
+        self.tcp_con = dashio.tcpConnection(context=self.context)
+        self.device = dashio.dashDevice(args.connection, args.device_id, args.device_name, context=self.context)
         self.tcp_con.add_device(self.device)
         self.connection = args.connection
         self.page_name = "TestTCP: " + platform.node()
