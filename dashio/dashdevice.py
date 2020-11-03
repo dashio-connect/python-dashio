@@ -6,6 +6,7 @@ from .iotcontrol.name import Name
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.page import Page
 
+
 class dashDevice(threading.Thread):
 
     """Setups and manages a connection thread to iotdashboard via TCP."""
@@ -103,7 +104,7 @@ class dashDevice(threading.Thread):
         logging.debug("ALARM: %s", payload)
         self.tx_zmq_pub.send_multipart([b"ALARM", b'0', payload.encode('utf-8')])
 
-    def __send_dash_connect(self):
+    def send_dash_connect(self):
         data = self.device_id_str + "\tWHO\t{}\t{}\n".format(self.device_type, self.device_name_cntrl.control_id)
         self.tx_zmq_pub.send_multipart([b'ANNOUNCE', b'0', data.encode('utf-8')])
 
@@ -142,31 +143,20 @@ class dashDevice(threading.Thread):
             self.control_dict[key] = iot_control
 
     def add_connection(self, connection_id):
-        tx_url_internal = "inproc://RX_{}".format(connection_id.hex)
-        rx_url_internal = "inproc://TX_{}".format(connection_id.hex)
+        tx_url_internal = "inproc://RX_{}".format(connection_id)
+        rx_url_internal = "inproc://TX_{}".format(connection_id)
         self.tx_zmq_pub.connect(tx_url_internal)
         self.rx_zmq_sub.connect(rx_url_internal)
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, connection_id.encode('utf-8'))
 
     def __init__(self, device_type, device_id, device_name, context=None) -> None:
         threading.Thread.__init__(self, daemon=True)
 
         self.context = context or zmq.Context.instance()
-
-        self.tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.rx_zmq_sub = self.context.socket(zmq.SUB)
-
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"")
-        self.poller = zmq.Poller()
-        self.poller.register(self.rx_zmq_sub, zmq.POLLIN)
-
         self.device_type = device_type
         self.device_id = device_id
         self.device_name_cntrl = Name(device_name)
-        self.num_mqtt_connections = 0
-        self.num_dash_connections = 0
-        self.num_zmq_connections = 0
         self.zero_service_list = []
-        self.connections = {}
         self.control_dict = {}
         self.alarm_dict = {}
 
@@ -184,10 +174,19 @@ class dashDevice(threading.Thread):
     def run(self):
         # Continue the network loop, exit when an error occurs
         print("Hello")
+
+        self.tx_zmq_pub = self.context.socket(zmq.PUB)
+        self.rx_zmq_sub = self.context.socket(zmq.SUB)
+
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"")
+        self.poller = zmq.Poller()
+
+        self.poller.register(self.rx_zmq_sub, zmq.POLLIN)
         while self.running:
             socks = dict(self.poller.poll())
             if self.rx_zmq_sub in socks:
                 msg = self.rx_zmq_sub.recv_multipart()
+                print(msg)
                 if len(msg) == 3:
                     reply = self.__on_message(msg[2])
                     if reply:
@@ -195,7 +194,4 @@ class dashDevice(threading.Thread):
 
         self.tx_zmq_pub.close()
         self.rx_zmq_sub.close()
-
-        for conn in self.connections:
-            self.connections[conn].running = False
         self.context.term()
