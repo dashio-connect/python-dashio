@@ -3,7 +3,7 @@ import paho.mqtt.client as mqtt
 import ssl
 import logging
 import zmq
-import uuid
+import shortuuid
 
 # TODO: Add documentation
 
@@ -32,45 +32,23 @@ class dashConnection(threading.Thread):
         device.add_connection(self.connection_id)
         control_topic = "{}/{}/control".format(self.username, device.device_id)
         self.dash_c.subscribe(control_topic, 0)
+        device.send_dash_connect()
 
     def __init__(self, username, password, host='dash.dashio.io', port=8883, context=None):
         """
         Arguments:
-            host {str} -- The server name of the mqtt host.
+            host {str} -- The server name of the dash host.
             port {int} -- Port number to connect to.
-            username {str} -- username for the mqtt connection.
-            password {str} -- password for the mqtt connection.
-
-        Keyword Arguments:
-            use_ssl {bool} -- Whether to use ssl for the connection or not. (default: {False})
-            watch_dog {int} -- Time in seconds between watch dog signals to iotdashboard.
-                               Set to 0 to not send watchdog signal. (default: {60})
+            username {str} -- username for the dash connection.
+            password {str} -- password for the dash connection.
         """
 
         threading.Thread.__init__(self, daemon=True)
 
         self.context = context or zmq.Context.instance()
 
-        self.connection_id = uuid.uuid4()
-        self.b_connection_id = self.connection_id.bytes
-
-        tx_url_internal = "inproc://TX_{}".format(self.connection_id.hex)
-        rx_url_internal = "inproc://RX_{}".format(self.connection_id.hex)
-
-        self.tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.tx_zmq_pub.bind(tx_url_internal)
-
-        self.rx_zmq_sub = self.context.socket(zmq.SUB)
-        self.rx_zmq_sub.bind(rx_url_internal)
-
-        # Subscribe on ALL, and my connection
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ANNOUNCE")
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
-
-        self.poller = zmq.Poller()
-        self.poller.register(self.rx_zmq_sub, zmq.POLLIN)
+        self.connection_id = shortuuid.uuid()
+        self.b_connection_id = self.connection_id.encode('utf-8')
 
         self.LWD = "OFFLINE"
         self.running = True
@@ -94,7 +72,7 @@ class dashConnection(threading.Thread):
         self.dash_c.tls_insecure_set(False)
 
         self.dash_c.on_log = self.__on_log
-        self.dash_c.will_set(self.data_topic, self.LWD, qos=1, retain=False)
+        # self.dash_c.will_set(self.data_topic, self.LWD, qos=1, retain=False)
         # Connect
         self.dash_c.username_pw_set(username, password)
         self.dash_c.connect(host, port)
@@ -104,12 +82,29 @@ class dashConnection(threading.Thread):
     def run(self):
         self.dash_c.loop_start()
 
-        while self.running:
-            socks = dict(self.poller.poll())
+        tx_url_internal = "inproc://TX_{}".format(self.connection_id)
+        rx_url_internal = "inproc://RX_{}".format(self.connection_id)
 
-            if self.rx_zmq_sub in socks:
-                [address, id, data] = self.rx_zmq_sub.recv_multipart()
-                logging.debug("%s TX: %s", self.b_connection_id.decode('utf-8'), data.decode('utf-8').rstrip())
+        self.tx_zmq_pub = self.context.socket(zmq.PUB)
+        self.tx_zmq_pub.bind(tx_url_internal)
+
+        rx_zmq_sub = self.context.socket(zmq.SUB)
+        rx_zmq_sub.bind(rx_url_internal)
+
+        # Subscribe on ALL, and my connection
+        rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
+        rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ANNOUNCE")
+        rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
+        rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
+        poller = zmq.Poller()
+        poller.register(rx_zmq_sub, zmq.POLLIN)
+
+        while self.running:
+            socks = dict(poller.poll())
+
+            if rx_zmq_sub in socks:
+                [address, id, data] = rx_zmq_sub.recv_multipart()
+                logging.debug("TX: %s", data.decode('utf-8').rstrip())
                 msg_l = data.split(b'\t')
                 if address == b'ANNOUNCE':
                     data_topic = "{}/{}/announce".format(self.username, msg_l[1].decode('utf-8'))
@@ -117,10 +112,10 @@ class dashConnection(threading.Thread):
                     data_topic = "{}/{}/alarm".format(self.username, msg_l[1].decode('utf-8'))
                 else:
                     data_topic = "{}/{}/data".format(self.username, msg_l[1].decode('utf-8'))
-                self.dash_c.publish(data_topic, data)
+                self.dash_c.publish(data_topic, data.decode('utf-8'))
 
         self.dash_c.publish(self.announce_topic, "disconnect")
         self.dash_c.loop_stop()
 
         self.tx_zmq_pub.close()
-        self.rx_zmq_sub.close()
+        rx_zmq_sub.close()

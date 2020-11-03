@@ -51,23 +51,6 @@ class mqttConnection(threading.Thread):
         self.connection_id = uuid.uuid4()
         self.b_connection_id = self.connection_id.bytes
 
-        tx_url_internal = "inproc://TX_{}".format(self.connection_id.hex)
-        rx_url_internal = "inproc://RX_{}".format(self.connection_id.hex)
-
-        self.tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.tx_zmq_pub.bind(tx_url_internal)
-
-        self.rx_zmq_sub = self.context.socket(zmq.SUB)
-        self.rx_zmq_sub.bind(rx_url_internal)
-
-        # Subscribe on ALL, and my connection
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
-
-        self.poller = zmq.Poller()
-        self.poller.register(self.rx_zmq_sub, zmq.POLLIN)
-
         self.LWD = "OFFLINE"
         self.running = True
         self.username = username
@@ -102,10 +85,27 @@ class mqttConnection(threading.Thread):
     def run(self):
         self.mqttc.loop_start()
 
+        tx_url_internal = "inproc://TX_{}".format(self.connection_id.hex)
+        rx_url_internal = "inproc://RX_{}".format(self.connection_id.hex)
+
+        self.tx_zmq_pub = self.context.socket(zmq.PUB)
+        self.tx_zmq_pub.bind(tx_url_internal)
+
+        rx_zmq_sub = self.context.socket(zmq.SUB)
+        rx_zmq_sub.bind(rx_url_internal)
+
+        # Subscribe on ALL, and my connection
+        rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
+        rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
+        rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
+
+        poller = zmq.Poller()
+        poller.register(rx_zmq_sub, zmq.POLLIN)
+
         while self.running:
-            socks = dict(self.poller.poll())
-            if self.rx_zmq_sub in socks:
-                [address, id, data] = self.rx_zmq_sub.recv_multipart()
+            socks = dict(poller.poll())
+            if rx_zmq_sub in socks:
+                [address, id, data] = rx_zmq_sub.recv_multipart()
                 msg_l = data.split(b'\t')
                 logging.debug("%s TX: %s", self.b_connection_id.decode('utf-8'), data.decode('utf-8').rstrip())
                 data_topic = "{}/{}/data".format(self.username, msg_l[1].decode('utf-8'))
@@ -113,4 +113,4 @@ class mqttConnection(threading.Thread):
 
         self.mqttc.loop_stop()
         self.tx_zmq_pub.close()
-        self.rx_zmq_sub.close()
+        rx_zmq_sub.close()

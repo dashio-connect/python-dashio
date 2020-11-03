@@ -1,7 +1,7 @@
 import zmq
 import threading
 import logging
-import uuid
+import shortuuid
 from zeroconf import ServiceInfo, Zeroconf, IPVersion
 import socket
 
@@ -52,41 +52,13 @@ class zmqConnection(threading.Thread):
 
         threading.Thread.__init__(self, daemon=True)
         self.context = context or zmq.Context.instance()
-
-        self.connection_id = uuid.uuid4()
-        self.b_connection_id = self.connection_id.bytes
-
-        tx_url_internal = "inproc://TX_{}".format(self.connection_id.hex)
-        rx_url_internal = "inproc://RX_{}".format(self.connection_id.hex)
-
-        self.tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.tx_zmq_pub.bind(tx_url_internal)
-
-        self.rx_zmq_sub = self.context.socket(zmq.SUB)
-        self.rx_zmq_sub.bind(rx_url_internal)
-
-        #  Subscribe on ALL, and my connection
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
-
-        tx_url_external = "tcp://{}:{}".format(zmq_out_url, pub_port)
-        rx_url_external = "tcp://{}:{}".format(zmq_out_url, sub_port)
-
-        self.ext_tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.ext_tx_zmq_pub.bind(tx_url_external)
-
-        self.ext_rx_zmq_sub = self.context.socket(zmq.SUB)
-        self.ext_rx_zmq_sub.bind(rx_url_external)
-
-        # Subscribe on WHO, and my deviceID
-        self.ext_rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b'\tWHO')
-
-        self.poller = zmq.Poller()
-        self.poller.register(self.ext_rx_zmq_sub, zmq.POLLIN)
-        self.poller.register(self.rx_zmq_sub, zmq.POLLIN)
-
         self.running = True
+
+        self.tx_url_external = "tcp://{}:{}".format(zmq_out_url, pub_port)
+        self.rx_url_external = "tcp://{}:{}".format(zmq_out_url, sub_port)
+
+        self.connection_id = shortuuid.uuid()
+        self.b_connection_id = self.connection_id.encode('utf-8')
 
         host_name = socket.gethostname()
         hs = host_name.split(".")
@@ -99,6 +71,33 @@ class zmqConnection(threading.Thread):
         self.start()
 
     def run(self):
+
+        tx_url_internal = "inproc://TX_{}".format(self.connection_id)
+        rx_url_internal = "inproc://RX_{}".format(self.connection_id)
+
+        self.tx_zmq_pub = self.context.socket(zmq.PUB)
+        self.tx_zmq_pub.bind(tx_url_internal)
+
+        self.rx_zmq_sub = self.context.socket(zmq.SUB)
+        self.rx_zmq_sub.bind(rx_url_internal)
+
+        #  Subscribe on ALL, and my connection
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
+
+        self.ext_tx_zmq_pub = self.context.socket(zmq.PUB)
+        self.ext_tx_zmq_pub.bind(self.tx_url_external)
+
+        self.ext_rx_zmq_sub = self.context.socket(zmq.SUB)
+        self.ext_rx_zmq_sub.bind(self.rx_url_external)
+
+        # Subscribe on WHO, and my deviceID
+        self.ext_rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b'\tWHO')
+
+        self.poller = zmq.Poller()
+        self.poller.register(self.ext_rx_zmq_sub, zmq.POLLIN)
+        self.poller.register(self.rx_zmq_sub, zmq.POLLIN)
 
         while self.running:
             socks = dict(self.poller.poll())
