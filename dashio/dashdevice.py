@@ -186,7 +186,6 @@ class dashDevice(threading.Thread):
         print("Hello")
         while self.running:
             socks = dict(self.poller.poll())
-            print("There")
             if self.rx_zmq_sub in socks:
                 msg = self.rx_zmq_sub.recv_multipart()
                 if len(msg) == 3:
