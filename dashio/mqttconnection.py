@@ -1,16 +1,13 @@
 import threading
-import time
 import paho.mqtt.client as mqtt
 import ssl
 import logging
 import zmq
-from .iotcontrol.alarm import Alarm
-from .iotcontrol.page import Page
-
+import uuid
 # TODO: Add documentation
 
 
-class mqttConnectionThread(threading.Thread):
+class mqttConnection(threading.Thread):
     """Setups and manages a connection thread to the Dash Server."""
 
     def __on_connect(self, client, userdata, flags, rc):
@@ -30,7 +27,12 @@ class mqttConnectionThread(threading.Thread):
     def __on_log(self, client, obj, level, string):
         logging.debug(string)
 
-    def __init__(self, connection_id, device_id, host, port, username="", password="", use_ssl=False, context=None):
+    def add_device(self, device):
+        device.add_connection(self.connection_id)
+        control_topic = "{}/{}/control".format(self.username, device.device_id)
+        self.dash_c.subscribe(control_topic, 0)
+
+    def __init__(self, device_id, host, port, username="", password="", use_ssl=False, context=None):
         """
         Arguments:
             host {str} -- The server name of the mqtt host.
@@ -46,19 +48,21 @@ class mqttConnectionThread(threading.Thread):
 
         self.context = context or zmq.Context.instance()
 
-        self.b_connection_id = connection_id.encode('utf-8')
+        self.connection_id = uuid.uuid4()
+        self.b_connection_id = self.connection_id.bytes
 
-        tx_url_internal = "inproc://TX_{}".format(device_id)
-        rx_url_internal = "inproc://RX_{}".format(device_id)
+        tx_url_internal = "inproc://TX_{}".format(self.connection_id.hex)
+        rx_url_internal = "inproc://RX_{}".format(self.connection_id.hex)
 
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.tx_zmq_pub.connect(tx_url_internal)
+        self.tx_zmq_pub.bind(tx_url_internal)
 
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
-        self.rx_zmq_sub.connect(rx_url_internal)
+        self.rx_zmq_sub.bind(rx_url_internal)
 
         # Subscribe on ALL, and my connection
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
 
         self.poller = zmq.Poller()
@@ -86,8 +90,6 @@ class mqttConnectionThread(threading.Thread):
             )
             self.mqttc.tls_insecure_set(False)
 
-        self.control_topic = "{}/{}/control".format(username, device_id)
-        self.data_topic = "{}/{}/data".format(username, device_id)
         self.mqttc.on_log = self.__on_log
         self.mqttc.will_set(self.data_topic, self.LWD, qos=1, retain=False)
         # Connect
@@ -95,7 +97,6 @@ class mqttConnectionThread(threading.Thread):
             self.mqttc.username_pw_set(username, password)
         self.mqttc.connect(host, port)
         # Start subscribe, with QoS level 0
-        self.mqttc.subscribe(self.control_topic, 0)
         self.start()
 
     def run(self):
@@ -105,8 +106,10 @@ class mqttConnectionThread(threading.Thread):
             socks = dict(self.poller.poll())
             if self.rx_zmq_sub in socks:
                 [address, id, data] = self.rx_zmq_sub.recv_multipart()
+                msg_l = data.split(b'\t')
                 logging.debug("%s TX: %s", self.b_connection_id.decode('utf-8'), data.decode('utf-8').rstrip())
-                self.mqttc.publish(self.data_topic, data)
+                data_topic = "{}/{}/data".format(self.username, msg_l[1].decode('utf-8'))
+                self.mqttc.publish(data_topic, data)
 
         self.mqttc.loop_stop()
         self.tx_zmq_pub.close()

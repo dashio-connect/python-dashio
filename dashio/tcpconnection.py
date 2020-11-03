@@ -1,27 +1,32 @@
 import zmq
 import threading
 import logging
+import uuid
 
 
-class tcpConnectionThread(threading.Thread):
+class tcpConnection(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via TCP."""
 
-    def __init__(self, connection_id, device_id, ip="*", port=5000, context=None):
+    def add_device(self, device):
+        device.add_connection(self.connection_id)
+
+    def __init__(self, ip="*", port=5000, context=None):
         """
         """
 
         threading.Thread.__init__(self, daemon=True)
         self.context = context or zmq.Context.instance()
-        self.b_connection_id = connection_id.encode('utf-8')
+        self.connection_id = uuid.uuid4()
+        self.b_connection_id = self.connection_id.bytes
 
-        tx_url_internal = "inproc://TX_{}".format(device_id)
-        rx_url_internal = "inproc://RX_{}".format(device_id)
+        tx_url_internal = "inproc://TX_{}".format(self.connection_id.hex)
+        rx_url_internal = "inproc://RX_{}".format(self.connection_id.hex)
 
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.tx_zmq_pub.connect(tx_url_internal)
+        self.tx_zmq_pub.bind(tx_url_internal)
 
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
-        self.rx_zmq_sub.connect(rx_url_internal)
+        self.rx_zmq_sub.bind(rx_url_internal)
 
         # Subscribe on ALL, and my connection
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")

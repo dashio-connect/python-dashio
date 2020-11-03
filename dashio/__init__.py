@@ -1,4 +1,8 @@
 from .dashdevice import dashDevice
+from .tcpconnection import tcpConnection
+from .mqttconnection import mqttConnection
+from .zmqconnection import zmqConnection
+
 from .iotcontrol.enums import (
     Colour,
     Icon,
