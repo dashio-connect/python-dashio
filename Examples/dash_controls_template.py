@@ -51,12 +51,12 @@ class TestControls:
             "-p", "--port", type=int, help="Port number.", default=1883, dest="port",
         )
         parser.add_argument(
-            "-c", "--connection_name", dest="connection", default="TestMQTT", help="IotDashboard Connection name"
+            "-c", "--device_type", dest="device_typw", default="TestMQTT", help="IotDashboard device type"
         )
         parser.add_argument("-d", "--device_id", dest="device_id", default="00001", help="IotDashboard Device ID.")
         parser.add_argument("-n", "--device_name", dest="device_name", default="Template", help="IotDashboard Device name alias.")
-        parser.add_argument("-u", "--username", help="MQTT Username", dest="username", default="")
-        parser.add_argument("-w", "--password", help="MQTT Password", default="")
+        parser.add_argument("-u", "--username", help="Dash Username", dest="username", default="")
+        parser.add_argument("-w", "--password", help="Dash Password", default="")
         parser.add_argument("-l", "--logfile", dest="logfilename", default="", help="logfile location", metavar="FILE")
         args = parser.parse_args()
         return args
@@ -71,12 +71,11 @@ class TestControls:
         self.init_logging(args.logfilename, args.verbose)
 
         logging.info("Connecting to server: %s", args.server)
-        logging.info("       Connection ID: %s", args.connection)
-        logging.info("       Control topic: %s/%s/%s/control", args.username, args.connection, args.device_id)
-        logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
+        logging.info("         Device Type: %s", args.device_type)
+        logging.info("       Control topic: %s/%s/control", args.username, args.device_id)
+        logging.info("          Data topic: %s/%s/data", args.username, args.device_id)
 
-        device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
-        device.add_mqtt_connection(args.server, args.port, args.username, args.password, use_ssl=True)
+        device = dashio.dashDevice(args.device_type, args.device_id, args.device_name)
 
         while not self.shutdown:
             time.sleep(5)

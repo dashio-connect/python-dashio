@@ -47,7 +47,6 @@ class tcpClientThread(threading.Thread):
         self.socket.recv()
         while self.running:
             socks = dict(self.poller.poll())
-
             if self.socket in socks:
                 id = self.socket.recv()
                 message = self.socket.recv_string()
