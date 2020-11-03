@@ -1,14 +1,10 @@
 import logging
 import zmq
 import threading
-import socket
 
 from .iotcontrol.name import Name
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.page import Page
-
-from zeroconf import IPVersion, ServiceInfo, Zeroconf
-
 
 class dashDevice(threading.Thread):
 
@@ -179,74 +175,18 @@ class dashDevice(threading.Thread):
         self.connect = self.device_id_str + "\tCONNECT\n"
         self.number_of_pages = 0
         self.running = True
-        self.local_ip = self.__get_local_ip_address()
-        self.host_name = socket.gethostname()
-        hs = self.host_name.split(".")
-        # rename for .local mDNS advertising
-        self.host_name = "{}.local".format(hs[0])
 
-        logging.debug("HostName: %s", self.host_name)
-        logging.debug("      IP: %s", self.local_ip)
-
-        self.zeroconf = Zeroconf(ip_version=IPVersion.V4Only)
         self.start()
-
-    def __get_local_ip_address(self):
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        try:
-            # doesn't even have to be reachable
-            s.connect(('10.255.255.255', 1))
-            IP = s.getsockname()[0]
-        except Exception:
-            IP = '127.0.0.1'
-        finally:
-            s.close()
-        return IP
-
-    def __zconf_publish_tcp(self, port):
-        zconf_desc = {'deviceID': self.device_id,
-                      'deviceType': self.device_type,
-                      'deviceName': self.device_name_cntrl.control_id}
-        zconf_info = ServiceInfo(
-            "_DashIO._tcp.local.",
-            "{} {}._DashIO._tcp.local.".format(self.device_type, self.device_id),
-            addresses=[socket.inet_aton(self.local_ip)],
-            port=port,
-            properties=zconf_desc,
-            server=self.host_name + ".",
-        )
-        self.zeroconf.register_service(zconf_info)
-        self.zero_service_list.append(zconf_info)
-
-    def __zconf_publish_zmq(self, sub_port, pub_port):
-        zconf_desc = {'deviceID': self.device_id,
-                      'deviceType': self.device_type,
-                      'deviceName': self.device_name_cntrl.control_id,
-                      'sub_port': str(sub_port),
-                      'pub_port': str(pub_port)}
-        zconf_info = ServiceInfo(
-            "_DashZMQ._tcp.local.",
-            "{} {}._DashZMQ._tcp.local.".format(self.device_type, self.device_id),
-            addresses=[socket.inet_aton(self.local_ip)],
-            port=pub_port,
-            properties=zconf_desc,
-            server=self.host_name + ".",
-        )
-        self.zeroconf.register_service(zconf_info)
-        self.zero_service_list.append(zconf_info)
 
     def close(self):
         self.running = False
-        for conn in self.connections:
-            self.connections[conn].running = False
-        self.zeroconf.unregister_all_services()
-        self.zeroconf.close()
 
     def run(self):
         # Continue the network loop, exit when an error occurs
         print("Hello")
         while self.running:
             socks = dict(self.poller.poll())
+            print("There")
             if self.rx_zmq_sub in socks:
                 msg = self.rx_zmq_sub.recv_multipart()
                 if len(msg) == 3:

@@ -5,7 +5,6 @@ import uuid
 from zeroconf import ServiceInfo, Zeroconf, IPVersion
 import socket
 
-
 class tcpConnection(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via TCP."""
 
@@ -32,7 +31,6 @@ class tcpConnection(threading.Thread):
             server=self.host_name + ".",
         )
         self.zeroconf.register_service(zconf_info)
-        self.zero_service_list.append(zconf_info)
 
     def add_device(self, device):
         device.add_connection(self.connection_id)
