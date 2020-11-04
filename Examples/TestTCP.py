@@ -108,7 +108,7 @@ class TestControls:
         self.tcp_con = dashio.tcpConnection()
         self.device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
         self.tcp_con.add_device(self.device)
-        
+
         self.connection = args.connection
         self.page_name = "TestTCP: " + platform.node()
 

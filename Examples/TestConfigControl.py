@@ -79,8 +79,9 @@ class TestControls:
         logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
 
         device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
-        device.add_mqtt_connection(args.server, args.port, args.username, args.password, use_ssl=True)
-       
+        dash_conn = dashio.dashConnection(args.username, args.password)
+        dash_conn.add_device(device)
+
         self.tmpage = dashio.Page("tmpage", "Test Alarm")
         self.test_menu = dashio.Menu("TestTheMenu", control_position=dashio.ControlPosition(0.3, 0.5, 0.5, 0.5))
         self.test_page = dashio.Page("TestCFG", "Test the Menus")

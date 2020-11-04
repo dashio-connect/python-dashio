@@ -89,8 +89,9 @@ class BBB_Temperature:
         logging.info("       Control topic: %s/%s/%s/control", args.username, args.connection, args.device_id)
         logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
 
-        device = dashio.dashDevice(args.connection, args.device_id, args.device.name)
-        device.add_mqtt_connection(args.server, args.port, args.username, args.password, use_ssl=True)
+        dash_con = dashio.dashConnection(args.username, args.password)
+        device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
+        dash_con.add_device(device)
 
         gph_15_minutes = dashio.TimeGraph("Temperature15M")
         gph_15_minutes.title = "Temp15M:{}".format(args.connection)
@@ -161,9 +162,6 @@ class BBB_Temperature:
         device.add_control(gph_1_year)
 
         self.connection = args.connection
-        count = 0
-        reset_daily = False
-
         temperature = self.read_sensor()
         daily_temperature_max = temperature
         daily_temperature_min = temperature
