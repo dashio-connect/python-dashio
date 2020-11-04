@@ -126,7 +126,7 @@ class dashDevice(threading.Thread):
             self.tx_zmq_pub.send_multipart([b"ALL", b'0', msg.encode('utf-8')])
         except zmq.error.ZMQError:
             pass
-        
+
     def add_control(self, iot_control):
         """Add a control to the connection.
 
@@ -183,7 +183,10 @@ class dashDevice(threading.Thread):
         poller.register(self.rx_zmq_sub, zmq.POLLIN)
 
         while self.running:
-            socks = dict(poller.poll(50))
+            try:
+                socks = dict(poller.poll(50))
+            except zmq.error.ContextTerminated:
+                break
             if self.rx_zmq_sub in socks:
                 msg = self.rx_zmq_sub.recv_multipart()
                 if len(msg) == 3:
