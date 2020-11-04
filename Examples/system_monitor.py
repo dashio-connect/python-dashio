@@ -86,8 +86,9 @@ def main():
     logging.info("       Control topic: %s/%s/%s/control", args.username, args.connection, args.device_id)
     logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
 
-    device = dashio.dashDevice( args.connection, args.device_id, args.device_name)
-    device.add_mqtt_connection(args.server, args.port, args.username, args.password, use_ssl=True)
+    device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
+    dash_conn = dashio.dashConnection(args.username, args.password)
+    dash_conn.add_device(device)
 
     monitor_page = dashio.Page("monpg", "Dash Server Moniter")
     gph_network = dashio.TimeGraph("NETWORKGRAPH")

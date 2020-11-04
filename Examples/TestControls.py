@@ -108,7 +108,8 @@ class TestControls:
         logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
 
         device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
-        device.add_dash_connection(args.username, args.password)
+        dash_conn = dashio.dashConnection(args.username, args.password)
+        dash_conn.add_device(device)
 
         self.page_test = dashio.Page("TestPage", "Testing Pages", 1)
         self.up_btn = dashio.Button("UP_BTN")

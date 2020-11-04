@@ -87,7 +87,8 @@ class TestControls:
         logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
 
         device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
-        device.add_tcp_connection(args.server, args.port, args.username, args.password, use_ssl=True)
+        dash_conn = dashio.dashConnection(args.username, args.password)
+        dash_conn.add_device(device)
 
         self.tapage = dashio.Page("testAlarm", "Test Alarm")
         self.alarm_btn1 = dashio.Button("ALARM_BTN1")

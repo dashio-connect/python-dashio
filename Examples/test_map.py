@@ -60,7 +60,8 @@ def main():
     print("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
 
     device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
-    device.add_mqtt_connection(args.server, args.port, args.username, args.password, use_ssl=True)
+    dash_conn = dashio.dashConnection(args.username, args.password)
+    dash_conn.add_device(device)
 
     my_map = dashio.Map("MAP1")
     my_map.title = "A cool map"
