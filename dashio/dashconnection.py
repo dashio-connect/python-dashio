@@ -103,7 +103,10 @@ class dashConnection(threading.Thread):
         poller.register(rx_zmq_sub, zmq.POLLIN)
 
         while self.running:
-            socks = dict(poller.poll(50))
+            try:
+                socks = dict(poller.poll(50))
+            except zmq.error.ContextTerminated:
+                break
 
             if rx_zmq_sub in socks:
                 [address, id, data] = rx_zmq_sub.recv_multipart()

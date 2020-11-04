@@ -102,7 +102,10 @@ class tcpConnection(threading.Thread):
         tcpsocket.recv()  # empty data here
 
         while self.running:
-            socks = dict(poller.poll(50))
+            try:
+                socks = dict(poller.poll(50))
+            except zmq.error.ContextTerminated:
+                break
 
             if tcpsocket in socks:
                 id = tcpsocket.recv()
