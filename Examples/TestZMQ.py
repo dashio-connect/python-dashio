@@ -11,8 +11,6 @@ import platform
 
 class TestControls:
     def signal_cntrl_c(self, os_signal, os_frame):
-        self.zmq_con.close()
-        self.device.close()
         self.shutdown = True
 
     def init_logging(self, logfilename, level):
