@@ -103,7 +103,7 @@ class mqttConnection(threading.Thread):
         poller.register(rx_zmq_sub, zmq.POLLIN)
 
         while self.running:
-            socks = dict(poller.poll())
+            socks = dict(poller.poll(50))
             if rx_zmq_sub in socks:
                 [address, id, data] = rx_zmq_sub.recv_multipart()
                 msg_l = data.split(b'\t')

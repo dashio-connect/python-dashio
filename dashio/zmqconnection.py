@@ -27,7 +27,7 @@ class zmqConnection(threading.Thread):
 
         zconf_info = ServiceInfo(
             "_DashZMQ._tcp.local.",
-            "{}._DashZMQ._tcp.local.".format(self.connection_id.hex),
+            "{}._DashZMQ._tcp.local.".format(self.connection_id),
             addresses=[socket.inet_aton(self.local_ip)],
             port=pub_port,
             properties=zconf_desc,
@@ -60,6 +60,9 @@ class zmqConnection(threading.Thread):
         self.connection_id = shortuuid.uuid()
         self.b_connection_id = self.connection_id.encode('utf-8')
 
+        self.tx_url_internal = "inproc://TX_{}".format(self.connection_id)
+        self.rx_url_internal = "inproc://RX_{}".format(self.connection_id)
+
         host_name = socket.gethostname()
         hs = host_name.split(".")
         # rename for .local mDNS advertising
@@ -72,22 +75,19 @@ class zmqConnection(threading.Thread):
 
     def run(self):
 
-        tx_url_internal = "inproc://TX_{}".format(self.connection_id)
-        rx_url_internal = "inproc://RX_{}".format(self.connection_id)
+        tx_zmq_pub = self.context.socket(zmq.PUB)
+        tx_zmq_pub.bind(self.tx_url_internal)
 
-        self.tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.tx_zmq_pub.bind(tx_url_internal)
-
-        self.rx_zmq_sub = self.context.socket(zmq.SUB)
-        self.rx_zmq_sub.bind(rx_url_internal)
+        rx_zmq_sub = self.context.socket(zmq.SUB)
+        rx_zmq_sub.bind(self.rx_url_internal)
 
         #  Subscribe on ALL, and my connection
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
+        rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
+        rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
+        rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
 
-        self.ext_tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.ext_tx_zmq_pub.bind(self.tx_url_external)
+        ext_tx_zmq_pub = self.context.socket(zmq.PUB)
+        ext_tx_zmq_pub.bind(self.tx_url_external)
 
         self.ext_rx_zmq_sub = self.context.socket(zmq.SUB)
         self.ext_rx_zmq_sub.bind(self.rx_url_external)
@@ -95,23 +95,23 @@ class zmqConnection(threading.Thread):
         # Subscribe on WHO, and my deviceID
         self.ext_rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b'\tWHO')
 
-        self.poller = zmq.Poller()
-        self.poller.register(self.ext_rx_zmq_sub, zmq.POLLIN)
-        self.poller.register(self.rx_zmq_sub, zmq.POLLIN)
+        poller = zmq.Poller()
+        poller.register(self.ext_rx_zmq_sub, zmq.POLLIN)
+        poller.register(rx_zmq_sub, zmq.POLLIN)
 
         while self.running:
-            socks = dict(self.poller.poll())
+            socks = dict(poller.poll(50))
 
             if self.ext_rx_zmq_sub in socks:
                 message = self.ext_rx_zmq_sub.recv()
                 logging.debug("ZMQ Rx: %s", message.decode('utf-8').rstrip())
-                self.tx_zmq_pub.send_multipart([self.b_connection_id, b'', message])
+                tx_zmq_pub.send_multipart([self.b_connection_id, b'', message])
 
-            if self.rx_zmq_sub in socks:
-                [address, msg_id, data] = self.rx_zmq_sub.recv_multipart()
+            if rx_zmq_sub in socks:
+                [address, msg_id, data] = rx_zmq_sub.recv_multipart()
                 if address == b'ALL' or address == self.b_connection_id:
                     logging.debug("ZMQ Tx: %s", data.decode('utf-8').rstrip())
-                    self.ext_tx_zmq_pub.send(data)
+                    ext_tx_zmq_pub.send(data)
 
-        self.tx_zmq_pub.close()
-        self.rx_zmq_sub.close()
+        tx_zmq_pub.close()
+        rx_zmq_sub.close()

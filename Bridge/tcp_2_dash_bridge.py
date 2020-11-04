@@ -142,15 +142,7 @@ class tcp_dashBridge(threading.Thread):
         threading.Thread.__init__(self, daemon=True)
         self.context = context or zmq.Context.instance()
         self.ignore_list = ignore_devices
-        self.tcp_socket = self.context.socket(zmq.STREAM)
-        self.tcp_socket.set(zmq.SNDTIMEO, 1)
 
-        self.rx_zconf_pull = self.context.socket(zmq.PULL)
-        self.rx_zconf_pull.bind("inproc://zconf")
-
-        self.poller = zmq.Poller()
-        self.poller.register(self.rx_zconf_pull, zmq.POLLIN)
-        self.poller.register(self.tcp_socket, zmq.POLLIN)
         self.tcp_id_dict = {}
         self.tcp_device_dict = {}
 
@@ -198,11 +190,21 @@ class tcp_dashBridge(threading.Thread):
     def run(self):
         self.dash_c.loop_start()
 
-        while self.running:
-            socks = dict(self.poller.poll())
+        self.tcp_socket = self.context.socket(zmq.STREAM)
+        self.tcp_socket.set(zmq.SNDTIMEO, 1)
 
-            if self.rx_zconf_pull in socks:
-                action, ip_address, port = self.rx_zconf_pull.recv_multipart()
+        rx_zconf_pull = self.context.socket(zmq.PULL)
+        rx_zconf_pull.bind("inproc://zconf")
+
+        poller = zmq.Poller()
+        poller.register(rx_zconf_pull, zmq.POLLIN)
+        poller.register(self.tcp_socket, zmq.POLLIN)
+
+        while self.running:
+            socks = dict(self.poller.poll(50))
+
+            if rx_zconf_pull in socks:
+                action, ip_address, port = rx_zconf_pull.recv_multipart()
                 if action == b'add':
                     logging.debug("Adding device: %s:%s", ip_address.decode('utf-8'), port.decode('utf-8'))
                     self.add_device(ip_address, port)
@@ -235,7 +237,7 @@ class tcp_dashBridge(threading.Thread):
                     self.clear_device(self.tcp_id_dict[id].decode('utf-8'))
 
         self.dash_c.loop_stop()
-        self.rx_zconf_pull.close()
+        rx_zconf_pull.close()
         self.tcp_socket.close()
 
 
