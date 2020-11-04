@@ -79,6 +79,9 @@ class dashConnection(threading.Thread):
         # Start subscribe, with QoS level 0
         self.start()
 
+    def close(self):
+        self.running = False
+
     def run(self):
         self.dash_c.loop_start()
 
@@ -100,7 +103,7 @@ class dashConnection(threading.Thread):
         poller.register(rx_zmq_sub, zmq.POLLIN)
 
         while self.running:
-            socks = dict(poller.poll())
+            socks = dict(poller.poll(50))
 
             if rx_zmq_sub in socks:
                 [address, id, data] = rx_zmq_sub.recv_multipart()

@@ -122,8 +122,11 @@ class dashDevice(threading.Thread):
             Data to be sent
         """
         msg = self.device_id_str + self.__insert_device_id(data)
-        self.tx_zmq_pub.send_multipart([b"ALL", b'0', msg.encode('utf-8')])
-
+        try:
+            self.tx_zmq_pub.send_multipart([b"ALL", b'0', msg.encode('utf-8')])
+        except zmq.error.ZMQError:
+            pass
+        
     def add_control(self, iot_control):
         """Add a control to the connection.
 
@@ -156,7 +159,6 @@ class dashDevice(threading.Thread):
         self.device_type = device_type
         self.device_id = device_id
         self.device_name_cntrl = Name(device_name)
-        self.zero_service_list = []
         self.control_dict = {}
         self.alarm_dict = {}
 
@@ -165,7 +167,6 @@ class dashDevice(threading.Thread):
         self.connect = self.device_id_str + "\tCONNECT\n"
         self.number_of_pages = 0
         self.running = True
-
         self.start()
 
     def close(self):
@@ -173,20 +174,18 @@ class dashDevice(threading.Thread):
 
     def run(self):
         # Continue the network loop, exit when an error occurs
-        print("Hello")
 
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
-
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"")
-        self.poller = zmq.Poller()
 
-        self.poller.register(self.rx_zmq_sub, zmq.POLLIN)
+        poller = zmq.Poller()
+        poller.register(self.rx_zmq_sub, zmq.POLLIN)
+
         while self.running:
-            socks = dict(self.poller.poll())
+            socks = dict(poller.poll(50))
             if self.rx_zmq_sub in socks:
                 msg = self.rx_zmq_sub.recv_multipart()
-                print(msg)
                 if len(msg) == 3:
                     reply = self.__on_message(msg[2])
                     if reply:

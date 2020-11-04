@@ -102,7 +102,7 @@ class tcpConnection(threading.Thread):
         tcpsocket.recv()  # empty data here
 
         while self.running:
-            socks = dict(poller.poll())
+            socks = dict(poller.poll(50))
 
             if tcpsocket in socks:
                 id = tcpsocket.recv()

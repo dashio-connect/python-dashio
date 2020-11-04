@@ -81,10 +81,12 @@ class zmq_tcpBridge(threading.Thread):
         """
 
         threading.Thread.__init__(self, daemon=True)
+
         self.device_id = "3141592654"
         self.device_type = "TCPBridge"
         self.device_name = "MulipleTCP"
         self.local_ip = self.__get_local_ip_address()
+        self.ext_url = "tcp://" + self.local_ip + ":" + str(tcp_port)
         self.host_name = socket.gethostname()
         hs = self.host_name.split(".")
         # rename for .local mDNS advertising
@@ -98,25 +100,6 @@ class zmq_tcpBridge(threading.Thread):
 
         self.context = context or zmq.Context.instance()
 
-        self.tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.rx_zmq_sub = self.context.socket(zmq.SUB)
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b'')
-
-        self.rx_zconf_pull = self.context.socket(zmq.PULL)
-        self.rx_zconf_pull.connect("inproc://zconf")
-
-        # Subscribe on ALL, and my connection
-
-        self.tcpsocket = self.context.socket(zmq.STREAM)
-        ext_url = "tcp://" + self.local_ip + ":" + str(tcp_port)
-        self.tcpsocket.bind(ext_url)
-        self.tcpsocket.set(zmq.SNDTIMEO, 5)
-
-        self.poller = zmq.Poller()
-        self.poller.register(self.tcpsocket, zmq.POLLIN)
-        self.poller.register(self.rx_zmq_sub, zmq.POLLIN)
-        self.poller.register(self.rx_zconf_pull, zmq.POLLIN)
-
         self.socket_ids = []
         self.devices = []
         self.running = True
@@ -125,12 +108,29 @@ class zmq_tcpBridge(threading.Thread):
     def close(self):
         for id in self.socket_ids:
             self._zmq_send(id, "")
-
         self.zeroconf.unregister_all_services()
         self.zeroconf.close()
         self.running = False
 
     def run(self):
+        self.tx_zmq_pub = self.context.socket(zmq.PUB)
+        self.rx_zmq_sub = self.context.socket(zmq.SUB)
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b'')
+
+        rx_zconf_pull = self.context.socket(zmq.PULL)
+        rx_zconf_pull.connect("inproc://zconf")
+
+        # Subscribe on ALL, and my connection
+
+        self.tcpsocket = self.context.socket(zmq.STREAM)
+        self.tcpsocket.bind(self.ext_url)
+        self.tcpsocket.set(zmq.SNDTIMEO, 5)
+
+        poller = zmq.Poller()
+        poller.register(self.tcpsocket, zmq.POLLIN)
+        poller.register(self.rx_zmq_sub, zmq.POLLIN)
+        poller.register(rx_zconf_pull, zmq.POLLIN)
+
         def __zmq_tcp_send(id, data):
             try:
                 self.tcpsocket.send(id, zmq.SNDMORE)
@@ -140,7 +140,7 @@ class zmq_tcpBridge(threading.Thread):
                 self.socket_ids.remove(id)
 
         while self.running:
-            socks = dict(self.poller.poll())
+            socks = dict(poller.poll(50))
             if self.tcpsocket in socks:
                 id = self.tcpsocket.recv()
                 message = self.tcpsocket.recv()
@@ -160,8 +160,8 @@ class zmq_tcpBridge(threading.Thread):
                 for id in self.socket_ids:
                     logging.debug("TCP ID: %s, Tx: %s", id.hex(), data.decode('utf-8').rstrip())
                     __zmq_tcp_send(id, data)
-            if self.rx_zconf_pull in socks:
-                name, action, ip_address, sub_port, pub_port = self.rx_zconf_pull.recv_multipart()
+            if rx_zconf_pull in socks:
+                name, action, ip_address, sub_port, pub_port = rx_zconf_pull.recv_multipart()
                 if action == b'add':
                     logging.debug("Added device: %s", name.decode('utf-8'))
                     self.connect_zmq_device(name, ip_address, sub_port, pub_port)
@@ -171,9 +171,6 @@ class zmq_tcpBridge(threading.Thread):
                         self.disconnect_zmq_device(name, ip_address, sub_port, pub_port)
                     except zmq.error.ZMQError:
                         pass
-
-        for id in self.socket_ids:
-            self._zmq_send(id, "")
 
         self.zeroconf.unregister_all_services()
         self.zeroconf.close()
