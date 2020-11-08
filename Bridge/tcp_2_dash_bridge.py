@@ -9,6 +9,7 @@ import socket
 import configparser
 import ipaddress
 import netifaces
+from collections import defaultdict
 from zeroconf import IPVersion, ServiceInfo, Zeroconf, ServiceBrowser
 
 # TODO: Add documentation
@@ -127,7 +128,9 @@ class tcp_dashBridge(threading.Thread):
         try:
             self.tcp_socket.send(id, zmq.SNDMORE)
             self.tcp_socket.send_string('\tWHO\n')
+            self.tcp_device_dict[id] = ip_address + b':' + port
             logging.debug("BRIDGE TX: \tWHO")
+
         except zmq.error.ZMQError:
             logging.debug("Sending TX Error.")
             self.tcp_socket.send(b'')
@@ -143,8 +146,10 @@ class tcp_dashBridge(threading.Thread):
         self.context = context or zmq.Context.instance()
         self.ignore_list = ignore_devices
 
-        self.tcp_id_dict = {}
+        # A dictionary of list of tcp ids.
+        self.tcp_id_dict = defaultdict(list)
         self.tcp_device_dict = {}
+        self.connected_ip = {}
 
         self.LWD = "OFFLINE"
         self.running = True
@@ -184,7 +189,10 @@ class tcp_dashBridge(threading.Thread):
         control_topic = "{}/{}/control".format(self.username, device_id)
         id = self.tcp_device_dict[device_id.encode('utf-8')]
         self.tcp_device_dict.pop(device_id.encode('utf-8'))
-        self.tcp_id_dict.pop(id)
+        try:
+            self.tcp_id_dict[id].remove(device_id)
+        except ValueError:
+            pass
         self.dash_c.unsubscribe(control_topic)
 
     def run(self):
@@ -201,8 +209,7 @@ class tcp_dashBridge(threading.Thread):
         poller.register(self.tcp_socket, zmq.POLLIN)
 
         while self.running:
-            socks = dict(self.poller.poll(50))
-
+            socks = dict(poller.poll(50))
             if rx_zconf_pull in socks:
                 action, ip_address, port = rx_zconf_pull.recv_multipart()
                 if action == b'add':
@@ -215,26 +222,28 @@ class tcp_dashBridge(threading.Thread):
                 id = self.tcp_socket.recv()
                 message = self.tcp_socket.recv()
                 if message:
-                    if id not in self.tcp_id_dict:
-                        msg_l = message.split(b'\t')
-                        if (len(msg_l) > 3) and (msg_l[2] == b'WHO') and (msg_l[1] not in self.tcp_device_dict) and (msg_l[1].decode('utf-8') not in self.ignore_list):
-                            logging.debug("Added device: %s", msg_l[1].decode('utf-8'))
-                            self.tcp_id_dict[id] = msg_l[1]
-                            self.tcp_device_dict[msg_l[1]] = id
-                            self.announce_device(msg_l[1].decode('utf-8'), message)
-                            continue
+                    msg_l = message.split(b'\t')
+                    if len(msg_l) == 1:
                         self.tcp_socket.send(id, zmq.SNDMORE)
                         self.tcp_socket.send(b'')
+                    elif msg_l[1] not in self.tcp_device_dict:
+                        if (len(msg_l) > 3) and (msg_l[2] == b'WHO') and (msg_l[1].decode('utf-8') not in self.ignore_list):
+                            logging.debug("Added device: %s", msg_l[1].decode('utf-8'))
+                            self.tcp_id_dict[id].append(msg_l[1])
+                            self.tcp_device_dict[msg_l[1]] = id
+                            self.announce_device(msg_l[1].decode('utf-8'), message)
                     else:
                         logging.debug("BRIDGE  TCP: RX: %s", message.decode('utf-8').strip())
-                        msg_l = message.split(b'\t')
                         if msg_l[2] == b'ALM':
-                            data_topic = "{}/{}/alarm".format(self.username, self.tcp_id_dict[id].decode('utf-8'))
+                            data_topic = "{}/{}/alarm".format(self.username, msg_l[1].decode('utf-8'))
                         else:
-                            data_topic = "{}/{}/data".format(self.username, self.tcp_id_dict[id].decode('utf-8'))
+                            data_topic = "{}/{}/data".format(self.username, msg_l[1].decode('utf-8'))
                         self.dash_c.publish(data_topic, message)
                 elif id in self.tcp_id_dict:
-                    self.clear_device(self.tcp_id_dict[id].decode('utf-8'))
+                    for device_id in self.tcp_id_dict[id]:
+                        self.clear_device(device_id.decode('utf-8'))
+                    self.tcp_socket.send(id, zmq.SNDMORE)
+                    self.tcp_socket.send(b'')
 
         self.dash_c.loop_stop()
         rx_zconf_pull.close()

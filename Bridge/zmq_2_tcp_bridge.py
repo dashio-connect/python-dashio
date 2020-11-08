@@ -222,7 +222,7 @@ def main():
     listener = ZeroConfListener(context)
     browser = ServiceBrowser(zeroconf, "_DashZMQ._tcp.local.", listener)
 
-    b = zmq_tcpBridge(tcp_port=5000, context=context)
+    b = zmq_tcpBridge(tcp_port=5001, context=context)
 
     while not shutdown:
         time.sleep(1)
