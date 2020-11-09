@@ -125,15 +125,18 @@ class tcp_dashBridge(threading.Thread):
         print(url)
         self.tcp_socket.connect(url)
         id = self.tcp_socket.getsockopt(zmq.IDENTITY)
-        try:
-            self.tcp_socket.send(id, zmq.SNDMORE)
-            self.tcp_socket.send_string('\tWHO\n')
-            self.tcp_device_dict[id] = ip_address + b':' + port
-            logging.debug("BRIDGE TX: \tWHO")
+        ip_b = ip_address + b':' + port
+        if ip_b not in self.tcp_ip_2_id_dict:
+            try:
+                self.tcp_socket.send(id, zmq.SNDMORE)
+                self.tcp_socket.send_string('\tWHO\n')
+                self.tcp_id_2_ip_dict[id] = ip_address + b':' + port
+                self.tcp_ip_2_id_dict[ip_address + b':' + port] = id
+                logging.debug("BRIDGE TX: \tWHO")
 
-        except zmq.error.ZMQError:
-            logging.debug("Sending TX Error.")
-            self.tcp_socket.send(b'')
+            except zmq.error.ZMQError:
+                logging.debug("Sending TX Error.")
+                self.tcp_socket.send(b'')
         time.sleep(0.1)
         return id
 
@@ -149,6 +152,8 @@ class tcp_dashBridge(threading.Thread):
         # A dictionary of list of tcp ids.
         self.tcp_id_dict = defaultdict(list)
         self.tcp_device_dict = {}
+        self.tcp_id_2_ip_dict = {}
+        self.tcp_ip_2_id_dict = {}
         self.connected_ip = {}
 
         self.LWD = "OFFLINE"
@@ -244,6 +249,10 @@ class tcp_dashBridge(threading.Thread):
                         self.clear_device(device_id.decode('utf-8'))
                     self.tcp_socket.send(id, zmq.SNDMORE)
                     self.tcp_socket.send(b'')
+                    ip_b = self.tcp_id_2_ip_dict[id]
+                    self.tcp_id_2_ip_dict.pop(id)
+                    self.tcp_ip_2_id_dict.pop(ip_b)
+
 
         self.dash_c.loop_stop()
         rx_zconf_pull.close()
