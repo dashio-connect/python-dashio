@@ -153,7 +153,7 @@ class BBB_Temperature:
         dl_daily_min_ctrl.title = "Daily Min"
         dl_daily_min_ctrl.max = 50
 
-        self.page = dashio.Page("Temps", self.page_name, 1)
+        self.page = dashio.Page("tmppage", "Temperatures", 1)
         device.add_control(self.page)
         device.add_control(dl_temperature_ctrl)
         self.page.add_control(dl_temperature_ctrl)
