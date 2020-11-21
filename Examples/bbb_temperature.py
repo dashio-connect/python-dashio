@@ -48,17 +48,17 @@ class BBB_Temperature:
                             0 = only warnings, 1 = info, 2 = debug.
                             No number means info. Default is no verbosity.""",
         )
-        parser.add_argument("-s", "--server", help="Server URL.", dest="server", default="mqtt://localhost")
+        parser.add_argument("-s", "--server", help="Server URL.", dest="server", default="dash.dashio.io")
         parser.add_argument(
             "-p", "--port", type=int, help="Port number.", default=1883, dest="port",
         )
         parser.add_argument(
             "-c", "--connection_name", dest="connection", default="TestMQTT", help="IotDashboard Connection name"
         )
-        parser.add_argument("-d", "--device_id", dest="device_id", default="00001", help="IotDashboard Device ID.")
+        parser.add_argument("-d", "--device_id", dest="device_id", default="1234567890", help="IotDashboard Device ID.")
         parser.add_argument("-n", "--device_name", dest="device_name", default="Temps", help="IotDasboard name alias.")
-        parser.add_argument("-u", "--username", help="MQTT Username", dest="username", default="")
-        parser.add_argument("-w", "--password", help="MQTT Password", default="")
+        parser.add_argument("-u", "--username", help="dash Username", dest="username", default="")
+        parser.add_argument("-w", "--password", help="dash Password", default="")
         parser.add_argument("-l", "--logfile", dest="logfilename", default="", help="logfile location", metavar="FILE")
         args = parser.parse_args()
         return args
@@ -85,9 +85,9 @@ class BBB_Temperature:
         self.init_logging(args.logfilename, args.verbose)
 
         logging.info("Connecting to server: %s", args.server)
-        logging.info("       Connection ID: %s", args.connection)
-        logging.info("       Control topic: %s/%s/%s/control", args.username, args.connection, args.device_id)
-        logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
+        logging.info("       Device ID: %s", args.device_id)
+        logging.info("       Control topic: %s/%s/control", args.username, args.device_id)
+        logging.info("          Data topic: %s/%s/data", args.username, args.device_id)
 
         dash_con = dashio.dashConnection(args.username, args.password)
         device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
