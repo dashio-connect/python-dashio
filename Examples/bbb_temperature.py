@@ -95,7 +95,7 @@ class BBB_Temperature:
 
         gph_15_minutes = dashio.TimeGraph("Temperature15M")
         gph_15_minutes.title = "Temp15M:{}".format(args.connection)
-        gph_15_minutes.time_scale = "15 minutes"
+        gph_15_minutes.time_scale = dashio.TimeGraphTimeScale.FIFTEENMINS
         gph_15_minutes.y_axis_label = "Degrees C"
         gph_15_minutes.y_axis_min = 0.0
         gph_15_minutes.y_axis_max = 50.0
@@ -107,7 +107,7 @@ class BBB_Temperature:
 
         gph_1_day = dashio.TimeGraph("Temperature1D")
         gph_1_day.title = "Temp1D:{}".format(args.connection)
-        gph_1_day.time_scale = "1 day"
+        gph_1_day.time_scale = dashio.TimeGraphTimeScale.ONEDAY
         gph_1_day.y_axis_label = "Degrees C"
         gph_1_day.y_axis_min = 0.0
         gph_1_day.y_axis_max = 50.0
@@ -119,7 +119,7 @@ class BBB_Temperature:
 
         gph_1_week = dashio.TimeGraph("Temperature1W")
         gph_1_week.title = "Temp1W:{}".format(args.connection)
-        gph_1_week.time_scale = "1 week"
+        gph_1_week.time_scale = dashio.TimeGraphTimeScale.ONEWEEK
         gph_1_week.y_axis_label = "Degrees C"
         gph_1_week.y_axis_min = 0.0
         gph_1_week.y_axis_max = 50.0
@@ -131,7 +131,7 @@ class BBB_Temperature:
 
         gph_1_year = dashio.TimeGraph("Temperature1Y")
         gph_1_year.title = "Temp1Y:{}".format(args.connection)
-        gph_1_year.time_scale = "1 year"
+        gph_1_year.time_scale = dashio.TimeGraphTimeScale.ONEYEAR
         gph_1_year.y_axis_label = "Degrees C"
         gph_1_year.y_axis_min = 0.0
         gph_1_year.y_axis_max = 50.0
