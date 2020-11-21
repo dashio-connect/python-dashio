@@ -189,8 +189,8 @@ class BBB_Temperature:
             if (t.minute == 0 or t.minute == 15 or t.minute == 30 or t.minute == 45) and (t.second < 5):
                 total = 0
                 for d in line_15_minutes.data:
-                    temps = d.split(",")
-                    total += float(temps[1])
+                    temps = d.data_point
+                    total += float(temps)
                 avg = total / len(line_15_minutes.data)
                 avg_str = "{:.2f}".format(avg)
                 line_1_day.add_data_point(avg_str)
