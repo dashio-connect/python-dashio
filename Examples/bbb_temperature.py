@@ -90,11 +90,11 @@ class BBB_Temperature:
         logging.info("          Data topic: %s/%s/data", args.username, args.device_id)
 
         dash_con = dashio.dashConnection(args.username, args.password)
-        device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
+        device = dashio.dashDevice(args.device_type, args.device_id, args.device_name)
         dash_con.add_device(device)
 
         gph_15_minutes = dashio.TimeGraph("Temperature15M")
-        gph_15_minutes.title = "Temp15M:{}".format(args.connection)
+        gph_15_minutes.title = "Temp15M:{}".format(args.device_name)
         gph_15_minutes.time_scale = dashio.TimeGraphTimeScale.FIFTEENMINS
         gph_15_minutes.y_axis_label = "Degrees C"
         gph_15_minutes.y_axis_min = 0.0
@@ -106,7 +106,7 @@ class BBB_Temperature:
         gph_15_minutes.add_line("DegC", line_15_minutes)
 
         gph_1_day = dashio.TimeGraph("Temperature1D")
-        gph_1_day.title = "Temp1D:{}".format(args.connection)
+        gph_1_day.title = "Temp1D:{}".format(args.device_name)
         gph_1_day.time_scale = dashio.TimeGraphTimeScale.ONEDAY
         gph_1_day.y_axis_label = "Degrees C"
         gph_1_day.y_axis_min = 0.0
@@ -118,7 +118,7 @@ class BBB_Temperature:
         gph_1_day.add_line("DegC", line_1_day)
 
         gph_1_week = dashio.TimeGraph("Temperature1W")
-        gph_1_week.title = "Temp1W:{}".format(args.connection)
+        gph_1_week.title = "Temp1W:{}".format(args.device_name)
         gph_1_week.time_scale = dashio.TimeGraphTimeScale.ONEWEEK
         gph_1_week.y_axis_label = "Degrees C"
         gph_1_week.y_axis_min = 0.0
@@ -130,7 +130,7 @@ class BBB_Temperature:
         gph_1_week.add_line("DegC", line_1_week)
 
         gph_1_year = dashio.TimeGraph("Temperature1Y")
-        gph_1_year.title = "Temp1Y:{}".format(args.connection)
+        gph_1_year.title = "Temp1Y:{}".format(args.device_name)
         gph_1_year.time_scale = dashio.TimeGraphTimeScale.ONEYEAR
         gph_1_year.y_axis_label = "Degrees C"
         gph_1_year.y_axis_min = 0.0
@@ -161,7 +161,6 @@ class BBB_Temperature:
         device.add_control(gph_1_week)
         device.add_control(gph_1_year)
 
-        self.connection = args.connection
         temperature = self.read_sensor()
         daily_temperature_max = temperature
         daily_temperature_min = temperature
