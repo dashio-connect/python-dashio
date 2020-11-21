@@ -53,7 +53,7 @@ class BBB_Temperature:
             "-p", "--port", type=int, help="Port number.", default=1883, dest="port",
         )
         parser.add_argument(
-            "-c", "--connection_name", dest="connection", default="TestMQTT", help="IotDashboard Connection name"
+            "-c", "--device_type", dest="device_type", default="Temperature", help="Device type"
         )
         parser.add_argument("-d", "--device_id", dest="device_id", default="1234567890", help="IotDashboard Device ID.")
         parser.add_argument("-n", "--device_name", dest="device_name", default="Temps", help="IotDasboard name alias.")
