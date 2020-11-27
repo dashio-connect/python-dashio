@@ -227,7 +227,7 @@ class TestControls:
         while not self.shutdown:
             time.sleep(5)
 
-            # self.comp_control.direction_value = random.random() * 360
+            self.comp_control.direction_value = random.random() * 360
 
         self.device.send_popup_message("TestControls", "Shutting down", "Goodbye")
         self.device.close()
