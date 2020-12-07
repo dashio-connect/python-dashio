@@ -1,4 +1,4 @@
-from .enums import Colour, DialPosition, DialStyle, Precision
+from .enums import Color, DialPosition, DialStyle, Precision
 from .control import Control
 
 
@@ -10,8 +10,8 @@ class Dial(Control):
         min=0.0,
         max=100.0,
         red_value=75.0,
-        dial_fill_colour=Colour.RED,
-        pointer_colour=Colour.BLUE,
+        dial_fill_Color=Color.RED,
+        pointer_Color=Color.BLUE,
         number_position=DialPosition.LEFT,
         show_min_max=False,
         style=DialStyle.STD,
@@ -25,8 +25,8 @@ class Dial(Control):
         self.min = min
         self.max = max
         self.red_value = red_value
-        self.dial_fill_colour = dial_fill_colour
-        self.pointer_colour = pointer_colour
+        self.dial_fill_Color = dial_fill_Color
+        self.pointer_Color = pointer_Color
         self.number_position = number_position
         self.show_min_max = show_min_max
         self.style = style
@@ -76,22 +76,22 @@ class Dial(Control):
         self._cfg["showMinMax"] = val
 
     @property
-    def dial_fill_colour(self) -> Colour:
-        return self._dial_fill_colour
+    def dial_fill_Color(self) -> Color:
+        return self._dial_fill_Color
 
-    @dial_fill_colour.setter
-    def dial_fill_colour(self, val):
-        self._dial_fill_colour = val
-        self._cfg["dialFillColour"] = str(val.value)
+    @dial_fill_Color.setter
+    def dial_fill_Color(self, val):
+        self._dial_fill_Color = val
+        self._cfg["dialFillColor"] = str(val.value)
 
     @property
-    def pointer_colour(self) -> Colour:
-        return self._pointer_colour
+    def pointer_Color(self) -> Color:
+        return self._pointer_Color
 
-    @pointer_colour.setter
-    def pointer_colour(self, val: Colour):
-        self._pointer_colour = val
-        self._cfg["pointerColour"] = str(val.value)
+    @pointer_Color.setter
+    def pointer_Color(self, val: Color):
+        self._pointer_Color = val
+        self._cfg["pointerColor"] = str(val.value)
 
     @property
     def number_positions(self) -> DialPosition:

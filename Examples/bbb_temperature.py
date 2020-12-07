@@ -101,7 +101,7 @@ class BBB_Temperature:
         gph_15_minutes.y_axis_max = 50.0
         gph_15_minutes.y_axis_num_bars = 5
         line_15_minutes = dashio.TimeGraphLine(
-            "DegC", dashio.TimeGraphLineType.LINE, colour=dashio.Colour.BLACK, max_data_points=15 * 60 / LOGGER_PERIOD
+            "DegC", dashio.TimeGraphLineType.LINE, Color=dashio.Color.BLACK, max_data_points=15 * 60 / LOGGER_PERIOD
         )
         gph_15_minutes.add_line("DegC", line_15_minutes)
 
@@ -113,7 +113,7 @@ class BBB_Temperature:
         gph_1_day.y_axis_max = 50.0
         gph_1_day.y_axis_num_bars = 5
         line_1_day = dashio.TimeGraphLine(
-            "DegC", dashio.TimeGraphLineType.LINE, colour=dashio.Colour.BLACK, max_data_points=24 * 4
+            "DegC", dashio.TimeGraphLineType.LINE, Color=dashio.Color.BLACK, max_data_points=24 * 4
         )
         gph_1_day.add_line("DegC", line_1_day)
 
@@ -125,7 +125,7 @@ class BBB_Temperature:
         gph_1_week.y_axis_max = 50.0
         gph_1_week.y_axis_num_bars = 5
         line_1_week = dashio.TimeGraphLine(
-            "DegC", dashio.TimeGraphLineType.LINE, colour=dashio.Colour.BLACK, max_data_points=24 * 4 * 7
+            "DegC", dashio.TimeGraphLineType.LINE, Color=dashio.Color.BLACK, max_data_points=24 * 4 * 7
         )
         gph_1_week.add_line("DegC", line_1_week)
 
@@ -137,7 +137,7 @@ class BBB_Temperature:
         gph_1_year.y_axis_max = 50.0
         gph_1_year.y_axis_num_bars = 5
         line_1_year = dashio.TimeGraphLine(
-            "DegC", dashio.TimeGraphLineType.LINE, colour=dashio.Colour.BLACK, max_data_points=360
+            "DegC", dashio.TimeGraphLineType.LINE, Color=dashio.Color.BLACK, max_data_points=360
         )
         gph_1_year.add_line("DegC", line_1_year)
 

@@ -92,27 +92,27 @@ class TestControls:
         self.gph_15_minutes.y_axis_max = 10.0
         self.gph_15_minutes.y_axis_num_bars = 9
         self.line_15_minutes = dashio.TimeGraphLine(
-            "Line", dashio.TimeGraphLineType.LINE, colour=dashio.Colour.BLACK, max_data_points=15 * 60 / LOGGER_PERIOD
+            "Line", dashio.TimeGraphLineType.LINE, Color=dashio.Color.BLACK, max_data_points=15 * 60 / LOGGER_PERIOD
         )
         self.bar_15_minutes = dashio.TimeGraphLine(
             "Bar",
             dashio.TimeGraphLineType.BAR,
             transparency=0.45,
-            colour=dashio.Colour.ORANGE,
+            Color=dashio.Color.ORANGE,
             max_data_points=15 * 60 / LOGGER_PERIOD,
         )
         self.bin_15_minutes = dashio.TimeGraphLine(
             "Bin",
             dashio.TimeGraphLineType.BOOL,
             transparency=0.45,
-            colour=dashio.Colour.YELLOW,
+            Color=dashio.Color.YELLOW,
             max_data_points=15 * 60 / LOGGER_PERIOD,
         )
         self.am_pm_15_minutes = dashio.TimeGraphLine(
             "Hour",
             dashio.TimeGraphLineType.BOOL,
             transparency=0.30,
-            colour=dashio.Colour.SILVER,
+            Color=dashio.Color.SILVER,
             max_data_points=15 * 60 / LOGGER_PERIOD,
         )
         self.gph_15_minutes.add_line("line", self.line_15_minutes)

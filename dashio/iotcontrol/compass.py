@@ -1,4 +1,4 @@
-from .enums import Colour
+from .enums import Color
 from .control import Control
 
 
@@ -7,13 +7,13 @@ class Compass(Control):
         self,
         control_id,
         control_title="A Control",
-        pointer_colour=Colour.GREEN,
+        pointer_Color=Color.GREEN,
         calibration_angle=0,
         control_position=None,
     ):
         super().__init__("DIR", control_id, control_position=control_position)
         self.title = control_title
-        self.pointer_colour = pointer_colour
+        self.pointer_Color = pointer_Color
         self.calibration_angle = calibration_angle
 
         self._direction_value = 0
@@ -29,13 +29,13 @@ class Compass(Control):
         self.state_str = "\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, val)
 
     @property
-    def pointer_colour(self) -> Colour:
-        return self._pointer_colour
+    def pointer_Color(self) -> Color:
+        return self._pointer_Color
 
-    @pointer_colour.setter
-    def pointer_colour(self, val: Colour):
-        self._pointer_colour = val
-        self._cfg["pointerColour"] = str(val.value)
+    @pointer_Color.setter
+    def pointer_Color(self, val: Color):
+        self._pointer_Color = val
+        self._cfg["pointerColor"] = str(val.value)
 
     @property
     def calibration_angle(self):

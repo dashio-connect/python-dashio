@@ -167,7 +167,7 @@ class TimeGraphPositionOfKey(Enum):
     TOPRIGHT = "Top Right"
 
 
-class Colour(Enum):
+class Color(Enum):
     BLACK = 0
     WHITE = 1
     MAROON = 2

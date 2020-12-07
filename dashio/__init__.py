@@ -4,7 +4,7 @@ from .mqttconnection import mqttConnection
 from .zmqconnection import zmqConnection
 from .dashconnection import dashConnection
 from .iotcontrol.enums import (
-    Colour,
+    Color,
     Icon,
     Precision,
     Keyboard,
