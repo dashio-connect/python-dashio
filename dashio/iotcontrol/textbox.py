@@ -1,4 +1,4 @@
-from .enums import TextAlignment, Precision, Keyboard, Colour
+from .enums import TextAlignment, Precision, Keyboard, Color
 from .control import Control
 
 

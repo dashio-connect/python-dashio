@@ -1,4 +1,4 @@
-from .enums import Colour, SliderBarType
+from .enums import Color, SliderBarType
 from .control import Control
 
 
@@ -14,7 +14,7 @@ class SliderSingleBar(Control):
         slider_enabled=True,
         send_only_on_release=True,
         bar_follows_slider=False,
-        bar_colour=Colour.BLUE,
+        bar_Color=Color.BLUE,
         bar_style=SliderBarType.SEGMENTED,
         control_position=None,
     ):
@@ -32,7 +32,7 @@ class SliderSingleBar(Control):
         self.slider_enabled = slider_enabled
         self.send_only_on_release = send_only_on_release
         self.bar_follows_slider = bar_follows_slider
-        self.bar_colour = bar_colour
+        self.bar_Color = bar_Color
         self.bar_style = bar_style
 
         self._slider_state_str = "\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, self._slider_value)
@@ -118,13 +118,13 @@ class SliderSingleBar(Control):
         self._cfg["barFollowsSlider"] = val
 
     @property
-    def bar_colour(self) -> Colour:
-        return self._bar_colour
+    def bar_Color(self) -> Color:
+        return self._bar_Color
 
-    @bar_colour.setter
-    def bar_colour(self, val: Colour):
-        self._bar_colour = val
-        self._cfg["barColour"] = str(val.value)
+    @bar_Color.setter
+    def bar_Color(self, val: Color):
+        self._bar_Color = val
+        self._cfg["barColor"] = str(val.value)
 
     @property
     def bar_style(self) -> SliderBarType:

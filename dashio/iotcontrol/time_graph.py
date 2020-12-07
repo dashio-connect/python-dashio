@@ -1,4 +1,4 @@
-from .enums import TimeGraphLineType, Colour, TimeGraphTimeScale, TimeGraphPositionOfKey
+from .enums import TimeGraphLineType, Color, TimeGraphTimeScale, TimeGraphPositionOfKey
 from .control import Control
 
 import datetime
@@ -17,20 +17,20 @@ class DataPoint:
 
 class TimeGraphLine:
     def __init__(
-        self, name="", line_type=TimeGraphLineType.LINE, colour=Colour.BLACK, transparency=1.0, max_data_points=60
+        self, name="", line_type=TimeGraphLineType.LINE, Color=Color.BLACK, transparency=1.0, max_data_points=60
     ):
         self.max_data_points = max_data_points
         self.name = name
         self.line_type = line_type
-        self.colour = colour
+        self.Color = Color
         self.transparency = transparency
         self.data = []
 
     def get_line_data(self):
         if not self.data:
             return ""
-        data_str = "\t{l_name}\t{l_type}\t{l_colour}\t{l_transparency}".format(
-            l_name=self.name, l_type=self.line_type.value, l_colour=self.colour.value, l_transparency=self.transparency
+        data_str = "\t{l_name}\t{l_type}\t{l_Color}\t{l_transparency}".format(
+            l_name=self.name, l_type=self.line_type.value, l_Color=self.Color.value, l_transparency=self.transparency
         )
         for d in self.data:
             data_str += "\t" + d.to_string()
@@ -40,8 +40,8 @@ class TimeGraphLine:
     def get_line_from_timestamp(self, timestamp):
         if not self.data:
             return ""
-        data_str = "\t{l_name}\t{l_type}\t{l_colour}\t{l_transparency}".format(
-            l_name=self.name, l_type=self.line_type.value, l_colour=self.colour.value, l_transparency=self.transparency
+        data_str = "\t{l_name}\t{l_type}\t{l_Color}\t{l_transparency}".format(
+            l_name=self.name, l_type=self.line_type.value, l_Color=self.Color.value, l_transparency=self.transparency
         )
 
         dt = dateutil.parser.isoparse(timestamp)
@@ -71,8 +71,8 @@ class TimeGraphLine:
     def get_latest_data(self):
         if not self.data:
             return ""
-        data_str = "\t{l_name}\t{l_type}\t{l_colour}\t{l_transparency}".format(
-            l_name=self.name, l_type=self.line_type.value, l_colour=self.colour.value, l_transparency=self.transparency
+        data_str = "\t{l_name}\t{l_type}\t{l_Color}\t{l_transparency}".format(
+            l_name=self.name, l_type=self.line_type.value, l_Color=self.Color.value, l_transparency=self.transparency
         )
         data_str += "\t" + self.data[-1].to_string()
         data_str += "\n"

@@ -98,10 +98,10 @@ def main():
     gph_network.y_axis_max = 1000.0
     gph_network.y_axis_num_bars = 11
     Network_Rx = dashio.TimeGraphLine(
-        "RX", dashio.TimeGraphLineType.LINE, colour=dashio.Colour.FUSCIA, max_data_points=no_datapoints
+        "RX", dashio.TimeGraphLineType.LINE, Color=dashio.Color.FUSCIA, max_data_points=no_datapoints
     )
     Network_Tx = dashio.TimeGraphLine(
-        "TX", dashio.TimeGraphLineType.LINE, colour=dashio.Colour.AQUA, max_data_points=no_datapoints
+        "TX", dashio.TimeGraphLineType.LINE, Color=dashio.Color.AQUA, max_data_points=no_datapoints
     )
 
     gph_network.add_line("NET_RX", Network_Rx)
@@ -126,7 +126,7 @@ def main():
         line = dashio.TimeGraphLine(
             name="CPU:{}".format(cpu),
             line_type=dashio.TimeGraphLineType.LINE,
-            colour=dashio.Colour(cpu + 1),
+            Color=dashio.Color(cpu + 1),
             transparency=1.0,
             max_data_points=no_datapoints,
         )

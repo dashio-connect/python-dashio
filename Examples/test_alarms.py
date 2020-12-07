@@ -96,8 +96,8 @@ class TestControls:
         self.alarm_btn1.title = "A1"
         self.alarm_btn1.btn_state = dashio.ButtonState.OFF
         self.alarm_btn1.icon_name = dashio.Icon.BELL
-        self.alarm_btn1.on_colour = dashio.Colour.RED
-        self.alarm_btn1.text_colour = dashio.Colour.BLUE
+        self.alarm_btn1.on_Color = dashio.Color.RED
+        self.alarm_btn1.text_Color = dashio.Color.BLUE
         self.alarm_btn1.message_rx_event += self.alarm_btn1_handler
         device.add_control(self.alarm_btn1)
 
@@ -105,8 +105,8 @@ class TestControls:
         self.alarm_btn2.title = "A2"
         self.alarm_btn2.btn_state = dashio.ButtonState.OFF
         self.alarm_btn2.icon_name = dashio.Icon.BELL
-        self.alarm_btn2.on_colour = dashio.Colour.RED
-        self.alarm_btn2.text_colour = dashio.Colour.BLUE
+        self.alarm_btn2.on_Color = dashio.Color.RED
+        self.alarm_btn2.text_Color = dashio.Color.BLUE
         self.alarm_btn2.message_rx_event += self.alarm_btn2_handler
         device.add_control(self.alarm_btn2)
         self.tapage.add_control(self.alarm_btn2)
@@ -115,8 +115,8 @@ class TestControls:
         self.alarm_btn3.title = "A3"
         self.alarm_btn3.btn_state = dashio.ButtonState.OFF
         self.alarm_btn3.icon_name = dashio.Icon.BELL
-        self.alarm_btn3.on_colour = dashio.Colour.RED
-        self.alarm_btn3.text_colour = dashio.Colour.BLUE
+        self.alarm_btn3.on_Color = dashio.Color.RED
+        self.alarm_btn3.text_Color = dashio.Color.BLUE
         self.alarm_btn3.message_rx_event += self.alarm_btn3_handler
         device.add_control(self.alarm_btn3)
         self.tapage.add_control(self.alarm_btn3)

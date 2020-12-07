@@ -115,9 +115,9 @@ class TestControls:
         self.up_btn = dashio.Button("UP_BTN")
         self.up_btn.btn_state = dashio.ButtonState.OFF
         self.up_btn.icon_name = dashio.Icon.UP
-        self.up_btn.on_colour = dashio.Colour.GREEN
+        self.up_btn.on_Color = dashio.Color.GREEN
         self.up_btn.text = ""
-        self.up_btn.text_colour = dashio.Colour.WHITE
+        self.up_btn.text_Color = dashio.Color.WHITE
         self.up_btn.title = "Up"
         self.up_btn.message_rx_event += self.up_btn_event_handler
         device.add_control(self.up_btn)
@@ -126,9 +126,9 @@ class TestControls:
         self.down_btn = dashio.Button("DOWN_BTN")
         self.down_btn.btn_state = dashio.ButtonState.OFF
         self.down_btn.icon_name = dashio.Icon.DOWN
-        self.down_btn.on_colour = dashio.Colour.GREEN
+        self.down_btn.on_Color = dashio.Color.GREEN
         self.down_btn.text = ""
-        self.down_btn.text_colour = dashio.Colour.WHITE
+        self.down_btn.text_Color = dashio.Color.WHITE
         self.down_btn.title = "Down"
         self.down_btn.message_rx_event += self.down_btn_event_handler
         device.add_control(self.down_btn)
@@ -192,7 +192,7 @@ class TestControls:
         device.add_control(self.selector_ctrl)
         self.page_test.add_control(self.selector_ctrl)
 
-        self.label_ctrl = dashio.Label("LabelID", "A label", text="Hello from Label", colour=dashio.Colour.BLUE)
+        self.label_ctrl = dashio.Label("LabelID", "A label", text="Hello from Label", Color=dashio.Color.BLUE)
         device.add_control(self.label_ctrl)
         self.page_test.add_control(self.label_ctrl)
         device.add_control(self.page_test)
