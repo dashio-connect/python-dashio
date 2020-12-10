@@ -26,8 +26,6 @@ class Control:
         self.title = ""
         if title_position is not None:
             self.title_position = title_position
-        else:
-            self.title_position = TitlePosition.BOTTOM
         self.msg_type = msg_type
         self.control_id = control_id
         self.message_rx_event = Event()
