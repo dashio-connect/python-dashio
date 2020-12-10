@@ -1,4 +1,4 @@
-from .enums import Color
+from .enums import Color, KnobStyle
 from .control import Control
 
 
@@ -7,6 +7,7 @@ class Knob(Control):
         self,
         control_id,
         control_title="A Knob",
+        knob_style=KbobStyle.NORMAL,
         min=0.0,
         max=100.0,
         red_value=75.0,
@@ -21,7 +22,7 @@ class Knob(Control):
         self._control_id_dial = "KBDL"
         self._knob_value = 0
         self._knob_dial_value = 0
-
+        self.knob_style = knob_style
         self.min = min
         self.max = max
         self.red_value = red_value
@@ -54,6 +55,15 @@ class Knob(Control):
         self._state_str_dial = "\t{}\t{}\t{}\n".format(self._control_id_dial, self.control_id, val)
         self.message_tx_event(self._state_str_dial)
         self._state_str = self._state_str_knob + self._state_str_dial
+
+    @property
+    def knob_style(self) -> KnobStyle:
+        return self._knob_style
+
+    @knob_style.setter
+    def knob_style(self, val: KnobStyle):
+        self._knob_style = val
+        self._cfg["knobStyle"] = str(val.value)
 
     @property
     def min(self):
