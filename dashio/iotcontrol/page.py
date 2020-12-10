@@ -1,4 +1,4 @@
-from .enums import Color, Icon, TitlePosition
+from .enums import Color, Icon
 from .control import Control
 
 
@@ -9,7 +9,7 @@ class Page(Control):
         self,
         control_id,
         control_title="A page",
-        icon_name=Icon.SQUARE,
+        icon=Icon.SQUARE,
         page_Color=Color.BLACK,
         control_title_box_Color=Color.BLACK,
         control_title_box_transparency=0,
@@ -22,7 +22,7 @@ class Page(Control):
     ):
         super().__init__("PAGE", control_id)
         self.title = control_title
-        self.icon_name = icon_name
+        self.icon_name = icon
         self.page_Color = page_Color
         self.control_title_box_Color = control_title_box_Color
         self.control_title_box_transparency = control_title_box_transparency
