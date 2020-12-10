@@ -1,4 +1,5 @@
 from .event import Event
+from .enums import TitlePosition
 import json
 import copy
 
@@ -19,10 +20,11 @@ class Control:
         cfg_str = "\tCFG\t" + self.msg_type + "\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
 
-    def __init__(self, msg_type, control_id, control_position=None):
+    def __init__(self, msg_type, control_id, control_position=None, title_position=TitlePosition.BOTTOM):
         # Dictionary to store CFG json
         self._cfg = {}
         self.title = ""
+        self.title_position = title_position
         self.msg_type = msg_type
         self.control_id = control_id
         self.message_rx_event = Event()
@@ -77,3 +79,12 @@ class Control:
         self._cfg["yPositionRatio"] = val.y_position_ratio
         self._cfg["widthRatio"] = val.width_ratio
         self._cfg["heightRatio"] = val.height_ratio
+
+    @property
+    def title_position(self) -> TitlePosition:
+        return self._cfg["titlePosition"]
+
+    @title_position.setter
+    def control_title_position(self, val: TitlePosition):
+        self._control_title_position = val
+        self._cfg["titlePosition"] = val.value
