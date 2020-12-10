@@ -7,7 +7,7 @@ class Knob(Control):
         self,
         control_id,
         control_title="A Knob",
-        knob_style=KbobStyle.NORMAL,
+        knob_style=KnobStyle.NORMAL,
         min=0.0,
         max=100.0,
         red_value=75.0,
