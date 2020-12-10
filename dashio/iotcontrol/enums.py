@@ -65,6 +65,9 @@ class LabelStyle(Enum):
     BASIC = "BASIC"
     GROUP = "GROUP"
 
+class KnobStyle(Enum):
+    NORMAL = "NORMAL"
+    PAN = "PAN"
 
 class Precision(Enum):
     OFF = 0
