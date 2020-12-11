@@ -133,6 +133,6 @@ class tcpConnection(threading.Thread):
         for id in self.socket_ids:
             __zmq_tcp_send(id, b'')
 
-        self.tcpsocket.close()
-        self.tx_zmq_pub.close()
-        self.rx_zmq_sub.close()
+        # self.tcpsocket.close()
+        # self.tx_zmq_pub.close()
+        # self.rx_zmq_sub.close()

@@ -63,7 +63,7 @@ class Knob(Control):
     @knob_style.setter
     def knob_style(self, val: KnobStyle):
         self._knob_style = val
-        self._cfg["knobStyle"] = str(val.value)
+        self._cfg["style"] = str(val.value)
 
     @property
     def min(self):
