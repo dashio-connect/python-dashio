@@ -1,4 +1,4 @@
-from .enums import Color, DialPosition, DialStyle, Precision
+from .enums import Color, DialPosition, DialStyle, Precision, TitlePosition
 from .control import Control
 
 
@@ -6,7 +6,8 @@ class Dial(Control):
     def __init__(
         self,
         control_id,
-        control_title="A Dial",
+        title="A Dial",
+        title_position=TitlePosition.BOTTOM,
         min=0.0,
         max=100.0,
         red_value=75.0,
@@ -19,9 +20,9 @@ class Dial(Control):
         units="",
         control_position=None,
     ):
-        super().__init__("DIAL", control_id, control_position=control_position)
+        super().__init__("DIAL", control_id, control_position=control_position, title_position=title_position)
         self._dial_value = 0
-        self.title = control_title
+        self.title = title
         self.min = min
         self.max = max
         self.red_value = red_value

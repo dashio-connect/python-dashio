@@ -1,4 +1,4 @@
-from .enums import Color, KnobStyle
+from .enums import Color, KnobStyle, TitlePosition
 from .control import Control
 
 
@@ -6,7 +6,8 @@ class Knob(Control):
     def __init__(
         self,
         control_id,
-        control_title="A Knob",
+        title="A Knob",
+        title_position=TitlePosition.BOTTOM,
         knob_style=KnobStyle.NORMAL,
         min=0.0,
         max=100.0,
@@ -18,8 +19,8 @@ class Knob(Control):
         knob_color=Color.RED,
         control_position=None,
     ):
-        super().__init__("KNOB", control_id, control_position=control_position)
-        self.title = control_title
+        super().__init__("KNOB", control_id, control_position=control_position, title_position=title_position)
+        self.title = title
         self._control_id_dial = "KBDL"
         self._knob_value = 0
         self._knob_dial_value = 0

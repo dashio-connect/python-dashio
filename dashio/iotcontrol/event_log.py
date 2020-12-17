@@ -6,17 +6,18 @@ import dateutil.parser
 
 
 class EventData:
-    def __init__(self, header, body, color=Color.BLACK):
+    def __init__(self, header, body, color=Color.WHITE):
         self.color = color
         self.timestamp = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
         self.header = header
         self.body = body
 
     def to_string(self):
-        data_str = "{ts}\t{Color}\t{header}\t{body}\n".format(
+        data_str = "{ts}\t{color}\t{header}\t{body}\n".format(
             ts=self.timestamp.isoformat(), color=self.color, header=self.header, body=self.body
         )
         return data_str
+
 
 # TODO: Finish the Event log
 class EventLog(Control):
@@ -45,11 +46,6 @@ class EventLog(Control):
         if isinstance(data, EventData):
             self.log_list.append(data)
             self.state_str = self.get_state_str + data.to_string()
-
-    def add_event_data(self, header, body, color=Color.BLACK):
-        nl = EventData(header, body, color=color)
-        self.log_list.append(nl)
-        self.state_str = self.get_state_str + nl.to_string()
 
     def send_data(self):
         if self.log_list:
