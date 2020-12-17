@@ -129,6 +129,6 @@ class Knob(Control):
         return self._knob_color
 
     @knob_color.setter
-    def dial_color(self, val: Color):
+    def knob_color(self, val: Color):
         self._knob_color = val
         self._cfg["knobColor"] = str(val.value)
