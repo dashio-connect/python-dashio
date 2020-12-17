@@ -24,6 +24,7 @@ class Control:
         # Dictionary to store CFG json
         self._cfg = {}
         self.title = ""
+        self._title_position = None
         if title_position is not None:
             self.title_position = title_position
         self.msg_type = msg_type
@@ -83,11 +84,9 @@ class Control:
 
     @property
     def title_position(self) -> TitlePosition:
-        return self._cfg["titlePosition"]
+        return self._title_position
 
     @title_position.setter
-    def control_title_position(self, val: TitlePosition):
-        self._control_title_position = val
+    def title_position(self, val: TitlePosition):
+        self._title_position = val
         self._cfg["titlePosition"] = val.value
-
-    
