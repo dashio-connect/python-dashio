@@ -10,12 +10,13 @@ class Page(Control):
         control_id,
         control_title="A page",
         icon=Icon.SQUARE,
-        page_Color=Color.BLACK,
+        page_color=Color.BLACK,
         control_title_box_Color=Color.BLACK,
         control_title_box_transparency=0,
-        control_text_icon_Color=Color.WHITE_SMOKE,
+        control_color=Color.WHITE_SMOKE,
+        control_border_color=Color.WHITE_SMOKE,
         control_border_on=False,
-        control_background_Color=Color.BLACK,
+        control_background_color=Color.BLACK,
         control_title_font_size=16,
         control_max_font_size=20,
         control_background_transparency=0,
@@ -23,12 +24,13 @@ class Page(Control):
         super().__init__("PAGE", control_id)
         self.title = control_title
         self.icon_name = icon
-        self.page_Color = page_Color
+        self.page_Color = page_color
         self.control_title_box_Color = control_title_box_Color
         self.control_title_box_transparency = control_title_box_transparency
-        self.control_text_icon_Color = control_text_icon_Color
+        self.control_color = control_color
+        self.control_border_color = control_border_color
         self.control_border_on = control_border_on
-        self.control_background_Color = control_background_Color
+        self.control_background_color = control_background_color
         self.control_title_font_size = control_title_font_size
         self.control_max_font_size = control_max_font_size
         self.control_background_transparency = control_background_transparency
@@ -47,19 +49,19 @@ class Page(Control):
         self._cfg["iconName"] = val.value
 
     @property
-    def page_Color(self) -> Color:
-        return self._page_Color
+    def page_color(self) -> Color:
+        return self._page_color
 
-    @page_Color.setter
-    def page_Color(self, val: Color):
-        self._dial_Color = val
+    @page_color.setter
+    def page_color(self, val: Color):
+        self._page_color = val
         self._cfg["pageColor"] = str(val.value)
 
     @property
-    def control_title_box_Color(self) -> Color:
+    def control_title_box_color(self) -> Color:
         return self._control_title_box_Color
 
-    @control_title_box_Color.setter
+    @control_title_box_color.setter
     def control_title_box_Color(self, val: Color):
         self._control_title_box_Color = val
         self._cfg["ctrlTitleBoxColor"] = str(val.value)
@@ -73,13 +75,22 @@ class Page(Control):
         self._cfg["ctrlTitleBoxTransparency"] = val
 
     @property
-    def control_text_icon_Color(self) -> Color:
-        return self._control_text_icon_Color
+    def control_color(self) -> Color:
+        return self._control_color
 
-    @control_text_icon_Color.setter
-    def control_text_icon_Color(self, val: Color):
-        self._control_text_icon_Color = val
-        self._cfg["ctrlTextIconColor"] = str(val.value)
+    @control_color.setter
+    def control_color(self, val: Color):
+        self._control_color = val
+        self._cfg["ctrlColor"] = str(val.value)
+
+    @property
+    def control_border_color(self) -> Color:
+        return self._control_border_color
+
+    @control_border_color.setter
+    def control_border_color(self, val: Color):
+        self._control_border_color = val
+        self._cfg["ctrlBorderColor"] = str(val.value)
 
     @property
     def control_border_on(self) -> bool:
@@ -90,17 +101,17 @@ class Page(Control):
         self._cfg["ctrlBorderOn"] = val
 
     @property
-    def control_background_Color(self) -> Color:
-        return self._control_background_Color
+    def control_background_color(self) -> Color:
+        return self._control_background_color
 
-    @control_background_Color.setter
-    def control_background_Color(self, val: Color):
-        self._control_background_Color = val
+    @control_background_color.setter
+    def control_background_color(self, val: Color):
+        self._control_background_color = val
         self._cfg["ctrlBkgndColor"] = str(val.value)
 
     @property
     def control_title_font_size(self) -> int:
-        return self._control_title_font_size
+        return self._cfg["ctrlTitleFontSize"]
 
     @control_title_font_size.setter
     def control_title_font_size(self, val: int):
@@ -108,7 +119,7 @@ class Page(Control):
 
     @property
     def control_max_font_size(self) -> int:
-        return self._control_max_font_size
+        return self._cfg["ctrlMaxFontSize"]
 
     @control_max_font_size.setter
     def control_max_font_size(self, val: int):

@@ -14,12 +14,12 @@ class SliderSingleBar(Control):
         slider_enabled=True,
         send_only_on_release=True,
         bar_follows_slider=False,
-        bar_Color=Color.BLUE,
+        bar_color=Color.BLUE,
         bar_style=SliderBarType.SEGMENTED,
         control_position=None,
     ):
         super().__init__("SLDR", control_id, control_position=control_position)
-
+        self.title = control_title
         self._control_id_bar = "BAR"
 
         self._bar1_value = 0.0
@@ -32,7 +32,7 @@ class SliderSingleBar(Control):
         self.slider_enabled = slider_enabled
         self.send_only_on_release = send_only_on_release
         self.bar_follows_slider = bar_follows_slider
-        self.bar_Color = bar_Color
+        self.bar_color = bar_color
         self.bar_style = bar_style
 
         self._slider_state_str = "\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, self._slider_value)
@@ -118,12 +118,12 @@ class SliderSingleBar(Control):
         self._cfg["barFollowsSlider"] = val
 
     @property
-    def bar_Color(self) -> Color:
-        return self._bar_Color
+    def bar_color(self) -> Color:
+        return self._bar_color
 
-    @bar_Color.setter
-    def bar_Color(self, val: Color):
-        self._bar_Color = val
+    @bar_color.setter
+    def bar_color(self, val: Color):
+        self._bar_color = val
         self._cfg["barColor"] = str(val.value)
 
     @property
