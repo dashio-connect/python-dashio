@@ -11,7 +11,7 @@ class Page(Control):
         control_title="A page",
         icon=Icon.SQUARE,
         page_color=Color.BLACK,
-        control_title_box_Color=Color.BLACK,
+        control_title_box_color=Color.BLACK,
         control_title_box_transparency=0,
         control_color=Color.WHITE_SMOKE,
         control_border_color=Color.WHITE_SMOKE,
@@ -24,8 +24,8 @@ class Page(Control):
         super().__init__("PAGE", control_id)
         self.title = control_title
         self.icon_name = icon
-        self.page_Color = page_color
-        self.control_title_box_Color = control_title_box_Color
+        self.page_color = page_color
+        self.control_title_box_color = control_title_box_color
         self.control_title_box_transparency = control_title_box_transparency
         self.control_color = control_color
         self.control_border_color = control_border_color
@@ -59,11 +59,11 @@ class Page(Control):
 
     @property
     def control_title_box_color(self) -> Color:
-        return self._control_title_box_Color
+        return self._control_title_box_color
 
     @control_title_box_color.setter
-    def control_title_box_Color(self, val: Color):
-        self._control_title_box_Color = val
+    def control_title_box_color(self, val: Color):
+        self._control_title_box_color = val
         self._cfg["ctrlTitleBoxColor"] = str(val.value)
 
     @property

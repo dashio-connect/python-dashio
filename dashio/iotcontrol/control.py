@@ -11,7 +11,6 @@ class ControlPosition:
         self.width_ratio = width_ratio
         self.height_ratio = height_ratio
 
-
 class Control:
     def get_state(self):
         return self.state_str
