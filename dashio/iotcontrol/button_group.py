@@ -1,5 +1,5 @@
 from .control import Control
-from .enums import Icon
+from .enums import Icon, TitlePosition
 from .button import Button
 
 
@@ -18,11 +18,12 @@ class ButtonGroup(Control):
         control_id,
         title="A Button Group",
         text="A Button group with Text",
+        title_position=TitlePosition.BOTTOM,
         icon=Icon.MENU,
         grid_view=True,
         control_position=None,
     ):
-        super().__init__("BTGP", control_id, control_position=control_position)
+        super().__init__("BTGP", control_id, control_position=control_position, title_position=title_position)
         self.title = title
         self.control_list = []
         self.control_dict = {}

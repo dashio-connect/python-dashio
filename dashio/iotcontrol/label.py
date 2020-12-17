@@ -1,4 +1,4 @@
-from .enums import Color, LabelStyle
+from .enums import Color, LabelStyle, TitlePosition
 from .control import Control
 
 
@@ -8,14 +8,15 @@ class Label(Control):
     def __init__(
         self,
         control_id,
-        control_title="A label",
+        title="A label",
+        title_position=TitlePosition.BOTTOM,
         text="",
         color=Color.WHITE,
         style=LabelStyle.BASIC,
         control_position=None,
     ):
-        super().__init__("LBL", control_id, control_position=control_position)
-        self.title = control_title
+        super().__init__("LBL", control_id, control_position=control_position, title_position=title_position)
+        self.title = title
         self.text = text
         self.color = color
         self.style = style

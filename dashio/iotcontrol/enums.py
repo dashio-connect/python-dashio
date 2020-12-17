@@ -65,9 +65,11 @@ class LabelStyle(Enum):
     BASIC = "BASIC"
     GROUP = "GROUP"
 
+
 class KnobStyle(Enum):
     NORMAL = "NORMAL"
     PAN = "PAN"
+
 
 class Precision(Enum):
     OFF = 0
@@ -138,12 +140,6 @@ class TimeGraphLineType(Enum):
     BAR = "BAR"
     BOOL = "BOOL"
     DEL = "DEL"
-
-
-class MapType(Enum):
-    STANDARD = "Standard"
-    SATELLITE = "Satellite"
-    HYBRID = "Hybrid"
 
 
 class TimeGraphTimeScale(Enum):

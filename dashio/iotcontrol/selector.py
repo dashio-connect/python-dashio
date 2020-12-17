@@ -1,10 +1,11 @@
 from .control import Control
+from .enums import TitlePosition
 
 
 class Selector(Control):
-    def __init__(self, control_id, control_title="A Selector", max_font_size=20, control_position=None):
-        super().__init__("SLCTR", control_id, control_position=control_position)
-        self.title = control_title
+    def __init__(self, control_id, title="A Selector", title_position=TitlePosition.BOTTOM, control_position=None):
+        super().__init__("SLCTR", control_id, control_position=control_position, title_position=title_position)
+        self.title = title
         self.selection_list = []
         self._position = 0
         self._cfg["selection"] = self.selection_list

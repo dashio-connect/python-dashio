@@ -1,4 +1,4 @@
-from .enums import TextAlignment, Precision, Keyboard
+from .enums import TextAlignment, Precision, Keyboard, TitlePosition
 from .control import Control
 
 
@@ -6,21 +6,20 @@ class TextBox(Control):
     def __init__(
         self,
         control_id,
-        control_title="A Text Box",
+        title="A Text Box",
+        title_position=TitlePosition.BOTTOM,
         text="",
         text_align=TextAlignment.LEFT,
-        number_of_rows=1,
         units="",
         precision=Precision.OFF,
         keyboard_type=Keyboard.ALL_CHARS,
         close_keyboard_on_send=True,
         control_position=None,
     ):
-        super().__init__("TEXT", control_id, control_position=control_position)
-        self.title = control_title
+        super().__init__("TEXT", control_id, control_position=control_position, title_position=title_position)
+        self.title = title
         self.text = text
         self.text_align = text_align
-        self.number_of_rows = number_of_rows
         self.units = units
         self.precision = precision
         self.keyboard_type = keyboard_type
@@ -44,14 +43,6 @@ class TextBox(Control):
     def text_align(self, val: TextAlignment):
         self._text_align = val
         self._cfg["textAlign"] = val.value
-
-    @property
-    def number_of_rows(self):
-        return self._cfg["numberOfRows"]
-
-    @number_of_rows.setter
-    def number_of_rows(self, val):
-        self._cfg["numberOfRows"] = val
 
     @property
     def units(self):

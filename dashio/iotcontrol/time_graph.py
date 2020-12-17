@@ -1,4 +1,4 @@
-from .enums import TimeGraphLineType, Color, TimeGraphTimeScale, TimeGraphPositionOfKey
+from .enums import TimeGraphLineType, Color, TitlePosition
 from .control import Control
 
 import datetime
@@ -90,28 +90,22 @@ class TimeGraph(Control):
     def __init__(
         self,
         control_id,
-        timescale=TimeGraphTimeScale.FIFTEENMINS,
+        title="A TimeGraph",
+        title_position=TitlePosition.BOTTOM,
         y_axis_label="",
         y_axis_min="0.0",
         y_axis_max=100.0,
         y_axis_num_bars=5,
-        graph_key_font_size=12,
-        show_connection_in_key=False,
-        position_of_key=TimeGraphPositionOfKey.TOPLEFT,
         control_position=None,
     ):
-        super().__init__("TGRPH", control_id, control_position=control_position)
+        super().__init__("TGRPH", control_id, control_position=control_position, title_position=title_position)
 
         self.message_rx_event += self.__get_lines_from_timestamp
 
-        self.time_scale = timescale
         self.y_axis_label = y_axis_label
         self.y_axis_min = y_axis_min
         self.y_axis_max = y_axis_max
         self.y_axis_num_bars = y_axis_num_bars
-        self.graph_key_font_size = graph_key_font_size
-        self.show_connection_in_key = show_connection_in_key
-        self.position_of_key = position_of_key
 
         self.line_dict = {}
         self.get_state_str = "\t{}\t{}\t".format(self.msg_type, self.control_id)
@@ -138,15 +132,6 @@ class TimeGraph(Control):
             if self.line_dict[key].data:
                 state_str += self.get_state_str + key + self.line_dict[key].get_latest_data()
         self.state_str = state_str
-
-    @property
-    def time_scale(self) -> TimeGraphTimeScale:
-        return self._time_scale
-
-    @time_scale.setter
-    def time_scale(self, val: TimeGraphTimeScale):
-        self._time_scale = val
-        self._cfg["timeScale"] = val.value
 
     @property
     def y_axis_label(self):
@@ -179,29 +164,3 @@ class TimeGraph(Control):
     @y_axis_num_bars.setter
     def y_axis_num_bars(self, val):
         self._cfg["yAxisNumBars"] = val
-
-    @property
-    def graph_key_font_size(self):
-        return self._cfg["graphKeyFontSize"]
-
-    @graph_key_font_size.setter
-    def graph_key_font_size(self, val):
-        self._cfg["graphKeyFontSize"] = val
-
-    @property
-    def show_connection_in_key(self):
-        return self._cfg["showConnectionInKey"]
-
-    @show_connection_in_key.setter
-    def show_connection_in_key(self, val):
-        self._cfg["showConnectionInKey"] = val
-
-    @property
-    def position_of_key(self) -> TimeGraphPositionOfKey:
-        return self._position_of_key
-
-    @position_of_key.setter
-    def position_of_key(self, val: TimeGraphPositionOfKey):
-        self._position_of_key = val
-        self._cfg["positionOfKey"] = val.value
-

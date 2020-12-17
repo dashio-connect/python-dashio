@@ -11,6 +11,7 @@ class ControlPosition:
         self.width_ratio = width_ratio
         self.height_ratio = height_ratio
 
+
 class Control:
     def get_state(self):
         return self.state_str
@@ -88,3 +89,5 @@ class Control:
     def control_title_position(self, val: TitlePosition):
         self._control_title_position = val
         self._cfg["titlePosition"] = val.value
+
+    

@@ -8,7 +8,7 @@ class Page(Control):
     def __init__(
         self,
         control_id,
-        control_title="A page",
+        title="A page",
         icon=Icon.SQUARE,
         page_color=Color.BLACK,
         control_title_box_color=Color.BLACK,
@@ -22,7 +22,7 @@ class Page(Control):
         control_background_transparency=0,
     ):
         super().__init__("PAGE", control_id)
-        self.title = control_title
+        self.title = title
         self.icon_name = icon
         self.page_color = page_color
         self.control_title_box_color = control_title_box_color

@@ -1,4 +1,4 @@
-from .enums import Color, SliderBarType
+from .enums import Color, SliderBarType, TitlePosition
 from .control import Control
 
 
@@ -6,7 +6,8 @@ class SliderSingleBar(Control):
     def __init__(
         self,
         control_id,
-        control_title="A Single Slider",
+        title="A Single Slider",
+        title_position=TitlePosition.BOTTOM,
         min=0.0,
         max=1000.0,
         red_value=750,
@@ -19,8 +20,8 @@ class SliderSingleBar(Control):
         bar_style=SliderBarType.SEGMENTED,
         control_position=None,
     ):
-        super().__init__("SLDR", control_id, control_position=control_position)
-        self.title = control_title
+        super().__init__("SLDR", control_id, control_position=control_position, title_position=title_position)
+        self.title = title
         self._control_id_bar = "BAR"
 
         self._bar1_value = 0.0

@@ -1,4 +1,4 @@
-from .enums import GraphLineType, Color, GraphXAxisLabelsStyle
+from .enums import GraphLineType, Color, GraphXAxisLabelsStyle, TitlePosition
 from .control import Control
 
 
@@ -28,6 +28,8 @@ class Graph(Control):
     def __init__(
         self,
         control_id,
+        title="A Graph",
+        title_position=TitlePosition.BOTTOM,
         x_axis_label="",
         x_axis_min=0.0,
         x_axis_max=100.0,
@@ -39,7 +41,7 @@ class Graph(Control):
         y_axis_num_bars=5,
         control_position=None,
     ):
-        super().__init__("GRPH", control_id, control_position=control_position)
+        super().__init__("GRPH", control_id, control_position=control_position, title_position=title_position)
 
         self.x_axis_label = x_axis_label
         self.x_axis_min = x_axis_min
