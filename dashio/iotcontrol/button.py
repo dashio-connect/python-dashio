@@ -15,9 +15,7 @@ class Button(Control):
         icon_name=Icon.NONE,
         on_color=Color.BLACK,
         off_color=Color.RED,
-        flash_color=Color.GREEN,
         text="",
-        text_color=Color.WHITE,
         control_position=None,
     ):
         super().__init__("BTTN", control_id, control_position=control_position)
@@ -29,9 +27,7 @@ class Button(Control):
         self.icon_name = icon_name
         self.on_color = on_color
         self.off_color = off_color
-        self.flash_color = flash_color
         self.text = text
-        self.text_color = text_color
 
     @property
     def max_font_size(self):
@@ -68,15 +64,6 @@ class Button(Control):
         self._cfg["offColor"] = str(val.value)
 
     @property
-    def flash_color(self) -> Color:
-        return self._flash_color
-
-    @flash_color.setter
-    def flash_color(self, val: Color):
-        self._flash_color = val
-        self._cfg["flashColor"] = str(val.value)
-
-    @property
     def icon_name(self) -> Icon:
         return self._icon_name
 
@@ -96,15 +83,6 @@ class Button(Control):
         self._state_str = "\t{}\t{}\t{}\t{}\t{}\n".format(
             self.msg_type, self.control_id, self._btn_state.value, self._icon_name.value, val
         )
-
-    @property
-    def text_color(self) -> Color:
-        return self._text_color
-
-    @text_color.setter
-    def text_color(self, val: Color):
-        self._text_color = val
-        self._cfg["textColor"] = str(val.value)
 
     @property
     def btn_state(self) -> ButtonState:
