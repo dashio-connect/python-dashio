@@ -3,15 +3,15 @@ from .control import Control
 
 
 class GraphLine:
-    def __init__(self, name="", line_type=GraphLineType.LINE, Color=Color.BLACK):
+    def __init__(self, name="", line_type=GraphLineType.LINE, color=Color.BLACK):
         self.name = name
         self.line_type = line_type
-        self.Color = Color
+        self.color = color
         self.data = []
 
     def get_line_data(self):
-        data_str = "\t{l_name}\t{l_type}\t{l_Color}\t".format(
-            l_name=self.name, l_type=self.line_type.value, l_Color=self.Color.value
+        data_str = "\t{l_name}\t{l_type}\t{l_color}\t".format(
+            l_name=self.name, l_type=self.line_type.value, l_color=self.color.value
         )
         data_str += "\t".join(map(str, self.data))
         data_str += "\n"

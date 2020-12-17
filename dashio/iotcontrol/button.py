@@ -13,11 +13,11 @@ class Button(Control):
         max_font_size=20,
         button_enabled=True,
         icon_name=Icon.NONE,
-        on_Color=Color.BLACK,
-        off_Color=Color.RED,
-        flash_Color=Color.GREEN,
+        on_color=Color.BLACK,
+        off_color=Color.RED,
+        flash_color=Color.GREEN,
         text="",
-        text_Color=Color.WHITE,
+        text_color=Color.WHITE,
         control_position=None,
     ):
         super().__init__("BTTN", control_id, control_position=control_position)
@@ -27,11 +27,11 @@ class Button(Control):
         self._state_str = "\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, self._btn_state.value)
         self.button_enabled = button_enabled
         self.icon_name = icon_name
-        self.on_Color = on_Color
-        self.off_Color = off_Color
-        self.flash_Color = flash_Color
+        self.on_color = on_color
+        self.off_color = off_color
+        self.flash_color = flash_color
         self.text = text
-        self.text_Color = text_Color
+        self.text_color = text_color
 
     @property
     def max_font_size(self):
@@ -50,30 +50,30 @@ class Button(Control):
         self._cfg["buttonEnabled"] = val
 
     @property
-    def on_Color(self) -> Color:
-        return self._on_Color
+    def on_color(self) -> Color:
+        return self._on_color
 
-    @on_Color.setter
-    def on_Color(self, val: Color):
-        self._on_Color = val
+    @on_color.setter
+    def on_color(self, val: Color):
+        self._on_color = val
         self._cfg["onColor"] = str(val.value)
 
     @property
-    def off_Color(self) -> Color:
-        return self._off_Color
+    def off_color(self) -> Color:
+        return self._off_color
 
-    @off_Color.setter
-    def off_Color(self, val: Color):
-        self._off_Color = val
+    @off_color.setter
+    def off_color(self, val: Color):
+        self._off_color = val
         self._cfg["offColor"] = str(val.value)
 
     @property
-    def flash_Color(self) -> Color:
-        return self._flash_Color
+    def flash_color(self) -> Color:
+        return self._flash_color
 
-    @flash_Color.setter
-    def flash_Color(self, val: Color):
-        self._flash_Color = val
+    @flash_color.setter
+    def flash_color(self, val: Color):
+        self._flash_color = val
         self._cfg["flashColor"] = str(val.value)
 
     @property
@@ -98,12 +98,12 @@ class Button(Control):
         )
 
     @property
-    def text_Color(self) -> Color:
-        return self._text_Color
+    def text_color(self) -> Color:
+        return self._text_color
 
-    @text_Color.setter
-    def text_Color(self, val: Color):
-        self._text_Color = val
+    @text_color.setter
+    def text_color(self, val: Color):
+        self._text_color = val
         self._cfg["textColor"] = str(val.value)
 
     @property

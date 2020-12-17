@@ -10,8 +10,8 @@ class Dial(Control):
         min=0.0,
         max=100.0,
         red_value=75.0,
-        dial_fill_Color=Color.RED,
-        pointer_Color=Color.BLUE,
+        dial_fill_color=Color.RED,
+        pointer_color=Color.BLUE,
         number_position=DialPosition.LEFT,
         show_min_max=False,
         style=DialStyle.STD,
@@ -25,8 +25,8 @@ class Dial(Control):
         self.min = min
         self.max = max
         self.red_value = red_value
-        self.dial_fill_Color = dial_fill_Color
-        self.pointer_Color = pointer_Color
+        self.dial_fill_color = dial_fill_color
+        self.pointer_color = pointer_color
         self.number_position = number_position
         self.show_min_max = show_min_max
         self.style = style
@@ -76,21 +76,21 @@ class Dial(Control):
         self._cfg["showMinMax"] = val
 
     @property
-    def dial_fill_Color(self) -> Color:
-        return self._dial_fill_Color
+    def dial_fill_color(self) -> Color:
+        return self._dial_fill_color
 
-    @dial_fill_Color.setter
-    def dial_fill_Color(self, val):
-        self._dial_fill_Color = val
+    @dial_fill_color.setter
+    def dial_fill_color(self, val):
+        self._dial_fill_color = val
         self._cfg["dialFillColor"] = str(val.value)
 
     @property
-    def pointer_Color(self) -> Color:
-        return self._pointer_Color
+    def pointer_color(self) -> Color:
+        return self._pointer_color
 
-    @pointer_Color.setter
-    def pointer_Color(self, val: Color):
-        self._pointer_Color = val
+    @pointer_color.setter
+    def pointer_color(self, val: Color):
+        self._pointer_color = val
         self._cfg["pointerColor"] = str(val.value)
 
     @property

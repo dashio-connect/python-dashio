@@ -1,5 +1,5 @@
 from .control import Control
-from .enums import Icon, Color
+from .enums import Icon
 from .slider_single_bar import SliderSingleBar
 from .button import Button
 from .textbox import TextBox

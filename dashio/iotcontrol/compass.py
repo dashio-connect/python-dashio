@@ -7,13 +7,13 @@ class Compass(Control):
         self,
         control_id,
         control_title="A Control",
-        pointer_Color=Color.GREEN,
+        pointer_color=Color.GREEN,
         calibration_angle=0,
         control_position=None,
     ):
         super().__init__("DIR", control_id, control_position=control_position)
         self.title = control_title
-        self.pointer_Color = pointer_Color
+        self.pointer_color = pointer_color
         self.calibration_angle = calibration_angle
 
         self._direction_value = 0
@@ -29,12 +29,12 @@ class Compass(Control):
         self.state_str = "\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, val)
 
     @property
-    def pointer_Color(self) -> Color:
-        return self._pointer_Color
+    def pointer_color(self) -> Color:
+        return self._pointer_color
 
-    @pointer_Color.setter
-    def pointer_Color(self, val: Color):
-        self._pointer_Color = val
+    @pointer_color.setter
+    def pointer_color(self, val: Color):
+        self._pointer_color = val
         self._cfg["pointerColor"] = str(val.value)
 
     @property

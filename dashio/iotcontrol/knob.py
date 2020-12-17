@@ -14,7 +14,7 @@ class Knob(Control):
         show_min_max=False,
         send_only_on_release=True,
         dial_follows_knob=False,
-        dial_Color=Color.BLUE,
+        dial_color=Color.BLUE,
         control_position=None,
     ):
         super().__init__("KNOB", control_id, control_position=control_position)
@@ -29,7 +29,7 @@ class Knob(Control):
         self.show_min_max = show_min_max
         self.send_only_on_release = send_only_on_release
         self.dial_follows_knob = dial_follows_knob
-        self.dial_Color = dial_Color
+        self.dial_color = dial_color
         self._state_str_knob = "\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, self._knob_value)
         self._state_str_dial = "\t{}\t{}\t{}\n".format(self._control_id_dial, self.control_id, self._knob_dial_value)
         self._state_str = self._state_str_knob + self._state_str_dial
@@ -114,10 +114,10 @@ class Knob(Control):
         self._cfg["dialFollowsKnob"] = val
 
     @property
-    def dial_Color(self) -> Color:
-        return self._dial_Color
+    def dial_color(self) -> Color:
+        return self._dial_color
 
-    @dial_Color.setter
-    def dial_Color(self, val: Color):
-        self._dial_Color = val
+    @dial_color.setter
+    def dial_color(self, val: Color):
+        self._dial_color = val
         self._cfg["dialColor"] = str(val.value)
