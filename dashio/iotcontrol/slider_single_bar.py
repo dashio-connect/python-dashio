@@ -140,7 +140,7 @@ class SliderSingleBar(Control):
     def knob_color(self) -> Color:
         return self._knob_color
 
-    @bar_color.setter
-    def bar_color(self, val: Color):
+    @knob_color.setter
+    def knob_color(self, val: Color):
         self._knob_color = val
         self._cfg["knobColor"] = str(val.value)

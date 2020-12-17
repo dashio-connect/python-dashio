@@ -124,7 +124,7 @@ class TestControls:
         self.page_test.add_control(self.up_btn)
 
         self.down_btn = dashio.Button(
-            "DOWN_BTN", control_position=dashio.ControlPosition(0.02, 0.78, 0.22, 0.12)
+            "DOWN_BTN", control_position=dashio.ControlPosition(0.02, 0.86, 0.22, 0.12)
         )
         self.down_btn.btn_state = dashio.ButtonState.OFF
         self.down_btn.icon_name = dashio.Icon.DOWN
@@ -136,7 +136,7 @@ class TestControls:
         self.page_test.add_control(self.down_btn)
 
         self.sldr_cntrl = dashio.SliderSingleBar(
-            "SLDR", control_position=dashio.ControlPosition(0.02, 0.13, 0.22, 0.65)
+            "SLDR", control_position=dashio.ControlPosition(0.02, 0.13, 0.22, 0.73)
         )
         self.sldr_cntrl.title = "Slider"
         self.sldr_cntrl.max = 10
@@ -146,7 +146,7 @@ class TestControls:
         self.page_test.add_control(self.sldr_cntrl)
 
         self.sldr_dbl_cntrl = dashio.SliderDoubleBar(
-            "SLDR_DBL", control_position=dashio.ControlPosition(0.78, 0.01, 0.2, 0.89)
+            "SLDR_DBL", control_position=dashio.ControlPosition(0.78, 0.01, 0.2, 0.98)
         )
         self.sldr_dbl_cntrl.title = "Slider Double"
         self.sldr_dbl_cntrl.max = 5
@@ -162,13 +162,13 @@ class TestControls:
         self.knb_control.message_rx_event += self.knob_event_handler
         self.page_test.add_control(self.knb_control)
 
-        self.dl_control = dashio.Dial("DIAL1", control_position=dashio.ControlPosition(0.24, 0.57, 0.54, 0.21))
+        self.dl_control = dashio.Dial("DIAL1", control_position=dashio.ControlPosition(0.24, 0.63, 0.54, 0.21))
         self.dl_control.title = "A Dial"
         self.dl_control.max = 10
         self.page_test.add_control(self.dl_control)
 
         self.text_cntrl = dashio.TextBox(
-            "TXT1", control_position=dashio.ControlPosition(0.24, 0.78, 0.54, 0.12)
+            "TXT1", control_position=dashio.ControlPosition(0.24, 0.84, 0.54, 0.12)
         )
         self.text_cntrl.text = "Hello"
         self.text_cntrl.title = "A text control"
@@ -179,7 +179,7 @@ class TestControls:
 
         self.alarm_ctrl = dashio.Alarm("TestingAlarms", "Test Alarms", "Hello", "Test of Shared Alarms")
         self.device.add_control(self.alarm_ctrl)
-        self.comp_control = dashio.Compass("COMP1", control_position=dashio.ControlPosition(0.24, 0.35, 0.54, 0.22))
+        self.comp_control = dashio.Compass("COMP1", control_position=dashio.ControlPosition(0.24, 0.38, 0.54, 0.22))
         self.comp_control.title = "A compass"
         self.page_test.add_control(self.comp_control)
 
@@ -201,7 +201,7 @@ class TestControls:
             text="Hello from Label",
             style=dashio.LabelStyle.GROUP,
             color=dashio.Color.BLUE,
-            control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.93),
+            control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 1.0),
         )
         self.page_test.add_control(self.label_ctrl)
 
