@@ -1,7 +1,4 @@
 #!/bin/python3
-
-from dashio.iotcontrol.enums import KnobStyle
-from dashio.iotcontrol.knob import Knob
 import time
 import random
 import argparse
@@ -9,6 +6,7 @@ import signal
 import dashio
 import logging
 import platform
+
 
 class TestControls:
     def signal_cntrl_c(self, os_signal, os_frame):
@@ -155,7 +153,7 @@ class TestControls:
         self.sldr_dbl_cntrl.message_rx_event += self.slider_dbl_event_handler
         self.page_test.add_control(self.sldr_dbl_cntrl)
 
-        self.knb_control = dashio.Knob("KNB", knob_style=KnobStyle.PAN, control_position=dashio.ControlPosition(0.24, 0.14, 0.54, 0.21))
+        self.knb_control = dashio.Knob("KNB", control_position=dashio.ControlPosition(0.24, 0.14, 0.54, 0.21))
         self.knb_control.title = "A Knob"
         self.knb_control.max = 10
         self.knb_control.red_value = 10
