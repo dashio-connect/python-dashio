@@ -90,9 +90,9 @@ class TestControls:
         self.up_btn = dashio.Button("UP_BTN")
         self.up_btn.btn_state = dashio.ButtonState.OFF
         self.up_btn.icon_name = dashio.Icon.UP
-        self.up_btn.on_Color = dashio.Color.GREEN
+        self.up_btn.on_color = dashio.Color.GREEN
         self.up_btn.text = "Up Button"
-        self.up_btn.text_Color = dashio.Color.WHITE
+        self.up_btn.text_color = dashio.Color.WHITE
         self.up_btn.title = "Up"
         device.add_control(self.up_btn)
         self.test_menu.add_control(self.up_btn)
@@ -100,9 +100,9 @@ class TestControls:
         self.down_btn = dashio.Button("DOWN_BTN")
         self.down_btn.btn_state = dashio.ButtonState.OFF
         self.down_btn.icon_name = dashio.Icon.DOWN
-        self.down_btn.on_Color = dashio.Color.GREEN
+        self.down_btn.on_color = dashio.Color.GREEN
         self.down_btn.text = ""
-        self.down_btn.text_Color = dashio.Color.WHITE
+        self.down_btn.text_color = dashio.Color.WHITE
         self.down_btn.title = "Down"
         device.add_control(self.down_btn)
         self.test_menu.add_control(self.down_btn)
