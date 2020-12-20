@@ -227,8 +227,10 @@ class TestControls:
         self.map = dashio.Map("map",
                               "Map",
                               control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 1.0))
-        self.map_loc = dashio.MapLocation("mt_cook", -43.59412841615468, 170.14189062192213)
-        self.map.add_location(self.map_loc)
+        self.map_loc1 = dashio.SimpleMapLocation("Mt. Cook", -43.59412841615468, 170.14189062192213)
+        self.map_loc2 = dashio.MapLocation("James Peak", -45.237101516008835, 168.84818243505748)
+        self.map.add_location(self.map_loc1)
+        self.map.add_location(self.map_loc2)
         self.page_map.add_control(self.map)
         self.device.add_control(self.map)
 
