@@ -42,7 +42,7 @@ class Graph(Control):
         control_position=None,
     ):
         super().__init__("GRPH", control_id, control_position=control_position, title_position=title_position)
-
+        self.title = title
         self.x_axis_label = x_axis_label
         self.x_axis_min = x_axis_min
         self.x_axis_max = x_axis_max

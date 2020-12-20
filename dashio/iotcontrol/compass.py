@@ -1,4 +1,4 @@
-from .enums import Color
+from .enums import Color, TitlePosition
 from .control import Control
 
 
@@ -6,16 +6,16 @@ class Compass(Control):
     def __init__(
         self,
         control_id,
-        control_title="A Control",
+        title="A Control",
+        title_position=TitlePosition.BOTTOM,
         pointer_color=Color.GREEN,
         calibration_angle=0,
-        control_position=None,
+        control_position=None
     ):
-        super().__init__("DIR", control_id, control_position=control_position)
-        self.title = control_title
+        super().__init__("DIR", control_id, title_position=title_position, control_position=control_position)
+        self.title = title
         self.pointer_color = pointer_color
         self.calibration_angle = calibration_angle
-
         self._direction_value = 0
         self._state_str = "\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, self._direction_value)
 

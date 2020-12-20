@@ -10,14 +10,12 @@ class Label(Control):
         control_id,
         title="A label",
         title_position=TitlePosition.BOTTOM,
-        text="",
         color=Color.WHITE,
         style=LabelStyle.BASIC,
         control_position=None,
     ):
         super().__init__("LBL", control_id, control_position=control_position, title_position=title_position)
         self.title = title
-        self.text = text
         self.color = color
         self.style = style
         self._state_str = ""
@@ -37,12 +35,5 @@ class Label(Control):
 
     @color.setter
     def color(self, val: Color):
+        self._color = val
         self._cfg["Color"] = str(val.value)
-
-    @property
-    def text(self):
-        return self._cfg["text"]
-
-    @text.setter
-    def text(self, val):
-        self._cfg["text"] = val
