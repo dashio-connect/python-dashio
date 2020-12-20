@@ -64,6 +64,7 @@ class Icon(Enum):
 class LabelStyle(Enum):
     BASIC = "BASIC"
     GROUP = "GROUP"
+    BORDER = "BORDER"
 
 
 class KnobStyle(Enum):

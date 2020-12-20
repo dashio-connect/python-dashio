@@ -214,10 +214,18 @@ class TestControls:
         self.page_label.add_control(self.label_basic)
         self.device.add_control(self.label_basic)
 
+
+        self.label_border = dashio.Label("label_border",
+                                        "Border",
+                                        style=LabelStyle.BORDER,
+                                        control_position=dashio.ControlPosition(0.18, 0.45, 0.7, 0.3))
+        self.page_label.add_control(self.label_border)
+        self.device.add_control(self.label_border)
+
         self.label_group = dashio.Label("label_group",
                                         "Group",
                                         style=LabelStyle.GROUP,
-                                        control_position=dashio.ControlPosition(0.18, 0.45, 0.7, 0.3))
+                                        control_position=dashio.ControlPosition(0.18, 0.75, 0.7, 0.3))
         self.page_label.add_control(self.label_group)
         self.device.add_control(self.label_group)
 
@@ -236,7 +244,13 @@ class TestControls:
 
 
     def _init_menu(self):
-        pass
+        self.page_menu = dashio.Page("menu_pg", "Menus")
+        self.device.add_control(self.page_menu)
+        self.menu = dashio.Menu("menu", "Menu", dashio.ControlPosition(0.18, 0.2, 0.7, 0.22))
+        self.device.add_control(self.menu)
+        self.page_menu.add_control(self.menu)
+
+        
 
     def _init_selector(self):
         pass
@@ -275,6 +289,8 @@ class TestControls:
         self._init_graph()
         self._init_labels()
         self._init_map()
+        # self._init_menu()
+
         while not self.shutdown:
             time.sleep(5)
             self.compass.direction_value = random.random() * 360
