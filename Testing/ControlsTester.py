@@ -58,7 +58,7 @@ class TestControls:
             "-t", "--device_type", dest="device_type", default="Test_Controls", help="IotDashboard device type"
         )
         parser.add_argument(
-            "-p", "--port", type=int, help="Port number.", default=5000, dest="port",
+            "-p", "--port", type=int, help="TCP Port number.", default=5000, dest="port",
         )
         parser.add_argument("-d", "--device_id", dest="device_id", default="00001", help="IotDashboard Device ID.")
         parser.add_argument(
@@ -253,7 +253,7 @@ class TestControls:
         logging.info("  Device Name: %s", args.device_name)
 
         self.device = dashio.dashDevice(args.device_type, args.device_id, args.device_name)
-        self.tcp_con = dashio.tcpConnection()
+        self.tcp_con = dashio.tcpConnection(port=args.port)
         self.dash_con = dashio.dashConnection(args.username, args.password)
         self.tcp_con.add_device(self.device)
         self.dash_con.add_device(self.device)
