@@ -265,6 +265,12 @@ class TestControls:
         self.btn3.message_rx_event = self.left_btn_event_handler
         self.btn4 = dashio.Button("btn4", "Menu Button2", icon_name=Icon.RIGHT)
         self.btn4.message_rx_event = self.right_btn_event_handler
+
+        self.btn5 = dashio.Button("btn5", "Group Button1", icon_name=Icon.LEFT)
+        self.btn5.message_rx_event = self.left_btn_event_handler
+        self.btn6 = dashio.Button("btn6", "Group Button2", icon_name=Icon.RIGHT)
+        self.btn6.message_rx_event = self.right_btn_event_handler
+
         self.menu_tb = dashio.TextBox("txt1", "Menu TextBox")
         self.menu_sldr = dashio.SliderSingleBar("mnu_sldr", "Menu Slider")
         self.menu_sldr.max = 20
@@ -272,13 +278,15 @@ class TestControls:
         self.menu_slctr = dashio.Selector("sltr1","Menu Selector")
         self.menu.add_control(self.btn3)
         self.menu.add_control(self.btn4)
-        self.btn_group.add_button(self.btn3)
-        self.btn_group.add_button(self.btn4)
+        self.btn_group.add_button(self.btn5)
+        self.btn_group.add_button(self.btn6)
         self.menu.add_control(self.menu_tb)
         self.menu.add_control(self.menu_sldr)
         self.menu.add_control(self.menu_slctr)
         self.device.add_control(self.btn3)
         self.device.add_control(self.btn4)
+        self.device.add_control(self.btn5)
+        self.device.add_control(self.btn6)
         self.device.add_control(self.menu_tb)
         self.device.add_control(self.menu_sldr)
         self.device.add_control(self.menu_slctr)
