@@ -1,28 +1,52 @@
 from .enums import TitlePosition
 from .control import Control
+import datetime
+import json
 
-
-class MapLocation:
-    def __init__(self, location_id, latitude, longitude, tag):
+class SimpleMapLocation:
+    def __init__(self, tag, latitude, longitude):
         """A map location used by a map_control
 
         Arguments:
-            location_id {str} -- Location identifier.
             latitude {str} -- Latitude
             longitude {str} -- Longitude
             tag {str} -- A tag to display on the map.
         """
-        self.location_id = location_id
+        self.location_id = tag
         self.latitude = latitude
         self.longitude = longitude
         self.tag = tag
 
     def get_location_data(self):
-        data_str = "{loc_id}\t{lat}\t{long}\t{tag}\n".format(
-            loc_id=self.location_id, lat=self.latitude, long=self.longitude, tag=self.tag
+        data_str = "{lat}\t{long}\t{tag}\n".format(
+            lat=self.latitude, long=self.longitude, tag=self.tag
         )
         return data_str
 
+class MapLocation:
+    def __init__(self, tag, latitude, longitude, average_speed=None, peak_speed=None, course=None, altitude=None, distance=None):
+        self.location_id = tag
+        self.timestamp = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
+        self._map_loc = {}
+        self._map_loc["time"] = self.timestamp.isoformat()
+        self._map_loc["message"] = tag
+        self._map_loc["latitude"] = latitude
+        self._map_loc["longitude"] = longitude
+        if average_speed:
+            self._map_loc["avgeSpeed"] = average_speed
+        if peak_speed:
+            self._map_loc["peakSpeed"] = peak_speed
+        if course:
+            self._map_loc["course"] = course
+        if altitude:
+            self._map_loc["altitude"] = altitude
+        if distance:
+            self._map_loc["distance"] = distance
+
+    def get_location_data(self):
+        data_str = json.dumps(self._cfg) + "\n"
+        return data_str
+    
 
 class Map(Control):
     def get_state(self):
@@ -37,10 +61,11 @@ class Map(Control):
                  title_position=TitlePosition.BOTTOM,
                  control_position=None):
         super().__init__("MAP", control_id, control_position=control_position, title_position=title_position)
+        self
         self.location_dict = {}
         self.get_state_str = "\t{}\t{}\t".format(self.msg_type, self.control_id)
 
-    def add_location(self, location):
+    def add_location(self, location: MapLocation):
         self.location_dict[location.location_id] = location
 
     def send_locations(self):
