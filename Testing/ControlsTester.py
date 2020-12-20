@@ -242,6 +242,15 @@ class TestControls:
         self.page_map.add_control(self.map)
         self.device.add_control(self.map)
 
+    def left_btn_event_handler(self, msg):
+        temp_value = self.menu_sldr.slider_value
+        if temp_value > 0:
+            self.menu_sldr.slider_value = temp_value - 1
+    
+    def right_btn_event_handler(self, msg):
+        temp_value = self.menu_sldr.slider_value
+        if temp_value < 20:
+            self.menu_sldr.slider_value = temp_value + 1
 
     def _init_menu(self):
         self.page_menu = dashio.Page("menu_pg", "Menus")
@@ -252,10 +261,29 @@ class TestControls:
         self.device.add_control(self.btn_group)
         self.page_menu.add_control(self.menu)
         self.page_menu.add_control(self.btn_group)
-        self.btn3 = dashio.Button("btn3", "Button")
+        self.btn3 = dashio.Button("btn3", "Menu Button1", icon_name=Icon.LEFT)
+        self.btn3.message_rx_event = self.left_btn_event_handler
+        self.btn4 = dashio.Button("btn4", "Menu Button2", icon_name=Icon.RIGHT)
+        self.btn4.message_rx_event = self.right_btn_event_handler
+        self.menu_tb = dashio.TextBox("txt1", "Menu TextBox")
+        self.menu_sldr = dashio.SliderSingleBar("mnu_sldr", "Menu Slider")
+        self.menu_sldr.max = 20
+        self.menu_sldr.min = 0
+        self.menu_slctr = dashio.Selector("sltr1","Menu Selector")
+        self.menu.add_control(self.btn3)
+        self.menu.add_control(self.btn4)
+        self.btn_group.add_button(self.btn3)
+        self.btn_group.add_button(self.btn4)
+        self.menu.add_control(self.menu_tb)
+        self.menu.add_control(self.menu_sldr)
+        self.menu.add_control(self.menu_slctr)
+        self.device.add_control(self.btn3)
+        self.device.add_control(self.btn4)
+        self.device.add_control(self.menu_tb)
+        self.device.add_control(self.menu_sldr)
+        self.device.add_control(self.menu_slctr)
 
 
-        
 
     def _init_selector(self):
         pass
