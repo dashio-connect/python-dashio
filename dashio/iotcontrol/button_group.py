@@ -7,12 +7,6 @@ class ButtonGroup(Control):
     def get_state(self):
         return ""
 
-    def __get_button_group_state(self, msg):
-        button_group_status = ""
-        for key in self.control_dict.keys():
-            button_group_status += self.control_dict[key].get_state()
-        self.state_str = button_group_status
-
     def __init__(
         self,
         control_id,
@@ -25,8 +19,6 @@ class ButtonGroup(Control):
     ):
         super().__init__("BTGP", control_id, control_position=control_position, title_position=title_position)
         self.title = title
-        self.control_list = []
-        self.control_dict = {}
         self._state_str = "\t{}\t{}\t".format(self.msg_type, self.control_id)
         self.icon_name = icon
         self.text = text
