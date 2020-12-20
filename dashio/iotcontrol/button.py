@@ -13,7 +13,7 @@ class Button(Control):
         title_position=TitlePosition.BOTTOM,
         button_enabled=True,
         icon_name=Icon.NONE,
-        on_color=Color.BLACK,
+        on_color=Color.BLUE,
         off_color=Color.RED,
         text="",
         control_position=None,

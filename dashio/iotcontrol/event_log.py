@@ -1,4 +1,4 @@
-from .enums import Color
+from .enums import Color, TitlePosition
 from .control import Control
 
 import datetime
@@ -14,7 +14,7 @@ class EventData:
 
     def to_string(self):
         data_str = "{ts}\t{color}\t{header}\t{body}\n".format(
-            ts=self.timestamp.isoformat(), color=self.color, header=self.header, body=self.body
+            ts=self.timestamp.isoformat(), color=str(self.color.value), header=self.header, body=self.body
         )
         return data_str
 
@@ -25,9 +25,9 @@ class EventLog(Control):
         state_str = ""
         return state_str
 
-    def __init__(self, control_id, title="An Event Log", control_position=None):
-        super().__init__("LOG", control_id, control_position=control_position)
-
+    def __init__(self, control_id, title="An Event Log", title_position=TitlePosition.BOTTOM, control_position=None):
+        super().__init__("LOG", control_id, control_position=control_position, title_position=title_position)
+        self.title = title
         self.message_rx_event += self.__get_log_from_timestamp
 
         self.log_list = []
