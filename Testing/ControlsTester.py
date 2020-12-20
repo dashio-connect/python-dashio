@@ -222,7 +222,16 @@ class TestControls:
         self.device.add_control(self.label_group)
 
     def _init_map(self):
-        pass
+        self.page_map = dashio.Page("map_pg", "Map")
+        self.device.add_control(self.page_map)
+        self.map = dashio.Map("map",
+                              "Map",
+                              control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 1.0))
+        self.map_loc = dashio.MapLocation("mt_cook", -43.59412841615468, 170.14189062192213, "Mt Cook")
+        self.map.add_location(self.map_loc)
+        self.page_map.add_control(self.map)
+        self.device.add_control(self.map)
+
 
     def _init_menu(self):
         pass
@@ -263,6 +272,7 @@ class TestControls:
         self._init_event_log()
         self._init_graph()
         self._init_labels()
+        self._init_map()
         while not self.shutdown:
             time.sleep(5)
             self.compass.direction_value = random.random() * 360
