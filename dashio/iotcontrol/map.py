@@ -12,7 +12,6 @@ class SimpleMapLocation:
             longitude {str} -- Longitude
             tag {str} -- A tag to display on the map.
         """
-        self.location_id = tag
         self.latitude = latitude
         self.longitude = longitude
         self.tag = tag
@@ -25,7 +24,6 @@ class SimpleMapLocation:
 
 class MapLocation:
     def __init__(self, tag, latitude, longitude, average_speed=None, peak_speed=None, course=None, altitude=None, distance=None):
-        self.location_id = tag
         self.timestamp = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
         self._map_loc = {}
         self._map_loc["time"] = self.timestamp.isoformat()
@@ -51,8 +49,8 @@ class MapLocation:
 class Map(Control):
     def get_state(self):
         state_str = ""
-        for key in self.location_dict.keys():
-            state_str += self.get_state_str + self.location_dict[key].get_location_data()
+        for locs in self.location_list:
+            state_str += self.get_state_str + locs.get_location_data()
         return state_str
 
     def __init__(self,
@@ -61,15 +59,15 @@ class Map(Control):
                  title_position=TitlePosition.BOTTOM,
                  control_position=None):
         super().__init__("MAP", control_id, control_position=control_position, title_position=title_position)
-        self
-        self.location_dict = {}
+        self.title = title
+        self.location_list = []
         self.get_state_str = "\t{}\t{}\t".format(self.msg_type, self.control_id)
 
-    def add_location(self, location: MapLocation):
-        self.location_dict[location.location_id] = location
+    def add_location(self, location):
+        self.location_list.append(location)
 
     def send_locations(self):
         state_str = ""
-        for key in self.location_dict.keys():
-            state_str += self.get_state_str + self.location_dict[key].get_location_data()
+        for locs in self.location_list:
+            state_str += self.get_state_str + locs.get_location_data()
         self.state_str = state_str
