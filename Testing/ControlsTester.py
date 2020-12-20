@@ -75,7 +75,7 @@ class TestControls:
             self.btn1.btn_state = ButtonState.OFF
         else:
             self.btn1.btn_state = ButtonState.ON
-    
+
     def down_btn_event_handler(self, msg):
         if self.btn2.btn_state == ButtonState.ON:
             self.btn2.btn_state = ButtonState.OFF
@@ -92,7 +92,7 @@ class TestControls:
 
     def knb_normal_event_handler(self, msg):
         self.knb_pan.knob_dial_value = float(msg[0])
-    
+
     def knb_pan_event_handler(self, msg):
         self.knb_normal.knob_dial_value = float(msg[0])
 
@@ -118,7 +118,7 @@ class TestControls:
         self.knb_pan = dashio.Knob("KNB_PAN",
                                    knob_style=dashio.KnobStyle.PAN,
                                    control_position=dashio.ControlPosition(0.24, 0.44, 0.54, 0.26))
-        
+
         self.knb_pan.message_rx_event = self.knb_pan_event_handler
         self.knb_pan.title = "Knob Pan"
         self.knb_pan.max = 10
@@ -150,9 +150,16 @@ class TestControls:
 
     def _init_dials(self):
         self.page_dials = dashio.Page("TestDials", "Dials")
-        self.compass = dashio.Compass("TestCompass", "Direction", control_position=dashio.ControlPosition(0.24, 0.1, 0.54, 0.25))
-        self.dial_std = dashio.Dial("DialSTD", "Dial Standard", style=dashio.DialStyle.STD, control_position=dashio.ControlPosition(0.24, 0.36, 0.54, 0.26))
-        self.dial_inv = dashio.Dial("Dial", "Dial Inverted", style=dashio.DialStyle.INVERTED, control_position=dashio.ControlPosition(0.24, 0.61, 0.54, 0.26))
+        self.compass = dashio.Compass("TestCompass",
+                                      "Direction",
+                                      control_position=dashio.ControlPosition(0.24, 0.1, 0.54, 0.25))
+        self.dial_std = dashio.Dial("DialSTD", "Dial Standard",
+                                    style=dashio.DialStyle.STD,
+                                    control_position=dashio.ControlPosition(0.24, 0.36, 0.54, 0.26))
+        self.dial_inv = dashio.Dial("Dial",
+                                    "Dial Inverted",
+                                    style=dashio.DialStyle.INVERTED,
+                                    control_position=dashio.ControlPosition(0.24, 0.61, 0.54, 0.26))
         self.page_dials.add_control(self.compass)
         self.page_dials.add_control(self.dial_std)
         self.page_dials.add_control(self.dial_inv)
@@ -162,8 +169,10 @@ class TestControls:
         self.device.add_control(self.dial_inv)
 
     def _init_event_log(self):
-        self.page_el = dashio.Page("EventLog","Event Log")
-        self.event_log = dashio.EventLog("eventlog","Event Log", control_position=dashio.ControlPosition(0.0, 0.1, 1.0, 0.2))
+        self.page_el = dashio.Page("EventLog", "Event Log")
+        self.event_log = dashio.EventLog("eventlog",
+                                         "Event Log",
+                                         control_position=dashio.ControlPosition(0.0, 0.1, 1.0, 0.2))
         self.page_el.add_control(self.event_log)
         self.device.add_control(self.page_el)
         self.device.add_control(self.event_log)
@@ -174,19 +183,19 @@ class TestControls:
         hist, hist_edges = np.histogram(data, bins)
         p_data = []
         s_data = []
-        for x in range(-50,50,1):
-            y=0.03*x**2+2
-            p_data.append(y) 
+        for x in range(-50, 50, 1):
+            y = 0.03 * x ** 2 + 2
+            p_data.append(y)
             s_data.append(100 - y)
-        self.page_graph = dashio.Page("graph_pg","Graph")
+        self.page_graph = dashio.Page("graph_pg", "Graph")
         self.graph = dashio.Graph("graph1",
                                   "Graph",
                                   control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 1.0))
         self.graph.x_axis_label = "X Axis"
         self.graph.y_axis_label = "Y Axis"
-        self.graph.x_axis_min = min(data)-5
-        self.graph.x_axis_max = max(data)+5
-        self.graph.x_axis_labels_style=dashio.GraphXAxisLabelsStyle.ON
+        self.graph.x_axis_min = min(data) - 5
+        self.graph.x_axis_max = max(data) + 5
+        self.graph.x_axis_labels_style = dashio.GraphXAxisLabelsStyle.ON
         self.page_graph.add_control(self.graph)
         self.device.add_control(self.page_graph)
         self.device.add_control(self.graph)
@@ -214,11 +223,10 @@ class TestControls:
         self.page_label.add_control(self.label_basic)
         self.device.add_control(self.label_basic)
 
-
         self.label_border = dashio.Label("label_border",
-                                        "Border",
-                                        style=LabelStyle.BORDER,
-                                        control_position=dashio.ControlPosition(0.18, 0.31, 0.7, 0.3))
+                                         "Border",
+                                         style=LabelStyle.BORDER,
+                                         control_position=dashio.ControlPosition(0.18, 0.31, 0.7, 0.3))
         self.page_label.add_control(self.label_border)
         self.device.add_control(self.label_border)
 
@@ -246,7 +254,7 @@ class TestControls:
         temp_value = self.menu_sldr.slider_value
         if temp_value > 0:
             self.menu_sldr.slider_value = temp_value - 1
-    
+
     def right_btn_event_handler(self, msg):
         temp_value = self.menu_sldr.slider_value
         if temp_value < 20:
@@ -256,7 +264,9 @@ class TestControls:
         self.page_menu = dashio.Page("menu_pg", "Menus")
         self.device.add_control(self.page_menu)
         self.menu = dashio.Menu("menu", "Menu", control_position=dashio.ControlPosition(0.18, 0.2, 0.7, 0.22))
-        self.btn_group = dashio.ButtonGroup("btn_group", "Button", control_position=dashio.ControlPosition(0.18, 0.5, 0.7, 0.22))
+        self.btn_group = dashio.ButtonGroup("btn_group",
+                                            "Button",
+                                            control_position=dashio.ControlPosition(0.18, 0.5, 0.7, 0.22))
         self.device.add_control(self.menu)
         self.device.add_control(self.btn_group)
         self.page_menu.add_control(self.menu)
@@ -275,7 +285,7 @@ class TestControls:
         self.menu_sldr = dashio.SliderSingleBar("mnu_sldr", "Menu Slider")
         self.menu_sldr.max = 20
         self.menu_sldr.min = 0
-        self.menu_slctr = dashio.Selector("sltr1","Menu Selector")
+        self.menu_slctr = dashio.Selector("sltr1", "Menu Selector")
         self.menu.add_control(self.btn3)
         self.menu.add_control(self.btn4)
         self.btn_group.add_button(self.btn5)
@@ -291,8 +301,6 @@ class TestControls:
         self.device.add_control(self.menu_sldr)
         self.device.add_control(self.menu_slctr)
 
-
-
     def _init_selector(self):
         pass
 
@@ -304,7 +312,7 @@ class TestControls:
 
     def _init_time_graph(self):
         pass
-    
+
     def __init__(self):
 
         # Catch CNTRL-C signel
