@@ -44,7 +44,7 @@ class MapLocation:
             self._map_loc["distance"] = distance
 
     def get_location_data(self):
-        data_str = json.dumps(self._cfg) + "\n"
+        data_str = json.dumps(self._map_loc) + "\n"
         return data_str
     
 
