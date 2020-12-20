@@ -252,7 +252,7 @@ class TestControls:
         self.device.add_control(self.btn_group)
         self.page_menu.add_control(self.menu)
         self.page_menu.add_control(self.btn_group)
-        self.btn3 - dashio.Button("btn3", "")
+        self.btn3 = dashio.Button("btn3", "Button")
 
 
         
