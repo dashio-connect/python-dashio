@@ -65,7 +65,7 @@ def main():
 
     my_map = dashio.Map("MAP1")
     my_map.title = "A cool map"
-    myloc = dashio.MapLocation("Me", -43.5201298, 172.5425513, "13 Bentley")
+    myloc = dashio.MapLocation("James Peak", -45.237101516008835, 168.84818243505748)
     my_map.add_location(myloc)
     device.add_control(my_map)
 

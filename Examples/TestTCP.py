@@ -196,7 +196,6 @@ class TestControls:
         self.label_ctrl = dashio.Label(
             "LabelID",
             "A label",
-            text="Hello from Label",
             style=dashio.LabelStyle.GROUP,
             color=dashio.Color.BLUE,
             control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 1.0),

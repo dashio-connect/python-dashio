@@ -192,7 +192,7 @@ class TestControls:
         device.add_control(self.selector_ctrl)
         self.page_test.add_control(self.selector_ctrl)
 
-        self.label_ctrl = dashio.Label("LabelID", "A label", text="Hello from Label", color=dashio.Color.BLUE)
+        self.label_ctrl = dashio.Label("LabelID", "A label", color=dashio.Color.BLUE)
         device.add_control(self.label_ctrl)
         self.page_test.add_control(self.label_ctrl)
         device.add_control(self.page_test)
