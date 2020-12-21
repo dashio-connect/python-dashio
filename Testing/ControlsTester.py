@@ -109,7 +109,7 @@ class TestControls:
         self.knb_normal = dashio.Knob("KNB_NORMAL",
                                       knob_style=dashio.KnobStyle.NORMAL,
                                       control_position=dashio.ControlPosition(0.24, 0.14, 0.54, 0.26))
-        self.knb_normal.message_rx_event = self.knb_normal_event_handler
+        self.knb_normal.message_rx_event += self.knb_normal_event_handler
         self.knb_normal.title = "Knob Normal"
         self.knb_normal.max = 10
         self.knb_normal.red_value = 8
@@ -119,7 +119,7 @@ class TestControls:
                                    knob_style=dashio.KnobStyle.PAN,
                                    control_position=dashio.ControlPosition(0.24, 0.44, 0.54, 0.26))
 
-        self.knb_pan.message_rx_event = self.knb_pan_event_handler
+        self.knb_pan.message_rx_event += self.knb_pan_event_handler
         self.knb_pan.title = "Knob Pan"
         self.knb_pan.max = 10
         self.knb_pan.red_value = 8
@@ -135,13 +135,13 @@ class TestControls:
                                   icon_name=Icon.UP,
                                   control_position=dashio.ControlPosition(0.24, 0.14, 0.54, 0.26))
         self.btn1.btn_state = ButtonState.ON
-        self.btn1.message_rx_event = self.up_btn_event_handler
+        self.btn1.message_rx_event += self.up_btn_event_handler
         self.btn2 = dashio.Button("BTN2",
                                   "Down",
                                   icon_name=Icon.DOWN,
                                   control_position=dashio.ControlPosition(0.24, 0.44, 0.54, 0.26))
         self.btn2.btn_state = ButtonState.ON
-        self.btn2.message_rx_event = self.down_btn_event_handler
+        self.btn2.message_rx_event += self.down_btn_event_handler
         self.page_btns.add_control(self.btn1)
         self.page_btns.add_control(self.btn2)
         self.device.add_control(self.page_btns)
@@ -272,14 +272,14 @@ class TestControls:
         self.page_menu.add_control(self.menu)
         self.page_menu.add_control(self.btn_group)
         self.btn3 = dashio.Button("btn3", "Menu Button1", icon_name=Icon.LEFT)
-        self.btn3.message_rx_event = self.left_btn_event_handler
+        self.btn3.message_rx_event += self.left_btn_event_handler
         self.btn4 = dashio.Button("btn4", "Menu Button2", icon_name=Icon.RIGHT)
-        self.btn4.message_rx_event = self.right_btn_event_handler
+        self.btn4.message_rx_event += self.right_btn_event_handler
 
         self.btn5 = dashio.Button("btn5", "Group Button1", icon_name=Icon.LEFT)
-        self.btn5.message_rx_event = self.left_btn_event_handler
+        self.btn5.message_rx_event += self.left_btn_event_handler
         self.btn6 = dashio.Button("btn6", "Group Button2", icon_name=Icon.RIGHT)
-        self.btn6.message_rx_event = self.right_btn_event_handler
+        self.btn6.message_rx_event += self.right_btn_event_handler
 
         self.menu_tb = dashio.TextBox("txt1", "Menu TextBox")
         self.menu_sldr = dashio.SliderSingleBar("mnu_sldr", "Menu Slider")
