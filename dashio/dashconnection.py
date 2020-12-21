@@ -112,12 +112,13 @@ class dashConnection(threading.Thread):
                 [address, id, data] = rx_zmq_sub.recv_multipart()
                 logging.debug("TX: %s", data.decode('utf-8').rstrip())
                 msg_l = data.split(b'\t')
+                device_id = msg_l[1].decode('utf-8').strip()
                 if address == b'ANNOUNCE':
-                    data_topic = "{}/{}/announce".format(self.username, msg_l[1].decode('utf-8'))
+                    data_topic = "{}/{}/announce".format(self.username, device_id)
                 elif address == b'ALARM':
-                    data_topic = "{}/{}/alarm".format(self.username, msg_l[1].decode('utf-8'))
+                    data_topic = "{}/{}/alarm".format(self.username, device_id)
                 else:
-                    data_topic = "{}/{}/data".format(self.username, msg_l[1].decode('utf-8'))
+                    data_topic = "{}/{}/data".format(self.username, device_id)
                 self.dash_c.publish(data_topic, data.decode('utf-8'))
 
         self.dash_c.publish(self.announce_topic, "disconnect")
