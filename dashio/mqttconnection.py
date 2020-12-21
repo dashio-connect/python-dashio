@@ -110,8 +110,9 @@ class mqttConnection(threading.Thread):
             if rx_zmq_sub in socks:
                 [address, id, data] = rx_zmq_sub.recv_multipart()
                 msg_l = data.split(b'\t')
+                device_id = msg_l[1].decode('utf-8').strip()
                 logging.debug("%s TX: %s", self.b_connection_id.decode('utf-8'), data.decode('utf-8').rstrip())
-                data_topic = "{}/{}/data".format(self.username, msg_l[1].decode('utf-8'))
+                data_topic = "{}/{}/data".format(self.username, device_id)
                 self.mqttc.publish(data_topic, data)
 
         self.mqttc.loop_stop()
