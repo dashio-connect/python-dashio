@@ -302,16 +302,16 @@ class TestControls:
         self.device.add_control(self.menu_slctr)
 
     def _init_selector(self):
-        pass
-
-    def _init_sliders(self):
-        pass
+        self.sltr_menu = dashio.Page("slctr_pg", "Selector & Sliders")
+        self.device.add_control(self.sltr_menu)
 
     def _init_text_box(self):
-        pass
+        self.text_box_menu = dashio.Page("tb_pg", "Text Box")
+        self.device.add_control(self.text_box_menu)
 
     def _init_time_graph(self):
-        pass
+        self.time_graph_menu = dashio.Page("time_graph_pg", "Time Graph")
+        self.device.add_control(self.time_graph_menu)
 
     def __init__(self):
 
