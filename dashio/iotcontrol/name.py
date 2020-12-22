@@ -1,5 +1,6 @@
 from .control import Control
 
+
 class Name(Control):
     """A connection only control"""
 

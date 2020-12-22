@@ -304,6 +304,26 @@ class TestControls:
     def _init_selector(self):
         self.sltr_menu = dashio.Page("slctr_pg", "Selector & Sliders")
         self.device.add_control(self.sltr_menu)
+        self.slctr1 = dashio.Selector("slctr1",
+                                      "Selector",
+                                      control_position=dashio.ControlPosition(0.18, 0.2, 0.7, 0.22))
+        self.device.add_control(self.slctr1)
+        self.slctr1.add_selection("Selection 1")
+        self.slctr1.add_selection("Selection 2")
+        self.slctr1.add_selection("Selection 3")
+        self.slctr1.add_selection("Selection 4")
+        self.slctr1.add_selection("Selection 5")
+        self.slctr1.add_selection("Selection 6")
+        self.sldr_single_solid = dashio.SliderSingleBar("sldr_single_solid",
+                                                        "Single Slider Solid",
+                                                        bar_style=dashio.SliderBarType.SOLID,
+                                                        control_position=dashio.ControlPosition(0.18, 0.2, 0.7, 0.22))
+        self.sldr_single_segmnt = dashio.SliderSingleBar("sldr_single_segment",
+                                                         "Single Slider Segmented",
+                                                         bar_style=dashio.SliderBarType.SEGMENTED,
+                                                         control_position=dashio.ControlPosition(0.18, 0.2, 0.7, 0.22))
+        self.device.add_control(self.sldr_single_solid)
+        self.device.add_control(self.sldr_single_segmnt)
 
     def _init_text_box(self):
         self.text_box_menu = dashio.Page("tb_pg", "Text Box")
@@ -326,10 +346,10 @@ class TestControls:
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
 
-        self.device = dashio.dashDevice(args.device_type, args.device_id, args.device_name)
-        # self.tcp_con = dashio.tcpConnection(port=args.port)
-        self.dash_con = dashio.dashConnection(args.username, args.password)
-        # self.tcp_con.add_device(self.device)
+        ##self.device = dashio.dashDevice(args.device_type, args.device_id, args.device_name)
+        self.tcp_con = dashio.tcpConnection(port=args.port)
+        # self.dash_con = dashio.dashConnection(args.username, args.password)
+        self.tcp_con.add_device(self.device)
         self.dash_con.add_device(self.device)
         self._init_knobs()
         self._init_buttons()
