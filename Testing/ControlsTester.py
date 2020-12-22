@@ -397,6 +397,8 @@ class TestControls:
         self._init_map()
         self._init_menu()
         self._init_selector()
+        self._init_text_box()
+        self._init_time_graph()
         while not self.shutdown:
             time.sleep(5)
             self.compass.direction_value = random.random() * 360
