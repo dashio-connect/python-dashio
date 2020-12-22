@@ -1,9 +1,36 @@
 from .slider_single_bar import SliderSingleBar
-
+from .enums import Color, SliderBarType, TitlePosition
 
 class SliderDoubleBar(SliderSingleBar):
-    def __init__(self, control_id, control_position=None):
-        super().__init__(control_id, control_position=control_position)
+    def __init__(self,
+                 control_id,
+                 title="A Single Slider",
+                 title_position=TitlePosition.BOTTOM,
+                 min=0.0,
+                 max=1000.0,
+                 red_value=750,
+                 show_min_max=False,
+                 slider_enabled=True,
+                 send_only_on_release=True,
+                 bar_follows_slider=False,
+                 bar_color=Color.BLUE,
+                 knob_color=Color.RED,
+                 bar_style=SliderBarType.SEGMENTED,
+                 control_position=None,):
+        super().__init__(control_id,
+                         title,
+                         title_position,
+                         min,
+                         max,
+                         red_value,
+                         show_min_max,
+                         slider_enabled,
+                         send_only_on_release,
+                         bar_follows_slider,
+                         bar_color,
+                         knob_color,
+                         bar_style,
+                         control_position)
 
         self._bar2_value = 0.0
         self._bar_state_str = "\t{}\t{}\t{:.2f}\t{:.2f}\n".format(
