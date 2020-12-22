@@ -301,12 +301,27 @@ class TestControls:
         self.device.add_control(self.menu_sldr)
         self.device.add_control(self.menu_slctr)
 
+    
+    def slider_1_event_handler(self, msg):
+        self.sldr_dble_solid.bar1_value = float(msg[0])
+        self.sldr_dble_segmnt.bar1_value = float(msg[0])
+
+    def slider_2_event_handler(self, msg):
+        self.sldr_dble_solid.bar2_value = float(msg[0])
+        self.sldr_dble_segmnt.bar2_value = float(msg[0])
+    
+    def slider_3_event_handler(self, msg):
+        self.sldr_single_solid.bar1_value = float(msg[0])
+
+    def slider_4_event_handler(self, msg):
+        self.sldr_single_segmnt.bar1_value = float(msg[0])
+
     def _init_selector(self):
-        self.sltr_menu = dashio.Page("slctr_pg", "Selector & Sliders")
-        self.device.add_control(self.sltr_menu)
+        self.page_sel_slid = dashio.Page("slctr_pg", "Selector & Sliders")
+        self.device.add_control(self.page_sel_slid)
         self.slctr1 = dashio.Selector("slctr1",
                                       "Selector",
-                                      control_position=dashio.ControlPosition(0.18, 0.2, 0.7, 0.22))
+                                      control_position=dashio.ControlPosition(0.0, 0.8, 1.0, 0.2))
         self.device.add_control(self.slctr1)
         self.slctr1.add_selection("Selection 1")
         self.slctr1.add_selection("Selection 2")
@@ -317,13 +332,35 @@ class TestControls:
         self.sldr_single_solid = dashio.SliderSingleBar("sldr_single_solid",
                                                         "Single Slider Solid",
                                                         bar_style=dashio.SliderBarType.SOLID,
-                                                        control_position=dashio.ControlPosition(0.18, 0.2, 0.7, 0.22))
+                                                        control_position=dashio.ControlPosition(0.0, 0.0, 0.25, 0.8))
+        self.sldr_single_solid.message_rx_event += self.slider_1_event_handler
         self.sldr_single_segmnt = dashio.SliderSingleBar("sldr_single_segment",
                                                          "Single Slider Segmented",
                                                          bar_style=dashio.SliderBarType.SEGMENTED,
-                                                         control_position=dashio.ControlPosition(0.18, 0.2, 0.7, 0.22))
+                                                         control_position=dashio.ControlPosition(0.25, 0.0, 0.25, 0.8))
+        self.sldr_single_segmnt.message_rx_event += self.slider_2_event_handler
+        
+        self.sldr_dble_solid = dashio.SliderDoubleBar("sldr_double_solid",
+                                                        "Double Slider Solid",
+                                                        bar_style=dashio.SliderBarType.SOLID,
+                                                        control_position=dashio.ControlPosition(0.5, 0.0, 0.25, 0.8))
+        self.sldr_dble_solid.message_rx_event += self.slider_3_event_handler
+        self.sldr_dble_segmnt = dashio.SliderDoubleBar("sldr_double_segment",
+                                                         "Double Slider Segmented",
+                                                         bar_style=dashio.SliderBarType.SEGMENTED,
+                                                         control_position=dashio.ControlPosition(0.75, 0.0, 0.25, 0.8))
+        self.sldr_dble_segmnt.message_rx_event += self.slider_4_event_handler
+        self.page_sel_slid.add_control(self.slctr1)
+        self.page_sel_slid.add_control(self.sldr_single_solid)
+        self.page_sel_slid.add_control(self.sldr_single_segmnt)
+        self.page_sel_slid.add_control(self.sldr_dble_solid)
+        self.page_sel_slid.add_control(self.sldr_dble_segmnt)
+
+
         self.device.add_control(self.sldr_single_solid)
         self.device.add_control(self.sldr_single_segmnt)
+        self.device.add_control(self.sldr_dble_solid)
+        self.device.add_control(self.sldr_dble_segmnt)
 
     def _init_text_box(self):
         self.text_box_menu = dashio.Page("tb_pg", "Text Box")
@@ -346,11 +383,11 @@ class TestControls:
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
 
-        ##self.device = dashio.dashDevice(args.device_type, args.device_id, args.device_name)
+        self.device = dashio.dashDevice(args.device_type, args.device_id, args.device_name)
         self.tcp_con = dashio.tcpConnection(port=args.port)
         # self.dash_con = dashio.dashConnection(args.username, args.password)
         self.tcp_con.add_device(self.device)
-        self.dash_con.add_device(self.device)
+        #self.dash_con.add_device(self.device)
         self._init_knobs()
         self._init_buttons()
         self._init_dials()
@@ -359,7 +396,7 @@ class TestControls:
         self._init_labels()
         self._init_map()
         self._init_menu()
-
+        self._init_selector()
         while not self.shutdown:
             time.sleep(5)
             self.compass.direction_value = random.random() * 360
