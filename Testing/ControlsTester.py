@@ -84,26 +84,26 @@ class TestControls:
             self.btn2.btn_state = ButtonState.ON
 
     def slider_event_handler(self, msg):
-        self.sldr_cntrl.slider_value = float(msg[0])
-        self.knb_control.knob_dial_value = float(msg[0])
+        self.sldr_cntrl.slider_value = float(msg[3])
+        self.knb_control.knob_dial_value = float(msg[3])
 
     def slider_dbl_event_handler(self, msg):
-        self.sldr_dbl_cntrl.slider_value = float(msg[0])
-        self.selector_ctrl.position = int(float(msg[0]))
+        self.sldr_dbl_cntrl.slider_value = float(msg[3])
+        self.selector_ctrl.position = int(float(msg[3]))
 
     def knb_normal_event_handler(self, msg):
-        self.knb_pan.knob_dial_value = float(msg[0])
+        self.knb_pan.knob_dial_value = float(msg[3])
 
     def knb_pan_event_handler(self, msg):
-        self.knb_normal.knob_dial_value = float(msg[0])
+        self.knb_normal.knob_dial_value = float(msg[3])
 
     def text_cntrl_message_handler(self, msg):
-        self.device.send_popup_message("TCPTest", "Text Box message", msg[0])
-        self.text_cntrl.text = "Popup sent: " + msg[0]
+        self.device.send_popup_message("TCPTest", "Text Box message", msg[3])
+        self.text_cntrl.text = "Popup sent: " + msg[3]
         logging.info(msg)
 
     def selector_ctrl_handler(self, msg):
-        print(self.selector_ctrl.selection_list[int(msg[0])])
+        print(self.selector_ctrl.selection_list[int(msg[3])])
 
     def _init_knobs(self):
         self.page_knobs = dashio.Page("Testknobs", "Knobs")
@@ -304,18 +304,18 @@ class TestControls:
 
     
     def slider_1_event_handler(self, msg):
-        self.sldr_dble_solid.bar1_value = float(msg[0])
-        self.sldr_dble_segmnt.bar1_value = float(msg[0])
+        self.sldr_dble_solid.bar1_value = float(msg[3])
+        self.sldr_dble_segmnt.bar1_value = float(msg[3])
 
     def slider_2_event_handler(self, msg):
-        self.sldr_dble_solid.bar2_value = float(msg[0])
-        self.sldr_dble_segmnt.bar2_value = float(msg[0])
+        self.sldr_dble_solid.bar2_value = float(msg[3])
+        self.sldr_dble_segmnt.bar2_value = float(msg[3])
     
     def slider_3_event_handler(self, msg):
-        self.sldr_single_solid.bar1_value = float(msg[0])
+        self.sldr_single_solid.bar1_value = float(msg[3])
 
     def slider_4_event_handler(self, msg):
-        self.sldr_single_segmnt.bar1_value = float(msg[0])
+        self.sldr_single_segmnt.bar1_value = float(msg[3])
 
     def _init_selector(self):
         self.page_sel_slid = dashio.Page("slctr_pg", "Selector & Sliders")
@@ -364,13 +364,13 @@ class TestControls:
         self.device.add_control(self.sldr_dble_segmnt)
 
     def txtbox1_event_handler(self, msg):
-        self.txtbox1.text=msg[0]
+        self.txtbox1.text=msg[3]
 
     def txtbox2_event_handler(self, msg):
-        self.txtbox2.text=msg[0]
+        self.txtbox2.text=msg[3]
 
     def txtbox3_event_handler(self, msg):
-        self.txtbox3.text=msg[0]
+        self.txtbox3.text=msg[3]
 
     def _init_text_box(self):
         self.text_box_page = dashio.Page("tb_pg", "Text Box")
