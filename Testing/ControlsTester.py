@@ -1,5 +1,6 @@
 #!/bin/python3
 
+from dashio.iotcontrol.textbox import TextBox
 import time
 import random
 import argparse
@@ -9,7 +10,7 @@ import logging
 import numpy as np
 
 
-from dashio.iotcontrol.enums import ButtonState, Icon, LabelStyle
+from dashio.iotcontrol.enums import ButtonState, Icon, LabelStyle, TextAlignment
 from dashio.iotcontrol.graph import GraphLine
 
 
@@ -362,22 +363,37 @@ class TestControls:
         self.device.add_control(self.sldr_dble_solid)
         self.device.add_control(self.sldr_dble_segmnt)
 
+    def txtbox1_event_handler(self, msg):
+        self.txtbox1.text=msg[0]
+
+    def txtbox2_event_handler(self, msg):
+        self.txtbox2.text=msg[0]
+
+    def txtbox3_event_handler(self, msg):
+        self.txtbox3.text=msg[0]
+
     def _init_text_box(self):
-        self.text_box_page = dashio.Page("tb_pg", "Text Boxs")
+        self.text_box_page = dashio.Page("tb_pg", "Text Box")
         self.txtbox1 = dashio.TextBox("txtbox1",
                                       "All Charactors",
                                       keyboard_type=dashio.Keyboard.ALL_CHARS,
                                       control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.2))
+        self.txtbox1.message_rx_event += self.txtbox1_event_handler
         self.txtbox2 = dashio.TextBox("txtbox2",
                                       "Hex",
                                       keyboard_type=dashio.Keyboard.HEX,
+                                      text_align=TextAlignment.LEFT,
                                       control_position=dashio.ControlPosition(0.0, 0.2, 1.0, 0.2))
+        self.txtbox2.message_rx_event += self.txtbox2_event_handler
         self.txtbox3 = dashio.TextBox("txtbox3",
                                       "Numeric",
                                       keyboard_type=dashio.Keyboard.NUMERIC,
+                                      text_align=TextAlignment.LEFT,
                                       control_position=dashio.ControlPosition(0.0, 0.4, 1.0, 0.2))
+        self.txtbox3.message_rx_event += self.txtbox3_event_handler
         self.txtbox4 = dashio.TextBox("txtbox4",
                                       "None",
+                                      text="Hello",
                                       keyboard_type=dashio.Keyboard.NONE,
                                       control_position=dashio.ControlPosition(0.0, 0.6, 1.0, 0.2))
         self.text_box_page.add_control(self.txtbox1)
@@ -408,10 +424,10 @@ class TestControls:
         logging.info("  Device Name: %s", args.device_name)
 
         self.device = dashio.dashDevice(args.device_type, args.device_id, args.device_name)
-        #self.tcp_con = dashio.tcpConnection(port=args.port)
-        self.dash_con = dashio.dashConnection(args.username, args.password)
-        #self.tcp_con.add_device(self.device)
-        self.dash_con.add_device(self.device)
+        self.tcp_con = dashio.tcpConnection(port=args.port)
+        #self.dash_con = dashio.dashConnection(args.username, args.password)
+        self.tcp_con.add_device(self.device)
+        #self.dash_con.add_device(self.device)
         self._init_knobs()
         self._init_buttons()
         self._init_dials()
