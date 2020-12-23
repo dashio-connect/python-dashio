@@ -46,7 +46,7 @@ class dashDevice(threading.Thread):
             except IndexError:
                 return
             try:
-                self.control_dict[key].message_rx_event(data_array[3:])
+                self.control_dict[key].message_rx_event(data_array)
             except KeyError:
                 pass
         return reply
