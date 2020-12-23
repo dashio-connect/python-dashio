@@ -14,7 +14,6 @@ from .iotcontrol.enums import (
     DialStyle,
     GraphLineType,
     TimeGraphLineType,
-    TimeGraphTimeScale,
     TimeGraphPositionOfKey,
     ButtonState,
     LabelStyle,

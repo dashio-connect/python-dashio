@@ -363,8 +363,32 @@ class TestControls:
         self.device.add_control(self.sldr_dble_segmnt)
 
     def _init_text_box(self):
-        self.text_box_menu = dashio.Page("tb_pg", "Text Box")
-        self.device.add_control(self.text_box_menu)
+        self.text_box_page = dashio.Page("tb_pg", "Text Boxs")
+        self.txtbox1 = dashio.TextBox("txtbox1",
+                                      "All Charactors",
+                                      keyboard_type=dashio.Keyboard.ALL_CHARS,
+                                      control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.2))
+        self.txtbox2 = dashio.TextBox("txtbox2",
+                                      "Hex",
+                                      keyboard_type=dashio.Keyboard.HEX,
+                                      control_position=dashio.ControlPosition(0.0, 0.2, 1.0, 0.2))
+        self.txtbox3 = dashio.TextBox("txtbox3",
+                                      "Numeric",
+                                      keyboard_type=dashio.Keyboard.NUMERIC,
+                                      control_position=dashio.ControlPosition(0.0, 0.4, 1.0, 0.2))
+        self.txtbox4 = dashio.TextBox("txtbox4",
+                                      "None",
+                                      keyboard_type=dashio.Keyboard.NONE,
+                                      control_position=dashio.ControlPosition(0.0, 0.6, 1.0, 0.2))
+        self.text_box_page.add_control(self.txtbox1)
+        self.text_box_page.add_control(self.txtbox2)
+        self.text_box_page.add_control(self.txtbox3)
+        self.text_box_page.add_control(self.txtbox4)
+        self.device.add_control(self.text_box_page)
+        self.device.add_control(self.txtbox1)
+        self.device.add_control(self.txtbox2)
+        self.device.add_control(self.txtbox3)
+        self.device.add_control(self.txtbox4)
 
     def _init_time_graph(self):
         self.time_graph_menu = dashio.Page("time_graph_pg", "Time Graph")
