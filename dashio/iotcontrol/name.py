@@ -9,7 +9,7 @@ class Name(Control):
         self.message_rx_event += self.__set_device_name
 
     def __set_device_name(self, msg):
-        self.control_id = msg[0]
+        self.control_id = msg[3]
         self.state_str = "\t{}\t{}\n".format(self.msg_type, msg[0])
 
     def set_device_name(self, device_name):

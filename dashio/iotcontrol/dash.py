@@ -12,8 +12,8 @@ class Dash(Control):
         self.state_str = "\t{}\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, self.username, self.servername)
 
     def __set_dash(self, msg):
-        self.username = msg[0]
-        self.servername = msg[1]
+        self.username = msg[3]
+        self.servername = msg[4]
         self.state_str = "\t{}\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, self.username, self.servername)
 
     def set_mqtt(self, username, servername):

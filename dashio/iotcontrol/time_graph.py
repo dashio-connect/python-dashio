@@ -99,7 +99,7 @@ class TimeGraph(Control):
         control_position=None,
     ):
         super().__init__("TGRPH", control_id, control_position=control_position, title_position=title_position)
-
+        self.title = title
         self.message_rx_event += self.__get_lines_from_timestamp
 
         self.y_axis_label = y_axis_label
@@ -123,7 +123,7 @@ class TimeGraph(Control):
         state_str = ""
         for key in self.line_dict.keys():
             if self.line_dict[key].data:
-                state_str += self.get_state_str + key + self.line_dict[key].get_line_from_timestamp(msg[0])
+                state_str += self.get_state_str + key + self.line_dict[key].get_line_from_timestamp(msg[3])
         self.state_str = state_str
 
     def send_data(self):
