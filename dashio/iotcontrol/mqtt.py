@@ -14,8 +14,8 @@ class MQTT(Control):
         self.servername = servername
 
     def __set_mqtt(self, msg):
-        self.username = msg[0]
-        self.servername = msg[1]
+        self.username = msg[3]
+        self.servername = msg[4]
 
     def set_mqtt(self, username, servername):
         self.username = username
