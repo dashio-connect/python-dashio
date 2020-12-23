@@ -143,25 +143,6 @@ class TimeGraphLineType(Enum):
     DEL = "DEL"
 
 
-class TimeGraphTimeScale(Enum):
-    FIVEMINUTES = "5 minutes"
-    FIFTEENMINS = "15 minutes"
-    THIRTYMINS = "30 minutes"
-    ONEHOUR = "1 hour"
-    THREEHOURS = "3 hours"
-    SIXHOURS = "6 hours"
-    TWELVEHOURS = "12 hours"
-    ONEDAY = "1 day"
-    TWODAYS = "2 days"
-    THREEDAYS = "3 days"
-    ONEWEEK = "1 week"
-    TWOWEEKS = "2 weeks"
-    ONEMONTH = "1 month"
-    THREEMONTHS = "3 months"
-    SIXMONTHS = "6 months"
-    ONEYEAR = "1 year"
-
-
 class TimeGraphPositionOfKey(Enum):
     TOPLEFT = "Top Left"
     TOPRIGHT = "Top Right"
