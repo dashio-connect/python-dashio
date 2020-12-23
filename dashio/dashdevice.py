@@ -156,9 +156,9 @@ class dashDevice(threading.Thread):
         threading.Thread.__init__(self, daemon=True)
 
         self.context = context or zmq.Context.instance()
-        self.device_type = device_type
-        self.device_id = device_id
-        self.device_name_cntrl = Name(device_name)
+        self.device_type = device_type.strip()
+        self.device_id = device_id.strip()
+        self.device_name_cntrl = Name(device_name.strip())
         self.control_dict = {}
         self.alarm_dict = {}
 
