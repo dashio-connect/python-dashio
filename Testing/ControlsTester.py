@@ -71,6 +71,25 @@ class TestControls:
         args = parser.parse_args()
         return args
 
+    def event_log_handler(self, msg):
+        device_id = msg[0]
+        control_type = msg[1]
+        control_id = msg[2]
+        data = msg[3:]
+        color = dashio.Color.WHITE
+        if control_type == "TEXT":
+            color = dashio.Color.BLUE
+        elif control_type == "KNOB":
+            color = dashio.Color.GREEN
+        elif control_type == "BTTN":
+            color = dashio.Color.AQUA
+        elif control_type == "SLDR":
+            color = dashio.Color.DEEPPINK
+        message = "{dev_id} {cntrl_type} {cntrl_id} {data}".format(dev_id = device_id, cntrl_type = control_type, cntrl_id = control_id, data = ''.join(data))
+        ed = dashio.EventData("Message RX", message, color=color)
+        self.event_log.add_event_data(ed)
+
+
     def up_btn_event_handler(self, msg):
         if self.btn1.btn_state == ButtonState.ON:
             self.btn1.btn_state = ButtonState.OFF
@@ -111,6 +130,7 @@ class TestControls:
                                       knob_style=dashio.KnobStyle.NORMAL,
                                       control_position=dashio.ControlPosition(0.24, 0.14, 0.54, 0.26))
         self.knb_normal.message_rx_event += self.knb_normal_event_handler
+        self.knb_normal.message_rx_event += self.event_log_handler
         self.knb_normal.title = "Knob Normal"
         self.knb_normal.max = 10
         self.knb_normal.red_value = 8
@@ -121,6 +141,7 @@ class TestControls:
                                    control_position=dashio.ControlPosition(0.24, 0.44, 0.54, 0.26))
 
         self.knb_pan.message_rx_event += self.knb_pan_event_handler
+        self.knb_pan.message_rx_event += self.event_log_handler
         self.knb_pan.title = "Knob Pan"
         self.knb_pan.max = 10
         self.knb_pan.red_value = 8
@@ -137,12 +158,14 @@ class TestControls:
                                   control_position=dashio.ControlPosition(0.24, 0.14, 0.54, 0.26))
         self.btn1.btn_state = ButtonState.ON
         self.btn1.message_rx_event += self.up_btn_event_handler
+        self.btn1.message_rx_event += self.event_log_handler
         self.btn2 = dashio.Button("BTN2",
                                   "Down",
                                   icon_name=Icon.DOWN,
                                   control_position=dashio.ControlPosition(0.24, 0.44, 0.54, 0.26))
         self.btn2.btn_state = ButtonState.ON
         self.btn2.message_rx_event += self.down_btn_event_handler
+        self.btn2.message_rx_event += self.event_log_handler
         self.page_btns.add_control(self.btn1)
         self.page_btns.add_control(self.btn2)
         self.device.add_control(self.page_btns)
@@ -274,13 +297,17 @@ class TestControls:
         self.page_menu.add_control(self.btn_group)
         self.btn3 = dashio.Button("btn3", "Menu Button1", icon_name=Icon.LEFT)
         self.btn3.message_rx_event += self.left_btn_event_handler
+        self.btn3.message_rx_event += self.event_log_handler
+
         self.btn4 = dashio.Button("btn4", "Menu Button2", icon_name=Icon.RIGHT)
         self.btn4.message_rx_event += self.right_btn_event_handler
+        self.btn4.message_rx_event += self.event_log_handler
 
         self.btn5 = dashio.Button("btn5", "Group Button1", icon_name=Icon.LEFT)
         self.btn5.message_rx_event += self.left_btn_event_handler
         self.btn6 = dashio.Button("btn6", "Group Button2", icon_name=Icon.RIGHT)
         self.btn6.message_rx_event += self.right_btn_event_handler
+        self.btn6.message_rx_event += self.event_log_handler
 
         self.menu_tb = dashio.TextBox("txt1", "Menu TextBox")
         self.menu_sldr = dashio.SliderSingleBar("mnu_sldr", "Menu Slider")
@@ -335,22 +362,25 @@ class TestControls:
                                                         bar_style=dashio.SliderBarType.SOLID,
                                                         control_position=dashio.ControlPosition(0.0, 0.0, 0.25, 0.8))
         self.sldr_single_solid.message_rx_event += self.slider_1_event_handler
+        self.sldr_single_solid.message_rx_event += self.event_log_handler
         self.sldr_single_segmnt = dashio.SliderSingleBar("sldr_single_segment",
                                                          "Single Slider Segmented",
                                                          bar_style=dashio.SliderBarType.SEGMENTED,
                                                          control_position=dashio.ControlPosition(0.25, 0.0, 0.25, 0.8))
         self.sldr_single_segmnt.message_rx_event += self.slider_2_event_handler
-        
+        self.sldr_single_segmnt.message_rx_event += self.event_log_handler
         self.sldr_dble_solid = dashio.SliderDoubleBar("sldr_double_solid",
                                                         "Double Slider Solid",
                                                         bar_style=dashio.SliderBarType.SOLID,
                                                         control_position=dashio.ControlPosition(0.5, 0.0, 0.25, 0.8))
         self.sldr_dble_solid.message_rx_event += self.slider_3_event_handler
+        self.sldr_dble_solid.message_rx_event += self.event_log_handler
         self.sldr_dble_segmnt = dashio.SliderDoubleBar("sldr_double_segment",
                                                          "Double Slider Segmented",
                                                          bar_style=dashio.SliderBarType.SEGMENTED,
                                                          control_position=dashio.ControlPosition(0.75, 0.0, 0.25, 0.8))
         self.sldr_dble_segmnt.message_rx_event += self.slider_4_event_handler
+        self.sldr_dble_segmnt.message_rx_event += self.event_log_handler
         self.page_sel_slid.add_control(self.slctr1)
         self.page_sel_slid.add_control(self.sldr_single_solid)
         self.page_sel_slid.add_control(self.sldr_single_segmnt)
@@ -379,18 +409,21 @@ class TestControls:
                                       keyboard_type=dashio.Keyboard.ALL_CHARS,
                                       control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.2))
         self.txtbox1.message_rx_event += self.txtbox1_event_handler
+        self.txtbox1.message_rx_event += self.event_log_handler
         self.txtbox2 = dashio.TextBox("txtbox2",
                                       "Hex",
                                       keyboard_type=dashio.Keyboard.HEX,
                                       text_align=TextAlignment.LEFT,
                                       control_position=dashio.ControlPosition(0.0, 0.2, 1.0, 0.2))
         self.txtbox2.message_rx_event += self.txtbox2_event_handler
+        self.txtbox2.message_rx_event += self.event_log_handler
         self.txtbox3 = dashio.TextBox("txtbox3",
                                       "Numeric",
                                       keyboard_type=dashio.Keyboard.NUMERIC,
                                       text_align=TextAlignment.LEFT,
                                       control_position=dashio.ControlPosition(0.0, 0.4, 1.0, 0.2))
         self.txtbox3.message_rx_event += self.txtbox3_event_handler
+        self.txtbox3.message_rx_event += self.event_log_handler
         self.txtbox4 = dashio.TextBox("txtbox4",
                                       "None",
                                       text="Hello",
@@ -424,10 +457,10 @@ class TestControls:
         logging.info("  Device Name: %s", args.device_name)
 
         self.device = dashio.dashDevice(args.device_type, args.device_id, args.device_name)
-        self.tcp_con = dashio.tcpConnection(port=args.port)
-        #self.dash_con = dashio.dashConnection(args.username, args.password)
-        self.tcp_con.add_device(self.device)
-        #self.dash_con.add_device(self.device)
+        #self.tcp_con = dashio.tcpConnection(port=args.port)
+        self.dash_con = dashio.dashConnection(args.username, args.password)
+        #self.tcp_con.add_device(self.device)
+        self.dash_con.add_device(self.device)
         self._init_knobs()
         self._init_buttons()
         self._init_dials()
@@ -442,8 +475,6 @@ class TestControls:
         while not self.shutdown:
             time.sleep(5)
             self.compass.direction_value = random.random() * 360
-            ed = dashio.EventData("Compass Direction", "{:.2f}".format(self.compass.direction_value))
-            self.event_log.add_event_data(ed)
             if len(self.event_log.log_list) > 15:
                 self.event_log.log_list.pop(0)
             self.dial_std.dial_value = random.random() * 100

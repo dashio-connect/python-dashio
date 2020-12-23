@@ -73,26 +73,26 @@ class TestControls:
             self.sldr_dbl_cntrl.bar1_value -= 1
 
     def slider_event_handler(self, msg):
-        self.sldr_cntrl.slider_value = float(msg[0])
-        self.knb_control.knob_dial_value = float(msg[0])
+        self.sldr_cntrl.slider_value = float(msg[3])
+        self.knb_control.knob_dial_value = float(msg[3])
 
     def slider_dbl_event_handler(self, msg):
-        self.sldr_dbl_cntrl.slider_value = float(msg[0])
-        self.selector_ctrl.position = int(float(msg[0]))
+        self.sldr_dbl_cntrl.slider_value = float(msg[3])
+        self.selector_ctrl.position = int(float(msg[3]))
 
     def knob_event_handler(self, msg):
-        self.knb_control.knob_value = float(msg[0])
-        self.dl_control.dial_value = float(msg[0])
-        self.sldr_dbl_cntrl.bar2_value = float(msg[0])
+        self.knb_control.knob_value = float(msg[3])
+        self.dl_control.dial_value = float(msg[3])
+        self.sldr_dbl_cntrl.bar2_value = float(msg[3])
 
     def text_cntrl_message_handler(self, msg):
-        self.alarm_ctrl.body = msg[0]
+        self.alarm_ctrl.body = msg[3]
         self.alarm_ctrl.send()
-        self.text_cntrl.text = "Alarm sent: " + msg[0]
+        self.text_cntrl.text = "Alarm sent: " + msg[3]
         logging.info(msg)
 
     def selector_ctrl_handler(self, msg):
-        print(self.selector_ctrl.selection_list[int(msg[0])])
+        print(self.selector_ctrl.selection_list[int(msg[3])])
 
     def __init__(self):
 

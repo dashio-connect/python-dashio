@@ -63,7 +63,7 @@ class TestControls:
         return args
 
     def selector_ctrl_handler(self, msg):
-        self.selector_ctrl.position = int(msg[0])
+        self.selector_ctrl.position = int(msg[3])
 
     def __init__(self):
 
