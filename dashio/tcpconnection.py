@@ -113,7 +113,7 @@ class tcpConnection(threading.Thread):
                 if id not in self.socket_ids:
                     logging.debug("Added Socket ID: " + id.hex())
                     self.socket_ids.append(id)
-                logging.debug("TCP ID: %s, RX: %s", id.hex(), message.decode('utf-8').rstrip())
+                logging.debug("TCP ID: %s, Rx: %s", id.hex(), message.decode('utf-8').rstrip())
                 if message:
                     tx_zmq_pub.send_multipart([self.b_connection_id, id, message])
                 else:
@@ -133,6 +133,6 @@ class tcpConnection(threading.Thread):
         for id in self.socket_ids:
             __zmq_tcp_send(id, b'')
 
-        # self.tcpsocket.close()
-        # self.tx_zmq_pub.close()
-        # self.rx_zmq_sub.close()
+        self.tcpsocket.close()
+        self.tx_zmq_pub.close()
+        self.rx_zmq_sub.close()
