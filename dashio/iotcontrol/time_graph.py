@@ -92,8 +92,8 @@ class TimeGraph(Control):
         control_id,
         title="A TimeGraph",
         title_position=TitlePosition.BOTTOM,
-        y_axis_label="",
-        y_axis_min="0.0",
+        y_axis_label="Y axis",
+        y_axis_min=0.0,
         y_axis_max=100.0,
         y_axis_num_bars=5,
         control_position=None,
@@ -134,33 +134,33 @@ class TimeGraph(Control):
         self.state_str = state_str
 
     @property
-    def y_axis_label(self):
+    def y_axis_label(self) -> str:
         return self._cfg["yAxisLabel"]
 
     @y_axis_label.setter
-    def y_axis_label(self, val):
+    def y_axis_label(self, val: str):
         self._cfg["yAxisLabel"] = val
 
     @property
-    def y_axis_min(self):
+    def y_axis_min(self) -> float:
         return self._cfg["yAxisMin"]
 
     @y_axis_min.setter
-    def y_axis_min(self, val):
+    def y_axis_min(self, val: float):
         self._cfg["yAxisMin"] = val
 
     @property
-    def y_axis_max(self):
+    def y_axis_max(self) -> float:
         return self._cfg["yAxisMax"]
 
     @y_axis_max.setter
-    def y_axis_max(self, val):
+    def y_axis_max(self, val: float):
         self._cfg["yAxisMax"] = val
 
     @property
-    def y_axis_num_bars(self):
+    def y_axis_num_bars(self) -> int:
         return self._cfg["yAxisNumBars"]
 
     @y_axis_num_bars.setter
-    def y_axis_num_bars(self, val):
+    def y_axis_num_bars(self, val: int):
         self._cfg["yAxisNumBars"] = val

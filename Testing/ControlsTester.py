@@ -441,8 +441,9 @@ class TestControls:
 
     def _init_time_graph(self):
         self.time_graph_page = dashio.Page("time_graph_pg", "Time Graph")
+        self.time_graph = dashio.TimeGraph("time_grph", title="Time Graph", y_axis_label="Y axis",  control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 1.0))
         self.device.add_control(self.time_graph_page)
-        self.time_graph = dashio.TimeGraph("time_grph", "Time Graph", control_position=dashio.ControlPosition(0.0, 0.6, 1.0, 0.2))
+
         self.time_graph_page.add_control(self.time_graph)
         self.device.add_control(self.time_graph)
 
@@ -461,10 +462,10 @@ class TestControls:
         logging.info("  Device Name: %s", args.device_name)
 
         self.device = dashio.dashDevice(args.device_type, args.device_id, args.device_name)
-        #self.tcp_con = dashio.tcpConnection(port=args.port)
-        self.dash_con = dashio.dashConnection(args.username, args.password)
-        #self.tcp_con.add_device(self.device)
-        self.dash_con.add_device(self.device)
+        self.tcp_con = dashio.tcpConnection(port=args.port)
+        #self.dash_con = dashio.dashConnection(args.username, args.password)
+        self.tcp_con.add_device(self.device)
+        #self.dash_con.add_device(self.device)
         self._init_knobs()
         self._init_buttons()
         self._init_dials()
