@@ -59,8 +59,6 @@ class TimeGraphLine:
             data_point {str} -- A single data point
         """
         dp = DataPoint(data_point)
-        # now = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc).isoformat()
-        # data_str = "{ts},{data}".format(ts=now, data=data_point)
         if len(self.data) < self.max_data_points:
             self.data.append(dp)
             return
@@ -110,7 +108,7 @@ class TimeGraph(Control):
         self.line_dict = {}
         self.get_state_str = "\t{}\t{}\t".format(self.msg_type, self.control_id)
 
-    def add_line(self, line_id, gline):
+    def add_line(self, line_id: str, gline: TimeGraphLine):
         self.line_dict[line_id] = gline
 
     def send_graph(self):

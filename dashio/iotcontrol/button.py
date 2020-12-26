@@ -65,11 +65,11 @@ class Button(Control):
         self._state_str = "\t{}\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, self._btn_state.value, val.value)
 
     @property
-    def text(self):
+    def text(self) -> str:
         return self._cfg["text"]
 
     @text.setter
-    def text(self, val):
+    def text(self, val: str):
         self._cfg["text"] = val
         self._state_str = "\t{}\t{}\t{}\t{}\t{}\n".format(
             self.msg_type, self.control_id, self._btn_state.value, self._icon_name.value, val

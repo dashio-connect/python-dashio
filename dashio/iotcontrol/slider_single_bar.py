@@ -42,81 +42,81 @@ class SliderSingleBar(Control):
         self._state_str = self._slider_state_str + self._bar1_state_str
 
     @property
-    def bar1_value(self):
+    def bar1_value(self) -> float:
         return self._bar1_value
 
     @bar1_value.setter
-    def bar1_value(self, val):
+    def bar1_value(self, val: float):
         self._bar1_value = val
         self._bar1_state_str = "\t{}\t{}\t{}\n".format(self._control_id_bar, self.control_id, self._bar1_value)
         self.message_tx_event(self._bar1_state_str)
         self._state_str = self._slider_state_str + self._bar1_state_str
 
     @property
-    def slider_value(self):
+    def slider_value(self) -> float:
         return self._slider_value
 
     @slider_value.setter
-    def slider_value(self, val):
+    def slider_value(self, val: float):
         self._slider_value = val
         self._slider_state_str = "\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, self._slider_value)
         self.message_tx_event(self._slider_state_str)
         self._state_str = self._slider_state_str + self._bar1_state_str
 
     @property
-    def min(self):
+    def min(self) -> float:
         return self._cfg["min"]
 
     @min.setter
-    def min(self, val):
+    def min(self, val: float):
         self._cfg["min"] = val
 
     @property
-    def max(self):
+    def max(self) -> float:
         return self._cfg["max"]
 
     @max.setter
-    def max(self, val):
+    def max(self, val: float):
         self._cfg["max"] = val
 
     @property
-    def red_value(self):
+    def red_value(self) -> float:
         return self._cfg["redValue"]
 
     @red_value.setter
-    def red_value(self, val):
+    def red_value(self, val: float):
         self._cfg["redValue"] = val
 
     @property
-    def show_min_max(self):
+    def show_min_max(self) -> bool:
         return self._cfg["showMinMax"]
 
     @show_min_max.setter
-    def show_min_max(self, val):
+    def show_min_max(self, val: bool):
         self._cfg["showMinMax"] = val
 
     @property
-    def slider_enabled(self):
+    def slider_enabled(self) -> bool:
         return self._cfg["sliderEnabled"]
 
     @slider_enabled.setter
-    def slider_enabled(self, val):
+    def slider_enabled(self, val: bool):
         self._cfg["sliderEnabled"] = val
 
     @property
-    def send_only_on_release(self):
+    def send_only_on_release(self) -> bool:
         return self._cfg["sendOnlyOnRelease"]
 
     @send_only_on_release.setter
-    def send_only_on_release(self, val):
+    def send_only_on_release(self, val: bool):
         self._cfg["sendOnlyOnRelease"] = val
 
     @property
-    def bar_follows_slider(self):
+    def bar_follows_slider(self) -> bool:
         return self._cfg["barFollowsSlider"]
 
     @bar_follows_slider.setter
-    def bar_follows_slider(self, val):
+    def bar_follows_slider(self, val: bool):
         self._cfg["barFollowsSlider"] = val
 
     @property

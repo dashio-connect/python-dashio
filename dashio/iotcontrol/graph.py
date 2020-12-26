@@ -66,74 +66,74 @@ class Graph(Control):
         self.state_str = state_str
 
     @property
-    def x_axis_label(self):
+    def x_axis_label(self) -> str:
         return self._cfg["xAxisLabel"]
 
     @x_axis_label.setter
-    def x_axis_label(self, val):
+    def x_axis_label(self, val: str):
         self._cfg["xAxisLabel"] = val
 
     @property
-    def x_axis_min(self):
+    def x_axis_min(self) -> float:
         return self._cfg["xAxisMin"]
 
     @x_axis_min.setter
-    def x_axis_min(self, val):
+    def x_axis_min(self, val: float):
         self._cfg["xAxisMin"] = val
 
     @property
-    def x_axis_max(self):
+    def x_axis_max(self) -> float:
         return self._cfg["xAxisMax"]
 
     @x_axis_max.setter
-    def x_axis_max(self, val):
+    def x_axis_max(self, val: float):
         self._cfg["xAxisMax"] = val
 
     @property
-    def x_axis_num_bars(self):
+    def x_axis_num_bars(self) -> int:
         return self._cfg["xAxisNumBars"]
 
     @x_axis_num_bars.setter
-    def x_axis_num_bars(self, val):
+    def x_axis_num_bars(self, val: int):
         self._cfg["xAxisNumBars"] = val
 
     @property
-    def x_axis_labels_style(self):
+    def x_axis_labels_style(self) -> GraphXAxisLabelsStyle:
         return self._x_axis_labels_style
 
     @x_axis_labels_style.setter
-    def x_axis_labels_style(self, val):
+    def x_axis_labels_style(self, val: GraphXAxisLabelsStyle):
         self._x_axis_labels_style = val
         self._cfg["xAxisLabelsStyle"] = val.value
 
     @property
-    def y_axis_label(self):
+    def y_axis_label(self) -> str:
         return self._cfg["yAxisLabel"]
 
     @y_axis_label.setter
-    def y_axis_label(self, val):
+    def y_axis_label(self, val: str):
         self._cfg["yAxisLabel"] = val
 
     @property
-    def y_axis_min(self):
+    def y_axis_min(self) -> float:
         return self._cfg["yAxisMin"]
 
     @y_axis_min.setter
-    def y_axis_min(self, val):
+    def y_axis_min(self, val: float):
         self._cfg["yAxisMin"] = val
 
     @property
-    def y_axis_max(self):
+    def y_axis_max(self) -> float:
         return self._cfg["yAxisMax"]
 
     @y_axis_max.setter
-    def y_axis_max(self, val):
+    def y_axis_max(self, val: float):
         self._cfg["yAxisMax"] = val
 
     @property
-    def y_axis_num_bars(self):
+    def y_axis_num_bars(self) -> int:
         return self._cfg["yAxisNumBars"]
 
     @y_axis_num_bars.setter
-    def y_axis_num_bars(self, val):
+    def y_axis_num_bars(self, val: int):
         self._cfg["yAxisNumBars"] = val

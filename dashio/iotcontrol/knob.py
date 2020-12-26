@@ -38,22 +38,22 @@ class Knob(Control):
         self._state_str = self._state_str_knob + self._state_str_dial
 
     @property
-    def knob_value(self):
+    def knob_value(self) -> float:
         return self._knob_value
 
     @knob_value.setter
-    def knob_value(self, val):
+    def knob_value(self, val: float):
         self._knob_value = val
         self._state_str_knob = "\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, val)
         self.message_tx_event(self._state_str_knob)
         self._state_str = self._state_str_knob + self._state_str_dial
 
     @property
-    def knob_dial_value(self):
+    def knob_dial_value(self) -> float:
         return self._knob_dial_value
 
     @knob_dial_value.setter
-    def knob_dial_value(self, val):
+    def knob_dial_value(self, val: float):
         self._knob_dial_value = val
         self._state_str_dial = "\t{}\t{}\t{}\n".format(self._control_id_dial, self.control_id, val)
         self.message_tx_event(self._state_str_dial)
@@ -69,51 +69,51 @@ class Knob(Control):
         self._cfg["style"] = str(val.value)
 
     @property
-    def min(self):
+    def min(self) -> float:
         return self._cfg["min"]
 
     @min.setter
-    def min(self, val):
+    def min(self, val: float):
         self._cfg["min"] = val
 
     @property
-    def max(self):
+    def max(self) -> float:
         return self._cfg["max"]
 
     @max.setter
-    def max(self, val):
+    def max(self, val: float):
         self._cfg["max"] = val
 
     @property
-    def red_value(self):
+    def red_value(self) -> float:
         return self._cfg["redValue"]
 
     @red_value.setter
-    def red_value(self, val):
+    def red_value(self, val: float):
         self._cfg["redValue"] = val
 
     @property
-    def show_min_max(self):
+    def show_min_max(self) -> bool:
         return self._cfg["showMinMax"]
 
     @show_min_max.setter
-    def show_min_max(self, val):
+    def show_min_max(self, val: bool):
         self._cfg["showMinMax"] = val
 
     @property
-    def send_only_on_release(self):
+    def send_only_on_release(self) -> bool:
         return self._cfg["sendOnlyOnRelease"]
 
     @send_only_on_release.setter
-    def send_only_on_release(self, val):
+    def send_only_on_release(self, val: bool):
         self._cfg["sendOnlyOnRelease"] = val
 
     @property
-    def dial_follows_knob(self):
+    def dial_follows_knob(self) -> bool:
         return self._cfg["dialFollowsKnob"]
 
     @dial_follows_knob.setter
-    def dial_follows_knob(self, val):
+    def dial_follows_knob(self, val: bool):
         self._cfg["dialFollowsKnob"] = val
 
     @property

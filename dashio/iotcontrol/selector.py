@@ -28,11 +28,11 @@ class Selector(Control):
             self.state_str = slctr_str
 
     @property
-    def position(self):
+    def position(self) -> int:
         return self._position
 
     @position.setter
-    def position(self, val):
+    def position(self, val: int):
         try:
             _ = self.selection_list[val]
             self._position = val

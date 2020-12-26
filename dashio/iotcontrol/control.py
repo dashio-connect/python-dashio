@@ -55,19 +55,19 @@ class Control:
         self._cfg["parentID"] = val
 
     @property
-    def control_id(self):
+    def control_id(self) -> str:
         return self._cfg["controlID"]
 
     @control_id.setter
-    def control_id(self, val):
+    def control_id(self, val: str):
         self._cfg["controlID"] = val
 
     @property
-    def title(self):
+    def title(self) -> str:
         return self._cfg["title"]
 
     @title.setter
-    def title(self, val):
+    def title(self, val: str):
         self._cfg["title"] = val
 
     @property

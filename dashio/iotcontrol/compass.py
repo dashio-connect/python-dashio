@@ -20,11 +20,11 @@ class Compass(Control):
         self._state_str = "\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, self._direction_value)
 
     @property
-    def direction_value(self):
+    def direction_value(self) -> float:
         return self._direction_value
 
     @direction_value.setter
-    def direction_value(self, val):
+    def direction_value(self, val: float):
         self._direction_value = val
         self.state_str = "\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, val)
 
@@ -38,9 +38,9 @@ class Compass(Control):
         self._cfg["pointerColor"] = str(val.value)
 
     @property
-    def calibration_angle(self):
+    def calibration_angle(self) -> float:
         return self._cfg["calAngle"]
 
     @calibration_angle.setter
-    def calibration_angle(self, val):
+    def calibration_angle(self, val: float):
         self._cfg["calAngle"] = val
