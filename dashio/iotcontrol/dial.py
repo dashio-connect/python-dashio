@@ -36,44 +36,44 @@ class Dial(Control):
         self.state_str = "\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, self._dial_value)
 
     @property
-    def dial_value(self):
+    def dial_value(self) -> float:
         return self._dial_value
 
     @dial_value.setter
-    def dial_value(self, val):
+    def dial_value(self, val: float):
         self._dial_value = val
         self.state_str = "\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, self._dial_value)
 
     @property
-    def min(self):
+    def min(self) -> float:
         return self._cfg["min"]
 
     @min.setter
-    def min(self, val):
+    def min(self, val: float):
         self._cfg["min"] = val
 
     @property
-    def max(self):
+    def max(self) -> float:
         return self._cfg["max"]
 
     @max.setter
-    def max(self, val):
+    def max(self, val: float):
         self._cfg["max"] = val
 
     @property
-    def red_value(self):
+    def red_value(self) -> float:
         return self._cfg["redValue"]
 
     @red_value.setter
-    def red_value(self, val):
+    def red_value(self, val: float):
         self._cfg["redValue"] = val
 
     @property
-    def show_min_max(self):
+    def show_min_max(self) -> bool:
         return self._cfg["showMinMax"]
 
     @show_min_max.setter
-    def show_min_max(self, val):
+    def show_min_max(self, val: bool):
         self._cfg["showMinMax"] = val
 
     @property
@@ -81,7 +81,7 @@ class Dial(Control):
         return self._dial_fill_color
 
     @dial_fill_color.setter
-    def dial_fill_color(self, val):
+    def dial_fill_color(self, val: Color):
         self._dial_fill_color = val
         self._cfg["dialFillColor"] = str(val.value)
 
@@ -122,9 +122,9 @@ class Dial(Control):
         self._cfg["precision"] = val.value
 
     @property
-    def units(self):
+    def units(self) -> str:
         return self._cfg["units"]
 
     @units.setter
-    def units(self, val):
+    def units(self, val: str):
         self._cfg["units"] = val

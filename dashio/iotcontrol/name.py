@@ -12,6 +12,6 @@ class Name(Control):
         self.control_id = msg[3]
         self.state_str = "\t{}\t{}\n".format(self.msg_type, msg[0])
 
-    def set_device_name(self, device_name):
+    def set_device_name(self, device_name: str):
         self.control_id = device_name
         self.state_str = "\t{}\t{}\n".format(self.msg_type, device_name)

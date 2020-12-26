@@ -19,17 +19,17 @@ class Alarm(Control):
         pass
 
     @property
-    def body(self):
+    def body(self) -> str:
         return self._cfg["body"]
 
     @body.setter
-    def body(self, val):
+    def body(self, val: str):
         self._cfg["body"] = val
 
     @property
-    def header(self):
+    def header(self) -> str:
         return self._cfg["header"]
 
     @header.setter
-    def header(self, val):
+    def header(self, val: str):
         self._cfg["header"] = val

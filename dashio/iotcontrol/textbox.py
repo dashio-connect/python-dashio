@@ -45,15 +45,15 @@ class TextBox(Control):
         self._cfg["textAlign"] = val.value
 
     @property
-    def units(self):
+    def units(self) -> str:
         return self._cfg["units"]
 
     @units.setter
-    def units(self, val):
+    def units(self, val: str):
         self._cfg["units"] = val
 
     @property
-    def precision(self):
+    def precision(self) -> Precision:
         return self._precision
 
     @precision.setter

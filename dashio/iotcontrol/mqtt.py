@@ -22,17 +22,17 @@ class MQTT(Control):
         self.servername = servername
 
     @property
-    def username(self):
+    def username(self) -> str:
         return self._cfg["userName"]
 
     @username.setter
-    def username(self, val):
+    def username(self, val: str):
         self._cfg["userName"] = val
 
     @property
-    def servername(self):
+    def servername(self) -> str:
         return self._cfg["hostURL"]
 
     @servername.setter
-    def servername(self, val):
+    def servername(self, val: str):
         self._cfg["hostURL"] = val
