@@ -98,6 +98,9 @@ class Keyboard(Enum):
     NONE = "NONE"
     ALL_CHARS = "ALL"
     NUMERIC = "NUM"
+    DATE = "DATE"
+    DATETIME = "DATETIME"
+    INTERVAL = "INTVL"
     HEX = "HEX"
 
 
@@ -112,7 +115,7 @@ class SliderBarType(Enum):
     SOLID = "solid"
 
 
-class DialPosition(Enum):
+class DialNumberPosition(Enum):
     OFF = "off"
     LEFT = "left"
     RIGHT = "right"
