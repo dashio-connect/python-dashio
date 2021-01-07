@@ -1,4 +1,4 @@
-from .enums import Color, DialPosition, DialStyle, Precision, TitlePosition
+from .enums import Color, DialNumberPosition, DialStyle, Precision, TitlePosition
 from .control import Control
 
 
@@ -13,7 +13,7 @@ class Dial(Control):
         red_value=75.0,
         dial_fill_color=Color.RED,
         pointer_color=Color.BLUE,
-        number_position=DialPosition.LEFT,
+        number_position=DialNumberPosition.LEFT,
         show_min_max=False,
         style=DialStyle.STD,
         precision=Precision.OFF,
@@ -95,11 +95,11 @@ class Dial(Control):
         self._cfg["pointerColor"] = str(val.value)
 
     @property
-    def number_positions(self) -> DialPosition:
+    def number_positions(self) -> DialNumberPosition:
         return self._number_position
 
     @number_positions.setter
-    def number_positions(self, val: DialPosition):
+    def number_positions(self, val: DialNumberPosition):
         self._number_position = val
         self._cfg["numberPosition"] = val.value
 

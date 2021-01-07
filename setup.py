@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="dashio",
-    version="1.99.95",
+    version="1.99.96",
     # py_modules=['iotcontrol', 'iotconnection'],
     description="Dashio interface library",
     long_description=long_description,

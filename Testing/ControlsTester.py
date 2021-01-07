@@ -10,7 +10,7 @@ import logging
 import numpy as np
 
 
-from dashio.iotcontrol.enums import ButtonState, Icon, LabelStyle, TextAlignment
+from dashio.iotcontrol.enums import ButtonState, DialNumberPosition, Icon, LabelStyle, TextAlignment
 from dashio.iotcontrol.graph import GraphLine
 
 
@@ -179,10 +179,14 @@ class TestControls:
                                       control_position=dashio.ControlPosition(0.24, 0.1, 0.54, 0.25))
         self.dial_std = dashio.Dial("DialSTD", "Dial Standard",
                                     style=dashio.DialStyle.STD,
+                                    DialNumberPosition = DialNumberPosition.RIGHT,
+                                    precision=2,
                                     control_position=dashio.ControlPosition(0.24, 0.36, 0.54, 0.26))
         self.dial_inv = dashio.Dial("Dial",
                                     "Dial Inverted",
                                     style=dashio.DialStyle.INVERTED,
+                                    number_position=DialNumberPosition.LEFT,
+                                    precision=3,
                                     control_position=dashio.ControlPosition(0.24, 0.61, 0.54, 0.26))
         self.page_dials.add_control(self.compass)
         self.page_dials.add_control(self.dial_std)
@@ -443,10 +447,9 @@ class TestControls:
         self.time_graph_page = dashio.Page("time_graph_pg", "Time Graph")
         self.time_graph = dashio.TimeGraph("time_grph", title="Time Graph", y_axis_label="Y axis",  control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 1.0))
         self.device.add_control(self.time_graph_page)
-
         self.time_graph_page.add_control(self.time_graph)
         self.device.add_control(self.time_graph)
-
+        
 
     def __init__(self):
 
