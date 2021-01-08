@@ -1,6 +1,6 @@
 from .enums import TimeGraphLineType, Color, TitlePosition
 from .control import Control
-
+from .ring_buffer import RingBuffer
 import datetime
 import dateutil.parser
 
@@ -19,12 +19,11 @@ class TimeGraphLine:
     def __init__(
         self, name="", line_type=TimeGraphLineType.LINE, color=Color.BLACK, transparency=1.0, max_data_points=60
     ):
-        self.max_data_points = max_data_points
         self.name = name
         self.line_type = line_type
         self.color = color
         self.transparency = transparency
-        self.data = []
+        self.data = RingBuffer(max_data_points)
 
     def get_line_data(self):
         if not self.data:
@@ -32,7 +31,7 @@ class TimeGraphLine:
         data_str = "\t{l_name}\t{l_type}\t{l_color}\t{l_transparency}".format(
             l_name=self.name, l_type=self.line_type.value, l_color=self.color.value, l_transparency=self.transparency
         )
-        for d in self.data:
+        for d in self.data.get():
             data_str += "\t" + d.to_string()
         data_str += "\n"
         return data_str
@@ -46,7 +45,7 @@ class TimeGraphLine:
 
         dt = dateutil.parser.isoparse(timestamp)
 
-        for d in self.data:
+        for d in self.data.get():
             if d.timestamp > dt:
                 data_str += "\t" + d.to_string()
         data_str += "\n"
@@ -59,12 +58,7 @@ class TimeGraphLine:
             data_point {str} -- A single data point
         """
         dp = DataPoint(data_point)
-        if len(self.data) < self.max_data_points:
-            self.data.append(dp)
-            return
-        for i in range(len(self.data) - 1):
-            self.data[i] = self.data[i + 1]
-        self.data[-1] = dp
+        self.data.append(dp)
 
     def get_latest_data(self):
         if not self.data:
@@ -72,7 +66,7 @@ class TimeGraphLine:
         data_str = "\t{l_name}\t{l_type}\t{l_color}\t{l_transparency}".format(
             l_name=self.name, l_type=self.line_type.value, l_color=self.color.value, l_transparency=self.transparency
         )
-        data_str += "\t" + self.data[-1].to_string()
+        data_str += "\t" + self.data.get_latest.to_string()
         data_str += "\n"
         return data_str
 
