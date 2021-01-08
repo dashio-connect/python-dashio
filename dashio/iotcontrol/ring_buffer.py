@@ -19,7 +19,7 @@ class RingBuffer:
         def get_latest(self):
             indx = self.cur - 1
             if indx < 0:
-                indx = self.max
+                indx = self.max - 1 
             return self.data[indx]
 
     def append(self, x):
