@@ -1,5 +1,6 @@
 from .enums import Color, TitlePosition
 from .control import Control
+from .ring_buffer import RingBuffer
 
 import datetime
 import dateutil.parser
@@ -25,28 +26,32 @@ class EventLog(Control):
         state_str = ""
         return state_str
 
-    def __init__(self, control_id, title="An Event Log", title_position=TitlePosition.BOTTOM, control_position=None):
+    def __init__(self,
+                 control_id,
+                 title="An Event Log",
+                 title_position=TitlePosition.BOTTOM,
+                 control_position=None, max_log_entries=100):
         super().__init__("LOG", control_id, control_position=control_position, title_position=title_position)
         self.title = title
         self.message_rx_event += self.__get_log_from_timestamp
 
-        self.log_list = []
+        self.log = RingBuffer(max_log_entries)
         self.get_state_str = "\t{}\t{}\t".format(self.msg_type, self.control_id)
 
     def __get_log_from_timestamp(self, msg):
 
         dt = dateutil.parser.isoparse(msg[3])
         data_str = ""
-        for log in self.log_list:
+        for log in self.log.get():
             if log.timestamp > dt:
                 data_str += self.get_state_str + log.to_string()
         self.state_str = data_str
 
     def add_event_data(self, data: EventData):
         if isinstance(data, EventData):
-            self.log_list.append(data)
+            self.log.append(data)
             self.state_str = self.get_state_str + data.to_string()
 
     def send_data(self):
-        if self.log_list:
-            self.state_str = self.get_state_str + self.log_list[-1].to_string()
+        if self.log:
+            self.state_str = self.get_state_str + self.log.get_latest().to_string()
