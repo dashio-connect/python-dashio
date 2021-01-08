@@ -66,7 +66,7 @@ class TimeGraphLine:
         data_str = "\t{l_name}\t{l_type}\t{l_color}\t{l_transparency}".format(
             l_name=self.name, l_type=self.line_type.value, l_color=self.color.value, l_transparency=self.transparency
         )
-        data_str += "\t" + self.data.get_latest.to_string()
+        data_str += "\t" + self.data.get_latest().to_string()
         data_str += "\n"
         return data_str
 

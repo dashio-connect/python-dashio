@@ -10,7 +10,7 @@ from .iotcontrol.enums import (
     Keyboard,
     TextAlignment,
     SliderBarType,
-    DialPosition,
+    DialNumberPosition,
     DialStyle,
     GraphLineType,
     TimeGraphLineType,

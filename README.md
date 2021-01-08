@@ -72,9 +72,38 @@ while True:
 
 First we altered the instantiation of a Dial by including a control_position. This allows us to place the control at a set location. The added lines instantiated a Page control, which we than added the dial control. Finally we added the page to the device.
 
----
+The next piece of the puzzle to consider is how do we get data from the IoTDashboard app? Lets add a Knob and connect it to the Dial:
 
-The next piece of the puzzle to consider is how do we get data from the IoTDashboard app?
+```python
+import dashio
+import random
+import time
+
+device = dashio.dashDevice("aDeviceType", "aDeviceID", "aDeviceName")
+tcp_con = dashio.tcpConnection()
+tcp_con.add_device(device)
+first_dial_control = dashio.Dial("FirstDial", control_position=dashio.ControlPosition(0.24, 0.36, 0.54, 0.26))
+device.add_control(first_dial_control)
+
+page_dial = dashio.Page("aPageID", "A Dial")
+page_dial.add_control(first_dial_control)
+device.add_control(page_dial)
+
+def knob_event_handler(msg):
+    pass
+
+aknob = dashio.Knob("aKNB", control_position=dashio.ControlPosition(0.24, 0.14, 0.54, 0.26))
+aknbb.message_rx_event = knob_event_handler
+page_dial.add_control(aknob)
+
+
+while True:
+    dial_control.dial_value = random.random() * 100
+    time.sleep(5)
+```
+
+
+
 
 ### Controls
 
