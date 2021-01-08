@@ -1,6 +1,5 @@
 #!/bin/python3
 
-from dashio.iotcontrol.textbox import TextBox
 import time
 import random
 import argparse
@@ -85,10 +84,12 @@ class TestControls:
             color = dashio.Color.AQUA
         elif control_type == "SLDR":
             color = dashio.Color.DEEPPINK
-        message = "{dev_id} {cntrl_type} {cntrl_id} {data}".format(dev_id = device_id, cntrl_type = control_type, cntrl_id = control_id, data = ''.join(data))
+        message = "{dev_id} {cntrl_type} {cntrl_id} {data}".format(dev_id=device_id,
+                                                                   cntrl_type=control_type,
+                                                                   cntrl_id=control_id,
+                                                                   data=''.join(data))
         ed = dashio.EventData("Message RX", message, color=color)
         self.event_log.add_event_data(ed)
-
 
     def up_btn_event_handler(self, msg):
         if self.btn1.btn_state == ButtonState.ON:
@@ -179,7 +180,7 @@ class TestControls:
                                       control_position=dashio.ControlPosition(0.24, 0.1, 0.54, 0.25))
         self.dial_std = dashio.Dial("DialSTD", "Dial Standard",
                                     style=dashio.DialStyle.STD,
-                                    DialNumberPosition = DialNumberPosition.RIGHT,
+                                    DialNumberPosition=DialNumberPosition.RIGHT,
                                     precision=2,
                                     control_position=dashio.ControlPosition(0.24, 0.36, 0.54, 0.26))
         self.dial_inv = dashio.Dial("Dial",
@@ -333,7 +334,6 @@ class TestControls:
         self.device.add_control(self.menu_sldr)
         self.device.add_control(self.menu_slctr)
 
-    
     def slider_1_event_handler(self, msg):
         self.sldr_dble_solid.bar1_value = float(msg[3])
         self.sldr_dble_segmnt.bar1_value = float(msg[3])
@@ -341,7 +341,7 @@ class TestControls:
     def slider_2_event_handler(self, msg):
         self.sldr_dble_solid.bar2_value = float(msg[3])
         self.sldr_dble_segmnt.bar2_value = float(msg[3])
-    
+
     def slider_3_event_handler(self, msg):
         self.sldr_single_solid.bar1_value = float(msg[3])
 
@@ -374,15 +374,15 @@ class TestControls:
         self.sldr_single_segmnt.message_rx_event += self.slider_2_event_handler
         self.sldr_single_segmnt.message_rx_event += self.event_log_handler
         self.sldr_dble_solid = dashio.SliderDoubleBar("sldr_double_solid",
-                                                        "Double Slider Solid",
-                                                        bar_style=dashio.SliderBarType.SOLID,
-                                                        control_position=dashio.ControlPosition(0.5, 0.0, 0.25, 0.8))
+                                                      "Double Slider Solid",
+                                                      bar_style=dashio.SliderBarType.SOLID,
+                                                      control_position=dashio.ControlPosition(0.5, 0.0, 0.25, 0.8))
         self.sldr_dble_solid.message_rx_event += self.slider_3_event_handler
         self.sldr_dble_solid.message_rx_event += self.event_log_handler
         self.sldr_dble_segmnt = dashio.SliderDoubleBar("sldr_double_segment",
-                                                         "Double Slider Segmented",
-                                                         bar_style=dashio.SliderBarType.SEGMENTED,
-                                                         control_position=dashio.ControlPosition(0.75, 0.0, 0.25, 0.8))
+                                                       "Double Slider Segmented",
+                                                       bar_style=dashio.SliderBarType.SEGMENTED,
+                                                       control_position=dashio.ControlPosition(0.75, 0.0, 0.25, 0.8))
         self.sldr_dble_segmnt.message_rx_event += self.slider_4_event_handler
         self.sldr_dble_segmnt.message_rx_event += self.event_log_handler
         self.page_sel_slid.add_control(self.slctr1)
@@ -391,20 +391,19 @@ class TestControls:
         self.page_sel_slid.add_control(self.sldr_dble_solid)
         self.page_sel_slid.add_control(self.sldr_dble_segmnt)
 
-
         self.device.add_control(self.sldr_single_solid)
         self.device.add_control(self.sldr_single_segmnt)
         self.device.add_control(self.sldr_dble_solid)
         self.device.add_control(self.sldr_dble_segmnt)
 
     def txtbox1_event_handler(self, msg):
-        self.txtbox1.text=msg[3]
+        self.txtbox1.text = msg[3]
 
     def txtbox2_event_handler(self, msg):
-        self.txtbox2.text=msg[3]
+        self.txtbox2.text = msg[3]
 
     def txtbox3_event_handler(self, msg):
-        self.txtbox3.text=msg[3]
+        self.txtbox3.text = msg[3]
 
     def _init_text_box(self):
         self.text_box_page = dashio.Page("tb_pg", "Text Box")
@@ -445,11 +444,13 @@ class TestControls:
 
     def _init_time_graph(self):
         self.time_graph_page = dashio.Page("time_graph_pg", "Time Graph")
-        self.time_graph = dashio.TimeGraph("time_grph", title="Time Graph", y_axis_label="Y axis",  control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 1.0))
+        self.time_graph = dashio.TimeGraph("time_grph",
+                                           title="Time Graph",
+                                           y_axis_label="Y axis",
+                                           control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 1.0))
         self.device.add_control(self.time_graph_page)
         self.time_graph_page.add_control(self.time_graph)
         self.device.add_control(self.time_graph)
-        
 
     def __init__(self):
 
@@ -465,9 +466,9 @@ class TestControls:
         logging.info("  Device Name: %s", args.device_name)
 
         self.device = dashio.dashDevice(args.device_type, args.device_id, args.device_name)
-        #self.tcp_con = dashio.tcpConnection(port=args.port)
+        # self.tcp_con = dashio.tcpConnection(port=args.port)
         self.dash_con = dashio.dashConnection(args.username, args.password)
-        #self.tcp_con.add_device(self.device)
+        # self.tcp_con.add_device(self.device)
         self.dash_con.add_device(self.device)
         self._init_knobs()
         self._init_buttons()
@@ -493,7 +494,7 @@ class TestControls:
 
 
 def main():
-    tc = TestControls()
+    testc = TestControls()
 
 
 if __name__ == "__main__":
