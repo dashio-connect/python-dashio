@@ -90,15 +90,13 @@ page_dial.add_control(first_dial_control)
 device.add_control(page_dial)
 
 def knob_event_handler(msg):
-    pass
+    first_dial_control.dial_value = float(msg[3])
 
 aknob = dashio.Knob("aKNB", control_position=dashio.ControlPosition(0.24, 0.14, 0.54, 0.26))
 aknbb.message_rx_event = knob_event_handler
 page_dial.add_control(aknob)
 
-
 while True:
-    dial_control.dial_value = random.random() * 100
     time.sleep(5)
 ```
 
