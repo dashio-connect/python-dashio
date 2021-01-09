@@ -23,8 +23,7 @@ class EventData:
 # TODO: Finish the Event log
 class EventLog(Control):
     def get_state(self):
-        state_str = ""
-        return state_str
+        return ""
 
     def __init__(self,
                  control_id,

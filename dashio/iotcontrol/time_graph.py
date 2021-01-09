@@ -4,7 +4,6 @@ from .ring_buffer import RingBuffer
 import datetime
 import dateutil.parser
 
-
 class DataPoint:
     def __init__(self, data):
         self.timestamp = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
@@ -42,10 +41,9 @@ class TimeGraphLine:
         data_str = "\t{l_name}\t{l_type}\t{l_color}\t{l_transparency}".format(
             l_name=self.name, l_type=self.line_type.value, l_color=self.color.value, l_transparency=self.transparency
         )
-
         dt = dateutil.parser.isoparse(timestamp)
-
-        for d in self.data.get():
+        data = self.data.get()
+        for d in data:
             if d.timestamp > dt:
                 data_str += "\t" + d.to_string()
         data_str += "\n"
@@ -73,11 +71,7 @@ class TimeGraphLine:
 
 class TimeGraph(Control):
     def get_state(self):
-        state_str = ""
-        for key in self.line_dict.keys():
-            if self.line_dict[key].data:
-                state_str += self.get_state_str + key + self.line_dict[key].get_latest_data()
-        return state_str
+        return ""
 
     def __init__(
         self,
@@ -92,7 +86,7 @@ class TimeGraph(Control):
     ):
         super().__init__("TGRPH", control_id, control_position=control_position, title_position=title_position)
         self.title = title
-        self.message_rx_event += self.__get_lines_from_timestamp
+        self.message_rx_event = self.__get_lines_from_timestamp
 
         self.y_axis_label = y_axis_label
         self.y_axis_min = y_axis_min

@@ -110,7 +110,7 @@ class dashConnection(threading.Thread):
 
             if rx_zmq_sub in socks:
                 [address, id, data] = rx_zmq_sub.recv_multipart()
-                logging.debug("TX: %s", data.decode('utf-8').rstrip())
+                logging.debug("DASH TX: %s", data.decode('utf-8').rstrip())
                 msg_l = data.split(b'\t')
                 device_id = msg_l[1].decode('utf-8').strip()
                 if address == b'ANNOUNCE':

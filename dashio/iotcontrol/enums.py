@@ -99,6 +99,7 @@ class Keyboard(Enum):
     ALL_CHARS = "ALL"
     NUMERIC = "NUM"
     DATE = "DATE"
+    TIME = "TIME"
     DATETIME = "DATETIME"
     INTERVAL = "INTVL"
     HEX = "HEX"
