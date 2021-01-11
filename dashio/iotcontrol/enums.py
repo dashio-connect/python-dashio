@@ -102,7 +102,15 @@ class Keyboard(Enum):
     TIME = "TIME"
     DATETIME = "DATETIME"
     INTERVAL = "INTVL"
+    INT = "INT"
     HEX = "HEX"
+
+class TextFormat(Enum):
+    NONE = "NONE"
+    NUMBER = "NUM"
+    DATETIME = "DATETIME"
+    DATELONG = "DTLONG"
+    INTERVAL = "INTVL"
 
 
 class TextAlignment(Enum):

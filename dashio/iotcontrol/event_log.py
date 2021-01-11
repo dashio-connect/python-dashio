@@ -32,13 +32,12 @@ class EventLog(Control):
                  control_position=None, max_log_entries=100):
         super().__init__("LOG", control_id, control_position=control_position, title_position=title_position)
         self.title = title
-        self.message_rx_event += self.__get_log_from_timestamp
+        self.message_rx_event = self.__get_log_from_timestamp
 
         self.log = RingBuffer(max_log_entries)
         self.get_state_str = "\t{}\t{}\t".format(self.msg_type, self.control_id)
 
     def __get_log_from_timestamp(self, msg):
-
         dt = dateutil.parser.isoparse(msg[3])
         data_str = ""
         for log in self.log.get():

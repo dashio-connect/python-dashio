@@ -93,14 +93,15 @@ def knob_event_handler(msg):
     first_dial_control.dial_value = float(msg[3])
 
 aknob = dashio.Knob("aKNB", control_position=dashio.ControlPosition(0.24, 0.14, 0.54, 0.26))
-aknbb.message_rx_event = knob_event_handler
+aknob.message_rx_event = knob_event_handler
 page_dial.add_control(aknob)
+device.add_control(aknob)
 
 while True:
     time.sleep(5)
 ```
-
-
+First we added a function that sets the dial value. Next we added a Knob control and set our new function to be called when it receives data from the IoTDashboard app.
+We also add it to the page and to the device. Now when the knob in IoTDashoard is moved the dial is set to the same value. 
 
 
 ### Controls

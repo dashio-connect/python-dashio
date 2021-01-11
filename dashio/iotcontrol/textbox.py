@@ -1,4 +1,4 @@
-from .enums import TextAlignment, Precision, Keyboard, TitlePosition
+from .enums import TextAlignment, Precision, Keyboard, TitlePosition, TextFormat
 from .control import Control
 
 
@@ -10,6 +10,7 @@ class TextBox(Control):
         title_position=TitlePosition.BOTTOM,
         text="",
         text_align=TextAlignment.LEFT,
+        text_format=TextFormat.NONE,
         units="",
         precision=Precision.OFF,
         keyboard_type=Keyboard.ALL_CHARS,
@@ -22,6 +23,7 @@ class TextBox(Control):
         self.text_align = text_align
         self.units = units
         self.precision = precision
+        self.text_format = text_format
         self.keyboard_type = keyboard_type
         self.close_keyboard_on_send = close_keyboard_on_send
         self._state_str = "\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, self.text)
@@ -43,6 +45,15 @@ class TextBox(Control):
     def text_align(self, val: TextAlignment):
         self._text_align = val
         self._cfg["textAlign"] = val.value
+
+    @property
+    def text_format(self) -> TextFormat:
+        return self._text_format
+
+    @text_format.setter
+    def text_align(self, val: TextFormat):
+        self._text_format = val
+        self._cfg["format"] = val.value
 
     @property
     def units(self) -> str:
