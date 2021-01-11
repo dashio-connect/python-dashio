@@ -18,7 +18,8 @@ from .iotcontrol.enums import (
     ButtonState,
     LabelStyle,
     KnobStyle,
-    GraphXAxisLabelsStyle
+    GraphXAxisLabelsStyle,
+    TextFormat
 )
 from .iotcontrol.graph import Graph, GraphLine
 from .iotcontrol.slider_single_bar import SliderSingleBar
