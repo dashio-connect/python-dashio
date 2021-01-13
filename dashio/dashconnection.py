@@ -45,7 +45,8 @@ class dashConnection(threading.Thread):
         device.add_connection(self.connection_id)
         control_topic = "{}/{}/control".format(self.username, device.device_id)
         self.connection_topic_list.append(control_topic)
-        self.dash_c.subscribe(control_topic, 0)
+        if self.connected:
+            self.dash_c.subscribe(control_topic, 0)
         device.send_dash_connect()
 
     def __init__(self, username, password, host='dash.dashio.io', port=8883, context=None):
@@ -73,7 +74,7 @@ class dashConnection(threading.Thread):
         self.dash_c.on_message = self.__on_message
         self.dash_c.on_connect = self.__on_connect
         self.dash_c.on_disconnect = self.__on_disconnect
-        self.dash_c.on_publish = self.__on_publish
+        # self.dash_c.on_publish = self.__on_publish
         self.dash_c.on_subscribe = self.__on_subscribe
 
         self.dash_c.tls_set(
