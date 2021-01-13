@@ -12,7 +12,20 @@ class dashConnection(threading.Thread):
     """Setups and manages a connection thread to the Dash Server."""
 
     def __on_connect(self, client, userdata, flags, rc):
-        logging.debug("rc: %s", str(rc))
+        if rc == 0:
+            self.connected = True
+            self.disconnect = False
+            if self.connection_topic_list:
+                for topic in self.connection_topic_list:
+                    self.dash_c.subscribe(topic, 0)
+            logging.debug("connected OK")
+        else:
+            logging.debug("Bad connection Returned code=%s",rc)
+
+    def __on_disconnect(self, client, userdata, rc):
+        logging.debug("disconnecting reason  "  + str(rc))
+        self.connected = False
+        self.disconnect = True
 
     def __on_message(self, client, obj, msg):
         data = str(msg.payload, "utf-8").strip()
@@ -31,6 +44,7 @@ class dashConnection(threading.Thread):
     def add_device(self, device):
         device.add_connection(self.connection_id)
         control_topic = "{}/{}/control".format(self.username, device.device_id)
+        self.connection_topic_list.append(control_topic)
         self.dash_c.subscribe(control_topic, 0)
         device.send_dash_connect()
 
@@ -46,10 +60,10 @@ class dashConnection(threading.Thread):
         threading.Thread.__init__(self, daemon=True)
 
         self.context = context or zmq.Context.instance()
-
+        self.connected = False
         self.connection_id = shortuuid.uuid()
         self.b_connection_id = self.connection_id.encode('utf-8')
-
+        self.connection_topic_list = []
         self.LWD = "OFFLINE"
         self.running = True
         self.username = username
@@ -58,6 +72,7 @@ class dashConnection(threading.Thread):
         # Assign event callbacks
         self.dash_c.on_message = self.__on_message
         self.dash_c.on_connect = self.__on_connect
+        self.dash_c.on_disconnect = self.__on_disconnect
         self.dash_c.on_publish = self.__on_publish
         self.dash_c.on_subscribe = self.__on_subscribe
 
@@ -110,7 +125,6 @@ class dashConnection(threading.Thread):
 
             if rx_zmq_sub in socks:
                 [address, id, data] = rx_zmq_sub.recv_multipart()
-                logging.debug("DASH TX: %s", data.decode('utf-8').rstrip())
                 msg_l = data.split(b'\t')
                 device_id = msg_l[1].decode('utf-8').strip()
                 if address == b'ANNOUNCE':
@@ -119,9 +133,12 @@ class dashConnection(threading.Thread):
                     data_topic = "{}/{}/alarm".format(self.username, device_id)
                 else:
                     data_topic = "{}/{}/data".format(self.username, device_id)
-                self.dash_c.publish(data_topic, data.decode('utf-8'))
+                if self.connected:
+                    logging.debug("DASH TX: %s", data.decode('utf-8').rstrip())
+                    self.dash_c.publish(data_topic, data.decode('utf-8'))
 
-        self.dash_c.publish(self.announce_topic, "disconnect")
+        if self.connected:
+            self.dash_c.publish(self.announce_topic, "disconnect")
         self.dash_c.loop_stop()
 
         self.tx_zmq_pub.close()

@@ -51,7 +51,7 @@ class TextBox(Control):
         return self._text_format
 
     @text_format.setter
-    def text_align(self, val: TextFormat):
+    def text_format(self, val: TextFormat):
         self._text_format = val
         self._cfg["format"] = val.value
 
