@@ -11,7 +11,20 @@ class mqttConnection(threading.Thread):
     """Setups and manages a connection thread to the Dash Server."""
 
     def __on_connect(self, client, userdata, flags, rc):
-        logging.debug("rc: %s", str(rc))
+        if rc == 0:
+            self.connected = True
+            self.disconnect = False
+            if self.connection_topic_list:
+                for topic in self.connection_topic_list:
+                    self.dash_c.subscribe(topic, 0)
+            logging.debug("connected OK")
+        else:
+            logging.debug("Bad connection Returned code=%s",rc)
+
+    def __on_disconnect(self, client, userdata, rc):
+        logging.debug("disconnecting reason  "  + str(rc))
+        self.connected = False
+        self.disconnect = True
 
     def __on_message(self, client, obj, msg):
         data = str(msg.payload, "utf-8").strip()
@@ -30,9 +43,12 @@ class mqttConnection(threading.Thread):
     def add_device(self, device):
         device.add_connection(self.connection_id)
         control_topic = "{}/{}/control".format(self.username, device.device_id)
-        self.dash_c.subscribe(control_topic, 0)
+        self.connection_topic_list.append(control_topic)
+        if self.connected:
+            self.dash_c.subscribe(control_topic, 0)
+        device.send_dash_connect()
 
-    def __init__(self, device_id, host, port, username="", password="", use_ssl=False, context=None):
+    def __init__(self, host, port, username="", password="", use_ssl=False, context=None):
         """
         Arguments:
             host {str} -- The server name of the mqtt host.
@@ -48,6 +64,8 @@ class mqttConnection(threading.Thread):
 
         self.context = context or zmq.Context.instance()
 
+        self.connected = False
+        self.connection_topic_list = []
         self.connection_id = uuid.uuid4()
         self.b_connection_id = self.connection_id.bytes
 
@@ -59,6 +77,7 @@ class mqttConnection(threading.Thread):
         # Assign event callbacks
         self.mqttc.on_message = self.__on_message
         self.mqttc.on_connect = self.__on_connect
+        self.mqttc.on_disconnect = self.__on_disconnect
         self.mqttc.on_publish = self.__on_publish
         self.mqttc.on_subscribe = self.__on_subscribe
 
@@ -89,6 +108,7 @@ class mqttConnection(threading.Thread):
         rx_url_internal = "inproc://RX_{}".format(self.connection_id.hex)
 
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
+
         self.tx_zmq_pub.bind(tx_url_internal)
 
         rx_zmq_sub = self.context.socket(zmq.SUB)
@@ -111,9 +131,10 @@ class mqttConnection(threading.Thread):
                 [address, id, data] = rx_zmq_sub.recv_multipart()
                 msg_l = data.split(b'\t')
                 device_id = msg_l[1].decode('utf-8').strip()
-                logging.debug("%s TX: %s", self.b_connection_id.decode('utf-8'), data.decode('utf-8').rstrip())
-                data_topic = "{}/{}/data".format(self.username, device_id)
-                self.mqttc.publish(data_topic, data)
+                if self.connected:
+                    logging.debug("%s TX: %s", self.b_connection_id.decode('utf-8'), data.decode('utf-8').rstrip())
+                    data_topic = "{}/{}/data".format(self.username, device_id)
+                    self.mqttc.publish(data_topic, data)
 
         self.mqttc.loop_stop()
         self.tx_zmq_pub.close()
