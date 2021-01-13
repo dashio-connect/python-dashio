@@ -140,7 +140,7 @@ def main():
     hd_dial.max = 100.0
     hd_dial.red_value = 95.0
     hd_dial.show_min_max = True
-
+    disk_usage = 0
     device.add_control(hd_dial)
     monitor_page.add_control(hd_dial)
     device.add_control(monitor_page)
@@ -164,7 +164,11 @@ def main():
             line.add_data_point(cpu_data[i])
             i += 1
         gph_cpu.send_data()
-        hd_dial.dial_value = psutil.disk_usage("/").percent
+        du = psutil.disk_usage("/").percent
+        if du != disk_usage:
+            disk_usage = du
+            # Only send if changed.
+            hd_dial.dial_value = disk_usage
 
     device.close()
 
