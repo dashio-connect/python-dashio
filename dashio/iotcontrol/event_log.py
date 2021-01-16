@@ -35,21 +35,20 @@ class EventLog(Control):
         self.message_rx_event = self.__get_log_from_timestamp
 
         self.log = RingBuffer(max_log_entries)
-        self.get_state_str = "\t{}\t{}\t".format(self.msg_type, self.control_id)
 
     def __get_log_from_timestamp(self, msg):
         dt = dateutil.parser.isoparse(msg[3])
         data_str = ""
         for log in self.log.get():
             if log.timestamp > dt:
-                data_str += self.get_state_str + log.to_string()
+                data_str += self._state_str + log.to_string()
         self.state_str = data_str
 
     def add_event_data(self, data: EventData):
         if isinstance(data, EventData):
             self.log.append(data)
-            self.state_str = self.get_state_str + data.to_string()
+            self.state_str = self._state_str + data.to_string()
 
     def send_data(self):
         if self.log:
-            self.state_str = self.get_state_str + self.log.get_latest().to_string()
+            self.state_str = self._state_str + self.log.get_latest().to_string()

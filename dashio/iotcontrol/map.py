@@ -50,7 +50,7 @@ class Map(Control):
     def get_state(self):
         state_str = ""
         for locs in self.location_list:
-            state_str += self.get_state_str + locs.get_location_data()
+            state_str += self._state_str + locs.get_location_data()
         return state_str
 
     def __init__(self,
@@ -61,7 +61,6 @@ class Map(Control):
         super().__init__("MAP", control_id, control_position=control_position, title_position=title_position)
         self.title = title
         self.location_list = []
-        self.get_state_str = "\t{}\t{}\t".format(self.msg_type, self.control_id)
 
     def add_location(self, location):
         self.location_list.append(location)
@@ -69,5 +68,5 @@ class Map(Control):
     def send_locations(self):
         state_str = ""
         for locs in self.location_list:
-            state_str += self.get_state_str + locs.get_location_data()
+            state_str += self._state_str + locs.get_location_data()
         self.state_str = state_str

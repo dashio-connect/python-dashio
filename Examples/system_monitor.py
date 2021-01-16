@@ -6,7 +6,6 @@ import dashio
 import psutil
 import logging
 
-
 def get_network_rx_tx():
     data = psutil.net_io_counters()
     return data.bytes_recv / 1024, data.bytes_sent / 1024
@@ -18,7 +17,6 @@ shutdown = False
 def signal_cntrl_c(os_signal, os_frame):
     global shutdown
     shutdown = True
-
 
 def init_logging(logfilename, level):
     log_level = logging.WARN

@@ -1,5 +1,5 @@
 from .enums import Color, Icon, Precision, Keyboard, TextAlignment, SliderBarType, DialNumberPosition, DialStyle, \
-    GraphLineType, TimeGraphLineType, TimeGraphPositionOfKey, ButtonState, LabelStyle, KnobStyle, GraphXAxisLabelsStyle
+    GraphLineType, TimeGraphLineType, TimeGraphPositionOfKey, ButtonState, LabelStyle, KnobStyle, GraphXAxisLabelsStyle, TextFormat
 from .graph import Graph, GraphLine
 from .slider_single_bar import SliderSingleBar
 from .slider_double_bar import SliderDoubleBar

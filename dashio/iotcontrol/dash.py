@@ -9,17 +9,17 @@ class Dash(Control):
         self.message_rx_event += self.__set_dash
         self.username = username
         self.servername = servername
-        self.state_str = "\t{}\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, self.username, self.servername)
+        self.state_str = self._state_str + "\t{}\t{}\n".format(self.username, self.servername)
 
     def __set_dash(self, msg):
         self.username = msg[3]
         self.servername = msg[4]
-        self.state_str = "\t{}\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, self.username, self.servername)
+        self.state_str = self._state_str + "\t{}\t{}\n".format(self.username, self.servername)
 
     def set_mqtt(self, username, servername):
         self.username = username
         self.servername = servername
-        self.state_str = "\t{}\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, self.username, self.servername)
+        self.state_str = self._state_str + "\t{}\t{}\n".format(self.username, self.servername)
 
     @property
     def username(self) -> str:

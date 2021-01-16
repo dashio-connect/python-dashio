@@ -19,7 +19,6 @@ class Menu(Control):
                  title_position=TitlePosition.BOTTOM):
         super().__init__("MENU", control_id, control_position=control_position, title_position=title_position)
         self.title = title
-        self._state_str = "\t{}\t{}\t".format(self.msg_type, self.control_id)
         self.icon_name = icon
         self.text = text
 

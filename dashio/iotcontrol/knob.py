@@ -33,9 +33,12 @@ class Knob(Control):
         self.dial_follows_knob = dial_follows_knob
         self.dial_color = dial_color
         self.knob_color = knob_color
-        self._state_str_knob = "\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, self._knob_value)
-        self._state_str_dial = "\t{}\t{}\t{}\n".format(self._control_id_dial, self.control_id, self._knob_dial_value)
-        self._state_str = self._state_str_knob + self._state_str_dial
+        self._state_str_knob = self._state_str + "{}\n".format(self._knob_value)
+        self._state_str_dial = self._state_str + "{}\n".format(self._knob_dial_value)
+        self._knob_dial_state_str = self._state_str_knob + self._state_str_dial
+
+    def get_state(self):
+        return self._knob_dial_state_str
 
     @property
     def knob_value(self) -> float:
@@ -44,9 +47,9 @@ class Knob(Control):
     @knob_value.setter
     def knob_value(self, val: float):
         self._knob_value = val
-        self._state_str_knob = "\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, val)
+        self._state_str_knob = self._state_str + "{}\n".format(val)
         self.message_tx_event(self._state_str_knob)
-        self._state_str = self._state_str_knob + self._state_str_dial
+        self._knob_dial_state_str = self._state_str_knob + self._state_str_dial
 
     @property
     def knob_dial_value(self) -> float:
@@ -55,9 +58,9 @@ class Knob(Control):
     @knob_dial_value.setter
     def knob_dial_value(self, val: float):
         self._knob_dial_value = val
-        self._state_str_dial = "\t{}\t{}\t{}\n".format(self._control_id_dial, self.control_id, val)
+        self._state_str_dial = self._state_str + "{}\n".format(val)
         self.message_tx_event(self._state_str_dial)
-        self._state_str = self._state_str_knob + self._state_str_dial
+        self._knob_dial_state_str = self._state_str_knob + self._state_str_dial
 
     @property
     def knob_style(self) -> KnobStyle:

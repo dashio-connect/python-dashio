@@ -13,8 +13,8 @@ class ControlPosition:
 
 
 class Control:
-    def get_state(self):
-        return self.state_str
+    def get_state(self) -> str:
+        return ""
 
     def get_cfg(self):
         cfg_str = "\tCFG\t" + self.msg_type + "\t" + json.dumps(self._cfg) + "\n"
@@ -31,7 +31,7 @@ class Control:
         self.control_id = control_id
         self.message_rx_event = Event()
         self.message_tx_event = Event()
-        self._state_str = "\t{}\t{}\n".format(self.msg_type, self.control_id)
+        self._state_str = "\t{{device_id}}\t{control_type}\t{control_id}\t".format(control_type=self.msg_type, control_id=self.control_id)
         self._control_position = None
         if control_position is not None:
             self.control_position = control_position
@@ -42,7 +42,6 @@ class Control:
 
     @state_str.setter
     def state_str(self, val):
-        self._state_str = val
         self.message_tx_event(val)
 
     # Use getter, setter properties to store the settings in the config dictionary

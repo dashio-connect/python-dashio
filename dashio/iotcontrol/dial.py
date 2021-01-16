@@ -33,7 +33,9 @@ class Dial(Control):
         self.style = style
         self.precision = precision
         self.units = units
-        self.state_str = "\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, self._dial_value)
+
+    def get_state(self):
+        return self._state_str + "{}\n".format(self._dial_value)
 
     @property
     def dial_value(self) -> float:
@@ -42,7 +44,7 @@ class Dial(Control):
     @dial_value.setter
     def dial_value(self, val: float):
         self._dial_value = val
-        self.state_str = "\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, self._dial_value)
+        self.state_str = self._state_str + "{}\n".format(val)
 
     @property
     def min(self) -> float:
