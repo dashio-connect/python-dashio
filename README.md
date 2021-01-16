@@ -106,6 +106,38 @@ We also add it to the page and to the device. Now when the knob in IoTDashoard i
 
 ### Controls
 
+#### Alarm
+
+#### Button
+
+#### Button Group
+
+#### Compass
+
+#### Dial
+
+#### Event Log
+
+#### Graph
+
+#### Knob
+
+#### Label
+
+#### Map
+
+#### Menu
+
+#### Menu
+
+#### Selector
+
+#### Slider
+
+#### Text Box
+
+#### Time Graph
+
 ### Connections
 
 ### Dash Server

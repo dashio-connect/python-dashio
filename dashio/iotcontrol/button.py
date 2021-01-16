@@ -21,12 +21,14 @@ class Button(Control):
         super().__init__("BTTN", control_id, control_position=control_position, title_position=title_position)
         self.title = title
         self._btn_state = ButtonState.OFF
-        self._state_str = "\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, self._btn_state.value)
         self.button_enabled = button_enabled
         self.icon_name = icon_name
         self.on_color = on_color
         self.off_color = off_color
         self.text = text
+
+    def get_state(self):
+        return self._state_str + "{}\n".format(self._btn_state.value)
 
     @property
     def button_enabled(self) -> bool:
@@ -62,7 +64,7 @@ class Button(Control):
     def icon_name(self, val: Icon):
         self._icon_name = val
         self._cfg["iconName"] = val.value
-        self._state_str = "\t{}\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, self._btn_state.value, val.value)
+        self.state_str = self._state_str + "{}\t{}\n".format(self._btn_state.value, val.value)
 
     @property
     def text(self) -> str:
@@ -71,9 +73,7 @@ class Button(Control):
     @text.setter
     def text(self, val: str):
         self._cfg["text"] = val
-        self._state_str = "\t{}\t{}\t{}\t{}\t{}\n".format(
-            self.msg_type, self.control_id, self._btn_state.value, self._icon_name.value, val
-        )
+        self.state_str = self._state_str + "{}\t{}\t{}\n".format(self._btn_state.value, self._icon_name.value, val)
 
     @property
     def btn_state(self) -> ButtonState:
@@ -82,4 +82,4 @@ class Button(Control):
     @btn_state.setter
     def btn_state(self, val: ButtonState):
         self._btn_state = val
-        self.state_str = "\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, val.value)
+        self.state_str = self._state_str + "{}\n".format(val.value)

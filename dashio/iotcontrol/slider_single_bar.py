@@ -37,9 +37,12 @@ class SliderSingleBar(Control):
         self.bar_color = bar_color
         self.bar_style = bar_style
         self.knob_color = knob_color
-        self._slider_state_str = "\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, self._slider_value)
-        self._bar1_state_str = "\t{}\t{}\t{}\n".format(self._control_id_bar, self.control_id, self._bar1_value)
-        self._state_str = self._slider_state_str + self._bar1_state_str
+        self._slider_state_str = self._state_str + "{}\n".format(self._slider_value)
+        self._bar1_state_str = self._state_str + "{}\n".format(self._bar1_value)
+        self._bar1_slider_state_str = self._slider_state_str + self._bar1_state_str
+
+    def get_state(self):
+        return self._bar1_slider_state_str
 
     @property
     def bar1_value(self) -> float:
@@ -48,9 +51,9 @@ class SliderSingleBar(Control):
     @bar1_value.setter
     def bar1_value(self, val: float):
         self._bar1_value = val
-        self._bar1_state_str = "\t{}\t{}\t{}\n".format(self._control_id_bar, self.control_id, self._bar1_value)
+        self._bar1_state_str = self._state_str + "{}\n".format(self._bar1_value)
         self.message_tx_event(self._bar1_state_str)
-        self._state_str = self._slider_state_str + self._bar1_state_str
+        self._bar1_slider_state_str = self._slider_state_str + self._bar1_state_str
 
     @property
     def slider_value(self) -> float:
@@ -59,9 +62,9 @@ class SliderSingleBar(Control):
     @slider_value.setter
     def slider_value(self, val: float):
         self._slider_value = val
-        self._slider_state_str = "\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, self._slider_value)
+        self._slider_state_str = self._state_str + "{}\n".format(self._slider_value)
         self.message_tx_event(self._slider_state_str)
-        self._state_str = self._slider_state_str + self._bar1_state_str
+        self._bar1_slider_state_str = self._slider_state_str + self._bar1_state_str
 
     @property
     def min(self) -> float:

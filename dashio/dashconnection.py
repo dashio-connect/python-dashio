@@ -15,9 +15,11 @@ class dashConnection(threading.Thread):
         if rc == 0:
             self.connected = True
             self.disconnect = False
-            if self.connection_topic_list:
-                for topic in self.connection_topic_list:
-                    self.dash_c.subscribe(topic, 0)
+            if self.device_list:
+                for device in self.device_list:
+                    control_topic = "{}/{}/control".format(self.username, device.device_id)
+                    self.dash_c.subscribe(control_topic, 0)
+                    self.send_dash_announce(device)
             logging.debug("connected OK")
         else:
             logging.debug("Bad connection Returned code=%s",rc)
@@ -44,10 +46,15 @@ class dashConnection(threading.Thread):
     def add_device(self, device):
         device.add_connection(self.connection_id)
         control_topic = "{}/{}/control".format(self.username, device.device_id)
-        self.connection_topic_list.append(control_topic)
+        self.device_list.append(device)
         if self.connected:
             self.dash_c.subscribe(control_topic, 0)
-        device.send_dash_connect()
+            self.send_dash_announce(device)
+
+    def send_dash_announce(self, device):
+        data_topic = "{}/{}/announce".format(self.username, device.device_id)
+        data = device.device_id_str + "\tWHO\t{}\t{}\n".format(device.device_type, device.device_name_cntrl.control_id)
+        self.dash_c.publish(data_topic, data)
 
     def __init__(self, username, password, host='dash.dashio.io', port=8883, context=None):
         """
@@ -64,7 +71,7 @@ class dashConnection(threading.Thread):
         self.connected = False
         self.connection_id = shortuuid.uuid()
         self.b_connection_id = self.connection_id.encode('utf-8')
-        self.connection_topic_list = []
+        self.device_list = []
         self.LWD = "OFFLINE"
         self.running = True
         self.username = username
@@ -127,10 +134,11 @@ class dashConnection(threading.Thread):
             if rx_zmq_sub in socks:
                 [address, id, data] = rx_zmq_sub.recv_multipart()
                 msg_l = data.split(b'\t')
-                device_id = msg_l[1].decode('utf-8').strip()
-                if address == b'ANNOUNCE':
-                    data_topic = "{}/{}/announce".format(self.username, device_id)
-                elif address == b'ALARM':
+                try:
+                    device_id = msg_l[1].decode('utf-8').strip()
+                except IndexError:
+                    continue
+                if address == b'ALARM':
                     data_topic = "{}/{}/alarm".format(self.username, device_id)
                 else:
                     data_topic = "{}/{}/data".format(self.username, device_id)

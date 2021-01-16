@@ -55,10 +55,11 @@ class dashDevice(threading.Thread):
     def __make_status(self):
         reply = ""
         for key in self.control_dict.keys():
+            print(key)
             try:
-                status = self.control_dict[key].get_state()
-                if status:
-                    reply += self.device_id_str + self.__insert_device_id(self.control_dict[key].get_state())
+                # status = self.control_dict[key].get_state()
+                # if status:
+                reply += self.control_dict[key].get_state().format(device_id=self.device_id)
             except TypeError:
                 pass
         return reply
@@ -75,7 +76,7 @@ class dashDevice(threading.Thread):
 
     def send_popup_message(self, title, header, message):
         """Send a popup message to the Dash server.
-
+        
         Parameters
         ----------
         title : str
@@ -105,16 +106,7 @@ class dashDevice(threading.Thread):
         logging.debug("ALARM: %s", payload)
         self.tx_zmq_pub.send_multipart([b"ALARM", b'0', payload.encode('utf-8')])
 
-    def send_dash_connect(self):
-        data = self.device_id_str + "\tWHO\t{}\t{}\n".format(self.device_type, self.device_name_cntrl.control_id)
-        self.tx_zmq_pub.send_multipart([b'ANNOUNCE', b'0', data.encode('utf-8')])
-
-    def __insert_device_id(self, data):
-        msg = data.rstrip()
-        reply = msg.replace("\n", "\n\t{}".format(self.device_id))
-        return reply + "\n"
-
-    def send_data(self, data):
+    def send_data(self, data: str):
         """Send data.
 
         Parameters
@@ -122,9 +114,9 @@ class dashDevice(threading.Thread):
         data : str
             Data to be sent
         """
-        msg = self.device_id_str + self.__insert_device_id(data)
+        reply_send = data.format(device_id=self.device_id)
         try:
-            self.tx_zmq_pub.send_multipart([b"ALL", b'0', msg.encode('utf-8')])
+            self.tx_zmq_pub.send_multipart([b"ALL", b'0', reply_send.encode('utf-8')])
         except zmq.error.ZMQError:
             pass
 

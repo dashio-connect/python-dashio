@@ -6,6 +6,7 @@ import argparse
 import signal
 import dashio
 import logging
+
 import numpy as np
 
 
@@ -180,14 +181,14 @@ class TestControls:
                                       control_position=dashio.ControlPosition(0.24, 0.1, 0.54, 0.25))
         self.dial_std = dashio.Dial("DialSTD", "Dial Standard",
                                     style=dashio.DialStyle.STD,
-                                    DialNumberPosition=DialNumberPosition.RIGHT,
-                                    precision=2,
+                                    number_position=DialNumberPosition.RIGHT,
+                                    precision=dashio.Precision.TWO,
                                     control_position=dashio.ControlPosition(0.24, 0.36, 0.54, 0.26))
         self.dial_inv = dashio.Dial("Dial",
                                     "Dial Inverted",
                                     style=dashio.DialStyle.INVERTED,
                                     number_position=DialNumberPosition.LEFT,
-                                    precision=3,
+                                    precision=dashio.Precision.THREE,
                                     control_position=dashio.ControlPosition(0.24, 0.61, 0.54, 0.26))
         self.page_dials.add_control(self.compass)
         self.page_dials.add_control(self.dial_std)
@@ -273,9 +274,9 @@ class TestControls:
                               "Map",
                               control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 1.0))
         self.map_loc1 = dashio.SimpleMapLocation("Mt. Cook", -43.59412841615468, 170.14189062192213)
-        self.map_loc2 = dashio.MapLocation("James Peak", -45.237101516008835, 168.84818243505748)
+        # self.map_loc2 = dashio.MapLocation("James Peak", -45.237101516008835, 168.84818243505748)
         self.map.add_location(self.map_loc1)
-        self.map.add_location(self.map_loc2)
+        # self.map.add_location(self.map_loc2)
         self.page_map.add_control(self.map)
         self.device.add_control(self.map)
 
@@ -484,8 +485,6 @@ class TestControls:
         while not self.shutdown:
             time.sleep(5)
             self.compass.direction_value = random.random() * 360
-            if len(self.event_log.log_list) > 15:
-                self.event_log.log_list.pop(0)
             self.dial_std.dial_value = random.random() * 100
             self.dial_inv.dial_value = random.random() * 100
 

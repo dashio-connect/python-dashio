@@ -17,7 +17,9 @@ class Compass(Control):
         self.pointer_color = pointer_color
         self.calibration_angle = calibration_angle
         self._direction_value = 0
-        self._state_str = "\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, self._direction_value)
+
+    def get_state(self):
+        return self._state_str + "{}\n".format(self._direction_value)
 
     @property
     def direction_value(self) -> float:
@@ -26,7 +28,7 @@ class Compass(Control):
     @direction_value.setter
     def direction_value(self, val: float):
         self._direction_value = val
-        self.state_str = "\t{}\t{}\t{}\n".format(self.msg_type, self.control_id, val)
+        self.state_str = self._state_str + "\t{}\n".format(val)
 
     @property
     def pointer_color(self) -> Color:

@@ -22,7 +22,7 @@ class Graph(Control):
     def get_state(self):
         state_str = ""
         for key in self.line_dict.keys():
-            state_str += self.get_state_str + key + self.line_dict[key].get_line_data()
+            state_str += self._state_str + key + self.line_dict[key].get_line_data()
         return state_str
 
     def __init__(
@@ -54,7 +54,6 @@ class Graph(Control):
         self.y_axis_num_bars = y_axis_num_bars
 
         self.line_dict = {}
-        self.get_state_str = "\t{}\t{}\t".format(self.msg_type, self.control_id)
 
     def add_line(self, line_id, gline):
         self.line_dict[line_id] = gline
@@ -62,7 +61,7 @@ class Graph(Control):
     def send_graph(self):
         state_str = ""
         for key in self.line_dict.keys():
-            state_str += self.get_state_str + key + self.line_dict[key].get_line_data()
+            state_str += self._state_str + key + self.line_dict[key].get_line_data()
         self.state_str = state_str
 
     @property
