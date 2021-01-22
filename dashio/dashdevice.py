@@ -38,14 +38,14 @@ class dashDevice(threading.Thread):
         elif cntrl_type == "STATUS":
             reply = self.__make_status()
         elif cntrl_type == "CFG":
-            reply = self.__make_cfg()
+            reply = self.__make_cfg(data_array[2], data_array[3])
         elif cntrl_type == "NAME":
             self.device_name_cntrl.message_rx_event(data_array[2:])
         else:
             try:
                 key = cntrl_type + "_" + data_array[2]
             except IndexError:
-                return
+                return reply
             try:
                 self.control_dict[key].message_rx_event(data_array)
             except KeyError:
@@ -55,28 +55,23 @@ class dashDevice(threading.Thread):
     def __make_status(self):
         reply = ""
         for key in self.control_dict.keys():
-            print(key)
             try:
-                # status = self.control_dict[key].get_state()
-                # if status:
                 reply += self.control_dict[key].get_state().format(device_id=self.device_id)
             except TypeError:
                 pass
         return reply
 
-    def __make_cfg(self):
+    def __make_cfg(self, page_x, page_y):
         reply = ""
         if self.number_of_pages:
             reply = self.device_id_str + '\tCFG\tDVCE\t{{"numPages": {}}}\n'.format(self.number_of_pages)
         for key in self.control_dict.keys():
-            reply += self.device_id_str + self.control_dict[key].get_cfg()
-        for key in self.alarm_dict.keys():
-            reply += self.alarm_dict[key].get_cfg()
+            reply += self.device_id_str + self.control_dict[key].get_cfg(page_x, page_y)
         return reply
 
     def send_popup_message(self, title, header, message):
         """Send a popup message to the Dash server.
-        
+
         Parameters
         ----------
         title : str

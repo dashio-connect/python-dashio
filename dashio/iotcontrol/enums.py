@@ -105,6 +105,7 @@ class Keyboard(Enum):
     INT = "INT"
     HEX = "HEX"
 
+
 class TextFormat(Enum):
     NONE = "NONE"
     NUMBER = "NUM"

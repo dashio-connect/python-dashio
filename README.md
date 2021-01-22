@@ -106,9 +106,19 @@ We also add it to the page and to the device. Now when the knob in IoTDashoard i
 
 ### Controls
 
+Controls are objects that represent actions and widgets in the IoTDashboard application. Controls that are displayed have a ```dashio.ControlPosition``` that is composed of four size and position variables: x_position_ratio, y_position_ratio, width_ratio, height_ratio. The first two are position ratios that place the top left corner of the widget on the page. The last two are ratios that govern the size of the widget. The ratios are propertional to the size of the screen with the full size of the screen representing 1.0.
+
 #### Alarm
 
+```python
+alarm = dashio.Alarm("alarm1_ID", header="Alarm1", body="Hello from Alarm1")
+alarm.send()
+```
+An alarm sends a notification throught the dashio mqtt server to registered phones. The ability to send alarms to specific phones, and the notification sound is configured throught the IoTDasboard app. Alarms are only available if you have an account registered on the dashio server and you send the the alarm through a dash connection.
+
 #### Button
+
+
 
 #### Button Group
 
@@ -139,6 +149,12 @@ We also add it to the page and to the device. Now when the knob in IoTDashoard i
 #### Time Graph
 
 ### Connections
+
+#### TCP
+
+#### MQTT
+
+#### Dash
 
 ### Dash Server
 

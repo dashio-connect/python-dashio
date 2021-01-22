@@ -33,7 +33,6 @@ class EventLog(Control):
         super().__init__("LOG", control_id, control_position=control_position, title_position=title_position)
         self.title = title
         self.message_rx_event = self.__get_log_from_timestamp
-
         self.log = RingBuffer(max_log_entries)
 
     def __get_log_from_timestamp(self, msg):
