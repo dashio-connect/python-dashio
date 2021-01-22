@@ -5,8 +5,6 @@ import logging
 import zmq
 import shortuuid
 
-# TODO: Add documentation
-
 
 class dashConnection(threading.Thread):
     """Setups and manages a connection thread to the Dash Server."""
@@ -19,7 +17,7 @@ class dashConnection(threading.Thread):
                 for device in self.device_list:
                     control_topic = "{}/{}/control".format(self.username, device.device_id)
                     self.dash_c.subscribe(control_topic, 0)
-                    self.send_dash_announce(device)
+                    self.__send_dash_announce(device)
             logging.debug("connected OK")
         else:
             logging.debug("Bad connection Returned code=%s",rc)
@@ -45,13 +43,13 @@ class dashConnection(threading.Thread):
 
     def add_device(self, device):
         device.add_connection(self.connection_id)
-        control_topic = "{}/{}/control".format(self.username, device.device_id)
         self.device_list.append(device)
         if self.connected:
+            control_topic = "{}/{}/control".format(self.username, device.device_id)
             self.dash_c.subscribe(control_topic, 0)
-            self.send_dash_announce(device)
+            self.__send_dash_announce(device)
 
-    def send_dash_announce(self, device):
+    def __send_dash_announce(self, device):
         data_topic = "{}/{}/announce".format(self.username, device.device_id)
         data = device.device_id_str + "\tWHO\t{}\t{}\n".format(device.device_type, device.device_name_cntrl.control_id)
         self.dash_c.publish(data_topic, data)

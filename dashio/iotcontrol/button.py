@@ -4,7 +4,12 @@ from .control import Control
 
 class Button(Control):
     def toggle_btn(self):
-        self.btn_state = not self.btn_state
+        if self.btn_state == ButtonState.FLASH:
+            return
+        if self.btn_state == ButtonState.OFF:
+            self.btn_state = ButtonState.ON
+        else:
+            self.btn_state = ButtonState.OFF
 
     def __init__(
         self,

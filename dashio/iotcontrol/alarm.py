@@ -2,13 +2,12 @@ from .control import Control
 
 
 class Alarm(Control):
-    def get_cfg(self):
+    def get_cfg(self, page_x, page_y):
         # Overide get_cfg as Alarms don't have a config setting.
         return ""
 
-    def __init__(self, control_id, title="Title", body="Body", header="Header"):
+    def __init__(self, control_id, header="Header", body="Body"):
         super().__init__("ALM", control_id)
-        self.title = title
         self.body = body
         self.header = header
 
