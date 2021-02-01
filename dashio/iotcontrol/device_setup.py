@@ -23,21 +23,20 @@ class DeviceSetup(Control):
     def __init__(
         self,
         control_id,
-        number_pages = 0,
-        edit_lock = True,
-        set_name = False,
-        set_wifi = False,
-        set_dashio = False
+        number_pages=0,
+        edit_lock=True,
+        set_name=False,
+        set_wifi=False,
+        set_dashio=False
     ):
         super().__init__("DVCE", control_id)
         self._state_str = ""
-        self.number_pages =number_pages
+        self.number_pages = number_pages
         self.edit_lock = edit_lock
         self._set_name = set_name
         self._set_wifi = set_wifi
         self._set_dashio = set_dashio
         self.__set_devicesetup()
-
 
     @property
     def number_pages(self) -> int:
@@ -46,7 +45,7 @@ class DeviceSetup(Control):
     @number_pages.setter
     def number_pages(self, val: int):
         self._cfg["numPages"] = val
-    
+
     @property
     def edit_lock(self) -> bool:
         return self._cfg["editLock"]
@@ -54,7 +53,7 @@ class DeviceSetup(Control):
     @edit_lock.setter
     def edit_lock(self, val: bool):
         self._cfg["editLock"] = val
-    
+
     @property
     def set_name(self) -> bool:
         return self._set_name
@@ -63,7 +62,7 @@ class DeviceSetup(Control):
     def set_name(self, val: bool):
         self._set_name = val
         self.__set_devicesetup()
-    
+
     @property
     def set_wifi(self) -> bool:
         return self._set_wifi
@@ -72,7 +71,6 @@ class DeviceSetup(Control):
     def set_wifi(self, val: bool):
         self._set_wifi = val
         self.__set_devicesetup()
-
 
     @property
     def set_dashio(self) -> bool:
