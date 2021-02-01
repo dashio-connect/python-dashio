@@ -34,7 +34,7 @@ class tcpConnection(threading.Thread):
         self.zeroconf.register_service(zconf_info)
 
     def add_device(self, device):
-        device.add_connection(self.connection_id)
+        device.add_connection(self)
 
     def __init__(self, ip="*", port=5000, context=None):
         """
