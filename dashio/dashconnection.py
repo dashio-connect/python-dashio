@@ -56,6 +56,7 @@ class dashConnection(threading.Thread):
 
     def __set_connection(self, username, password):
         self.dash_c.disconnect()
+        self.username = username
         self.dash_c.username_pw_set(username, password)
         self.dash_c.connect(self.host, self.port)
 
