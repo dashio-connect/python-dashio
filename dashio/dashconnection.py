@@ -20,10 +20,10 @@ class dashConnection(threading.Thread):
                     self.__send_dash_announce(device)
             logging.debug("connected OK")
         else:
-            logging.debug("Bad connection Returned code=%s",rc)
+            logging.debug("Bad connection Returned code=%s", rc)
 
     def __on_disconnect(self, client, userdata, rc):
-        logging.debug("disconnecting reason  "  + str(rc))
+        logging.debug("disconnecting reason  " + str(rc))
         self.connected = False
         self.disconnect = True
 
@@ -54,7 +54,12 @@ class dashConnection(threading.Thread):
         data = device.device_id_str + "\tWHO\t{}\t{}\n".format(device.device_type, device.device_name_cntrl.control_id)
         self.dash_c.publish(data_topic, data)
 
-    def __init__(self, username, password, host='dash.dashio.io', port=8883, context=None):
+    def __set_connection(self, username, password):
+        self.dash_c.disconnect()
+        self.dash_c.username_pw_set(username, password)
+        self.dash_c.connect(self.host, self.port)
+
+    def __init__(self, username="", password="", host='dash.dashio.io', port=8883, set_by_iotdashboard=False, context=None):
         """
         Arguments:
             host {str} -- The server name of the dash host.
@@ -74,7 +79,9 @@ class dashConnection(threading.Thread):
         self.running = True
         self.username = username
         self.dash_c = mqtt.Client()
-
+        self.host = host
+        self.port = port
+        self.set_by_iotdashboard = set_by_iotdashboard
         # Assign event callbacks
         self.dash_c.on_message = self.__on_message
         self.dash_c.on_connect = self.__on_connect
@@ -95,8 +102,9 @@ class dashConnection(threading.Thread):
         self.dash_c.on_log = self.__on_log
         # self.dash_c.will_set(self.data_topic, self.LWD, qos=1, retain=False)
         # Connect
-        self.dash_c.username_pw_set(username, password)
-        self.dash_c.connect(host, port)
+        if username and password:
+            self.dash_c.username_pw_set(username, password)
+            self.dash_c.connect(host, port)
         # Start subscribe, with QoS level 0
         self.start()
 

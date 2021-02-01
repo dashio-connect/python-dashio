@@ -1,11 +1,11 @@
 import logging
 import zmq
 import threading
+import json
 
 from .iotcontrol.name import Name
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.page import Page
-
 
 class dashDevice(threading.Thread):
 
@@ -40,7 +40,14 @@ class dashDevice(threading.Thread):
         elif cntrl_type == "CFG":
             reply = self.__make_cfg(data_array[2], data_array[3])
         elif cntrl_type == "NAME":
-            self.device_name_cntrl.message_rx_event(data_array[2:])
+            if self._set_name:
+                self.device_name_cntrl.message_rx_event(data_array[2:])
+        elif cntrl_type == "WIFI":
+            if self._set_wifi:
+                pass
+        elif cntrl_type == "DASH":
+            if self._set_dash:
+                pass
         else:
             try:
                 key = cntrl_type + "_" + data_array[2]
@@ -64,7 +71,7 @@ class dashDevice(threading.Thread):
     def __make_cfg(self, page_x, page_y):
         reply = ""
         if self.number_of_pages:
-            reply = self.device_id_str + '\tCFG\tDVCE\t{{"numPages": {}}}\n'.format(self.number_of_pages)
+            reply = self.device_id_str + '\tCFG\tDVCE\t' + json.dumps(self._cfg) + "\n"
         for key in self.control_dict.keys():
             reply += self.device_id_str + self.control_dict[key].get_cfg(page_x, page_y)
         return reply
@@ -140,7 +147,31 @@ class dashDevice(threading.Thread):
         self.rx_zmq_sub.connect(rx_url_internal)
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, connection_id.encode('utf-8'))
 
-    def __init__(self, device_type, device_id, device_name, context=None) -> None:
+    def __set_devicesetup(self):
+        device_setup = ""
+        if self._set_dash:
+            device_setup += "dashio"
+        if self._set_name:
+            if self._set_dash:
+                device_setup += ",name"
+            else:
+                device_setup += "name"
+        if self._set_wifi:
+            if self._set_dash or self._set_name:
+                device_setup += ",wifi"
+            else:
+                device_setup += "wifi"
+        self._cfg["deviceSetup"] = device_setup
+
+    def __init__(self,
+                 device_type,
+                 device_id,
+                 device_name,
+                 edit_lock=True,
+                 set_name=False,
+                 set_wifi=False,
+                 set_dash=False,
+                 context=None) -> None:
         threading.Thread.__init__(self, daemon=True)
 
         self.context = context or zmq.Context.instance()
@@ -149,13 +180,54 @@ class dashDevice(threading.Thread):
         self.device_name_cntrl = Name(device_name.strip())
         self.control_dict = {}
         self.alarm_dict = {}
-
+        self._cfg = {}
         self.add_control(self.device_name_cntrl)
         self.device_id_str = "\t{}".format(device_id)
         self.connect = self.device_id_str + "\tCONNECT\n"
-        self.number_of_pages = 0
+
+        self.number_pages = 0
+        self.edit_lock = edit_lock
+        self._set_name = set_name
+        self._set_wifi = set_wifi
+        self._set_dash = set_dash
+        self.__set_devicesetup()
         self.running = True
         self.start()
+
+    @property
+    def edit_lock(self) -> bool:
+        return self._cfg["editLock"]
+
+    @edit_lock.setter
+    def edit_lock(self, val: bool):
+        self._cfg["editLock"] = val
+
+    @property
+    def set_name(self) -> bool:
+        return self._set_name
+
+    @set_name.setter
+    def set_name(self, val: bool):
+        self._set_name = val
+        self.__set_devicesetup()
+
+    @property
+    def set_wifi(self) -> bool:
+        return self._set_wifi
+
+    @set_wifi.setter
+    def set_wifi(self, val: bool):
+        self._set_wifi = val
+        self.__set_devicesetup()
+
+    @property
+    def set_dash(self) -> bool:
+        return self._set_dash
+
+    @set_dash.setter
+    def set_dash(self, val: bool):
+        self._set_dash = val
+        self.__set_devicesetup()
 
     def close(self):
         self.running = False
