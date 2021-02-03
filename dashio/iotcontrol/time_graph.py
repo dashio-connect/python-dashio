@@ -16,11 +16,12 @@ class DataPoint:
 
 class TimeGraphLine:
     def __init__(
-        self, name="", line_type=TimeGraphLineType.LINE, color=Color.BLACK, transparency=1.0, max_data_points=60
+        self, name="", line_type=TimeGraphLineType.LINE, color=Color.BLACK, transparency=1.0, max_data_points=60, break_data=False
     ):
         self.name = name
         self.line_type = line_type
         self.color = color
+        self.break_data = break_data
         self.transparency = transparency
         self.data = RingBuffer(max_data_points)
 
@@ -43,9 +44,13 @@ class TimeGraphLine:
         )
         dt = dateutil.parser.isoparse(timestamp)
         data = self.data.get()
+        first = True
         for d in data:
             if d.timestamp > dt:
+                if first and self.break_data:
+                    data_str += "\t" + "{ts},{data}".format(dt.isoformat(), data="b")
                 data_str += "\t" + d.to_string()
+                first = False
         data_str += "\n"
         return data_str
 
