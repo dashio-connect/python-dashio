@@ -90,7 +90,6 @@ def main():
     dash_conn = dashio.dashConnection(args.username, args.password)
 
     def dash_rx_event_handler(msg):
-        print(msg)
         dash_conn.set_connection(msg[2], msg[3])
 
     device.dash_rx_event += dash_rx_event_handler

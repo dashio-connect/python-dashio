@@ -70,9 +70,7 @@ class dashDevice(threading.Thread):
         return reply
 
     def __make_cfg(self, page_x, page_y):
-        reply = ""
-        if self.number_of_pages:
-            reply = self.device_id_str + '\tCFG\tDVCE\t' + json.dumps(self._cfg) + "\n"
+        reply = self.device_id_str + '\tCFG\tDVCE\t' + json.dumps(self._cfg) + "\n"
         for key in self.control_dict.keys():
             reply += self.device_id_str + self.control_dict[key].get_cfg(page_x, page_y)
         return reply
