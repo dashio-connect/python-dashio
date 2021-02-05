@@ -12,7 +12,7 @@ class ControlPosition:
         self.width_ratio = width_ratio
         self.height_ratio = height_ratio
 
-    def __set_size(self, page_size_x, page_size_y):
+    def _set_size(self, page_size_x, page_size_y):
         logging.debug("Page X: {x}, Page Y: {y}".format(x=page_size_x, y=page_size_y))
 
 
@@ -23,7 +23,7 @@ class Control:
     def get_cfg(self, page_size_x, page_size_y):
         # logging.debug("Page size x: %s, y: %s", page_x, page_y)
         if self.control_position:
-            self.control_position.__set_size(page_size_x, page_size_y)
+            self.control_position._set_size(page_size_x, page_size_y)
         cfg_str = "\tCFG\t" + self.msg_type + "\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
 
