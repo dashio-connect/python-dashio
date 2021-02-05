@@ -13,7 +13,7 @@ class ControlPosition:
         self.height_ratio = height_ratio
 
     def __set_size(self, page_size_x, page_size_y):
-        pass
+        logging.debug("Page X: {x}, Page Y: {y}".format(x=page_size_x, y=page_size_y))
 
 
 class Control:
