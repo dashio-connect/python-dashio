@@ -41,7 +41,7 @@ class mqttConnection(threading.Thread):
         logging.debug(string)
 
     def add_device(self, device):
-        device.add_connection(self.connection_id)
+        device.add_connection(self)
         control_topic = "{}/{}/control".format(self.username, device.device_id)
         self.connection_topic_list.append(control_topic)
         if self.connected:

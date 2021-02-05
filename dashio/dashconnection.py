@@ -42,19 +42,20 @@ class dashConnection(threading.Thread):
         logging.debug(string)
 
     def add_device(self, device):
-        device.add_connection(self.connection_id)
-        self.device_list.append(device)
-        if self.connected:
-            control_topic = "{}/{}/control".format(self.username, device.device_id)
-            self.dash_c.subscribe(control_topic, 0)
-            self.__send_dash_announce(device)
+        if device not in self.device_list:
+            self.device_list.append(device)
+            device.add_connection(self)
+            if self.connected:
+                control_topic = "{}/{}/control".format(self.username, device.device_id)
+                self.dash_c.subscribe(control_topic, 0)
+                self.__send_dash_announce(device)
 
     def __send_dash_announce(self, device):
         data_topic = "{}/{}/announce".format(self.username, device.device_id)
         data = device.device_id_str + "\tWHO\t{}\t{}\n".format(device.device_type, device.device_name_cntrl.control_id)
         self.dash_c.publish(data_topic, data)
 
-    def __set_connection(self, username, password):
+    def set_connection(self, username, password):
         self.dash_c.disconnect()
         self.username = username
         self.dash_c.username_pw_set(username, password)

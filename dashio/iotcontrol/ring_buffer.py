@@ -21,6 +21,9 @@ class RingBuffer:
             if indx < 0:
                 indx = self.max - 1 
             return self.data[indx]
+        
+        def empty(self):
+            return False
 
     def append(self, x):
         """append an element at the end of the buffer"""
@@ -32,6 +35,11 @@ class RingBuffer:
 
     def get_latest(self):
         return self.data[-1]
+
+    def empty(self):
+        if not self.data:
+            return True
+        return False
 
     def get(self):
         """ Return a list of elements from the oldest to the newest. """
