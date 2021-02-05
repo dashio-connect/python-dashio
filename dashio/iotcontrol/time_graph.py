@@ -16,20 +16,19 @@ class DataPoint:
 
 class TimeGraphLine:
     def __init__(
-        self, name="", line_type=TimeGraphLineType.LINE, color=Color.BLACK, transparency=1.0, max_data_points=60, break_data=False
+        self, name="", line_type=TimeGraphLineType.LINE, color=Color.BLACK, max_data_points=60, break_data=False
     ):
         self.name = name
         self.line_type = line_type
         self.color = color
         self.break_data = break_data
-        self.transparency = transparency
         self.data = RingBuffer(max_data_points)
 
     def get_line_data(self):
-        if not self.data:
+        if self.data.empty():
             return ""
-        data_str = "\t{l_name}\t{l_type}\t{l_color}\t{l_transparency}".format(
-            l_name=self.name, l_type=self.line_type.value, l_color=self.color.value, l_transparency=self.transparency
+        data_str = "\t{l_name}\t{l_type}\t{l_color}".format(
+            l_name=self.name, l_type=self.line_type.value, l_color=self.color.value
         )
         for d in self.data.get():
             data_str += "\t" + d.to_string()
@@ -37,21 +36,23 @@ class TimeGraphLine:
         return data_str
 
     def get_line_from_timestamp(self, timestamp):
-        if not self.data:
-            return ""
-        data_str = "\t{l_name}\t{l_type}\t{l_color}\t{l_transparency}".format(
-            l_name=self.name, l_type=self.line_type.value, l_color=self.color.value, l_transparency=self.transparency
+        data_str = "\t{l_name}\t{l_type}\t{l_color}".format(
+            l_name=self.name, l_type=self.line_type.value, l_color=self.color.value
         )
         dt = dateutil.parser.isoparse(timestamp)
-        data = self.data.get()
         first = True
-        for d in data:
+        valid_data = False
+        data_list = self.data.get()
+        for d in data_list:
             if d.timestamp > dt:
                 if first and self.break_data:
-                    data_str += "\t" + "{ts},{data}".format(dt.isoformat(), data="b")
+                    data_str += "\t" + "{ts},{ldata}".format(ts=dt.isoformat(), ldata="b")
                 data_str += "\t" + d.to_string()
-                first = False
+                valid_data = True
+            first = False
         data_str += "\n"
+        if not valid_data:
+             data_str = ""
         return data_str
 
     def add_data_point(self, data_point):
@@ -64,10 +65,10 @@ class TimeGraphLine:
         self.data.append(dp)
 
     def get_latest_data(self):
-        if not self.data:
+        if self.data.empty():
             return ""
-        data_str = "\t{l_name}\t{l_type}\t{l_color}\t{l_transparency}".format(
-            l_name=self.name, l_type=self.line_type.value, l_color=self.color.value, l_transparency=self.transparency
+        data_str = "\t{l_name}\t{l_type}\t{l_color}".format(
+            l_name=self.name, l_type=self.line_type.value, l_color=self.color.value
         )
         data_str += "\t" + self.data.get_latest().to_string()
         data_str += "\n"

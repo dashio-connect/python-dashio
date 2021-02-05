@@ -71,6 +71,8 @@ def parse_commandline_arguments():
 
 
 def main():
+
+
     # Catch CNTRL-C signel
     global shutdown
     signal.signal(signal.SIGINT, signal_cntrl_c)
@@ -86,6 +88,13 @@ def main():
 
     device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
     dash_conn = dashio.dashConnection(args.username, args.password)
+
+    def dash_rx_event_handler(msg):
+        print(msg)
+        dash_conn.set_connection(msg[2], msg[3])
+
+    device.dash_rx_event += dash_rx_event_handler
+    device.set_dash = True
     dash_conn.add_device(device)
 
     monitor_page = dashio.Page("monpg", "Dash Server Moniter")
@@ -96,10 +105,10 @@ def main():
     gph_network.y_axis_max = 1000.0
     gph_network.y_axis_num_bars = 11
     Network_Rx = dashio.TimeGraphLine(
-        "RX", dashio.TimeGraphLineType.LINE, color=dashio.Color.FUSCIA, max_data_points=no_datapoints
+        "RX", dashio.TimeGraphLineType.LINE, color=dashio.Color.FUSCIA, max_data_points=no_datapoints, break_data=True
     )
     Network_Tx = dashio.TimeGraphLine(
-        "TX", dashio.TimeGraphLineType.LINE, color=dashio.Color.AQUA, max_data_points=no_datapoints
+        "TX", dashio.TimeGraphLineType.LINE, color=dashio.Color.AQUA, max_data_points=no_datapoints, break_data=True
     )
 
     gph_network.add_line("NET_RX", Network_Rx)
@@ -125,8 +134,8 @@ def main():
             name="CPU:{}".format(cpu),
             line_type=dashio.TimeGraphLineType.LINE,
             color=dashio.Color(cpu + 1),
-            transparency=1.0,
             max_data_points=no_datapoints,
+            break_data=True
         )
         cpu_core_line_array.append(line)
         gph_cpu.add_line("CPU:{}".format(cpu), line)
