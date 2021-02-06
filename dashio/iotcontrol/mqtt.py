@@ -9,7 +9,6 @@ class MQTT(Control):
 
     def __init__(self, control_id, username="", servername=""):
         super().__init__("MQTT", control_id)
-        self.message_rx_event += self.__set_mqtt
         self.username = username
         self.servername = servername
 

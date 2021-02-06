@@ -22,7 +22,7 @@ class SliderSingleBar(Control):
     ):
         super().__init__("SLDR", control_id, control_position=control_position, title_position=title_position)
         self.title = title
-        self._control_id_bar = "BAR"
+        self._control_id_bar = "\t{{device_id}}\tBAR\t{id}\t".format(id=control_id)
 
         self._bar1_value = 0.0
         self._slider_value = 0.0
@@ -38,7 +38,7 @@ class SliderSingleBar(Control):
         self.bar_style = bar_style
         self.knob_color = knob_color
         self._slider_state_str = self._state_str + "{}\n".format(self._slider_value)
-        self._bar1_state_str = self._state_str + "{}\n".format(self._bar1_value)
+        self._bar1_state_str = self._control_id_bar + "{}\n".format(self._bar1_value)
         self._bar_slider_state_str = self._slider_state_str + self._bar1_state_str
 
     def get_state(self):
@@ -51,7 +51,7 @@ class SliderSingleBar(Control):
     @bar1_value.setter
     def bar1_value(self, val: float):
         self._bar1_value = val
-        self._bar1_state_str = self._state_str + "{}\n".format(self._bar1_value)
+        self._bar1_state_str = self._control_id_bar + "{}\n".format(self._bar1_value)
         self.message_tx_event(self._bar1_state_str)
         self._bar_slider_state_str = self._slider_state_str + self._bar1_state_str
 
