@@ -9,13 +9,8 @@ class TCP(Control):
 
     def __init__(self, control_id, ip_address="", port=5000):
         super().__init__("TCP", control_id)
-        self.message_rx_event += self.__set_tcp
         self.ip_address = ip_address
         self.port = port
-
-    def __set_tcp(self, msg):
-        self.ip_address = msg[3]
-        self.port = msg[4]
 
     def set_tcp(self, ip_address: str, port: int):
         self.ip_address = ip_address

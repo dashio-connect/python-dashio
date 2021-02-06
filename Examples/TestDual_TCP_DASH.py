@@ -68,13 +68,13 @@ class TestControls:
 
     def up_btn_event_handler(self, msg):
         if self.sldr_cntrl.bar1_value < self.sldr_cntrl.max:
-            self.sldr_cntrl.bar1_value += 1
-            self.sldr_dbl_cntrl.bar1_value += 1
+            self.sldr_cntrl.bar1_value += 1.0
+            self.sldr_dbl_cntrl.bar1_value += 1.0
 
     def down_btn_event_handler(self, msg):
         if self.sldr_cntrl.bar1_value > self.sldr_cntrl.min:
-            self.sldr_cntrl.bar1_value -= 1
-            self.sldr_dbl_cntrl.bar1_value -= 1
+            self.sldr_cntrl.bar1_value -= 1.0
+            self.sldr_dbl_cntrl.bar1_value -= 1.0
 
     def slider_event_handler(self, msg):
         self.sldr_cntrl.slider_value = float(msg[3])
@@ -183,7 +183,7 @@ class TestControls:
         self.text_cntrl.message_rx_event += self.text_cntrl_message_handler
         self.page_test.add_control(self.text_cntrl)
 
-        self.alarm_ctrl = dashio.Alarm("TestingAlarms", "Test Alarms", "Hello", "Test of Shared Alarms")
+        self.alarm_ctrl = dashio.Alarm("TestingAlarms", "Hello", "Test of Shared Alarms")
         self.device.add_control(self.alarm_ctrl)
         self.comp_control = dashio.Compass("COMP1", control_position=dashio.ControlPosition(0.24, 0.38, 0.54, 0.22))
         self.comp_control.title = "A compass"

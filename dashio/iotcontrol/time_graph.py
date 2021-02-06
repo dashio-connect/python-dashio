@@ -46,7 +46,7 @@ class TimeGraphLine:
         for d in data_list:
             if d.timestamp > dt:
                 if first and self.break_data:
-                    data_str += "\t" + "{ts},{ldata}".format(ts=dt.isoformat(), ldata="b")
+                    data_str += "\t" + "{ts},{ldata}".format(ts=d.timestamp.isoformat(), ldata="b") 
                 data_str += "\t" + d.to_string()
                 valid_data = True
             first = False
@@ -114,7 +114,9 @@ class TimeGraph(Control):
         state_str = ""
         for key in self.line_dict.keys():
             if self.line_dict[key].data:
-                state_str += self._state_str  + key + self.line_dict[key].get_line_from_timestamp(msg[3])
+                line_data = self.line_dict[key].get_line_from_timestamp(msg[3])
+                if line_data:
+                    state_str += self._state_str  + key + line_data
         self.state_str = state_str
 
     def send_data(self):

@@ -33,8 +33,7 @@ class SliderDoubleBar(SliderSingleBar):
                          control_position)
 
         self._bar2_value = 0.0
-        self._bar_state_str = self._state_str + "{:.2f}\t{:.2f}\n".format(self._bar1_value, self._bar2_value
-        )
+        self._bar_state_str = self._control_id_bar + "{:.2f}\t{:.2f}\n".format(self._bar1_value, self._bar2_value)
         self._bar_slider_state_str = self._slider_state_str + self._bar_state_str
 
     @property
@@ -44,9 +43,7 @@ class SliderDoubleBar(SliderSingleBar):
     @bar1_value.setter
     def bar1_value(self, val: float):
         self._bar1_value = val
-        self._bar_state_str = self._state_str + "{:.2f}\t{:.2f}\n".format(
-            self._control_id_bar, self.control_id, val, self._bar2_value
-        )
+        self._bar_state_str = self._control_id_bar + "{:.2f}\t{:.2f}\n".format(val, self._bar2_value)
         self.message_tx_event(self._bar_state_str)
         self._bar_slider_state_str = self._slider_state_str + self._bar_state_str
 
@@ -57,8 +54,7 @@ class SliderDoubleBar(SliderSingleBar):
     @bar2_value.setter
     def bar2_value(self, val: float):
         self._bar2_value = val
-        self._bar_state_str = self._state_str + "{:.2f}\t{:.2f}\n".format(self._bar1_value, val
-        )
+        self._bar_state_str = self._control_id_bar + "{:.2f}\t{:.2f}\n".format(self._bar1_value, val)
         self.message_tx_event(self._bar_state_str)
         self._bar_slider_state_str = self._slider_state_str + self._bar_state_str
 

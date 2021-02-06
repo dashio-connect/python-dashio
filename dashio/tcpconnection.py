@@ -4,12 +4,12 @@ import logging
 import shortuuid
 from zeroconf import ServiceInfo, Zeroconf, IPVersion
 import socket
-
+from .iotcontrol.tcp import TCP
 
 class tcpConnection(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via TCP."""
 
-    def __get_local_ip_address(self):
+    def _get_local_ip_address(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         try:
             # doesn't even have to be reachable
@@ -21,7 +21,7 @@ class tcpConnection(threading.Thread):
             s.close()
         return IP
 
-    def __zconf_publish_tcp(self, port):
+    def _zconf_publish_tcp(self, port):
         zconf_desc = {'ConnectionUUID': self.connection_id}
         zconf_info = ServiceInfo(
             "_DashIO._tcp.local.",
@@ -35,6 +35,7 @@ class tcpConnection(threading.Thread):
 
     def add_device(self, device):
         device.add_connection(self)
+        device.add_control(self.tcp_control)
 
     def __init__(self, ip="*", port=5000, context=None):
         """
@@ -59,9 +60,10 @@ class tcpConnection(threading.Thread):
         # rename for .local mDNS advertising
         self.host_name = "{}.local".format(hs[0])
 
-        self.local_ip = self.__get_local_ip_address()
+        self.local_ip = self._get_local_ip_address()
+        self.tcp_control = TCP(self.connection_id, self.local_ip, port)
         self.zeroconf = Zeroconf(ip_version=IPVersion.V4Only)
-        self.__zconf_publish_tcp(port)
+        self._zconf_publish_tcp(port)
         self.start()
 
     def close(self):

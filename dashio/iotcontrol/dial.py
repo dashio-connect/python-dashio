@@ -97,11 +97,11 @@ class Dial(Control):
         self._cfg["pointerColor"] = str(val.value)
 
     @property
-    def number_positions(self) -> DialNumberPosition:
+    def number_position(self) -> DialNumberPosition:
         return self._number_position
 
-    @number_positions.setter
-    def number_positions(self, val: DialNumberPosition):
+    @number_position.setter
+    def number_position(self, val: DialNumberPosition):
         self._number_position = val
         self._cfg["numberPosition"] = val.value
 

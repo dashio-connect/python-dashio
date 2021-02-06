@@ -3,7 +3,6 @@ import zmq
 import threading
 import json
 
-from .iotcontrol.name import Name
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.page import Page
 from .iotcontrol.event import Event
@@ -29,7 +28,7 @@ class dashDevice(threading.Thread):
         # logging.debug('Device RX: %s', rx_device_id)
         reply = ""
         if rx_device_id == "WHO":
-            reply = self.device_id_str + "\tWHO\t{}\t{}\n".format(self.device_type, self.device_name_cntrl.control_id)
+            reply = self.device_id_str + "\tWHO\t{}\t{}\n".format(self.device_type, self.device_name)
             return reply
         elif rx_device_id != self.device_id:
             return reply
@@ -42,7 +41,7 @@ class dashDevice(threading.Thread):
             reply = self.__make_cfg(data_array[2], data_array[3])
         elif cntrl_type == "NAME":
             if self._set_name:
-                self.device_name_cntrl.message_rx_event(data_array[2:])
+                self.name_rx_event(data_array)
         elif cntrl_type == "WIFI":
             if self._set_wifi:
                 self.wifi_rx_event(data_array)
@@ -61,7 +60,7 @@ class dashDevice(threading.Thread):
         return reply
 
     def __make_status(self):
-        reply = ""
+        reply = "\t{device_id}\tNAME\t{device_name}\n".format(device_id=self.device_id, device_name=self._device_name)
         for key in self.control_dict.keys():
             try:
                 reply += self.control_dict[key].get_state().format(device_id=self.device_id)
@@ -176,13 +175,13 @@ class dashDevice(threading.Thread):
         self.context = context or zmq.Context.instance()
         self.wifi_rx_event = Event()
         self.dash_rx_event = Event()
+        self.name_rx_event = Event()
         self.device_type = device_type.strip()
         self.device_id = device_id.strip()
-        self.device_name_cntrl = Name(device_name.strip())
+        self._device_name = device_name.strip()
         self.control_dict = {}
         self.alarm_dict = {}
         self._cfg = {}
-        self.add_control(self.device_name_cntrl)
         self.device_id_str = "\t{}".format(device_id)
         self.connect = self.device_id_str + "\tCONNECT\n"
         self.number_of_pages = 0
@@ -237,6 +236,14 @@ class dashDevice(threading.Thread):
     def set_dash(self, val: bool):
         self._set_dash = val
         self.__set_devicesetup()
+
+    @property
+    def device_name(self) -> str:
+        return self._device_name
+
+    @device_name.setter
+    def device_name(self, val: str):
+        self._device_name = val
 
     def close(self):
         self.running = False
