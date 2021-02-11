@@ -26,58 +26,42 @@ class dashDevice(threading.Thread):
         data_array = data.split("\t")
         rx_device_id = data_array[0]
         # logging.debug('Device RX: %s', rx_device_id)
-        reply = ""
         if rx_device_id == "WHO":
-            reply = self.device_id_str + "\tWHO\t{}\t{}\n".format(self.device_type, self.device_name)
-            return reply
-        elif rx_device_id != self.device_id:
-            return reply
-        cntrl_type = data_array[1]
+            return self.device_id_str + "\tWHO\t{}\t{}\n".format(self.device_type, self.device_name)
+        if rx_device_id != self.device_id:
+            return ""
+        try:
+            cntrl_type = data_array[1]
+        except KeyError:
+            return ""
         if cntrl_type == "CONNECT":
-            reply = self.connect
-        elif cntrl_type == "STATUS":
-            reply = self.__make_status()
-        elif cntrl_type == "CFG":
-            reply = self.__make_cfg(data_array[2], data_array[3])
-        elif cntrl_type == "NAME":
-            if self._set_name:
-                self.name_rx_event(data_array)
-        elif cntrl_type == "WIFI":
-            if self._set_wifi:
-                self.wifi_rx_event(data_array)
-        elif cntrl_type == "DASHIO":
-            if self._set_dashio:
-                self.dash_rx_event(data_array)
-        elif cntrl_type == "TCP":
-            if self._set_tcp:
-                self.tcp_rx_event(data_array)
-        elif cntrl_type == "MQTT":
-            if self._set_tcp:
-                self.mqtt_rx_event(data_array)
+            return self.connect
+        if cntrl_type == "STATUS":
+            return self.__make_status()
+        if cntrl_type == "CFG":
+            return self.__make_cfg(data_array)
+        if cntrl_type in self._device_commands_dict:
+            self._device_commands_dict[cntrl_type](data_array)
         else:
             try:
-                key = cntrl_type + "_" + data_array[2]
-            except IndexError:
-                return reply
-            try:
-                self.control_dict[key].message_rx_event(data_array)
-            except KeyError:
+                self.control_dict[cntrl_type + "_" + data_array[2]].message_rx_event(data_array)
+            except (KeyError, IndexError):
                 pass
-        return reply
+        return ""
 
     def __make_status(self):
         reply = "\t{device_id}\tNAME\t{device_name}\n".format(device_id=self.device_id, device_name=self._device_name)
         for key in self.control_dict.keys():
             try:
                 reply += self.control_dict[key].get_state().format(device_id=self.device_id)
-            except TypeError:
+            except (TypeError, KeyError):
                 pass
         return reply
 
-    def __make_cfg(self, page_x, page_y):
+    def __make_cfg(self, data):
         reply = self.device_id_str + '\tCFG\tDVCE\t' + json.dumps(self._cfg) + "\n"
         for key in self.control_dict.keys():
-            reply += self.device_id_str + self.control_dict[key].get_cfg(page_x, page_y)
+            reply += self.device_id_str + self.control_dict[key].get_cfg(data[2], data[3])
         return reply
 
     def send_popup_message(self, title, header, message):
@@ -153,13 +137,19 @@ class dashDevice(threading.Thread):
 
     def _set_devicesetup(self, control_name: str, settable: bool):
         if settable:
+            self._device_commands_dict[control_name.upper()] = getattr(self, control_name + '_rx_event', None)
             self._device_setup_list.append(control_name)
         else:
+            try:
+                del self._device_commands_dict[control_name.upper()]
+            except KeyError:
+                pass
             try:
                 self._device_setup_list.remove(control_name)
             except ValueError:
                 pass
         self._cfg["deviceSetup"] = ','.join(self._device_setup_list)
+
 
     def __init__(self,
                  device_type,
@@ -184,6 +174,7 @@ class dashDevice(threading.Thread):
         self.device_id = device_id.strip()
         self._device_name = device_name.strip()
         self._device_setup_list = []
+        self._device_commands_dict = {}
         self.control_dict = {}
         self.alarm_dict = {}
         self._cfg = {}
