@@ -45,11 +45,14 @@ class dashDevice(threading.Thread):
         elif cntrl_type == "WIFI":
             if self._set_wifi:
                 self.wifi_rx_event(data_array)
-        elif cntrl_type == "DASH":
-            if self._set_dash:
+        elif cntrl_type == "DASHIO":
+            if self._set_dashio:
                 self.dash_rx_event(data_array)
+        elif cntrl_type == "TCP":
+            if self._set_tcp:
+                self.tcp_rx_event(data_array)
         elif cntrl_type == "MQTT":
-            if self._set_mqtt:
+            if self._set_tcp:
                 self.mqtt_rx_event(data_array)
         else:
             try:
@@ -148,26 +151,15 @@ class dashDevice(threading.Thread):
         self.rx_zmq_sub.connect(rx_url_internal)
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, device.connection_id.encode('utf-8'))
 
-    def __set_devicesetup(self):
-        device_setup = ""
-        if self._set_dash:
-            device_setup += "dashio"
-        if self._set_name:
-            if self._set_dash:
-                device_setup += ",name"
-            else:
-                device_setup += "name"
-        if self._set_wifi:
-            if self._set_dash or self._set_name:
-                device_setup += ",wifi"
-            else:
-                device_setup += "wifi"
-        if self._set_mqtt:
-            if self._set_dash or self._set_name or self._set_wifi:
-                device_setup += ",mqtt"
-            else:
-                device_setup += "mqtt"
-        self._cfg["deviceSetup"] = device_setup
+    def _set_devicesetup(self, control_name: str, settable: bool):
+        if settable:
+            self._device_setup_list.append(control_name)
+        else:
+            try:
+                self._device_setup_list.remove(control_name)
+            except ValueError:
+                pass
+        self._cfg["deviceSetup"] = ','.join(self._device_setup_list)
 
     def __init__(self,
                  device_type,
@@ -176,7 +168,8 @@ class dashDevice(threading.Thread):
                  edit_lock=False,
                  set_name=False,
                  set_wifi=False,
-                 set_dash=False,
+                 set_dashio=False,
+                 set_tcp=False,
                  set_mqtt=False,
                  context=None) -> None:
         threading.Thread.__init__(self, daemon=True)
@@ -185,10 +178,12 @@ class dashDevice(threading.Thread):
         self.wifi_rx_event = Event()
         self.dash_rx_event = Event()
         self.name_rx_event = Event()
+        self.tcp_rx_event = Event()
         self.mqtt_rx_event = Event()
         self.device_type = device_type.strip()
         self.device_id = device_id.strip()
         self._device_name = device_name.strip()
+        self._device_setup_list = []
         self.control_dict = {}
         self.alarm_dict = {}
         self._cfg = {}
@@ -197,11 +192,11 @@ class dashDevice(threading.Thread):
         self.number_of_pages = 0
 
         self.edit_lock = edit_lock
-        self._set_name = set_name
-        self._set_wifi = set_wifi
-        self._set_dash = set_dash
-        self._set_mqtt = set_mqtt
-        self.__set_devicesetup()
+        self.set_name = set_name
+        self.set_wifi = set_wifi
+        self.set_dashio = set_dashio
+        self.set_tcp = set_tcp
+        self.set_mqtt = set_mqtt
         self.running = True
         self.start()
 
@@ -228,7 +223,7 @@ class dashDevice(threading.Thread):
     @set_name.setter
     def set_name(self, val: bool):
         self._set_name = val
-        self.__set_devicesetup()
+        self._set_devicesetup("name", val)
 
     @property
     def set_wifi(self) -> bool:
@@ -237,16 +232,34 @@ class dashDevice(threading.Thread):
     @set_wifi.setter
     def set_wifi(self, val: bool):
         self._set_wifi = val
-        self.__set_devicesetup()
+        self._set_devicesetup("wifi", val)
 
     @property
-    def set_dash(self) -> bool:
-        return self._set_dash
+    def set_dashio(self) -> bool:
+        return self._set_dashio
 
-    @set_dash.setter
-    def set_dash(self, val: bool):
-        self._set_dash = val
-        self.__set_devicesetup()
+    @set_dashio.setter
+    def set_dashio(self, val: bool):
+        self._set_dashio = val
+        self._set_devicesetup("dashio", val)
+
+    @property
+    def set_tcp(self) -> bool:
+        return self._set_tcp
+
+    @set_tcp.setter
+    def set_tcp(self, val: bool):
+        self._set_tcp = val
+        self._set_devicesetup("tcp", val)
+
+    @property
+    def set_mqtt(self) -> bool:
+        return self._set_mqtt
+
+    @set_mqtt.setter
+    def set_mqtt(self, val: bool):
+        self._set_mqtt = val
+        self._set_devicesetup("mqtt", val)
 
     @property
     def device_name(self) -> str:
