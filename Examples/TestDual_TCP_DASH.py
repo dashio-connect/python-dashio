@@ -97,6 +97,21 @@ class TestControls:
     def selector_ctrl_handler(self, msg):
         print(self.selector_ctrl.selection_list[int(msg[3])])
 
+    def name_handler(self, msg):
+        print(msg)
+
+    def wifi_handler(self, msg):
+        print(msg)
+
+    def dashio_handler(self, msg):
+        print(msg)
+
+    def tcp_handler(self, msg):
+        print(msg)
+
+    def mqtt_handler(self, msg):
+        print(msg)
+
     def __init__(self):
 
         # Catch CNTRL-C signel
@@ -110,7 +125,20 @@ class TestControls:
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
 
-        self.device = dashio.dashDevice(args.device_type, args.device_id, args.device_name)
+        self.device = dashio.dashDevice(args.device_type,
+                                        args.device_id,
+                                        args.device_name,
+                                        set_name=True,
+                                        set_wifi=True,
+                                        set_dashio=True,
+                                        set_tcp=True,
+                                        set_mqtt=True)
+
+        self.device.dash_rx_event += self.dashio_handler
+        self.device.wifi_rx_event += self.wifi_handler
+        self.device.name_rx_event += self.name_handler
+        self.device.tcp_rx_event += self.name_handler
+        self.device.mqtt_rx_event += self.mqtt_handler
         self.tcp_con = dashio.tcpConnection()
         self.dash_con = dashio.dashConnection(args.username, args.password)
         self.tcp_con.add_device(self.device)
@@ -226,7 +254,7 @@ class TestControls:
         while not self.shutdown:
             time.sleep(5)
 
-            self.comp_control.direction_value = random.random() * 360
+            #self.comp_control.direction_value = random.random() * 360
 
         self.device.send_popup_message("TestControls", "Shutting down", "Goodbye")
         self.device.close()
