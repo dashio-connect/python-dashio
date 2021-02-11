@@ -4,7 +4,7 @@ import ssl
 import logging
 import zmq
 import shortuuid
-from .iotcontrol.mqtt import MQTT
+from .iotcontrol.dash import Dash
 
 class dashConnection(threading.Thread):
     """Setups and manages a connection thread to the Dash Server."""
@@ -45,7 +45,7 @@ class dashConnection(threading.Thread):
         if device not in self.device_list:
             self.device_list.append(device)
             device.add_connection(self)
-            device.add_control(self.mqtt_control)
+            device.add_control(self.dash_control)
             if self.connected:
                 control_topic = "{}/{}/control".format(self.username, device.device_id)
                 self.dash_c.subscribe(control_topic, 0)
@@ -92,7 +92,7 @@ class dashConnection(threading.Thread):
         self.dash_c.on_disconnect = self.__on_disconnect
         # self.dash_c.on_publish = self.__on_publish
         self.dash_c.on_subscribe = self.__on_subscribe
-        self.mqtt_control = MQTT(self.connection_id, username, host)
+        self.dash_control = Dash(self.connection_id, username, host)
         self.dash_c.tls_set(
             ca_certs=None,
             certfile=None,
