@@ -48,6 +48,9 @@ class dashDevice(threading.Thread):
         elif cntrl_type == "DASH":
             if self._set_dash:
                 self.dash_rx_event(data_array)
+        elif cntrl_type == "MQTT":
+            if self._set_mqtt:
+                self.mqtt_rx_event(data_array)
         else:
             try:
                 key = cntrl_type + "_" + data_array[2]
@@ -159,6 +162,11 @@ class dashDevice(threading.Thread):
                 device_setup += ",wifi"
             else:
                 device_setup += "wifi"
+        if self._set_mqtt:
+            if self._set_dash or self._set_name or self._set_wifi:
+                device_setup += ",mqtt"
+            else:
+                device_setup += "mqtt"
         self._cfg["deviceSetup"] = device_setup
 
     def __init__(self,
@@ -169,6 +177,7 @@ class dashDevice(threading.Thread):
                  set_name=False,
                  set_wifi=False,
                  set_dash=False,
+                 set_mqtt=False,
                  context=None) -> None:
         threading.Thread.__init__(self, daemon=True)
 
@@ -176,6 +185,7 @@ class dashDevice(threading.Thread):
         self.wifi_rx_event = Event()
         self.dash_rx_event = Event()
         self.name_rx_event = Event()
+        self.mqtt_rx_event = Event()
         self.device_type = device_type.strip()
         self.device_id = device_id.strip()
         self._device_name = device_name.strip()
@@ -190,6 +200,7 @@ class dashDevice(threading.Thread):
         self._set_name = set_name
         self._set_wifi = set_wifi
         self._set_dash = set_dash
+        self._set_mqtt = set_mqtt
         self.__set_devicesetup()
         self.running = True
         self.start()

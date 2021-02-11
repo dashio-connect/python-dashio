@@ -37,7 +37,7 @@ class tcpConnection(threading.Thread):
         device.add_connection(self)
         device.add_control(self.tcp_control)
 
-    def __init__(self, ip="*", port=5000, context=None):
+    def __init__(self, ip="*", port=5000, use_zero_conf=True, context=None):
         """
         """
 
@@ -45,13 +45,12 @@ class tcpConnection(threading.Thread):
         self.context = context or zmq.Context.instance()
         self.connection_id = shortuuid.uuid()
         self.b_connection_id = self.connection_id.encode('utf-8')
-
+        self.use_zeroconf = use_zero_conf
         self.tx_url_internal = "inproc://TX_{}".format(self.connection_id)
         self.rx_url_internal = "inproc://RX_{}".format(self.connection_id)
 
         self.ext_url = "tcp://" + ip + ":" + str(port)
 
-        self.zeroconf = Zeroconf(ip_version=IPVersion.V4Only)
         self.socket_ids = []
         self.running = True
 
@@ -59,16 +58,19 @@ class tcpConnection(threading.Thread):
         hs = host_name.split(".")
         # rename for .local mDNS advertising
         self.host_name = "{}.local".format(hs[0])
-
         self.local_ip = self._get_local_ip_address()
-        self.tcp_control = TCP(self.connection_id, self.local_ip, port)
-        self.zeroconf = Zeroconf(ip_version=IPVersion.V4Only)
-        self._zconf_publish_tcp(port)
+        if self.use_zeroconf:
+            self.zeroconf = Zeroconf(ip_version=IPVersion.V4Only)
+            self.tcp_control = TCP(self.connection_id, "", 0)
+            self._zconf_publish_tcp(port)
+        else:
+            self.tcp_control = TCP(self.connection_id, self.local_ip, port)
         self.start()
 
     def close(self):
-        self.zeroconf.unregister_all_services()
-        self.zeroconf.close()
+        if self.use_zero_conf:
+            self.zeroconf.unregister_all_services()
+            self.zeroconf.close()
         self.running = False
 
     def run(self):
