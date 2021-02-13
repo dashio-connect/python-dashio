@@ -151,7 +151,7 @@ class tcpConnection(threading.Thread):
                 if id not in self.socket_ids:
                     logging.debug("Added Socket ID: " + id.hex())
                     self.socket_ids.append(id)
-                logging.debug("TCP ID: %s, Rx: %s", id.hex(), message.decode('utf-8').rstrip())
+                logging.debug("TCP ID: %s, Rx:\n%s", id.hex(), message.decode('utf-8').rstrip())
                 if message:
                     tx_zmq_pub.send_multipart([self.b_connection_id, id, message])
                 else:
@@ -164,10 +164,10 @@ class tcpConnection(threading.Thread):
                     continue
                 if address == b'ALL':
                     for id in self.socket_ids:
-                        logging.debug("TCP ID: %s, Tx: %s", id.hex(), data.decode('utf-8').rstrip())
+                        logging.debug("TCP ID: %s, Tx:\n%s", id.hex(), data.decode('utf-8').rstrip())
                         __zmq_tcp_send(id, data)
                 elif address == self.b_connection_id:
-                    logging.debug("TCP ID: %s, Tx: %s", msg_id.hex(), data.decode('utf-8').rstrip())
+                    logging.debug("TCP ID: %s, Tx:\n%s", msg_id.hex(), data.decode('utf-8').rstrip())
                     __zmq_tcp_send(msg_id, data)
 
         for id in self.socket_ids:
