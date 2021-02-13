@@ -98,6 +98,7 @@ class TestControls:
         print(self.selector_ctrl.selection_list[int(msg[3])])
 
     def name_handler(self, msg):
+        self.device.device_name = msg[2]
         print(msg)
 
     def wifi_handler(self, msg):
@@ -137,7 +138,7 @@ class TestControls:
         self.device.dash_rx_event += self.dashio_handler
         self.device.wifi_rx_event += self.wifi_handler
         self.device.name_rx_event += self.name_handler
-        self.device.tcp_rx_event += self.name_handler
+        self.device.tcp_rx_event += self.tcp_handler
         self.device.mqtt_rx_event += self.mqtt_handler
         self.tcp_con = dashio.tcpConnection()
         self.dash_con = dashio.dashConnection(args.username, args.password)
@@ -152,7 +153,6 @@ class TestControls:
         self.up_btn.icon_name = dashio.Icon.UP
         self.up_btn.on_color = dashio.Color.GREEN
         self.up_btn.text = ""
-        self.up_btn.text_color = dashio.Color.WHITE
         self.up_btn.title = "Up"
         self.up_btn.message_rx_event += self.up_btn_event_handler
         self.page_test.add_control(self.up_btn)
@@ -164,7 +164,6 @@ class TestControls:
         self.down_btn.icon_name = dashio.Icon.DOWN
         self.down_btn.on_color = dashio.Color.GREEN
         self.down_btn.text = ""
-        self.down_btn.text_color = dashio.Color.WHITE
         self.down_btn.title = "Down"
         self.down_btn.message_rx_event += self.down_btn_event_handler
         self.page_test.add_control(self.down_btn)

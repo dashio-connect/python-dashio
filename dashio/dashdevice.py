@@ -270,7 +270,8 @@ class dashDevice(threading.Thread):
     @device_name.setter
     def device_name(self, val: str):
         self._device_name = val
-
+        self._send_data("\t{{device_id}}\tNAME\t{name}\t".format(name=self._device_name))
+        
     def close(self):
         self.running = False
 
