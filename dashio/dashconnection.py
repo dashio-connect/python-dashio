@@ -175,6 +175,8 @@ class dashConnection(threading.Thread):
 
             if self.rx_zmq_sub in socks:
                 [address, id, data] = self.rx_zmq_sub.recv_multipart()
+                if not data:
+                    continue
                 msg_l = data.split(b'\t')
                 try:
                     device_id = msg_l[1].decode('utf-8').strip()
