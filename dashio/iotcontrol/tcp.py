@@ -1,18 +1,20 @@
 from .control import Control
+import json
 
+class TCP(object):
 
-class TCP(Control):
     """A connection only control"""
-
-    def get_state(self):
+    def get_state(self) -> str:
         return ""
 
-    def __init__(self, control_id, ip_address="", port=5000):
-        super().__init__("TCP", control_id)
-        self.ip_address = ip_address
-        self.port = port
+    def get_cfg(self, page_size_x, page_size_y):
+        cfg_str = "\tCFG\t" + self.msg_type + "\t" + json.dumps(self._cfg) + "\n"
+        return cfg_str
 
-    def set_tcp(self, ip_address: str, port: int):
+    def __init__(self, control_id, ip_address="", port=5650):
+        self._cfg = {}
+        self.msg_type = "TCP"
+        self.control_id = control_id
         self.ip_address = ip_address
         self.port = port
 

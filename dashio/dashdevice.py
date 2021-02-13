@@ -2,27 +2,29 @@ import logging
 import zmq
 import threading
 import json
+import shortuuid
 
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.page import Page
 from .iotcontrol.event import Event
+from .constants import *
 
 class dashDevice(threading.Thread):
 
-    """Setups and manages a connection thread to iotdashboard via TCP."""
+    """Device for IoTDashboard."""
 
-    def __on_message(self, payload):
+    def _on_message(self, payload):
         data = str(payload, "utf-8").strip()
         command_array = data.split("\n")
         reply = ""
         for ca in command_array:
             try:
-                reply += self.__on_command(ca.strip())
+                reply += self._on_command(ca.strip())
             except TypeError:
                 pass
         return reply
 
-    def __on_command(self, data):
+    def _on_command(self, data):
         data_array = data.split("\t")
         rx_device_id = data_array[0]
         # logging.debug('Device RX: %s', rx_device_id)
@@ -37,9 +39,9 @@ class dashDevice(threading.Thread):
         if cntrl_type == "CONNECT":
             return self.connect
         if cntrl_type == "STATUS":
-            return self.__make_status()
+            return self._make_status()
         if cntrl_type == "CFG":
-            return self.__make_cfg(data_array)
+            return self._make_cfg(data_array)
         if cntrl_type in self._device_commands_dict:
             self._device_commands_dict[cntrl_type](data_array)
         else:
@@ -49,7 +51,7 @@ class dashDevice(threading.Thread):
                 pass
         return ""
 
-    def __make_status(self):
+    def _make_status(self):
         reply = "\t{device_id}\tNAME\t{device_name}\n".format(device_id=self.device_id, device_name=self._device_name)
         for key in self.control_dict.keys():
             try:
@@ -58,7 +60,7 @@ class dashDevice(threading.Thread):
                 pass
         return reply
 
-    def __make_cfg(self, data):
+    def _make_cfg(self, data):
         reply = self.device_id_str + '\tCFG\tDVCE\t' + json.dumps(self._cfg) + "\n"
         for key in self.control_dict.keys():
             reply += self.device_id_str + self.control_dict[key].get_cfg(data[2], data[3])
@@ -96,7 +98,7 @@ class dashDevice(threading.Thread):
         logging.debug("ALARM: %s", payload)
         self.tx_zmq_pub.send_multipart([b"ALARM", b'0', payload.encode('utf-8')])
 
-    def send_data(self, data: str):
+    def _send_data(self, data: str):
         """Send data.
 
         Parameters
@@ -109,6 +111,12 @@ class dashDevice(threading.Thread):
             self.tx_zmq_pub.send_multipart([b"ALL", b'0', reply_send.encode('utf-8')])
         except zmq.error.ZMQError:
             pass
+
+    def _send_announce(self):
+        payload = self.device_id_str + "\tWHO\t{}\t{}\n".format(self.device_type, self.device_name)
+        logging.debug("ANNOUNCE: %s", payload)
+        self.tx_zmq_pub.send_multipart([b"ANNOUNCE", b'0', payload.encode('utf-8')])
+
 
     def add_control(self, iot_control):
         """Add a control to the connection.
@@ -124,16 +132,16 @@ class dashDevice(threading.Thread):
         else:
             if isinstance(iot_control, Page):
                 self.number_of_pages += 1
-            iot_control.message_tx_event += self.send_data
+            try:
+                iot_control.message_tx_event += self._send_data
+            except AttributeError:
+                pass
             key = iot_control.msg_type + "_" + iot_control.control_id
             self.control_dict[key] = iot_control
 
-    def add_connection(self, device):
-        tx_url_internal = "inproc://RX_{}".format(device.connection_id)
-        rx_url_internal = "inproc://TX_{}".format(device.connection_id)
-        self.tx_zmq_pub.connect(tx_url_internal)
-        self.rx_zmq_sub.connect(rx_url_internal)
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, device.connection_id.encode('utf-8'))
+    def _add_connection(self, connection):
+        self.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=connection.connection_id))
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, connection.connection_id.encode('utf-8'))
 
     def _set_devicesetup(self, control_name: str, settable: bool):
         if settable:
@@ -164,6 +172,8 @@ class dashDevice(threading.Thread):
                  context=None) -> None:
         threading.Thread.__init__(self, daemon=True)
 
+        self._zmq_pub_id = shortuuid.uuid()
+        self._b_zmq_pub_id = self._zmq_pub_id.encode('utf-8')
         self.context = context or zmq.Context.instance()
         self.wifi_rx_event = Event()
         self.dash_rx_event = Event()
@@ -172,6 +182,7 @@ class dashDevice(threading.Thread):
         self.mqtt_rx_event = Event()
         self.device_type = device_type.strip()
         self.device_id = device_id.strip()
+        self._b_device_id = self.device_id.encode('utf-8')
         self._device_name = device_name.strip()
         self._device_setup_list = []
         self._device_commands_dict = {}
@@ -267,8 +278,9 @@ class dashDevice(threading.Thread):
         # Continue the network loop, exit when an error occurs
 
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
+        self.tx_zmq_pub.bind(DEVICE_PUB_URL.format(id=self._zmq_pub_id))
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "COMMAND")
 
         poller = zmq.Poller()
         poller.register(self.rx_zmq_sub, zmq.POLLIN)
@@ -280,8 +292,12 @@ class dashDevice(threading.Thread):
                 break
             if self.rx_zmq_sub in socks:
                 msg = self.rx_zmq_sub.recv_multipart()
+                if msg[0] == b"COMMAND":
+                    if msg[2] == 'send_announce':
+                        self._send_announce()
+                    continue
                 if len(msg) == 3:
-                    reply = self.__on_message(msg[2])
+                    reply = self._on_message(msg[2])
                     if reply:
                         self.tx_zmq_pub.send_multipart([msg[0], msg[1], reply.encode('utf-8')])
 

@@ -4,6 +4,9 @@ import ssl
 import logging
 import zmq
 import uuid
+
+from .constants import *
+
 # TODO: Add documentation
 
 
@@ -41,7 +44,7 @@ class mqttConnection(threading.Thread):
         logging.debug(string)
 
     def add_device(self, device):
-        device.add_connection(self)
+        device._add_connection(self)
         control_topic = "{}/{}/control".format(self.username, device.device_id)
         self.connection_topic_list.append(control_topic)
         if self.connected:
@@ -104,31 +107,29 @@ class mqttConnection(threading.Thread):
     def run(self):
         self.mqttc.loop_start()
 
-        tx_url_internal = "inproc://TX_{}".format(self.connection_id.hex)
-        rx_url_internal = "inproc://RX_{}".format(self.connection_id.hex)
 
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
+        self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
 
-        self.tx_zmq_pub.bind(tx_url_internal)
+        self.rx_zmq_sub = self.context.socket(zmq.SUB)
+        self.tx_zmq_pub = self.context.socket(zmq.PUB)
 
-        rx_zmq_sub = self.context.socket(zmq.SUB)
-        rx_zmq_sub.bind(rx_url_internal)
 
         # Subscribe on ALL, and my connection
-        rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
-        rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
-        rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_id)
 
         poller = zmq.Poller()
-        poller.register(rx_zmq_sub, zmq.POLLIN)
+        poller.register(self.rx_zmq_sub, zmq.POLLIN)
 
         while self.running:
             try:
                 socks = dict(poller.poll(50))
             except zmq.error.ContextTerminated:
                 break
-            if rx_zmq_sub in socks:
-                [address, id, data] = rx_zmq_sub.recv_multipart()
+            if self.rx_zmq_sub in socks:
+                [address, id, data] = self.rx_zmq_sub.recv_multipart()
                 msg_l = data.split(b'\t')
                 device_id = msg_l[1].decode('utf-8').strip()
                 if self.connected:
@@ -138,4 +139,4 @@ class mqttConnection(threading.Thread):
 
         self.mqttc.loop_stop()
         self.tx_zmq_pub.close()
-        rx_zmq_sub.close()
+        self.rx_zmq_sub.close()

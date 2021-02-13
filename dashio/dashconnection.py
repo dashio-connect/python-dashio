@@ -5,6 +5,8 @@ import logging
 import zmq
 import shortuuid
 from .iotcontrol.dash import Dash
+from .constants import *
+import time
 
 class dashConnection(threading.Thread):
     """Setups and manages a connection thread to the Dash Server."""
@@ -13,11 +15,7 @@ class dashConnection(threading.Thread):
         if rc == 0:
             self.connected = True
             self.disconnect = False
-            if self.device_list:
-                for device in self.device_list:
-                    control_topic = "{}/{}/control".format(self.username, device.device_id)
-                    self.dash_c.subscribe(control_topic, 0)
-                    self.__send_dash_announce(device)
+            self._send_dash_announce()
             logging.debug("connected OK")
         else:
             logging.debug("Bad connection Returned code=%s", rc)
@@ -42,25 +40,26 @@ class dashConnection(threading.Thread):
         logging.debug(string)
 
     def add_device(self, device):
-        if device not in self.device_list:
-            self.device_list.append(device)
-            device.add_connection(self)
+        if device.device_id not in self.device_id_list:
+            device._add_connection(self)
             device.add_control(self.dash_control)
+
+            self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device._zmq_pub_id))
+            self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device._zmq_pub_id)
+
             if self.connected:
                 control_topic = "{}/{}/control".format(self.username, device.device_id)
                 self.dash_c.subscribe(control_topic, 0)
-                self.__send_dash_announce(device)
+                self._send_dash_announce()
 
-    def __send_dash_announce(self, device):
-        data_topic = "{}/{}/announce".format(self.username, device.device_id)
-        data = device.device_id_str + "\tWHO\t{}\t{}\n".format(device.device_type, device.device_name)
-        self.dash_c.publish(data_topic, data)
+#
+    def _send_dash_announce(self):
+        self.tx_zmq_pub.send_multipart([b'COMMAND', b'1', b"send_announce"])
 
     def set_connection(self, username, password):
         self.dash_c.disconnect()
         self.username = username
         self.dash_c.username_pw_set(username, password)
-        self.mqtt_control.username = username
         self.dash_c.connect(self.host, self.port)
 
     def __init__(self, username="", password="", host='dash.dashio.io', port=8883, set_by_iotdashboard=False, context=None):
@@ -78,7 +77,7 @@ class dashConnection(threading.Thread):
         self.connected = False
         self.connection_id = shortuuid.uuid()
         self.b_connection_id = self.connection_id.encode('utf-8')
-        self.device_list = []
+        self.device_id_list = []
         self.LWD = "OFFLINE"
         self.running = True
         self.username = username
@@ -111,6 +110,7 @@ class dashConnection(threading.Thread):
             self.dash_c.connect(host, port)
         # Start subscribe, with QoS level 0
         self.start()
+        time.sleep(1)
 
     def close(self):
         self.running = False
@@ -118,22 +118,19 @@ class dashConnection(threading.Thread):
     def run(self):
         self.dash_c.loop_start()
 
-        tx_url_internal = "inproc://TX_{}".format(self.connection_id)
-        rx_url_internal = "inproc://RX_{}".format(self.connection_id)
-
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.tx_zmq_pub.bind(tx_url_internal)
+        self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
 
-        rx_zmq_sub = self.context.socket(zmq.SUB)
-        rx_zmq_sub.bind(rx_url_internal)
+        self.rx_zmq_sub = self.context.socket(zmq.SUB)
 
         # Subscribe on ALL, and my connection
-        rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
-        rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ANNOUNCE")
-        rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
-        rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ANNOUNCE")
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_id)
+        #self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"")
         poller = zmq.Poller()
-        poller.register(rx_zmq_sub, zmq.POLLIN)
+        poller.register(self.rx_zmq_sub, zmq.POLLIN)
 
         while self.running:
             try:
@@ -141,8 +138,8 @@ class dashConnection(threading.Thread):
             except zmq.error.ContextTerminated:
                 break
 
-            if rx_zmq_sub in socks:
-                [address, id, data] = rx_zmq_sub.recv_multipart()
+            if self.rx_zmq_sub in socks:
+                [address, id, data] = self.rx_zmq_sub.recv_multipart()
                 msg_l = data.split(b'\t')
                 try:
                     device_id = msg_l[1].decode('utf-8').strip()
@@ -150,6 +147,8 @@ class dashConnection(threading.Thread):
                     continue
                 if address == b'ALARM':
                     data_topic = "{}/{}/alarm".format(self.username, device_id)
+                elif address == b"ANNOUNCE":
+                    data_topic = "{}/{}/announce".format(self.username, device_id)
                 else:
                     data_topic = "{}/{}/data".format(self.username, device_id)
                 if self.connected:
@@ -161,4 +160,4 @@ class dashConnection(threading.Thread):
         self.dash_c.loop_stop()
 
         self.tx_zmq_pub.close()
-        rx_zmq_sub.close()
+        self.rx_zmq_sub.close()

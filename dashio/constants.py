@@ -1,0 +1,3 @@
+
+CONNECTION_PUB_URL = "inproc://DASHIO_CONN_PUB_{id}" 
+DEVICE_PUB_URL = "inproc://DASHIO_DVCE_PUB_{id}"
