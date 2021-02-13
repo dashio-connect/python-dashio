@@ -106,6 +106,8 @@ class dashDevice(threading.Thread):
         data : str
             Data to be sent
         """
+        if not data:
+            return
         reply_send = data.format(device_id=self.device_id)
         try:
             self.tx_zmq_pub.send_multipart([b"ALL", b'0', reply_send.encode('utf-8')])
