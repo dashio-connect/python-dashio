@@ -160,6 +160,8 @@ class tcpConnection(threading.Thread):
                         self.socket_ids.remove(id)
             if self.rx_zmq_sub in socks:
                 [address, msg_id, data] = self.rx_zmq_sub.recv_multipart()
+                if not data:
+                    continue
                 if address == b'ALL':
                     for id in self.socket_ids:
                         logging.debug("TCP ID: %s, Tx: %s", id.hex(), data.decode('utf-8').rstrip())

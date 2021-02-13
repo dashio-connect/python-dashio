@@ -117,7 +117,6 @@ class dashDevice(threading.Thread):
         logging.debug("ANNOUNCE: %s", payload)
         self.tx_zmq_pub.send_multipart([b"ANNOUNCE", b'0', payload.encode('utf-8')])
 
-
     def add_control(self, iot_control):
         """Add a control to the connection.
 
@@ -271,7 +270,7 @@ class dashDevice(threading.Thread):
     def device_name(self, val: str):
         self._device_name = val
         self._send_data("\t{{device_id}}\tNAME\t{name}\t".format(name=self._device_name))
-        
+
     def close(self):
         self.running = False
 
