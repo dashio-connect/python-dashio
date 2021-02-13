@@ -54,7 +54,7 @@ class TestControls:
             "-t", "--device_type", dest="device_type", default="TestDualTCPDash", help="IotDashboard device type"
         )
         parser.add_argument(
-            "-p", "--port", type=int, help="Port number.", default=5000, dest="port",
+            "-p", "--port", type=int, help="Port number.", default=5650, dest="port",
         )
         parser.add_argument("-d", "--device_id", dest="device_id", default="00001", help="IotDashboard Device ID.")
         parser.add_argument(

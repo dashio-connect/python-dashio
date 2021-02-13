@@ -2,9 +2,12 @@ import zmq
 import threading
 import logging
 import shortuuid
+import time
+
 from zeroconf import ServiceInfo, Zeroconf, IPVersion
 import socket
 from .iotcontrol.tcp import TCP
+from .constants import *
 
 class tcpConnection(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via TCP."""
@@ -34,10 +37,13 @@ class tcpConnection(threading.Thread):
         self.zeroconf.register_service(zconf_info)
 
     def add_device(self, device):
-        device.add_connection(self)
+        device._add_connection(self)
         device.add_control(self.tcp_control)
 
-    def __init__(self, ip="*", port=5000, use_zero_conf=True, context=None):
+        self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device._zmq_pub_id))
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device._zmq_pub_id)
+
+    def __init__(self, ip="*", port=5650, use_zero_conf=True, context=None):
         """
         """
 
@@ -46,9 +52,6 @@ class tcpConnection(threading.Thread):
         self.connection_id = shortuuid.uuid()
         self.b_connection_id = self.connection_id.encode('utf-8')
         self.use_zeroconf = use_zero_conf
-        self.tx_url_internal = "inproc://TX_{}".format(self.connection_id)
-        self.rx_url_internal = "inproc://RX_{}".format(self.connection_id)
-
         self.ext_url = "tcp://" + ip + ":" + str(port)
 
         self.socket_ids = []
@@ -66,6 +69,7 @@ class tcpConnection(threading.Thread):
         else:
             self.tcp_control = TCP(self.connection_id, self.local_ip, port)
         self.start()
+        time.sleep(1)
 
     def close(self):
         if self.use_zero_conf:
@@ -83,15 +87,14 @@ class tcpConnection(threading.Thread):
                 # self.socket_ids.remove(id)
 
         tx_zmq_pub = self.context.socket(zmq.PUB)
-        tx_zmq_pub.bind(self.tx_url_internal)
+        tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
 
-        rx_zmq_sub = self.context.socket(zmq.SUB)
-        rx_zmq_sub.bind(self.rx_url_internal)
-
+        self.rx_zmq_sub = self.context.socket(zmq.SUB)
         # Subscribe on ALL, and my connection
-        rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
-        rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
-        rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALARM")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_id)
+        # rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
 
         tcpsocket = self.context.socket(zmq.STREAM)
 
@@ -100,7 +103,7 @@ class tcpConnection(threading.Thread):
 
         poller = zmq.Poller()
         poller.register(tcpsocket, zmq.POLLIN)
-        poller.register(rx_zmq_sub, zmq.POLLIN)
+        poller.register(self.rx_zmq_sub, zmq.POLLIN)
 
         id = tcpsocket.recv()
         tcpsocket.recv()  # empty data here
@@ -124,8 +127,8 @@ class tcpConnection(threading.Thread):
                     if id in self.socket_ids:
                         logging.debug("Removed Socket ID: " + id.hex())
                         self.socket_ids.remove(id)
-            if rx_zmq_sub in socks:
-                [address, msg_id, data] = rx_zmq_sub.recv_multipart()
+            if self.rx_zmq_sub in socks:
+                [address, msg_id, data] = self.rx_zmq_sub.recv_multipart()
                 if address == b'ALL':
                     for id in self.socket_ids:
                         logging.debug("TCP ID: %s, Tx: %s", id.hex(), data.decode('utf-8').rstrip())
