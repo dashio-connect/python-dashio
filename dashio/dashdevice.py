@@ -294,11 +294,11 @@ class dashDevice(threading.Thread):
                 break
             if self.rx_zmq_sub in socks:
                 msg = self.rx_zmq_sub.recv_multipart()
-                if msg[0] == b"COMMAND":
-                    if msg[2] == 'send_announce':
-                        self._send_announce()
-                    continue
                 if len(msg) == 3:
+                    if msg[0] == b"COMMAND":
+                        if msg[2] == b'send_announce':
+                            self._send_announce()
+                        continue
                     reply = self._on_message(msg[2])
                     if reply:
                         self.tx_zmq_pub.send_multipart([msg[0], msg[1], reply.encode('utf-8')])
