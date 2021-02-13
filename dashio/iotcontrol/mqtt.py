@@ -1,20 +1,22 @@
 from .control import Control
+import json
 
+class MQTT(object):
 
-class MQTT(Control):
     """A connection only control"""
-
     def get_state(self):
         return ""
+    
+    def get_cfg(self, page_size_x, page_size_y):
+        cfg_str = "\tCFG\t" + self.msg_type + "\t" + json.dumps(self._cfg) + "\n"
+        return cfg_str
 
-    def __init__(self, control_id, username="", servername=""):
-        super().__init__("MQTT", control_id)
+    def __init__(self, control_id, username="", password="", servername="", use_ssl=False):
+        self._cfg = {}
+        self.msg_type = "MQTT"
+        self.control_id = control_id
         self.username = username
         self.servername = servername
-
-    def __set_mqtt(self, msg):
-        self.username = msg[3]
-        self.servername = msg[4]
 
     def set_mqtt(self, username, servername):
         self.username = username
