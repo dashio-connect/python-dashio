@@ -116,14 +116,16 @@ class TimeGraph(Control):
             if self.line_dict[key].data:
                 line_data = self.line_dict[key].get_line_from_timestamp(msg[3])
                 if line_data:
-                    state_str += self._state_str  + key + line_data
+                    state_str += self._state_str + key + line_data
         self.state_str = state_str
 
     def send_data(self):
         state_str = ""
         for key in self.line_dict.keys():
             if self.line_dict[key].data:
-                state_str += self._state_str + key + self.line_dict[key].get_latest_data()
+                line_data = self.line_dict[key].get_latest_data()
+                if line_data:
+                    state_str += self._state_str + key + line_data
         self.state_str = state_str
 
     @property
