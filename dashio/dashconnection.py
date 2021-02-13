@@ -48,10 +48,10 @@ class dashConnection(threading.Thread):
         if rc == 0:
             self.connected = True
             self.disconnect = False
-            self._send_dash_announce()
             for device_id in self.device_id_list:
                 control_topic = "{}/{}/control".format(self.username, device_id)
                 self.dash_c.subscribe(control_topic, 0)
+            self._send_dash_announce()
             logging.debug("connected OK")
         else:
             logging.debug("Bad connection Returned code=%s", rc)
@@ -63,7 +63,7 @@ class dashConnection(threading.Thread):
 
     def __on_message(self, client, obj, msg):
         data = str(msg.payload, "utf-8").strip()
-        logging.debug("DASH RX: %s", data)
+        logging.debug("DASH RX:\n%s", data)
         self.tx_zmq_pub.send_multipart([self.b_connection_id, b'1', msg.payload])
 
     def __on_publish(self, client, obj, mid):
@@ -189,7 +189,7 @@ class dashConnection(threading.Thread):
                 else:
                     data_topic = "{}/{}/data".format(self.username, device_id)
                 if self.connected:
-                    logging.debug("DASH TX: %s", data.decode('utf-8').rstrip())
+                    logging.debug("DASH TX:\n%s", data.decode('utf-8').rstrip())
                     self.dash_c.publish(data_topic, data.decode('utf-8'))
 
         if self.connected:
