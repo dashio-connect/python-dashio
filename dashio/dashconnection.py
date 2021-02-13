@@ -4,9 +4,42 @@ import ssl
 import logging
 import zmq
 import shortuuid
-from .iotcontrol.dash import Dash
 from .constants import *
 import time
+import json
+
+class Dash(object):
+    
+    def get_state(self) -> str:
+        return ""
+
+    def get_cfg(self, page_size_x, page_size_y):
+        cfg_str = "\tCFG\t" + self.msg_type + "\t" + json.dumps(self._cfg) + "\n"
+        return cfg_str
+
+    def __init__(self, control_id, username="", servername=""):
+        self.msg_type = "DASHIO"
+        self._cfg = {}
+        self.control_id = control_id
+        self.username = username
+        self.servername = servername
+
+    @property
+    def username(self) -> str:
+        return self._cfg["userName"]
+
+    @username.setter
+    def username(self, val: str):
+        self._cfg["userName"] = val
+
+    @property
+    def servername(self) -> str:
+        return self._cfg["hostURL"]
+
+    @servername.setter
+    def servername(self, val: str):
+        self._cfg["hostURL"] = val
+
 
 class dashConnection(threading.Thread):
     """Setups and manages a connection thread to the Dash Server."""
@@ -16,6 +49,9 @@ class dashConnection(threading.Thread):
             self.connected = True
             self.disconnect = False
             self._send_dash_announce()
+            for device_id in self.device_id_list:
+                control_topic = "{}/{}/control".format(self.username, device_id)
+                self.dash_c.subscribe(control_topic, 0)
             logging.debug("connected OK")
         else:
             logging.debug("Bad connection Returned code=%s", rc)
@@ -41,6 +77,7 @@ class dashConnection(threading.Thread):
 
     def add_device(self, device):
         if device.device_id not in self.device_id_list:
+            self.device_id_list.append(device.device_id)
             device._add_connection(self)
             device.add_control(self.dash_control)
 
@@ -52,7 +89,6 @@ class dashConnection(threading.Thread):
                 self.dash_c.subscribe(control_topic, 0)
                 self._send_dash_announce()
 
-#
     def _send_dash_announce(self):
         self.tx_zmq_pub.send_multipart([b'COMMAND', b'1', b"send_announce"])
 
@@ -128,7 +164,6 @@ class dashConnection(threading.Thread):
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ANNOUNCE")
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_id)
-        #self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"")
         poller = zmq.Poller()
         poller.register(self.rx_zmq_sub, zmq.POLLIN)
 
