@@ -2,9 +2,6 @@ from .control import Control
 
 
 class Alarm(Control):
-    def get_cfg(self, page_x, page_y):
-        # Overide get_cfg as Alarms don't have a config setting.
-        return ""
 
     def __init__(self, control_id, header="Header", body="Body"):
         super().__init__("ALM", control_id)
@@ -12,23 +9,23 @@ class Alarm(Control):
         self.header = header
 
     def send(self):
-        self.message_tx_event(self.control_id, self._cfg["header"], self._cfg["body"])
+        self.message_tx_event(self.control_id, self.header, self.body)
 
     def get_state(self):
         pass
 
     @property
-    def body(self) -> str:
-        return self._cfg["body"]
+    def description(self) -> str:
+        return self._cfg["description"]
 
-    @body.setter
-    def body(self, val: str):
-        self._cfg["body"] = val
+    @description.setter
+    def description(self, val: str):
+        self._cfg["description"] = val
 
     @property
-    def header(self) -> str:
-        return self._cfg["header"]
+    def sound_name(self) -> str:
+        return self._cfg["soundName"]
 
-    @header.setter
-    def header(self, val: str):
-        self._cfg["header"] = val
+    @sound_name.setter
+    def sound_name(self, val: str):
+        self._cfg["soundName"] = val

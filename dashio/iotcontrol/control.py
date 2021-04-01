@@ -26,10 +26,12 @@ class Control:
         cfg_str = "\tCFG\t" + self.msg_type + "\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
 
-    def __init__(self, msg_type, control_id, control_position=None, title_position=None):
+    def __init__(self, msg_type, control_id, title=None, control_position=None, title_position=None):
         # Dictionary to store CFG json
         self._cfg = {}
-        self.title = ""
+        self._title = None
+        if title is not None:
+            self.title = title
         self._title_position = None
         if title_position is not None:
             self.title_position = title_position

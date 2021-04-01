@@ -30,8 +30,7 @@ class EventLog(Control):
                  title="An Event Log",
                  title_position=TitlePosition.BOTTOM,
                  control_position=None, max_log_entries=100):
-        super().__init__("LOG", control_id, control_position=control_position, title_position=title_position)
-        self.title = title
+        super().__init__("LOG", control_id, title=title, control_position=control_position, title_position=title_position)
         self.message_rx_event = self.__get_log_from_timestamp
         self.log = RingBuffer(max_log_entries)
 

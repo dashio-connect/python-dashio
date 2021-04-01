@@ -17,8 +17,7 @@ class ButtonGroup(Control):
         grid_view=True,
         control_position=None,
     ):
-        super().__init__("BTGP", control_id, control_position=control_position, title_position=title_position)
-        self.title = title
+        super().__init__("BTGP", control_id, title=title, control_position=control_position, title_position=title_position)
         self.icon_name = icon
         self.text = text
         self.grid_view = grid_view

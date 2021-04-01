@@ -58,8 +58,7 @@ class Map(Control):
                  title="A Map",
                  title_position=TitlePosition.BOTTOM,
                  control_position=None):
-        super().__init__("MAP", control_id, control_position=control_position, title_position=title_position)
-        self.title = title
+        super().__init__("MAP", control_id, title=title, control_position=control_position, title_position=title_position)
         self.location_list = []
 
     def add_location(self, location):

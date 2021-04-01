@@ -90,8 +90,7 @@ class TimeGraph(Control):
         y_axis_num_bars=5,
         control_position=None,
     ):
-        super().__init__("TGRPH", control_id, control_position=control_position, title_position=title_position)
-        self.title = title
+        super().__init__("TGRPH", control_id, title=title, control_position=control_position, title_position=title_position)
         self.message_rx_event = self.__get_lines_from_timestamp
 
         self.y_axis_label = y_axis_label
