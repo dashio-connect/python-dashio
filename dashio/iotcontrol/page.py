@@ -21,8 +21,7 @@ class Page(Control):
         control_max_font_size=20,
         control_background_transparency=0,
     ):
-        super().__init__("PAGE", control_id)
-        self.title = title
+        super().__init__("PAGE", control_id,  title=title)
         self.icon_name = icon
         self.page_color = page_color
         self.control_title_box_color = control_title_box_color

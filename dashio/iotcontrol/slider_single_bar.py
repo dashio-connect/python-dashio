@@ -20,8 +20,7 @@ class SliderSingleBar(Control):
         bar_style=SliderBarType.SEGMENTED,
         control_position=None,
     ):
-        super().__init__("SLDR", control_id, control_position=control_position, title_position=title_position)
-        self.title = title
+        super().__init__("SLDR", control_id, title=title, control_position=control_position, title_position=title_position)
         self._control_id_bar = "\t{{device_id}}\tBAR\t{id}\t".format(id=control_id)
 
         self._bar1_value = 0.0

@@ -23,8 +23,7 @@ class Button(Control):
         text="",
         control_position=None,
     ):
-        super().__init__("BTTN", control_id, control_position=control_position, title_position=title_position)
-        self.title = title
+        super().__init__("BTTN", control_id, title=title, control_position=control_position, title_position=title_position)
         self._btn_state = ButtonState.OFF
         self.button_enabled = button_enabled
         self.icon_name = icon_name

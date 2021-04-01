@@ -19,8 +19,7 @@ class Knob(Control):
         knob_color=Color.RED,
         control_position=None,
     ):
-        super().__init__("KNOB", control_id, control_position=control_position, title_position=title_position)
-        self.title = title
+        super().__init__("KNOB", control_id, title=title, control_position=control_position, title_position=title_position)
         self._control_id_dial = "\t{{device_id}}\tKBDL\t{id}\t".format(id=control_id)
         self._knob_value = 0
         self._knob_dial_value = 0

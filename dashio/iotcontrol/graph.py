@@ -41,8 +41,7 @@ class Graph(Control):
         y_axis_num_bars=5,
         control_position=None,
     ):
-        super().__init__("GRPH", control_id, control_position=control_position, title_position=title_position)
-        self.title = title
+        super().__init__("GRPH", control_id, title=title, control_position=control_position, title_position=title_position)
         self.x_axis_label = x_axis_label
         self.x_axis_min = x_axis_min
         self.x_axis_max = x_axis_max

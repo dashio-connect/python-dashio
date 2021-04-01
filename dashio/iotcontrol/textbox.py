@@ -17,8 +17,7 @@ class TextBox(Control):
         close_keyboard_on_send=True,
         control_position=None,
     ):
-        super().__init__("TEXT", control_id, control_position=control_position, title_position=title_position)
-        self.title = title
+        super().__init__("TEXT", control_id, title=title, control_position=control_position, title_position=title_position)
         self.text = text
         self.text_align = text_align
         self.units = units

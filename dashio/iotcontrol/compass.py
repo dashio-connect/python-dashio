@@ -12,8 +12,7 @@ class Compass(Control):
         calibration_angle=0,
         control_position=None
     ):
-        super().__init__("DIR", control_id, title_position=title_position, control_position=control_position)
-        self.title = title
+        super().__init__("DIR", control_id, title=title, title_position=title_position, control_position=control_position)
         self.pointer_color = pointer_color
         self.calibration_angle = calibration_angle
         self._direction_value = 0

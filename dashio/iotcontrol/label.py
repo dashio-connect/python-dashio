@@ -14,8 +14,7 @@ class Label(Control):
         style=LabelStyle.BASIC,
         control_position=None,
     ):
-        super().__init__("LBL", control_id, control_position=control_position, title_position=title_position)
-        self.title = title
+        super().__init__("LBL", control_id, title=title, control_position=control_position, title_position=title_position)
         self.color = color
         self.style = style
         self._state_str = ""

@@ -17,8 +17,7 @@ class Menu(Control):
                  icon=Icon.MENU,
                  control_position=None,
                  title_position=TitlePosition.BOTTOM):
-        super().__init__("MENU", control_id, control_position=control_position, title_position=title_position)
-        self.title = title
+        super().__init__("MENU", control_id, title=title, control_position=control_position, title_position=title_position)
         self.icon_name = icon
         self.text = text
 
