@@ -1,5 +1,6 @@
 #!/bin/python3
 
+from dashio.iotcontrol.enums import SoundName
 import time
 import argparse
 import signal
@@ -46,16 +47,19 @@ class TestControls:
                             0 = only warnings, 1 = info, 2 = debug.
                             No number means info. Default is no verbosity.""",
         )
-        parser.add_argument("-s", "--server", help="Server URL.", dest="server", default="mqtt://localhost")
+        parser.add_argument("-s", "--server", help="Server URL.", dest="server", default="dash.dashio.io")
+        parser.add_argument("-q", "--hostname", help="Host URL.", dest="hostname", default="tcp://*")
         parser.add_argument(
-            "-p", "--port", type=int, help="Port number.", default=1883, dest="port",
+            "-t", "--device_type", dest="device_type", default="TestAlarms", help="IotDashboard device type"
         )
         parser.add_argument(
-            "-c", "--connection_name", dest="connection", default="TestAlarms", help="IotDashboard Connection name"
+            "-p", "--port", type=int, help="Port number.", default=5650, dest="port",
         )
-        parser.add_argument("-d", "--device_id", dest="device_id", default="00001", help="IotDashboard Device ID.")
-        parser.add_argument("-n", "--device_name", dest="device_name", default="TestAlarms", help="IotDashboard Device name alias.")
-        parser.add_argument("-u", "--username", help="MQTT Username", dest="username", default="")
+        parser.add_argument("-d", "--device_id", dest="device_id", default="101010101010101", help="IotDashboard Device ID.")
+        parser.add_argument(
+            "-n", "--device_name", dest="device_name", default="TestAlarms", help="Alias name for device."
+        )
+        parser.add_argument("-u", "--user_name", help="MQTT Username", dest="username", default="")
         parser.add_argument("-w", "--password", help="MQTT Password", default="")
         parser.add_argument("-l", "--logfile", dest="logfilename", default="", help="logfile location", metavar="FILE")
         args = parser.parse_args()
@@ -63,15 +67,15 @@ class TestControls:
 
     def alarm_btn1_handler(self, msg):
         logging.debug(msg)
-        self.alarm1_ctrl.send()
+        self.alarm1_ctrl.send("Alarm1", "Hello from alarm1")
 
     def alarm_btn2_handler(self, msg):
         logging.debug(msg)
-        self.alarm2_ctrl.send()
+        self.alarm2_ctrl.send("Alarm2", "Hello from alarm2")
 
     def alarm_btn3_handler(self, msg):
         logging.debug(msg)
-        self.alarm3_ctrl.send()
+        self.alarm3_ctrl.send("Alarm3", "Hello from alarm3")
 
     def __init__(self):
         self.shutdown = False
@@ -82,11 +86,11 @@ class TestControls:
         self.init_logging(args.logfilename, args.verbose)
 
         logging.info("Connecting to server: %s", args.server)
-        logging.info("       Connection ID: %s", args.connection)
-        logging.info("       Control topic: %s/%s/%s/control", args.username, args.connection, args.device_id)
-        logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
+        logging.info("           Device ID: %s", args.device_id)
+        logging.info("       Control topic: %s/%s/control", args.username, args.device_id)
+        logging.info("          Data topic: %s/%s/data", args.username, args.device_id)
 
-        device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
+        device = dashio.dashDevice(args.device_type, args.device_id, args.device_name)
         dash_conn = dashio.dashConnection(args.username, args.password)
         dash_conn.add_device(device)
 
@@ -121,9 +125,9 @@ class TestControls:
         device.add_control(self.alarm_btn3)
         self.tapage.add_control(self.alarm_btn3)
 
-        self.alarm1_ctrl = dashio.Alarm("TestingAlarms1", "Hello from Alarm1", "Alarm1")
-        self.alarm2_ctrl = dashio.Alarm("TestingAlarms2", "Hello from Alarm2", "Alarm2")
-        self.alarm3_ctrl = dashio.Alarm("TestingAlarms3", "Hello from Alarm3", "Alarm3")
+        self.alarm1_ctrl = dashio.Alarm("TestingAlarms1", "A plop form Alarm1", SoundName.PLOP)
+        self.alarm2_ctrl = dashio.Alarm("TestingAlarms2", "Squeaky from Alarm2", SoundName.SQUEAKY)
+        self.alarm3_ctrl = dashio.Alarm("TestingAlarms3", "Whoosh from Alarm3", SoundName.WHOOSH)
         device.add_control(self.alarm1_ctrl)
         device.add_control(self.alarm2_ctrl)
         device.add_control(self.alarm3_ctrl)

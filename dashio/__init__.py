@@ -7,6 +7,7 @@ from .iotcontrol.enums import (
     Color,
     Icon,
     Precision,
+    SoundName,
     Keyboard,
     TextAlignment,
     SliderBarType,
