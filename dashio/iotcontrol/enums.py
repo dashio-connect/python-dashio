@@ -61,6 +61,28 @@ class Icon(Enum):
     SWITCH = "Switch"
 
 
+class SoundName(Enum):
+    DEFAULT = "Default"
+    QUIET = "Quiet"
+    BELL = "Bell"
+    DOORBELL1 = "Door Bell 1"
+    DOORBELL2 = "Door Bell 2"
+    ALARM = "Alarm"
+    COW = "Cow"
+    OVERSPEED = "Overspeed"
+    SADTRUMPED = "Sad Trumped"
+    SHIPHORN = "Ship Horn"
+    SQUEAKY = "Squeaky"
+    SLAP = "Slap"
+    WHIP1 = "Whip 1"
+    WHIP2 = "Whip 2"
+    PLOP = "Plop"
+    PLOPPLIPPLIP = "Plop Plip Plip"
+    SWITCH = "Switch"
+    WHOOSH = "Woosh"
+    BOING = "Boing"
+
+
 class LabelStyle(Enum):
     BASIC = "BASIC"
     GROUP = "GROUP"

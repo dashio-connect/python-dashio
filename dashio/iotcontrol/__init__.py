@@ -1,4 +1,4 @@
-from .enums import Color, Icon, Precision, Keyboard, TextAlignment, SliderBarType, DialNumberPosition, DialStyle, \
+from .enums import Color, Icon, Precision, Keyboard, TextAlignment, SliderBarType, DialNumberPosition, DialStyle, SoundName,\
     GraphLineType, TimeGraphLineType, TimeGraphPositionOfKey, ButtonState, LabelStyle, KnobStyle, GraphXAxisLabelsStyle, TextFormat
 from .graph import Graph, GraphLine
 from .slider_single_bar import SliderSingleBar

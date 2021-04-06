@@ -126,19 +126,17 @@ class dashDevice(threading.Thread):
         ----------
         iot_control : iotControl
         """
-        if isinstance(iot_control, Alarm):
-            iot_control.message_tx_event += self.send_alarm
-            key = iot_control.msg_type + "_" + iot_control.control_id
-            self.alarm_dict[key] = iot_control
-        else:
-            if isinstance(iot_control, Page):
-                self.number_of_pages += 1
-            try:
+        if isinstance(iot_control, Page):
+            self.number_of_pages += 1
+        try:
+            if isinstance(iot_control, Alarm):
+                iot_control.message_tx_event += self.send_alarm
+            else:
                 iot_control.message_tx_event += self._send_data
-            except AttributeError:
-                pass
-            key = iot_control.msg_type + "_" + iot_control.control_id
-            self.control_dict[key] = iot_control
+        except AttributeError:
+            pass
+        key = iot_control.msg_type + "_" + iot_control.control_id
+        self.control_dict[key] = iot_control
 
     def _add_connection(self, connection):
         self.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=connection.connection_id))
@@ -188,7 +186,6 @@ class dashDevice(threading.Thread):
         self._device_setup_list = []
         self._device_commands_dict = {}
         self.control_dict = {}
-        self.alarm_dict = {}
         self._cfg = {}
         self.device_id_str = "\t{}".format(device_id)
         self.connect = self.device_id_str + "\tCONNECT\n"
