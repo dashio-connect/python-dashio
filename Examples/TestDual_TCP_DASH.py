@@ -210,7 +210,7 @@ class TestControls:
         self.text_cntrl.message_rx_event += self.text_cntrl_message_handler
         self.page_test.add_control(self.text_cntrl)
 
-        self.alarm_ctrl = dashio.Alarm("TestingAlarms", "Hello", "Test of Shared Alarms")
+        self.alarm_ctrl = dashio.Alarm("alarm1", "Alarm1 description.")
         self.device.add_control(self.alarm_ctrl)
         self.comp_control = dashio.Compass("COMP1", control_position=dashio.ControlPosition(0.24, 0.38, 0.54, 0.22))
         self.comp_control.title = "A compass"
