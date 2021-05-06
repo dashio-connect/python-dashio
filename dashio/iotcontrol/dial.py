@@ -15,7 +15,7 @@ class Dial(Control):
         pointer_color=Color.BLUE,
         number_position=DialNumberPosition.LEFT,
         show_min_max=False,
-        style=DialStyle.STD,
+        style=DialStyle.PIE,
         precision=Precision.OFF,
         units="",
         control_position=None,
