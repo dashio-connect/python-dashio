@@ -105,6 +105,7 @@ class dashConnection(threading.Thread):
         password="",
         host='dash.dashio.io',
         port=8883,
+        use_ssl=True,
         set_by_iotdashboard=False,
         context=None
     ):
@@ -137,15 +138,16 @@ class dashConnection(threading.Thread):
         # self.dash_c.on_publish = self.__on_publish
         self.dash_c.on_subscribe = self.__on_subscribe
         self.dash_control = Dash(self.connection_id, username, host)
-        self.dash_c.tls_set(
-            ca_certs=None,
-            certfile=None,
-            keyfile=None,
-            cert_reqs=ssl.CERT_REQUIRED,
-            tls_version=ssl.PROTOCOL_TLSv1_2,
-            ciphers=None,
-        )
-        self.dash_c.tls_insecure_set(False)
+        if use_ssl:
+            self.dash_c.tls_set(
+                ca_certs=None,
+                certfile=None,
+                keyfile=None,
+                cert_reqs=ssl.CERT_REQUIRED,
+                tls_version=ssl.PROTOCOL_TLSv1_2,
+                ciphers=None,
+            )
+            self.dash_c.tls_insecure_set(False)
 
         # self.dash_c.on_log = self.__on_log
         # self.dash_c.will_set(self.data_topic, self.LWD, qos=1, retain=False)
