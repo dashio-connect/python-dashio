@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="dashio",
-    version="1.99.998",
+    version="1.99.999",
     description="Dashio interface library",
     long_description=long_description,
     long_description_content_type="text/markdown",
