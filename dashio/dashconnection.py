@@ -4,12 +4,13 @@ import ssl
 import logging
 import zmq
 import shortuuid
-from .constants import *
+from .constants import DEVICE_PUB_URL, CONNECTION_PUB_URL
 import time
 import json
 
+
 class Dash(object):
-    
+
     def get_state(self) -> str:
         return ""
 
@@ -98,7 +99,15 @@ class dashConnection(threading.Thread):
         self.dash_c.username_pw_set(username, password)
         self.dash_c.connect(self.host, self.port)
 
-    def __init__(self, username="", password="", host='dash.dashio.io', port=8883, set_by_iotdashboard=False, context=None):
+    def __init__(
+        self,
+        username="",
+        password="",
+        host='dash.dashio.io',
+        port=8883,
+        set_by_iotdashboard=False,
+        context=None
+    ):
         """
         Arguments:
             host {str} -- The server name of the dash host.
@@ -138,7 +147,7 @@ class dashConnection(threading.Thread):
         )
         self.dash_c.tls_insecure_set(False)
 
-        self.dash_c.on_log = self.__on_log
+        # self.dash_c.on_log = self.__on_log
         # self.dash_c.will_set(self.data_topic, self.LWD, qos=1, retain=False)
         # Connect
         if username and password:
