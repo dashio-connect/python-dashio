@@ -180,13 +180,13 @@ class TestControls:
                                       "Direction",
                                       control_position=dashio.ControlPosition(0.24, 0.1, 0.54, 0.25))
         self.dial_std = dashio.Dial("DialSTD", "Dial Standard",
-                                    style=dashio.DialStyle.STD,
+                                    style=dashio.DialStyle.PIE,
                                     number_position=DialNumberPosition.RIGHT,
                                     precision=dashio.Precision.TWO,
                                     control_position=dashio.ControlPosition(0.24, 0.36, 0.54, 0.26))
         self.dial_inv = dashio.Dial("Dial",
                                     "Dial Inverted",
-                                    style=dashio.DialStyle.INVERTED,
+                                    style=dashio.DialStyle.PIEINV,
                                     number_position=DialNumberPosition.LEFT,
                                     precision=dashio.Precision.THREE,
                                     control_position=dashio.ControlPosition(0.24, 0.61, 0.54, 0.26))
