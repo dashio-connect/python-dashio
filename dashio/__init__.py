@@ -10,6 +10,7 @@ from .iotcontrol.enums import (
     SoundName,
     Keyboard,
     TextAlignment,
+    TitlePosition,
     SliderBarType,
     DialNumberPosition,
     DialStyle,
