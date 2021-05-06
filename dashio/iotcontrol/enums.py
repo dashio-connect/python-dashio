@@ -151,11 +151,12 @@ class DialNumberPosition(Enum):
     OFF = "off"
     LEFT = "left"
     RIGHT = "right"
-
+    CENTER = "center"
 
 class DialStyle(Enum):
-    STD = "upright"
-    INVERTED = "inverted"
+    PIE = "pie"
+    PIEINV = "pieinv"
+    BAR = "bar"
 
 
 class GraphLineType(Enum):
