@@ -176,9 +176,9 @@ class TestControls:
 
     def _init_dials(self):
         self.page_dials = dashio.Page("TestDials", "Dials")
-        self.compass = dashio.Compass("TestCompass",
-                                      "Direction",
-                                      control_position=dashio.ControlPosition(0.24, 0.1, 0.54, 0.25))
+        self.compass = dashio.Direction("TestCompass",
+                                        "Direction",
+                                        control_position=dashio.ControlPosition(0.24, 0.1, 0.54, 0.25))
         self.dial_std = dashio.Dial("DialSTD", "Dial Standard",
                                     style=dashio.DialStyle.PIE,
                                     number_position=DialNumberPosition.RIGHT,

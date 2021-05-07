@@ -1,12 +1,13 @@
-from .enums import Color, TitlePosition
+from .enums import Color, DirectionStyle, TitlePosition
 from .control import Control
 
 
-class Compass(Control):
+class Direction(Control):
     def __init__(
         self,
         control_id,
         title="A Control",
+        style=DirectionStyle.DEG,
         title_position=TitlePosition.BOTTOM,
         pointer_color=Color.GREEN,
         calibration_angle=0,
@@ -16,6 +17,7 @@ class Compass(Control):
         self.pointer_color = pointer_color
         self.calibration_angle = calibration_angle
         self._direction_value = 0
+        self.style = style
 
     def get_state(self):
         return self._state_str + "{}\n".format(self._direction_value)
@@ -45,3 +47,12 @@ class Compass(Control):
     @calibration_angle.setter
     def calibration_angle(self, val: float):
         self._cfg["calAngle"] = val
+
+    @property
+    def style(self) -> DirectionStyle:
+        return self._style
+
+    @style.setter
+    def style(self, val: DirectionStyle):
+        self._style = val
+        self._cfg["style"] = val.value

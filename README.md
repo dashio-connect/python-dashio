@@ -122,7 +122,7 @@ An alarm sends a notification throught the dashio mqtt server to registered phon
 
 #### Button Group
 
-#### Compass
+#### Direction
 
 #### Dial
 
