@@ -31,7 +31,7 @@ from .iotcontrol.button import Button
 from .iotcontrol.time_graph import TimeGraph, TimeGraphLine, DataPoint
 from .iotcontrol.knob import Knob
 from .iotcontrol.dial import Dial
-from .iotcontrol.compass import Compass
+from .iotcontrol.direction import Direction
 from .iotcontrol.map import Map, MapLocation, SimpleMapLocation
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.menu import Menu

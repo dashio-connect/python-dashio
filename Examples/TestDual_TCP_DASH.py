@@ -212,8 +212,8 @@ class TestControls:
 
         self.alarm_ctrl = dashio.Alarm("alarm1", "Alarm1 description.")
         self.device.add_control(self.alarm_ctrl)
-        self.comp_control = dashio.Compass("COMP1", control_position=dashio.ControlPosition(0.24, 0.38, 0.54, 0.22))
-        self.comp_control.title = "A compass"
+        self.comp_control = dashio.Direction("COMP1", control_position=dashio.ControlPosition(0.24, 0.38, 0.54, 0.22))
+        self.comp_control.title = "A Direction control"
         self.page_test.add_control(self.comp_control)
 
         self.selector_ctrl = dashio.Selector(

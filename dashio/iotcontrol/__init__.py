@@ -9,7 +9,7 @@ from .button import Button
 from .time_graph import TimeGraph, TimeGraphLine, DataPoint
 from .knob import Knob
 from .dial import Dial
-from .compass import Compass
+from .direction import Direction
 from .map import Map, MapLocation, SimpleMapLocation
 from .alarm import Alarm
 from .menu import Menu

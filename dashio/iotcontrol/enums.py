@@ -153,10 +153,17 @@ class DialNumberPosition(Enum):
     RIGHT = "right"
     CENTER = "center"
 
+
 class DialStyle(Enum):
     PIE = "pie"
     PIEINV = "pieinv"
     BAR = "bar"
+
+
+class DirectionStyle(Enum):
+    NSEW = "nsew"
+    DEG = "deg"
+    DEGPS = "degps"
 
 
 class GraphLineType(Enum):

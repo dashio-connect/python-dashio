@@ -177,8 +177,8 @@ class TestControls:
 
         self.alarm_ctrl = dashio.Alarm("TestingAlarms", "Test Alarms", "Hello", "Test of Shared Alarms")
         device.add_control(self.alarm_ctrl)
-        self.comp_control = dashio.Compass("COMP1")
-        self.comp_control.title = "A compass"
+        self.comp_control = dashio.Direction("COMP1")
+        self.comp_control.title = "A direction control"
         device.add_control(self.comp_control)
         self.page_test.add_control(self.comp_control)
 
