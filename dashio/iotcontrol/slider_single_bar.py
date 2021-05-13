@@ -50,7 +50,7 @@ class SliderSingleBar(Control):
     @bar1_value.setter
     def bar1_value(self, val: float):
         self._bar1_value = val
-        self._bar1_state_str = self._control_id_bar + "{self._bar1_value}\n"
+        self._bar1_state_str = self._control_id_bar + f"{self._bar1_value}\n"
         self.message_tx_event(self._bar1_state_str)
         self._bar_slider_state_str = self._slider_state_str + self._bar1_state_str
 

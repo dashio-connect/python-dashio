@@ -1,4 +1,5 @@
 #!/bin/python3
+from dashio.iotcontrol.enums import DirectionStyle
 import time
 import random
 import argparse
@@ -63,12 +64,12 @@ class TestControls:
     def up_btn_event_handler(self, msg):
         if self.sldr_cntrl.bar1_value < self.sldr_cntrl.max:
             self.sldr_cntrl.bar1_value += 1
-            self.sldr_dbl_cntrl.bar1_value += 1
+            self.sldr_dbl_cntrl.bar1_value += 0.5
 
     def down_btn_event_handler(self, msg):
         if self.sldr_cntrl.bar1_value > self.sldr_cntrl.min:
             self.sldr_cntrl.bar1_value -= 1
-            self.sldr_dbl_cntrl.bar1_value -= 1
+            self.sldr_dbl_cntrl.bar1_value -= 0.5
 
     def slider_event_handler(self, msg):
         self.sldr_cntrl.slider_value = float(msg[3])
@@ -118,7 +119,7 @@ class TestControls:
         self.up_btn.text = ""
         self.up_btn.text_color = dashio.Color.WHITE
         self.up_btn.title = "Up"
-        self.up_btn.message_rx_event += self.up_btn_event_handler
+        self.up_btn.message_rx_event = self.up_btn_event_handler
         self.page_test.add_control(self.up_btn)
 
         self.down_btn = dashio.Button(
@@ -130,7 +131,7 @@ class TestControls:
         self.down_btn.text = ""
         self.down_btn.text_color = dashio.Color.WHITE
         self.down_btn.title = "Down"
-        self.down_btn.message_rx_event += self.down_btn_event_handler
+        self.down_btn.message_rx_event = self.down_btn_event_handler
         self.page_test.add_control(self.down_btn)
 
         self.sldr_cntrl = dashio.SliderSingleBar(
@@ -139,7 +140,7 @@ class TestControls:
         self.sldr_cntrl.title = "Slider"
         self.sldr_cntrl.max = 10
         self.sldr_cntrl.slider_enabled = True
-        self.sldr_cntrl.red_value
+        self.sldr_cntrl.red_value = 10
         self.sldr_cntrl.message_rx_event += self.slider_event_handler
         self.page_test.add_control(self.sldr_cntrl)
 
@@ -149,7 +150,7 @@ class TestControls:
         self.sldr_dbl_cntrl.title = "Slider Double"
         self.sldr_dbl_cntrl.max = 5
         self.sldr_dbl_cntrl.slider_enabled = True
-        self.sldr_dbl_cntrl.red_value
+        self.sldr_dbl_cntrl.red_value = 5
         self.sldr_dbl_cntrl.message_rx_event += self.slider_dbl_event_handler
         self.page_test.add_control(self.sldr_dbl_cntrl)
 
@@ -175,10 +176,11 @@ class TestControls:
         self.text_cntrl.message_rx_event += self.text_cntrl_message_handler
         self.page_test.add_control(self.text_cntrl)
 
-        self.alarm_ctrl = dashio.Alarm("TestingAlarms", "Test Alarms", "Hello", "Test of Shared Alarms")
+        self.alarm_ctrl = dashio.Alarm("TestingAlarms", "Test Alarms")
         self.device.add_control(self.alarm_ctrl)
-        self.comp_control = dashio.Direction("COMP1", control_position=dashio.ControlPosition(0.24, 0.38, 0.54, 0.22))
+        self.comp_control = dashio.Direction("COMP1", style=DirectionStyle.DEGPS, control_position=dashio.ControlPosition(0.24, 0.38, 0.54, 0.22))
         self.comp_control.title = "A Direction control"
+        self.comp_control.direction_text = "00"
         self.page_test.add_control(self.comp_control)
 
         self.selector_ctrl = dashio.Selector(

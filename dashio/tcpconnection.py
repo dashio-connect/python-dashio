@@ -103,7 +103,7 @@ class tcpConnection(threading.Thread):
         time.sleep(1)
 
     def close(self):
-        if self.use_zero_conf:
+        if self.use_zeroconf:
             self.zeroconf.unregister_all_services()
             self.zeroconf.close()
         self.running = False

@@ -42,7 +42,7 @@ class Direction(Control):
             s_str = self._state_str + f"{self._direction_value}\t{self._direction_text}\n"
         else:
             s_str = self._state_str + f"{self._direction_value}\n"
-        self.state_str = self._state_str + s_str
+        self.state_str = s_str
 
     @property
     def direction_text(self) -> str:
@@ -50,12 +50,12 @@ class Direction(Control):
 
     @direction_text.setter
     def direction_text(self, val: str):
-        self.direction_text = val
+        self._direction_text = val
         if self._direction_text:
             s_str = self._state_str + f"{self._direction_value}\t{self._direction_text}\n"
         else:
             s_str = self._state_str + f"{self._direction_value}\n"
-        self.state_str = self._state_str + s_str
+        self.state_str = s_str
 
     @property
     def pointer_color(self) -> Color:
