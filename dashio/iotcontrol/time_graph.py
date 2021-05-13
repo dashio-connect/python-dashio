@@ -67,9 +67,7 @@ class TimeGraphLine:
     def get_latest_data(self):
         if self.data.empty():
             return ""
-        data_str = "\t{l_name}\t{l_type}\t{l_color}".format(
-            l_name=self.name, l_type=self.line_type.value, l_color=self.color.value
-        )
+        data_str = f"\t{self.name}\t{self.line_type.value}\t{self.color.value}"
         data_str += "\t" + self.data.get_latest().to_string()
         data_str += "\n"
         return data_str

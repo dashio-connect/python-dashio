@@ -50,7 +50,7 @@ class dashConnection(threading.Thread):
             self.connected = True
             self.disconnect = False
             for device_id in self.device_id_list:
-                control_topic = "{}/{}/control".format(self.username, device_id)
+                control_topic = f"{self.username}/{device_id}/control"
                 self.dash_c.subscribe(control_topic, 0)
             self._send_dash_announce()
             logging.debug("connected OK")
@@ -86,7 +86,7 @@ class dashConnection(threading.Thread):
             self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device._zmq_pub_id)
 
             if self.connected:
-                control_topic = "{}/{}/control".format(self.username, device.device_id)
+                control_topic = f"{self.username}/{device.device_id}/control"
                 self.dash_c.subscribe(control_topic, 0)
                 self._send_dash_announce()
 
@@ -194,11 +194,11 @@ class dashConnection(threading.Thread):
                 except IndexError:
                     continue
                 if address == b'ALARM':
-                    data_topic = "{}/{}/alarm".format(self.username, device_id)
+                    data_topic = f"{self.username}/{device_id}/alarm"
                 elif address == b"ANNOUNCE":
-                    data_topic = "{}/{}/announce".format(self.username, device_id)
+                    data_topic = f"{self.username}/{device_id}/announce"
                 else:
-                    data_topic = "{}/{}/data".format(self.username, device_id)
+                    data_topic = f"{self.username}/{device_id}/data"
                 if self.connected:
                     logging.debug("DASH TX:\n%s", data.decode('utf-8').rstrip())
                     self.dash_c.publish(data_topic, data.decode('utf-8'))
