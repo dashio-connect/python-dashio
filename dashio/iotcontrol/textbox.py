@@ -27,7 +27,7 @@ class TextBox(Control):
         self.close_keyboard_on_send = close_keyboard_on_send
 
     def get_state(self):
-        return self._state_str + "{}\n".format(self.text)
+        return self._state_str + f"{self.text}\n"
 
     @property
     def text(self):
@@ -36,7 +36,7 @@ class TextBox(Control):
     @text.setter
     def text(self, val):
         self._text = val
-        self.state_str = self._state_str + "{}\n".format(self.text)
+        self.state_str = self._state_str + f"{self.text}\n"
 
     @property
     def text_align(self) -> TextAlignment:

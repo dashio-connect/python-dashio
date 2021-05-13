@@ -91,7 +91,7 @@ class tcpConnection(threading.Thread):
         host_name = socket.gethostname()
         hs = host_name.split(".")
         # rename for .local mDNS advertising
-        self.host_name = "{}.local".format(hs[0])
+        self.host_name = f"{hs[0]}.local"
         self.local_ip = self._get_local_ip_address()
         if self.use_zeroconf:
             self.zeroconf = Zeroconf(ip_version=IPVersion.V4Only)

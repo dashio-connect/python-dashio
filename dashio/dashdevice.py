@@ -29,7 +29,7 @@ class dashDevice(threading.Thread):
         rx_device_id = data_array[0]
         # logging.debug('Device RX: %s', rx_device_id)
         if rx_device_id == "WHO":
-            return self.device_id_str + "\tWHO\t{}\t{}\n".format(self.device_type, self.device_name)
+            return self.device_id_str + f"\tWHO\t{self.device_type}\t{self.device_name}\n"
         if rx_device_id != self.device_id:
             return ""
         try:
@@ -52,7 +52,7 @@ class dashDevice(threading.Thread):
         return ""
 
     def _make_status(self):
-        reply = "\t{device_id}\tNAME\t{device_name}\n".format(device_id=self.device_id, device_name=self._device_name)
+        reply = f"\t{self.device_id}\tNAME\t{self._device_name}\n"
         for key in self.control_dict.keys():
             try:
                 reply += self.control_dict[key].get_state().format(device_id=self.device_id)
@@ -78,7 +78,7 @@ class dashDevice(threading.Thread):
         message : str
             Message body.
         """
-        data = self.device_id_str + "\tMSSG\t{}\t{}\t{}\n".format(title, header, message)
+        data = self.device_id_str + f"\tMSSG\t{title}\t{header}\t{message}\n"
         self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
 
     def send_alarm(self, alarm_id, message_header, message_body):
@@ -94,7 +94,7 @@ class dashDevice(threading.Thread):
             The text body of the Alarm.
         """
 
-        payload = self.device_id_str + "\t{}\t{}\t{}\n".format(alarm_id, message_header, message_body)
+        payload = self.device_id_str + f"\t{alarm_id}\t{message_header}\t{message_body}\n"
         logging.debug("ALARM: %s", payload)
         self.tx_zmq_pub.send_multipart([b"ALARM", b'0', payload.encode('utf-8')])
 
@@ -115,7 +115,7 @@ class dashDevice(threading.Thread):
             pass
 
     def _send_announce(self):
-        payload = self.device_id_str + "\tWHO\t{}\t{}\n".format(self.device_type, self.device_name)
+        payload = self.device_id_str + f"\tWHO\t{self.device_type}\t{self.device_name}\n"
         logging.debug("ANNOUNCE: %s", payload)
         self.tx_zmq_pub.send_multipart([b"ANNOUNCE", b'0', payload.encode('utf-8')])
 
@@ -187,7 +187,7 @@ class dashDevice(threading.Thread):
         self._device_commands_dict = {}
         self.control_dict = {}
         self._cfg = {}
-        self.device_id_str = "\t{}".format(device_id)
+        self.device_id_str = f"\t{device_id}"
         self.connect = self.device_id_str + "\tCONNECT\n"
         self.number_of_pages = 0
 
@@ -268,7 +268,7 @@ class dashDevice(threading.Thread):
     @device_name.setter
     def device_name(self, val: str):
         self._device_name = val
-        self._send_data("\t{{device_id}}\tNAME\t{name}\t".format(name=self._device_name))
+        self._send_data(f"\t{{device_id}}\tNAME\t{self._device_name}\t")
 
     def close(self):
         self.running = False

@@ -13,7 +13,7 @@ class ControlPosition:
         self.height_ratio = height_ratio
 
     def _set_size(self, page_size_x, page_size_y):
-        logging.debug("Page X: {x}, Page Y: {y}".format(x=page_size_x, y=page_size_y))
+        logging.debug(f"Page X: {page_size_x}, Page Y: {page_size_y}")
 
 
 class Control:
@@ -39,7 +39,7 @@ class Control:
         self.control_id = control_id
         self.message_rx_event = Event()
         self.message_tx_event = Event()
-        self._state_str = "\t{{device_id}}\t{control_type}\t{control_id}\t".format(control_type=self.msg_type, control_id=self.control_id)
+        self._state_str = f"\t{{device_id}}\t{self.msg_type}\t{self.control_id}\t"
         self._control_position = None
         if control_position is not None:
             self.control_position = control_position

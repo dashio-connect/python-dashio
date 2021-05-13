@@ -32,7 +32,7 @@ class Button(Control):
         self.text = text
 
     def get_state(self):
-        return self._state_str + "{}\n".format(self._btn_state.value)
+        return self._state_str + f"{self._btn_state.value}\n"
 
     @property
     def button_enabled(self) -> bool:
@@ -68,7 +68,7 @@ class Button(Control):
     def icon_name(self, val: Icon):
         self._icon_name = val
         self._cfg["iconName"] = val.value
-        self.state_str = self._state_str + "{}\t{}\n".format(self._btn_state.value, val.value)
+        self.state_str = self._state_str + f"{self._btn_state.value}\t{val.value}\n"
 
     @property
     def text(self) -> str:
@@ -77,7 +77,7 @@ class Button(Control):
     @text.setter
     def text(self, val: str):
         self._cfg["text"] = val
-        self.state_str = self._state_str + "{}\t{}\t{}\n".format(self._btn_state.value, self._icon_name.value, val)
+        self.state_str = self._state_str + f"{self._btn_state.value}\t{self._icon_name.value}\t{val}\n"
 
     @property
     def btn_state(self) -> ButtonState:
@@ -86,4 +86,4 @@ class Button(Control):
     @btn_state.setter
     def btn_state(self, val: ButtonState):
         self._btn_state = val
-        self.state_str = self._state_str + "{}\n".format(val.value)
+        self.state_str = self._state_str + f"{val.value}\n"

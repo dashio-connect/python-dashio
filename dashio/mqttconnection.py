@@ -178,7 +178,7 @@ class mqttConnection(threading.Thread):
                 device_id = msg_l[1].decode('utf-8').strip()
                 if self.connected:
                     logging.debug("%s TX: %s", self.b_connection_id.decode('utf-8'), data.decode('utf-8').rstrip())
-                    data_topic = "{}/{}/data".format(self.username, device_id)
+                    data_topic = f"{self.username}/{device_id}/data"
                     self.mqttc.publish(data_topic, data)
 
         self.mqttc.loop_stop()
