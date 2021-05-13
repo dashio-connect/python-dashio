@@ -14,7 +14,8 @@ setup(
     url="https://github.com/dashio-connect/python-dashio",
     packages=find_packages(),
     license="MIT",
-    classifiers=["Programming Language :: Python :: 3", "Operating System :: OS Independent"],
+    classifiers=["Programming Language :: Python :: 3.6", "Operating System :: OS Independent"],
     install_requires=["paho-mqtt", "pyzmq", "python-dateutil", "zeroconf", "shortuuid"],
+    python_requires='>3.6.0',
 )
 
