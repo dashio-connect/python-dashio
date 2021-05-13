@@ -1,5 +1,5 @@
 #!/bin/python3
-from dashio.iotcontrol.enums import DirectionStyle
+from dashio.iotcontrol.enums import DialNumberPosition, DialStyle, DirectionStyle, Precision
 import time
 import random
 import argparse
@@ -83,6 +83,7 @@ class TestControls:
         self.knb_control.knob_value = float(msg[3])
         self.dl_control.dial_value = float(msg[3])
         self.sldr_dbl_cntrl.bar2_value = float(msg[3])
+        self.comp_control.direction_text = float(msg[3])
 
     def text_cntrl_message_handler(self, msg):
         self.device.send_popup_message("TCPTest", "Text Box message", msg[3])
@@ -161,7 +162,7 @@ class TestControls:
         self.knb_control.message_rx_event += self.knob_event_handler
         self.page_test.add_control(self.knb_control)
 
-        self.dl_control = dashio.Dial("DIAL1", control_position=dashio.ControlPosition(0.24, 0.63, 0.54, 0.21))
+        self.dl_control = dashio.Dial("DIAL1", style=DialStyle.BAR, number_position=DialNumberPosition.CENTER, control_position=dashio.ControlPosition(0.24, 0.63, 0.54, 0.21))
         self.dl_control.title = "A Dial"
         self.dl_control.max = 10
         self.page_test.add_control(self.dl_control)
@@ -178,7 +179,7 @@ class TestControls:
 
         self.alarm_ctrl = dashio.Alarm("TestingAlarms", "Test Alarms")
         self.device.add_control(self.alarm_ctrl)
-        self.comp_control = dashio.Direction("COMP1", style=DirectionStyle.DEGPS, control_position=dashio.ControlPosition(0.24, 0.38, 0.54, 0.22))
+        self.comp_control = dashio.Direction("COMP1", style=DirectionStyle.DEGPS, precision=Precision.TWO, control_position=dashio.ControlPosition(0.24, 0.38, 0.54, 0.22))
         self.comp_control.title = "A Direction control"
         self.comp_control.direction_text = "00"
         self.page_test.add_control(self.comp_control)
