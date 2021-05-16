@@ -1,4 +1,4 @@
-from .enums import Color, DirectionStyle, TitlePosition
+from .enums import Color, DirectionStyle, TitlePosition, Precision
 from .control import Control
 
 
@@ -10,6 +10,8 @@ class Direction(Control):
         style=DirectionStyle.DEG,
         title_position=TitlePosition.BOTTOM,
         pointer_color=Color.GREEN,
+        units="",
+        precision=Precision.OFF,
         calibration_angle=0,
         control_position=None
     ):
@@ -17,10 +19,17 @@ class Direction(Control):
         self.pointer_color = pointer_color
         self.calibration_angle = calibration_angle
         self._direction_value = 0
+        self._direction_text = ""
         self.style = style
+        self.units = units
+        self.precision = precision
 
     def get_state(self):
-        return self._state_str + "{}\n".format(self._direction_value)
+        if self._direction_text:
+            s_str = self._state_str + f"{self._direction_value}\t{self._direction_text}\n"
+        else:
+            s_str = self._state_str + f"{self._direction_value}\n"
+        return s_str
 
     @property
     def direction_value(self) -> float:
@@ -29,7 +38,24 @@ class Direction(Control):
     @direction_value.setter
     def direction_value(self, val: float):
         self._direction_value = val
-        self.state_str = self._state_str + "\t{}\n".format(val)
+        if self._direction_text:
+            s_str = self._state_str + f"{self._direction_value}\t{self._direction_text}\n"
+        else:
+            s_str = self._state_str + f"{self._direction_value}\n"
+        self.state_str = s_str
+
+    @property
+    def direction_text(self) -> str:
+        return self._direction_text
+
+    @direction_text.setter
+    def direction_text(self, val: str):
+        self._direction_text = val
+        if self._direction_text:
+            s_str = self._state_str + f"{self._direction_value}\t{self._direction_text}\n"
+        else:
+            s_str = self._state_str + f"{self._direction_value}\n"
+        self.state_str = s_str
 
     @property
     def pointer_color(self) -> Color:
@@ -56,3 +82,20 @@ class Direction(Control):
     def style(self, val: DirectionStyle):
         self._style = val
         self._cfg["style"] = val.value
+
+    @property
+    def units(self) -> str:
+        return self._cfg["units"]
+
+    @units.setter
+    def units(self, val: str):
+        self._cfg["units"] = val
+
+    @property
+    def precision(self) -> Precision:
+        return self._precision
+
+    @precision.setter
+    def precision(self, val: Precision):
+        self._precision = val
+        self._cfg["precision"] = val.value
