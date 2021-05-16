@@ -40,6 +40,7 @@ class TCP(object):
     def port(self, val: int):
         self._cfg["port"] = val
 
+
 class tcpConnection(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via TCP."""
 
