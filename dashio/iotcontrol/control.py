@@ -17,6 +17,8 @@ class ControlPosition:
 
 
 class Control:
+
+    """Controls need to implement their own version."""
     def get_state(self) -> str:
         return ""
 

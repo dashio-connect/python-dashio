@@ -16,6 +16,6 @@ from .menu import Menu
 from .selector import Selector
 from .label import Label
 from .page import Page
-from .control import ControlPosition
+from .control import Control, ControlPosition
 from .button_group import ButtonGroup
 from .event_log import EventLog, EventData
