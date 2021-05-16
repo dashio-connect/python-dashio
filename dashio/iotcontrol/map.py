@@ -17,9 +17,7 @@ class SimpleMapLocation:
         self.tag = tag
 
     def get_location_data(self):
-        data_str = "{lat}\t{long}\t{tag}\n".format(
-            lat=self.latitude, long=self.longitude, tag=self.tag
-        )
+        data_str = f"{self.latitude}\t{self.longitude}\t{self.tag}\n"
         return data_str
 
 class MapLocation:

@@ -54,14 +54,14 @@ class zmqConnection(threading.Thread):
         self.context = context or zmq.Context.instance()
         self.running = True
 
-        self.tx_url_external = "tcp://{}:{}".format(zmq_out_url, pub_port)
-        self.rx_url_external = "tcp://{}:{}".format(zmq_out_url, sub_port)
+        self.tx_url_external = f"tcp://{zmq_out_url}:{pub_port}"
+        self.rx_url_external = f"tcp://{zmq_out_url}:{sub_port}"
 
         self.connection_id = shortuuid.uuid()
         self.b_connection_id = self.connection_id.encode('utf-8')
 
-        self.tx_url_internal = "inproc://TX_{}".format(self.connection_id)
-        self.rx_url_internal = "inproc://RX_{}".format(self.connection_id)
+        self.tx_url_internal = f"inproc://TX_{self.connection_id}"
+        self.rx_url_internal = f"inproc://RX_{self.connection_id}"
 
         host_name = socket.gethostname()
         hs = host_name.split(".")

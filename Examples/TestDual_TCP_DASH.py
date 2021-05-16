@@ -174,7 +174,7 @@ class TestControls:
         self.sldr_cntrl.title = "Slider"
         self.sldr_cntrl.max = 10
         self.sldr_cntrl.slider_enabled = True
-        self.sldr_cntrl.red_value
+        self.sldr_cntrl.red_value = 10
         self.sldr_cntrl.message_rx_event += self.slider_event_handler
         self.page_test.add_control(self.sldr_cntrl)
 
@@ -184,7 +184,7 @@ class TestControls:
         self.sldr_dbl_cntrl.title = "Slider Double"
         self.sldr_dbl_cntrl.max = 5
         self.sldr_dbl_cntrl.slider_enabled = True
-        self.sldr_dbl_cntrl.red_value
+        self.sldr_dbl_cntrl.red_value = 10
         self.sldr_dbl_cntrl.message_rx_event += self.slider_dbl_event_handler
         self.page_test.add_control(self.sldr_dbl_cntrl)
 
