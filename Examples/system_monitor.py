@@ -87,13 +87,13 @@ def main():
     logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
 
     device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
-    dash_conn = dashio.dashConnection(args.username, args.password)
+    dash_conn = dashio.DashConnection(args.username, args.password)
 
     def dash_rx_event_handler(msg):
         dash_conn.set_connection(msg[2], msg[3])
 
     device.dash_rx_event += dash_rx_event_handler
-    device.set_dash = True
+    device.set_dashio = True
     dash_conn.add_device(device)
 
     monitor_page = dashio.Page("monpg", "Dash Server Moniter")
@@ -142,8 +142,8 @@ def main():
     hd_dial = dashio.Dial("HD_USAGE")
     hd_dial.title = "Disk Usage"
     hd_dial.dial_value = psutil.disk_usage("/").percent
-    hd_dial.min = 0.0
-    hd_dial.max = 100.0
+    hd_dial.dial_min = 0.0
+    hd_dial.dial_max = 100.0
     hd_dial.red_value = 95.0
     hd_dial.show_min_max = True
     disk_usage = 0

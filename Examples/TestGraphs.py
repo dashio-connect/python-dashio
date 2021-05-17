@@ -81,12 +81,11 @@ class TestControls:
         logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
 
         device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
-        dash_conn = dashio.dashConnection(args.username, args.password)
+        dash_conn = dashio.DashConnection(args.username, args.password)
         dash_conn.add_device(device)
 
         self.gph_15_minutes = dashio.TimeGraph("TestGraph")
         self.gph_15_minutes.title = "Test: {}".format(args.connection)
-        self.gph_15_minutes.time_scale = dashio.TimeGraphTimeScale.FIFTEENMINS
         self.gph_15_minutes.y_axis_label = "Units"
         self.gph_15_minutes.y_axis_min = -10.0
         self.gph_15_minutes.y_axis_max = 10.0

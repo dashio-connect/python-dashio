@@ -105,7 +105,7 @@ class TestControls:
         logging.info("Connection ID: %s", args.connection)
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
-        self.tcp_con = dashio.tcpConnection()
+        self.tcp_con = dashio.TCPConnection()
         self.device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
         self.tcp_con.add_device(self.device)
 
@@ -118,7 +118,6 @@ class TestControls:
         self.up_btn.icon_name = dashio.Icon.UP
         self.up_btn.on_color = dashio.Color.GREEN
         self.up_btn.text = ""
-        self.up_btn.text_color = dashio.Color.WHITE
         self.up_btn.title = "Up"
         self.up_btn.message_rx_event = self.up_btn_event_handler
         self.page_test.add_control(self.up_btn)
@@ -130,7 +129,6 @@ class TestControls:
         self.down_btn.icon_name = dashio.Icon.DOWN
         self.down_btn.on_color = dashio.Color.GREEN
         self.down_btn.text = ""
-        self.down_btn.text_color = dashio.Color.WHITE
         self.down_btn.title = "Down"
         self.down_btn.message_rx_event = self.down_btn_event_handler
         self.page_test.add_control(self.down_btn)
@@ -139,7 +137,7 @@ class TestControls:
             "SLDR", control_position=dashio.ControlPosition(0.02, 0.13, 0.22, 0.73)
         )
         self.sldr_cntrl.title = "Slider"
-        self.sldr_cntrl.max = 10
+        self.sldr_cntrl.bar_max = 10
         self.sldr_cntrl.slider_enabled = True
         self.sldr_cntrl.red_value = 10
         self.sldr_cntrl.message_rx_event += self.slider_event_handler
@@ -149,7 +147,7 @@ class TestControls:
             "SLDR_DBL", control_position=dashio.ControlPosition(0.78, 0.01, 0.2, 0.98)
         )
         self.sldr_dbl_cntrl.title = "Slider Double"
-        self.sldr_dbl_cntrl.max = 5
+        self.sldr_dbl_cntrl.bar_max = 5
         self.sldr_dbl_cntrl.slider_enabled = True
         self.sldr_dbl_cntrl.red_value = 5
         self.sldr_dbl_cntrl.message_rx_event += self.slider_dbl_event_handler
@@ -157,14 +155,14 @@ class TestControls:
 
         self.knb_control = dashio.Knob("KNB", control_position=dashio.ControlPosition(0.24, 0.14, 0.54, 0.21))
         self.knb_control.title = "A Knob"
-        self.knb_control.max = 10
+        self.knb_control.dial_max = 10
         self.knb_control.red_value = 10
         self.knb_control.message_rx_event += self.knob_event_handler
         self.page_test.add_control(self.knb_control)
 
         self.dl_control = dashio.Dial("DIAL1", style=DialStyle.BAR, units="m/s", number_position=DialNumberPosition.CENTER, precision=Precision.TWO, control_position=dashio.ControlPosition(0.24, 0.63, 0.54, 0.21))
         self.dl_control.title = "A Dial"
-        self.dl_control.max = 10
+        self.dl_control.dial_max = 10
         self.page_test.add_control(self.dl_control)
 
         self.text_cntrl = dashio.TextBox(
@@ -173,7 +171,7 @@ class TestControls:
         self.text_cntrl.text = "Hello"
         self.text_cntrl.title = "A text control"
         self.text_cntrl.keyboard_type = dashio.Keyboard.ALL_CHARS
-        self.text_cntrl.close_key_board_on_send = True
+        self.text_cntrl.close_keyboard_on_send = True
         self.text_cntrl.message_rx_event += self.text_cntrl_message_handler
         self.page_test.add_control(self.text_cntrl)
 

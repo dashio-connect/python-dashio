@@ -1,25 +1,14 @@
-import zmq
+import socket
 import threading
 import logging
+import zmq
 import shortuuid
 from zeroconf import ServiceInfo, Zeroconf, IPVersion
-import socket
+from . import ip
 
-
-class zmqConnection(threading.Thread):
+class ZMQConnection(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via TCP."""
 
-    def __get_local_ip_address(self):
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        try:
-            # doesn't even have to be reachable
-            s.connect(('10.255.255.255', 1))
-            IP = s.getsockname()[0]
-        except Exception:
-            IP = '127.0.0.1'
-        finally:
-            s.close()
-        return IP
 
     def __zconf_publish_zmq(self, sub_port, pub_port):
         zconf_desc = {'sub_port': str(sub_port),
@@ -64,11 +53,11 @@ class zmqConnection(threading.Thread):
         self.rx_url_internal = f"inproc://RX_{self.connection_id}"
 
         host_name = socket.gethostname()
-        hs = host_name.split(".")
+        host_list = host_name.split(".")
         # rename for .local mDNS advertising
-        self.host_name = "{}.local".format(hs[0])
+        self.host_name = "{}.local".format(host_list[0])
 
-        self.local_ip = self.__get_local_ip_address()
+        self.local_ip = ip.get_local_ip_address()
         self.zeroconf = Zeroconf(ip_version=IPVersion.V4Only)
         self.__zconf_publish_zmq(sub_port, pub_port)
         self.start()
@@ -110,8 +99,8 @@ class zmqConnection(threading.Thread):
                 tx_zmq_pub.send_multipart([self.b_connection_id, b'', message])
 
             if rx_zmq_sub in socks:
-                [address, msg_id, data] = rx_zmq_sub.recv_multipart()
-                if address == b'ALL' or address == self.b_connection_id:
+                [address, _, data] = rx_zmq_sub.recv_multipart()
+                if address in (b'ALL', self.b_connection_id):
                     logging.debug("ZMQ Tx: %s", data.decode('utf-8').rstrip())
                     ext_tx_zmq_pub.send(data)
 

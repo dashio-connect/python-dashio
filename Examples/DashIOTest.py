@@ -103,7 +103,7 @@ def main():
         config_file_parser.get('DEFAULT', 'DeviceID'),
         config_file_parser.get('DEFAULT', 'DeviceName')
     )
-    dash_conn = dashio.dashConnection(
+    dash_conn = dashio.DashConnection(
         config_file_parser.get('DEFAULT', 'username'),
         config_file_parser.get('DEFAULT', 'password')
     )

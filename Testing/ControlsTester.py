@@ -468,7 +468,7 @@ class TestControls:
 
         self.device = dashio.dashDevice(args.device_type, args.device_id, args.device_name)
         # self.tcp_con = dashio.tcpConnection(port=args.port)
-        self.dash_con = dashio.dashConnection(args.username, args.password)
+        self.dash_con = dashio.DashConnection(args.username, args.password)
         # self.tcp_con.add_device(self.device)
         self.dash_con.add_device(self.device)
         self._init_knobs()
