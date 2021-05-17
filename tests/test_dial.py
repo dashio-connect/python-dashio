@@ -15,12 +15,12 @@ class TestDial(unittest.TestCase):
         self.assertEqual(test_control.get_state(), '\t{device_id}\tDIAL\tDIALID\t1\n', "Should be 1")
 
     def test_dial_min(self):
-        test_control = Dial("DIALID", min=1)
+        test_control = Dial("DIALID", dial_min=1)
         cfg_dict = self._get_cfg_dict(test_control.get_cfg(1,1))
         self.assertEqual(cfg_dict['min'], 1, "CFG min should be 1")
 
     def test_dial_max(self):
-        test_control = Dial("DIALID", max=1)
+        test_control = Dial("DIALID", dial_max=1)
         cfg_dict = self._get_cfg_dict(test_control.get_cfg(1,1))
         self.assertEqual(cfg_dict['max'], 1, "CFG min should be 1")
 
