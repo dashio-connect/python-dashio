@@ -105,7 +105,7 @@ class TestControls:
         logging.info("Connection ID: %s", args.connection)
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
-        self.tcp_con = dashio.tcpConnection()
+        self.tcp_con = dashio.TCPConnection()
         self.device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
         self.tcp_con.add_device(self.device)
 
@@ -164,7 +164,7 @@ class TestControls:
 
         self.dl_control = dashio.Dial("DIAL1", style=DialStyle.BAR, units="m/s", number_position=DialNumberPosition.CENTER, precision=Precision.TWO, control_position=dashio.ControlPosition(0.24, 0.63, 0.54, 0.21))
         self.dl_control.title = "A Dial"
-        self.dl_control.max = 10
+        self.dl_control.dial_max = 10
         self.page_test.add_control(self.dl_control)
 
         self.text_cntrl = dashio.TextBox(
@@ -173,7 +173,7 @@ class TestControls:
         self.text_cntrl.text = "Hello"
         self.text_cntrl.title = "A text control"
         self.text_cntrl.keyboard_type = dashio.Keyboard.ALL_CHARS
-        self.text_cntrl.close_key_board_on_send = True
+        self.text_cntrl.close_keyboard_on_send = True
         self.text_cntrl.message_rx_event += self.text_cntrl_message_handler
         self.page_test.add_control(self.text_cntrl)
 

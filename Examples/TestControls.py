@@ -108,7 +108,7 @@ class TestControls:
         logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
 
         device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
-        dash_conn = dashio.dashConnection(args.username, args.password)
+        dash_conn = dashio.DashConnection(args.username, args.password)
         dash_conn.add_device(device)
 
         self.page_test = dashio.Page("TestPage", "Testing Pages", 1)
@@ -117,7 +117,6 @@ class TestControls:
         self.up_btn.icon_name = dashio.Icon.UP
         self.up_btn.on_color = dashio.Color.GREEN
         self.up_btn.text = ""
-        self.up_btn.text_color = dashio.Color.WHITE
         self.up_btn.title = "Up"
         self.up_btn.message_rx_event += self.up_btn_event_handler
         device.add_control(self.up_btn)
@@ -128,7 +127,6 @@ class TestControls:
         self.down_btn.icon_name = dashio.Icon.DOWN
         self.down_btn.on_color = dashio.Color.GREEN
         self.down_btn.text = ""
-        self.down_btn.text_color = dashio.Color.WHITE
         self.down_btn.title = "Down"
         self.down_btn.message_rx_event += self.down_btn_event_handler
         device.add_control(self.down_btn)
@@ -162,7 +160,7 @@ class TestControls:
 
         self.dl_control = dashio.Dial("DIAL1")
         self.dl_control.title = "A Dial"
-        self.dl_control.max = 10
+        self.dl_control.dial_max = 10
         device.add_control(self.dl_control)
         self.page_test.add_control(self.dl_control)
 
@@ -170,7 +168,7 @@ class TestControls:
         self.text_cntrl.text = "Hello"
         self.text_cntrl.title = "A text control"
         self.text_cntrl.keyboard_type = dashio.Keyboard.ALL_CHARS
-        self.text_cntrl.close_key_board_on_send = True
+        self.text_cntrl.close_keyboard_on_send = True
         self.text_cntrl.message_rx_event += self.text_cntrl_message_handler
         device.add_control(self.text_cntrl)
         self.page_test.add_control(self.text_cntrl)

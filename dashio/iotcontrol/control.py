@@ -1,9 +1,9 @@
 import logging
-from .event import Event
-from .enums import TitlePosition
 import json
 import copy
 
+from .event import Event
+from .enums import TitlePosition
 
 class ControlPosition:
     def __init__(self, x_position_ratio, y_position_ratio, width_ratio, height_ratio):
@@ -12,8 +12,8 @@ class ControlPosition:
         self.width_ratio = width_ratio
         self.height_ratio = height_ratio
 
-    def _set_size(self, page_size_x, page_size_y):
-        logging.debug(f"Page X: {page_size_x}, Page Y: {page_size_y}")
+    def set_size(self, page_size_x, page_size_y):
+        logging.debug("Page X: %s, Page Y: %s", page_size_x, page_size_y)
 
 
 class Control:
@@ -24,7 +24,7 @@ class Control:
 
     def get_cfg(self, page_size_x, page_size_y):
         if self.control_position:
-            self.control_position._set_size(page_size_x, page_size_y)
+            self.control_position.set_size(page_size_x, page_size_y)
         cfg_str = "\tCFG\t" + self.msg_type + "\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
 

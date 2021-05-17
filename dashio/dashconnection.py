@@ -1,15 +1,15 @@
 import threading
-import paho.mqtt.client as mqtt
-import ssl
+import time
+import json
 import logging
+import ssl
+import paho.mqtt.client as mqtt
 import zmq
 import shortuuid
 from .constants import DEVICE_PUB_URL, CONNECTION_PUB_URL
-import time
-import json
 
 
-class Dash(object):
+class Dash():
 
     def get_state(self) -> str:
         return ""
@@ -42,11 +42,11 @@ class Dash(object):
         self._cfg["hostURL"] = val
 
 
-class dashConnection(threading.Thread):
+class DashConnection(threading.Thread):
     """Setups and manages a connection thread to the Dash Server."""
 
-    def __on_connect(self, client, userdata, flags, rc):
-        if rc == 0:
+    def _on_connect(self, client, userdata, flags, msg):
+        if msg == 0:
             self.connected = True
             self.disconnect = False
             for device_id in self.device_id_list:
@@ -55,35 +55,32 @@ class dashConnection(threading.Thread):
             self._send_dash_announce()
             logging.debug("connected OK")
         else:
-            logging.debug("Bad connection Returned code=%s", rc)
+            logging.debug("Bad connection Returned code=%s", msg)
 
-    def __on_disconnect(self, client, userdata, rc):
-        logging.debug("disconnecting reason  " + str(rc))
+    def _on_disconnect(self, client, userdata, msg):
+        logging.debug("disconnecting reason  %s", msg)
         self.connected = False
         self.disconnect = True
 
-    def __on_message(self, client, obj, msg):
+    def _on_message(self, client, obj, msg):
         data = str(msg.payload, "utf-8").strip()
         logging.debug("DASH RX:\n%s", data)
         self.tx_zmq_pub.send_multipart([self.b_connection_id, b'1', msg.payload])
 
-    def __on_publish(self, client, obj, mid):
-        pass
-
-    def __on_subscribe(self, client, obj, mid, granted_qos):
+    def _on_subscribe(self, client, obj, mid, granted_qos):
         logging.debug("Subscribed: %s %s", str(mid), str(granted_qos))
 
-    def __on_log(self, client, obj, level, string):
+    def _on_log(self, client, obj, level, string):
         logging.debug(string)
 
     def add_device(self, device):
         if device.device_id not in self.device_id_list:
             self.device_id_list.append(device.device_id)
-            device._add_connection(self)
+            device.add_connection(self)
             device.add_control(self.dash_control)
 
-            self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device._zmq_pub_id))
-            self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device._zmq_pub_id)
+            self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
+            self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
 
             if self.connected:
                 control_topic = f"{self.username}/{device.device_id}/control"
@@ -121,10 +118,11 @@ class dashConnection(threading.Thread):
 
         self.context = context or zmq.Context.instance()
         self.connected = False
+        self.disconnect = True
         self.connection_id = shortuuid.uuid()
         self.b_connection_id = self.connection_id.encode('utf-8')
         self.device_id_list = []
-        self.LWD = "OFFLINE"
+        # self.LWD = "OFFLINE"
         self.running = True
         self.username = username
         self.dash_c = mqtt.Client()
@@ -132,11 +130,11 @@ class dashConnection(threading.Thread):
         self.port = port
         self.set_by_iotdashboard = set_by_iotdashboard
         # Assign event callbacks
-        self.dash_c.on_message = self.__on_message
-        self.dash_c.on_connect = self.__on_connect
-        self.dash_c.on_disconnect = self.__on_disconnect
+        self.dash_c.on_message = self._on_message
+        self.dash_c.on_connect = self._on_connect
+        self.dash_c.on_disconnect = self._on_disconnect
         # self.dash_c.on_publish = self.__on_publish
-        self.dash_c.on_subscribe = self.__on_subscribe
+        self.dash_c.on_subscribe = self._on_subscribe
         self.dash_control = Dash(self.connection_id, username, host)
         if use_ssl:
             self.dash_c.tls_set(
@@ -185,7 +183,7 @@ class dashConnection(threading.Thread):
                 break
 
             if self.rx_zmq_sub in socks:
-                [address, id, data] = self.rx_zmq_sub.recv_multipart()
+                [address, _, data] = self.rx_zmq_sub.recv_multipart()
                 if not data:
                     continue
                 msg_l = data.split(b'\t')
