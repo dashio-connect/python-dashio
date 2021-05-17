@@ -6,9 +6,9 @@ import shortuuid
 from zeroconf import ServiceInfo, Zeroconf, IPVersion
 from . import ip
 
+
 class ZMQConnection(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via TCP."""
-
 
     def __zconf_publish_zmq(self, sub_port, pub_port):
         zconf_desc = {'sub_port': str(sub_port),

@@ -10,7 +10,7 @@ import configparser
 import ipaddress
 import netifaces
 from collections import defaultdict
-from zeroconf import IPVersion, ServiceInfo, Zeroconf, ServiceBrowser
+from zeroconf import Zeroconf, ServiceBrowser
 
 # TODO: Add documentation
 
