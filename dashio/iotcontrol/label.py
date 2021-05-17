@@ -35,4 +35,4 @@ class Label(Control):
     @color.setter
     def color(self, val: Color):
         self._color = val
-        self._cfg["Color"] = str(val.value)
+        self._cfg["color"] = str(val.value)
