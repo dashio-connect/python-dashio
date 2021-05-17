@@ -107,7 +107,7 @@ class TestControls:
 
         self.sldr_cntrl = dashio.SliderSingleBar("SLDR")
         self.sldr_cntrl.title = "Slider"
-        self.sldr_cntrl.max = 10
+        self.sldr_cntrl.bar_max = 10
         self.sldr_cntrl.slider_enabled = True
         self.sldr_cntrl.red_value
         device.add_control(self.sldr_cntrl)

@@ -7,9 +7,9 @@ class RingBuffer:
 
     class __Full:
         """ class that implements a full buffer """
-        def append(self, x):
+        def append(self, val):
             """ Append an element overwriting the oldest one. """
-            self.data[self.cur] = x
+            self.data[self.cur] = val
             self.cur = (self.cur + 1) % self.max
 
         def get(self):
@@ -19,15 +19,15 @@ class RingBuffer:
         def get_latest(self):
             indx = self.cur - 1
             if indx < 0:
-                indx = self.max - 1 
+                indx = self.max - 1
             return self.data[indx]
-        
+
         def empty(self):
             return False
 
-    def append(self, x):
+    def append(self, val):
         """append an element at the end of the buffer"""
-        self.data.append(x)
+        self.data.append(val)
         if len(self.data) == self.max:
             self.cur = 0
             # Permanently change self's class from non-full to full
