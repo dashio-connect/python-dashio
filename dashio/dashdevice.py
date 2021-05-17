@@ -1,13 +1,13 @@
 import logging
-import zmq
 import threading
 import json
+import zmq
 import shortuuid
 
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.page import Page
 from .iotcontrol.event import Event
-from .constants import *
+from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 
 class dashDevice(threading.Thread):
 
@@ -17,9 +17,9 @@ class dashDevice(threading.Thread):
         data = str(payload, "utf-8").strip()
         command_array = data.split("\n")
         reply = ""
-        for ca in command_array:
+        for command in command_array:
             try:
-                reply += self._on_command(ca.strip())
+                reply += self._on_command(command.strip())
             except TypeError:
                 pass
         return reply
@@ -53,7 +53,7 @@ class dashDevice(threading.Thread):
 
     def _make_status(self):
         reply = f"\t{self.device_id}\tNAME\t{self._device_name}\n"
-        for key in self.control_dict.keys():
+        for key in self.control_dict:
             try:
                 reply += self.control_dict[key].get_state().format(device_id=self.device_id)
             except (TypeError, KeyError):
@@ -62,7 +62,7 @@ class dashDevice(threading.Thread):
 
     def _make_cfg(self, data):
         reply = self.device_id_str + '\tCFG\tDVCE\t' + json.dumps(self._cfg) + "\n"
-        for key in self.control_dict.keys():
+        for key in self.control_dict:
             reply += self.device_id_str + self.control_dict[key].get_cfg(data[2], data[3])
         return reply
 
@@ -138,7 +138,7 @@ class dashDevice(threading.Thread):
         key = iot_control.msg_type + "_" + iot_control.control_id
         self.control_dict[key] = iot_control
 
-    def _add_connection(self, connection):
+    def add_connection(self, connection):
         self.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=connection.connection_id))
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, connection.connection_id.encode('utf-8'))
 
@@ -171,8 +171,8 @@ class dashDevice(threading.Thread):
                  context=None) -> None:
         threading.Thread.__init__(self, daemon=True)
 
-        self._zmq_pub_id = shortuuid.uuid()
-        self._b_zmq_pub_id = self._zmq_pub_id.encode('utf-8')
+        self.zmq_pub_id = shortuuid.uuid()
+        self._b_zmq_pub_id = self.zmq_pub_id.encode('utf-8')
         self.context = context or zmq.Context.instance()
         self.wifi_rx_event = Event()
         self.dash_rx_event = Event()
@@ -277,7 +277,7 @@ class dashDevice(threading.Thread):
         # Continue the network loop, exit when an error occurs
 
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.tx_zmq_pub.bind(DEVICE_PUB_URL.format(id=self._zmq_pub_id))
+        self.tx_zmq_pub.bind(DEVICE_PUB_URL.format(id=self.zmq_pub_id))
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "COMMAND")
 

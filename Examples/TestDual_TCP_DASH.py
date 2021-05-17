@@ -140,8 +140,8 @@ class TestControls:
         self.device.name_rx_event += self.name_handler
         self.device.tcp_rx_event += self.tcp_handler
         self.device.mqtt_rx_event += self.mqtt_handler
-        self.tcp_con = dashio.tcpConnection()
-        self.dash_con = dashio.dashConnection(args.username, args.password)
+        self.tcp_con = dashio.TCPConnection()
+        self.dash_con = dashio.DashConnection(args.username, args.password)
         self.tcp_con.add_device(self.device)
         self.dash_con.add_device(self.device)
 
@@ -190,14 +190,14 @@ class TestControls:
 
         self.knb_control = dashio.Knob("KNB", control_position=dashio.ControlPosition(0.24, 0.14, 0.54, 0.21))
         self.knb_control.title = "A Knob"
-        self.knb_control.max = 10
+        self.knb_control.dial_max = 10
         self.knb_control.red_value = 10
         self.knb_control.message_rx_event += self.knob_event_handler
         self.page_test.add_control(self.knb_control)
 
         self.dl_control = dashio.Dial("DIAL1", control_position=dashio.ControlPosition(0.24, 0.63, 0.54, 0.21))
         self.dl_control.title = "A Dial"
-        self.dl_control.max = 10
+        self.dl_control.dial_max = 10
         self.page_test.add_control(self.dl_control)
 
         self.text_cntrl = dashio.TextBox(

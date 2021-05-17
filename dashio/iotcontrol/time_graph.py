@@ -1,8 +1,8 @@
+import datetime
+import dateutil.parser
 from .enums import TimeGraphLineType, Color, TitlePosition
 from .control import Control
 from .ring_buffer import RingBuffer
-import datetime
-import dateutil.parser
 
 class DataPoint:
     def __init__(self, data):
@@ -28,27 +28,27 @@ class TimeGraphLine:
         if self.data.empty():
             return ""
         data_str = f"\t{self.name}\t{self.line_type.value}\t{self.color.value}"
-        for d in self.data.get():
-            data_str += "\t" + d.to_string()
+        for data_p in self.data.get():
+            data_str += "\t" + data_p.to_string()
         data_str += "\n"
         return data_str
 
     def get_line_from_timestamp(self, timestamp):
         data_str = f"\t{self.name}\t{self.line_type.value}\t{self.color.value}"
-        dt = dateutil.parser.isoparse(timestamp)
+        d_stamp = dateutil.parser.isoparse(timestamp)
         first = True
         valid_data = False
         data_list = self.data.get()
-        for d in data_list:
-            if d.timestamp > dt:
+        for data_p in data_list:
+            if data_p.timestamp > d_stamp:
                 if first and self.break_data:
-                    data_str += "\t" + "{ts},{ldata}".format(ts=d.timestamp.isoformat(), ldata="b") 
-                data_str += "\t" + d.to_string()
+                    data_str += "\t" + "{ts},{ldata}".format(ts=data_p.timestamp.isoformat(), ldata="b")
+                data_str += "\t" + data_p.to_string()
                 valid_data = True
             first = False
         data_str += "\n"
         if not valid_data:
-             data_str = ""
+            data_str = ""
         return data_str
 
     def add_data_point(self, data_point):
@@ -57,8 +57,8 @@ class TimeGraphLine:
         Arguments:
             data_point {str} -- A single data point
         """
-        dp = DataPoint(data_point)
-        self.data.append(dp)
+        data_p = DataPoint(data_point)
+        self.data.append(data_p)
 
     def get_latest_data(self):
         if self.data.empty():
@@ -99,13 +99,13 @@ class TimeGraph(Control):
 
     def send_graph(self):
         state_str = ""
-        for key in self.line_dict.keys():
+        for key in self.line_dict:
             state_str += self._state_str + key + self.line_dict[key].get_line_data()
         self.state_str = state_str
 
     def __get_lines_from_timestamp(self, msg):
         state_str = ""
-        for key in self.line_dict.keys():
+        for key in self.line_dict:
             if self.line_dict[key].data:
                 line_data = self.line_dict[key].get_line_from_timestamp(msg[3])
                 if line_data:
@@ -114,7 +114,7 @@ class TimeGraph(Control):
 
     def send_data(self):
         state_str = ""
-        for key in self.line_dict.keys():
+        for key in self.line_dict:
             if self.line_dict[key].data:
                 line_data = self.line_dict[key].get_latest_data()
                 if line_data:

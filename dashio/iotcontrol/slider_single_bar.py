@@ -8,8 +8,8 @@ class SliderSingleBar(Control):
         control_id,
         title="A Single Slider",
         title_position=TitlePosition.BOTTOM,
-        min=0.0,
-        max=1000.0,
+        bar_min=0.0,
+        bar_max=1000.0,
         red_value=750,
         show_min_max=False,
         slider_enabled=True,
@@ -26,8 +26,8 @@ class SliderSingleBar(Control):
         self._bar1_value = 0.0
         self._slider_value = 0.0
 
-        self.min = min
-        self.max = max
+        self.bar_min = bar_min
+        self.bar_max = bar_max
         self.red_value = red_value
         self.show_min_max = show_min_max
         self.slider_enabled = slider_enabled
@@ -66,19 +66,19 @@ class SliderSingleBar(Control):
         self._bar_slider_state_str = self._slider_state_str + self._bar1_state_str
 
     @property
-    def min(self) -> float:
+    def bar_min(self) -> float:
         return self._cfg["min"]
 
-    @min.setter
-    def min(self, val: float):
+    @bar_min.setter
+    def bar_min(self, val: float):
         self._cfg["min"] = val
 
     @property
-    def max(self) -> float:
+    def bar_max(self) -> float:
         return self._cfg["max"]
 
-    @max.setter
-    def max(self, val: float):
+    @bar_max.setter
+    def bar_max(self, val: float):
         self._cfg["max"] = val
 
     @property

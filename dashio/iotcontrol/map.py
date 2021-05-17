@@ -1,8 +1,8 @@
-from .enums import TitlePosition
-from .control import Control
 import datetime
 import json
 
+from .enums import TitlePosition
+from .control import Control
 class SimpleMapLocation:
     def __init__(self, tag, latitude, longitude):
         """A map location used by a map_control

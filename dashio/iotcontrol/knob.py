@@ -9,8 +9,8 @@ class Knob(Control):
         title="A Knob",
         title_position=TitlePosition.BOTTOM,
         knob_style=KnobStyle.NORMAL,
-        min=0.0,
-        max=100.0,
+        dial_min=0.0,
+        dial_max=100.0,
         red_value=75.0,
         show_min_max=False,
         send_only_on_release=True,
@@ -24,8 +24,8 @@ class Knob(Control):
         self._knob_value = 0
         self._knob_dial_value = 0
         self.knob_style = knob_style
-        self.min = min
-        self.max = max
+        self.dial_min = dial_min
+        self.dial_max = dial_max
         self.red_value = red_value
         self.show_min_max = show_min_max
         self.send_only_on_release = send_only_on_release
@@ -71,19 +71,19 @@ class Knob(Control):
         self._cfg["style"] = str(val.value)
 
     @property
-    def min(self) -> float:
+    def dial_min(self) -> float:
         return self._cfg["min"]
 
-    @min.setter
-    def min(self, val: float):
+    @dial_min.setter
+    def dial_min(self, val: float):
         self._cfg["min"] = val
 
     @property
-    def max(self) -> float:
+    def dial_max(self) -> float:
         return self._cfg["max"]
 
-    @max.setter
-    def max(self, val: float):
+    @dial_max.setter
+    def dial_max(self, val: float):
         self._cfg["max"] = val
 
     @property

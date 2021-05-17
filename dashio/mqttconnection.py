@@ -1,21 +1,21 @@
 import threading
-import paho.mqtt.client as mqtt
-import ssl
-import logging
-import zmq
 import uuid
+import logging
 import json
+import ssl
+import paho.mqtt.client as mqtt
+import zmq
 
-from .constants import *
+from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 
 # TODO: Add documentation
 
-class MQTT(object):
+class MQTT():
 
     """A connection only control"""
     def get_state(self):
         return ""
-    
+
     def get_cfg(self, page_size_x, page_size_y):
         cfg_str = "\tCFG\t" + self.msg_type + "\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
@@ -26,6 +26,8 @@ class MQTT(object):
         self.control_id = control_id
         self.username = username
         self.servername = servername
+        self.password = password
+        self.use_ssl = use_ssl
 
     def set_mqtt(self, username, servername):
         self.username = username
@@ -48,51 +50,48 @@ class MQTT(object):
         self._cfg["hostURL"] = val
 
 
-class mqttConnection(threading.Thread):
+class MQTTConnection(threading.Thread):
     """Setups and manages a connection thread to the Dash Server."""
 
-    def __on_connect(self, client, userdata, flags, rc):
-        if rc == 0:
+    def _on_connect(self, client, userdata, flags, msg):
+        if msg == 0:
             self.connected = True
             self.disconnect = False
             for device_id in self.device_id_list:
                 control_topic = "{}/{}/control".format(self.username, device_id)
-                self.dash_c.subscribe(control_topic, 0)
+                self.mqttc.subscribe(control_topic, 0)
             logging.debug("connected OK")
         else:
-            logging.debug("Bad connection Returned code=%s", rc)
+            logging.debug("Bad connection Returned code=%s", msg)
 
-    def __on_disconnect(self, client, userdata, rc):
-        logging.debug("disconnecting reason  "  + str(rc))
+    def _on_disconnect(self, client, userdata, msg):
+        logging.debug("disconnecting reason  %s", msg)
         self.connected = False
         self.disconnect = True
 
-    def __on_message(self, client, obj, msg):
+    def _on_message(self, client, obj, msg):
         data = str(msg.payload, "utf-8").strip()
         logging.debug("DASH RX: %s", data)
         self.tx_zmq_pub.send_multipart([self.b_connection_id, b'1', msg.payload])
 
-    def __on_publish(self, client, obj, mid):
-        pass
-
-    def __on_subscribe(self, client, obj, mid, granted_qos):
+    def _on_subscribe(self, client, obj, mid, granted_qos):
         logging.debug("Subscribed: %s %s", str(mid), str(granted_qos))
 
-    def __on_log(self, client, obj, level, string):
+    def _on_log(self, client, obj, level, string):
         logging.debug(string)
-    
+
     def add_device(self, device):
         if device.device_id not in self.device_id_list:
             self.device_id_list.append(device.device_id)
-            device._add_connection(self)
-            device.add_control(self.dash_control)
+            device.add_connection(self)
+            device.add_control(self.mqtt_control)
 
-            self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device._zmq_pub_id))
-            self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device._zmq_pub_id)
+            self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
+            self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
 
             if self.connected:
                 control_topic = "{}/{}/control".format(self.username, device.device_id)
-                self.dash_c.subscribe(control_topic, 0)
+                self.mqttc.subscribe(control_topic, 0)
 
     def __init__(self, host, port, username="", password="", use_ssl=False, context=None):
         """
@@ -109,24 +108,25 @@ class mqttConnection(threading.Thread):
         threading.Thread.__init__(self, daemon=True)
 
         self.context = context or zmq.Context.instance()
-
-        self.connected = False
-        self.connection_topic_list = []
-        self.device_id_list = []
         self.connection_id = uuid.uuid4()
         self.b_connection_id = self.connection_id.bytes
 
-        self.LWD = "OFFLINE"
+        self.mqtt_control = MQTT(self.connection_id, username, password, host, use_ssl)
+        self.connected = False
+        self.disconnect = True
+        self.connection_topic_list = []
+        self.device_id_list = []
+
+        # self.last_will = "OFFLINE"
         self.running = True
         self.username = username
         self.mqttc = mqtt.Client()
 
         # Assign event callbacks
-        self.mqttc.on_message = self.__on_message
-        self.mqttc.on_connect = self.__on_connect
-        self.mqttc.on_disconnect = self.__on_disconnect
-        self.mqttc.on_publish = self.__on_publish
-        self.mqttc.on_subscribe = self.__on_subscribe
+        self.mqttc.on_message = self._on_message
+        self.mqttc.on_connect = self._on_connect
+        self.mqttc.on_disconnect = self._on_disconnect
+        self.mqttc.on_subscribe = self._on_subscribe
 
         if use_ssl:
             self.mqttc.tls_set(
@@ -139,8 +139,8 @@ class mqttConnection(threading.Thread):
             )
             self.mqttc.tls_insecure_set(False)
 
-        self.mqttc.on_log = self.__on_log
-        self.mqttc.will_set(self.data_topic, self.LWD, qos=1, retain=False)
+        self.mqttc.on_log = self._on_log
+        # self.mqttc.will_set(self.data_topic, self.last_will, qos=1, retain=False)
         # Connect
         if username and password:
             self.mqttc.username_pw_set(username, password)
@@ -173,7 +173,7 @@ class mqttConnection(threading.Thread):
             except zmq.error.ContextTerminated:
                 break
             if self.rx_zmq_sub in socks:
-                [address, id, data] = self.rx_zmq_sub.recv_multipart()
+                [_, _, data] = self.rx_zmq_sub.recv_multipart()
                 msg_l = data.split(b'\t')
                 device_id = msg_l[1].decode('utf-8').strip()
                 if self.connected:
