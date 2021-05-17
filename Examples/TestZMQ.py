@@ -121,7 +121,6 @@ class TestControls:
         self.up_btn.icon_name = dashio.Icon.UP
         self.up_btn.on_color = dashio.Color.GREEN
         self.up_btn.text = ""
-        self.up_btn.text_color = dashio.Color.WHITE
         self.up_btn.title = "Up"
         self.up_btn.message_rx_event += self.up_btn_event_handler
         self.page_test.add_control(self.up_btn)
@@ -133,7 +132,6 @@ class TestControls:
         self.down_btn.icon_name = dashio.Icon.DOWN
         self.down_btn.on_color = dashio.Color.GREEN
         self.down_btn.text = ""
-        self.down_btn.text_color = dashio.Color.WHITE
         self.down_btn.title = "Down"
         self.down_btn.message_rx_event += self.down_btn_event_handler
         self.page_test.add_control(self.down_btn)
@@ -167,7 +165,7 @@ class TestControls:
 
         self.dl_control = dashio.Dial("DIAL1", control_position=dashio.ControlPosition(0.24, 0.57, 0.54, 0.21))
         self.dl_control.title = "A Dial"
-        self.dl_control.max = 10
+        self.dl_control.dial_max = 10
         self.page_test.add_control(self.dl_control)
 
         self.text_cntrl = dashio.TextBox(
@@ -176,7 +174,7 @@ class TestControls:
         self.text_cntrl.text = "Hello"
         self.text_cntrl.title = "A text control"
         self.text_cntrl.keyboard_type = dashio.Keyboard.ALL_CHARS
-        self.text_cntrl.close_key_board_on_send = True
+        self.text_cntrl.close_keyboard_on_send = True
         self.text_cntrl.message_rx_event += self.text_cntrl_message_handler
         self.page_test.add_control(self.text_cntrl)
 

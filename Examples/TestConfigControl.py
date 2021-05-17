@@ -79,7 +79,7 @@ class TestControls:
         logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
 
         device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
-        dash_conn = dashio.dashConnection(args.username, args.password)
+        dash_conn = dashio.DashConnection(args.username, args.password)
         dash_conn.add_device(device)
 
         self.tmpage = dashio.Page("tmpage", "Test Alarm")
@@ -92,7 +92,6 @@ class TestControls:
         self.up_btn.icon_name = dashio.Icon.UP
         self.up_btn.on_color = dashio.Color.GREEN
         self.up_btn.text = "Up Button"
-        self.up_btn.text_color = dashio.Color.WHITE
         self.up_btn.title = "Up"
         device.add_control(self.up_btn)
         self.test_menu.add_control(self.up_btn)
@@ -102,7 +101,6 @@ class TestControls:
         self.down_btn.icon_name = dashio.Icon.DOWN
         self.down_btn.on_color = dashio.Color.GREEN
         self.down_btn.text = ""
-        self.down_btn.text_color = dashio.Color.WHITE
         self.down_btn.title = "Down"
         device.add_control(self.down_btn)
         self.test_menu.add_control(self.down_btn)
@@ -119,7 +117,6 @@ class TestControls:
         self.text_cntrl1.text = "Test box1"
         self.text_cntrl1.title = "TextBx1"
         self.text_cntrl1.keyboard_type = dashio.Keyboard.ALL_CHARS
-        self.text_cntrl1.close_key_board_on_send = True
         device.add_control(self.text_cntrl1)
         self.test_menu.add_control(self.text_cntrl1)
 
@@ -127,7 +124,6 @@ class TestControls:
         self.text_cntrl2.text = "Test box2"
         self.text_cntrl2.title = "TextBx2"
         self.text_cntrl2.keyboard_type = dashio.Keyboard.ALL_CHARS
-        self.text_cntrl2.close_key_board_on_send = True
         device.add_control(self.text_cntrl2)
         self.test_menu.add_control(self.text_cntrl2)
 

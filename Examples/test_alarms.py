@@ -91,7 +91,7 @@ class TestControls:
         logging.info("          Data topic: %s/%s/data", args.username, args.device_id)
 
         device = dashio.dashDevice(args.device_type, args.device_id, args.device_name)
-        dash_conn = dashio.dashConnection(args.username, args.password)
+        dash_conn = dashio.DashConnection(args.username, args.password)
         dash_conn.add_device(device)
 
         self.tapage = dashio.Page("testAlarm", "Test Alarm")
@@ -101,7 +101,6 @@ class TestControls:
         self.alarm_btn1.btn_state = dashio.ButtonState.OFF
         self.alarm_btn1.icon_name = dashio.Icon.BELL
         self.alarm_btn1.on_color = dashio.Color.RED
-        self.alarm_btn1.text_color = dashio.Color.BLUE
         self.alarm_btn1.message_rx_event += self.alarm_btn1_handler
         device.add_control(self.alarm_btn1)
 
@@ -110,7 +109,6 @@ class TestControls:
         self.alarm_btn2.btn_state = dashio.ButtonState.OFF
         self.alarm_btn2.icon_name = dashio.Icon.BELL
         self.alarm_btn2.on_color = dashio.Color.RED
-        self.alarm_btn2.text_color = dashio.Color.BLUE
         self.alarm_btn2.message_rx_event += self.alarm_btn2_handler
         device.add_control(self.alarm_btn2)
         self.tapage.add_control(self.alarm_btn2)
@@ -120,7 +118,6 @@ class TestControls:
         self.alarm_btn3.btn_state = dashio.ButtonState.OFF
         self.alarm_btn3.icon_name = dashio.Icon.BELL
         self.alarm_btn3.on_color = dashio.Color.RED
-        self.alarm_btn3.text_color = dashio.Color.BLUE
         self.alarm_btn3.message_rx_event += self.alarm_btn3_handler
         device.add_control(self.alarm_btn3)
         self.tapage.add_control(self.alarm_btn3)
