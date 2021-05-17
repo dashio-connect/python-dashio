@@ -134,7 +134,7 @@ class TestControls:
 
         self.sldr_cntrl = dashio.SliderSingleBar("SLDR")
         self.sldr_cntrl.title = "Slider"
-        self.sldr_cntrl.max = 10
+        self.sldr_cntrl.bar_max = 10
         self.sldr_cntrl.slider_enabled = True
         self.sldr_cntrl.red_value
         self.sldr_cntrl.message_rx_event += self.slider_event_handler
@@ -143,7 +143,7 @@ class TestControls:
 
         self.sldr_dbl_cntrl = dashio.SliderDoubleBar("SLDR_DBL")
         self.sldr_dbl_cntrl.title = "Slider Double"
-        self.sldr_dbl_cntrl.max = 5
+        self.sldr_dbl_cntrl.bar_max = 5
         self.sldr_dbl_cntrl.slider_enabled = True
         self.sldr_dbl_cntrl.red_value
         self.sldr_dbl_cntrl.message_rx_event += self.slider_dbl_event_handler
@@ -152,7 +152,7 @@ class TestControls:
 
         self.knb_control = dashio.Knob("KNB")
         self.knb_control.title = "A Knob"
-        self.knb_control.max = 10
+        self.knb_control.dial_max = 10
         self.knb_control.red_value = 10
         self.knb_control.message_rx_event += self.knob_event_handler
         device.add_control(self.knb_control)

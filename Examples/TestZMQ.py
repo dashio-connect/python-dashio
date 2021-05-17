@@ -158,7 +158,7 @@ class TestControls:
 
         self.knb_control = dashio.Knob("KNB", control_position=dashio.ControlPosition(0.24, 0.14, 0.54, 0.21))
         self.knb_control.title = "A Knob"
-        self.knb_control.max = 10
+        self.knb_control.dial_max = 10
         self.knb_control.red_value = 10
         self.knb_control.message_rx_event += self.knob_event_handler
         self.page_test.add_control(self.knb_control)

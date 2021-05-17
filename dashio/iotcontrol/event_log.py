@@ -1,9 +1,9 @@
+import datetime
+import dateutil.parser
+
 from .enums import Color, TitlePosition
 from .control import Control
 from .ring_buffer import RingBuffer
-
-import datetime
-import dateutil.parser
 
 
 class EventData:
@@ -35,10 +35,10 @@ class EventLog(Control):
         self.log = RingBuffer(max_log_entries)
 
     def _get_log_from_timestamp(self, msg):
-        dt = dateutil.parser.isoparse(msg[3])
+        log_date = dateutil.parser.isoparse(msg[3])
         data_str = ""
         for log in self.log.get():
-            if log.timestamp > dt:
+            if log.timestamp > log_date:
                 data_str += self._state_str + log.to_string()
         self.state_str = data_str
 
