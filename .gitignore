@@ -133,3 +133,4 @@ dmypy.json
 *.ini
 .DS_Store
 pylint.out
+.noseids
