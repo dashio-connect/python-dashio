@@ -5,6 +5,7 @@ from datetime import datetime
 import dateutil
 from dashio import EventLog, EventData
 
+
 class TestEventLog(unittest.TestCase):
     def _get_cfg_dict(self, cfg_str):
         json_str = cfg_str.rpartition('\t')[2]
