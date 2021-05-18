@@ -9,6 +9,7 @@ from .iotcontrol.page import Page
 from .iotcontrol.event import Event
 from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 
+
 class dashDevice(threading.Thread):
 
     """Device for IoTDashboard."""
@@ -156,7 +157,6 @@ class dashDevice(threading.Thread):
             except ValueError:
                 pass
         self._cfg["deviceSetup"] = ','.join(self._device_setup_list)
-
 
     def __init__(self,
                  device_type,
