@@ -71,7 +71,10 @@ class Page(Control):
 
     @control_title_box_transparency.setter
     def control_title_box_transparency(self, val: int):
-        self._cfg["ctrlTitleBoxTransparency"] = val
+        if 0 <= val <= 100:
+            self._cfg["ctrlTitleBoxTransparency"] = val
+        else:
+            raise ValueError("Value must be in the range 0 to 100")
 
     @property
     def control_color(self) -> Color:
@@ -130,4 +133,7 @@ class Page(Control):
 
     @control_background_transparency.setter
     def control_background_transparency(self, val: int):
-        self._cfg["ctrlBkgndTransparency"] = val
+        if 0 <= val <= 100:
+            self._cfg["ctrlBkgndTransparency"] = val
+        else:
+            raise ValueError("Value must be in the range 0 to 100")

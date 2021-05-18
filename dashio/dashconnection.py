@@ -201,8 +201,8 @@ class DashConnection(threading.Thread):
                     logging.debug("DASH TX:\n%s", data.decode('utf-8').rstrip())
                     self.dash_c.publish(data_topic, data.decode('utf-8'))
 
-        if self.connected:
-            self.dash_c.publish(self.announce_topic, "disconnect")
+        # if self.connected:
+        #     self.dash_c.publish(self.announce_topic, "disconnect")
         self.dash_c.loop_stop()
 
         self.tx_zmq_pub.close()
