@@ -73,8 +73,6 @@ def parse_commandline_arguments():
 
 
 def main():
-
-
     # Catch CNTRL-C signel
     global shutdown
     signal.signal(signal.SIGINT, signal_cntrl_c)

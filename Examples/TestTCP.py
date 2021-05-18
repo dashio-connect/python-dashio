@@ -160,7 +160,14 @@ class TestControls:
         self.knb_control.message_rx_event += self.knob_event_handler
         self.page_test.add_control(self.knb_control)
 
-        self.dl_control = dashio.Dial("DIAL1", style=DialStyle.BAR, units="m/s", number_position=DialNumberPosition.CENTER, precision=Precision.TWO, control_position=dashio.ControlPosition(0.24, 0.63, 0.54, 0.21))
+        self.dl_control = dashio.Dial(
+            "DIAL1",
+            style=DialStyle.BAR,
+            units="m/s",
+            number_position=DialNumberPosition.CENTER,
+            precision=Precision.TWO,
+            control_position=dashio.ControlPosition(0.24, 0.63, 0.54, 0.21)
+        )
         self.dl_control.title = "A Dial"
         self.dl_control.dial_max = 10
         self.page_test.add_control(self.dl_control)
@@ -177,7 +184,13 @@ class TestControls:
 
         self.alarm_ctrl = dashio.Alarm("TestingAlarms", "Test Alarms")
         self.device.add_control(self.alarm_ctrl)
-        self.comp_control = dashio.Direction("COMP1", style=DirectionStyle.DEGPS, units="nm", precision=Precision.TWO, control_position=dashio.ControlPosition(0.24, 0.38, 0.54, 0.22))
+        self.comp_control = dashio.Direction(
+            "COMP1",
+            style=DirectionStyle.DEGPS,
+            units="nm",
+            precision=Precision.TWO,
+            control_position=dashio.ControlPosition(0.24, 0.38, 0.54, 0.22)
+        )
         self.comp_control.title = "A Direction control"
         self.comp_control.direction_text = "00"
         self.page_test.add_control(self.comp_control)
