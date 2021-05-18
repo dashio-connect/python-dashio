@@ -63,12 +63,12 @@ class TestControls:
         return args
 
     def up_btn_event_handler(self, msg):
-        if self.sldr_cntrl.bar1_value < self.sldr_cntrl.max:
+        if self.sldr_cntrl.bar1_value < self.sldr_cntrl.bar_max:
             self.sldr_cntrl.bar1_value += 1
             self.sldr_dbl_cntrl.bar1_value += 1
 
     def down_btn_event_handler(self, msg):
-        if self.sldr_cntrl.bar1_value > self.sldr_cntrl.min:
+        if self.sldr_cntrl.bar1_value > self.sldr_cntrl.bar_min:
             self.sldr_cntrl.bar1_value -= 1
             self.sldr_dbl_cntrl.bar1_value -= 1
 

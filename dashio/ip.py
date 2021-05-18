@@ -1,5 +1,6 @@
 import socket
 
+
 def get_local_ip_address():
     test_s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
