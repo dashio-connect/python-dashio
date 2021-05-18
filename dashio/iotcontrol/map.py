@@ -3,7 +3,12 @@ import json
 
 from .enums import TitlePosition
 from .control import Control
+
+
 class SimpleMapLocation:
+    """
+    A non json map location.
+    """
     def __init__(self, tag, latitude, longitude):
         """A map location used by a map_control
 
@@ -21,6 +26,9 @@ class SimpleMapLocation:
         return data_str
 
 class MapLocation:
+    """
+    A json version of a map location.
+    """
     def __init__(self, tag, latitude, longitude, average_speed=None, peak_speed=None, course=None, altitude=None, distance=None):
         self.timestamp = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
         self._map_loc = {}
@@ -42,7 +50,7 @@ class MapLocation:
     def get_location_data(self):
         data_str = json.dumps(self._map_loc) + "\n"
         return data_str
-    
+
 
 class Map(Control):
     def get_state(self):
