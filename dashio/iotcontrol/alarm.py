@@ -1,6 +1,7 @@
 from .control import Control
 from .enums import SoundName
 
+
 class Alarm(Control):
 
     def __init__(self, control_id, description="Alarm Descritption", sound_name=SoundName.DEFAULT):

@@ -1,9 +1,11 @@
+import logging
 import socket
 import threading
-import logging
-import zmq
+
 import shortuuid
-from zeroconf import ServiceInfo, Zeroconf, IPVersion
+import zmq
+from zeroconf import IPVersion, ServiceInfo, Zeroconf
+
 from . import ip
 
 

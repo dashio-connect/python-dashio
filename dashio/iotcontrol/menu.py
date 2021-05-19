@@ -1,9 +1,9 @@
+from .button import Button
 from .control import Control
 from .enums import Icon, TitlePosition
-from .slider_single_bar import SliderSingleBar
-from .button import Button
-from .textbox import TextBox
 from .selector import Selector
+from .slider_single_bar import SliderSingleBar
+from .textbox import TextBox
 
 
 class Menu(Control):

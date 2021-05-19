@@ -1,8 +1,8 @@
 import datetime
 import json
 
-from .enums import TitlePosition
 from .control import Control
+from .enums import TitlePosition
 
 
 class SimpleMapLocation:

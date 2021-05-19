@@ -1,13 +1,14 @@
+import json
 import logging
 import threading
-import json
-import zmq
-import shortuuid
 
-from .iotcontrol.alarm import Alarm
-from .iotcontrol.page import Page
-from .iotcontrol.event import Event
+import shortuuid
+import zmq
+
 from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
+from .iotcontrol.alarm import Alarm
+from .iotcontrol.event import Event
+from .iotcontrol.page import Page
 
 
 class dashDevice(threading.Thread):

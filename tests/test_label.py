@@ -1,7 +1,8 @@
-from dashio.iotcontrol.enums import Color, LabelStyle
-import unittest
 import json
+import unittest
+
 from dashio import Label
+from dashio.iotcontrol.enums import Color, LabelStyle
 
 
 class TestLabel(unittest.TestCase):

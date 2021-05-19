@@ -1,5 +1,5 @@
-from .enums import GraphLineType, Color, GraphXAxisLabelsStyle, TitlePosition
 from .control import Control
+from .enums import Color, GraphLineType, GraphXAxisLabelsStyle, TitlePosition
 
 
 class GraphLine:

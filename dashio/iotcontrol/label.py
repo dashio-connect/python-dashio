@@ -1,5 +1,5 @@
-from .enums import Color, LabelStyle, TitlePosition
 from .control import Control
+from .enums import Color, LabelStyle, TitlePosition
 
 
 class Label(Control):

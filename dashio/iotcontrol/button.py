@@ -1,5 +1,5 @@
-from .enums import Color, Icon, ButtonState, TitlePosition
 from .control import Control
+from .enums import ButtonState, Color, Icon, TitlePosition
 
 
 class Button(Control):

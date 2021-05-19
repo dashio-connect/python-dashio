@@ -1,9 +1,10 @@
-import logging
-import json
 import copy
+import json
+import logging
 
-from .event import Event
 from .enums import TitlePosition
+from .event import Event
+
 
 class ControlPosition:
     def __init__(self, x_position_ratio, y_position_ratio, width_ratio, height_ratio):

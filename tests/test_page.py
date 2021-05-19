@@ -1,9 +1,9 @@
-import unittest
 import json
-from datetime import datetime
-import dateutil
+import unittest
+
 from dashio import Page
 from dashio.iotcontrol.enums import Color, Icon
+
 
 def _get_cfg_dict(cfg_str):
     json_str = cfg_str.rpartition('\t')[2]

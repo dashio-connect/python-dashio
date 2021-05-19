@@ -1,5 +1,6 @@
-from .enums import Color, DialNumberPosition, DialStyle, Precision, TitlePosition
 from .control import Control
+from .enums import (Color, DialNumberPosition, DialStyle, Precision,
+                    TitlePosition)
 
 
 class Dial(Control):

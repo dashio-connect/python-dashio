@@ -1,5 +1,5 @@
-from .enums import Color, KnobStyle, TitlePosition
 from .control import Control
+from .enums import Color, KnobStyle, TitlePosition
 
 
 class Knob(Control):
