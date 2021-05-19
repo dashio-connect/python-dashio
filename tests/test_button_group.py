@@ -3,8 +3,6 @@ import json
 from dashio import ButtonGroup
 from dashio.iotcontrol.enums import Color, Icon
 
-
-
 def _get_cfg_dict(cfg_str):
     json_str = cfg_str.rpartition('\t')[2]
     return json.loads(json_str)
