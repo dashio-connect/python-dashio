@@ -13,7 +13,7 @@ class TestButtonGroup(unittest.TestCase):
     def test_button_group_control_type(self):
         test_control = ButtonGroup("BGROUPID")
         test_str_list = test_control._state_str.split('\t')
-        self.assertEqual(test_str_list[2], 'BTGP', "control type should be SLCTR")
+        self.assertEqual(test_str_list[2], 'BTGP', "control type should be BTGP")
 
     def test_button_group_control_id(self):
         test_control = ButtonGroup("BGROUPID")
@@ -28,7 +28,7 @@ class TestButtonGroup(unittest.TestCase):
     def test_time_graph_cfg_icon_name(self):
         test_control = ButtonGroup("BGROUPID", icon=Icon.BEDROOM)
         cfg_dict = _get_cfg_dict(test_control.get_cfg(1, 1))
-        self.assertEqual(Icon(cfg_dict['iconName']), Icon.BEDROOM, "CFG icon_name should be True")
+        self.assertEqual(Icon(cfg_dict['iconName']), Icon.BEDROOM, "CFG icon_name should be BEDROOM")
 
     def test_time_graph_cfg_text(self):
         test_control = ButtonGroup("BGROUPID", text="TEXT")
