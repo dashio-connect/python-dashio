@@ -1,7 +1,8 @@
-from dashio.iotcontrol.enums import Color, GraphLineType, GraphXAxisLabelsStyle
-import unittest
 import json
+import unittest
+
 from dashio import Graph, GraphLine
+from dashio.iotcontrol.enums import Color, GraphLineType, GraphXAxisLabelsStyle
 
 
 class TestGraph(unittest.TestCase):

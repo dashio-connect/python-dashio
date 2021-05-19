@@ -1,14 +1,15 @@
 import json
-import socket
-import time
 import logging
+import socket
 import threading
-import zmq
-import shortuuid
+import time
 
-from zeroconf import ServiceInfo, Zeroconf, IPVersion
-from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
+import shortuuid
+import zmq
+from zeroconf import IPVersion, ServiceInfo, Zeroconf
+
 from . import ip
+from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 
 
 class TCP():

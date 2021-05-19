@@ -1,5 +1,5 @@
-from .enums import Color, DirectionStyle, TitlePosition, Precision
 from .control import Control
+from .enums import Color, DirectionStyle, Precision, TitlePosition
 
 
 class Direction(Control):

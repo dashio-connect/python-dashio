@@ -1,7 +1,8 @@
-import unittest
 import json
+import unittest
 
 from dashio import Control, ControlPosition, TitlePosition
+
 
 class TestControl(unittest.TestCase):
     def _get_cfg_dict(self, cfg_str):

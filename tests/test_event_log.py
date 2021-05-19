@@ -1,9 +1,10 @@
-from dashio.iotcontrol.enums import Color
-import unittest
 import json
+import unittest
 from datetime import datetime
+
 import dateutil
-from dashio import EventLog, EventData
+from dashio import EventData, EventLog
+from dashio.iotcontrol.enums import Color
 
 
 class TestEventLog(unittest.TestCase):

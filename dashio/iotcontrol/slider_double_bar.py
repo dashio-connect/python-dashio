@@ -1,5 +1,6 @@
-from .slider_single_bar import SliderSingleBar
 from .enums import Color, SliderBarType, TitlePosition
+from .slider_single_bar import SliderSingleBar
+
 
 class SliderDoubleBar(SliderSingleBar):
     def __init__(self,

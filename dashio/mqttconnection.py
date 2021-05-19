@@ -1,8 +1,9 @@
+import json
+import logging
+import ssl
 import threading
 import uuid
-import logging
-import json
-import ssl
+
 import paho.mqtt.client as mqtt
 import zmq
 

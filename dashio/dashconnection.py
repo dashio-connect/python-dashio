@@ -1,12 +1,14 @@
-import threading
-import time
 import json
 import logging
 import ssl
+import threading
+import time
+
 import paho.mqtt.client as mqtt
-import zmq
 import shortuuid
-from .constants import DEVICE_PUB_URL, CONNECTION_PUB_URL
+import zmq
+
+from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 
 
 class Dash():

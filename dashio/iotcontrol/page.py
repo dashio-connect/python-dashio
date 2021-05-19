@@ -1,5 +1,5 @@
-from .enums import Color, Icon
 from .control import Control
+from .enums import Color, Icon
 
 
 class Page(Control):

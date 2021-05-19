@@ -1,7 +1,8 @@
-from dashio.iotcontrol.enums import Color
-import unittest
 import json
+import unittest
+
 from dashio import Knob
+from dashio.iotcontrol.enums import Color
 
 
 class TestKnob(unittest.TestCase):

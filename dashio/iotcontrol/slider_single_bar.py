@@ -1,5 +1,5 @@
-from .enums import Color, SliderBarType, TitlePosition
 from .control import Control
+from .enums import Color, SliderBarType, TitlePosition
 
 
 class SliderSingleBar(Control):

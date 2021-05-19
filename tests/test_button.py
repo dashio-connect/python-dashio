@@ -1,7 +1,8 @@
-import unittest
 import json
+import unittest
 
-from dashio import Button, Color, Icon, ButtonState, TitlePosition
+from dashio import Button, ButtonState, Color, Icon, TitlePosition
+
 
 class TestButton(unittest.TestCase):
     def _get_cfg_dict(self, cfg_str):

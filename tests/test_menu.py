@@ -1,9 +1,11 @@
-import unittest
 import json
+import unittest
 from datetime import datetime
+
 import dateutil
 from dashio import Menu
 from dashio.iotcontrol.enums import Icon
+
 
 def _get_cfg_dict(cfg_str):
     json_str = cfg_str.rpartition('\t')[2]

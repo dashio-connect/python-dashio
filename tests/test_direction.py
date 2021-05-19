@@ -1,8 +1,9 @@
-from dashio.iotcontrol.enums import Color, DialStyle, DirectionStyle, Precision
-import unittest
 import json
+import unittest
 
 from dashio import Direction
+from dashio.iotcontrol.enums import Color, DialStyle, DirectionStyle, Precision
+
 
 class TestDial(unittest.TestCase):
     def _get_cfg_dict(self, cfg_str):

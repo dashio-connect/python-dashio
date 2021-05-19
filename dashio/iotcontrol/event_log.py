@@ -1,8 +1,9 @@
 import datetime
+
 import dateutil.parser
 
-from .enums import Color, TitlePosition
 from .control import Control
+from .enums import Color, TitlePosition
 from .ring_buffer import RingBuffer
 
 

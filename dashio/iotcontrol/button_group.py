@@ -1,6 +1,6 @@
+from .button import Button
 from .control import Control
 from .enums import Icon, TitlePosition
-from .button import Button
 
 
 class ButtonGroup(Control):

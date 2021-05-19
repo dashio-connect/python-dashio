@@ -1,5 +1,6 @@
-from .enums import TextAlignment, Precision, Keyboard, TitlePosition, TextFormat
 from .control import Control
+from .enums import (Keyboard, Precision, TextAlignment, TextFormat,
+                    TitlePosition)
 
 
 class TextBox(Control):

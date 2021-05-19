@@ -1,7 +1,9 @@
-import unittest
 import json
+import unittest
+
 from dashio import TimeGraph
-from dashio.iotcontrol.enums import Color, Keyboard, Precision, TextAlignment, TextFormat
+from dashio.iotcontrol.enums import (Color, Keyboard, Precision, TextAlignment,
+                                     TextFormat)
 
 
 def _get_cfg_dict(cfg_str):

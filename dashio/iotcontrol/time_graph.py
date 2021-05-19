@@ -1,8 +1,11 @@
 import datetime
+
 import dateutil.parser
-from .enums import TimeGraphLineType, Color, TitlePosition
+
 from .control import Control
+from .enums import Color, TimeGraphLineType, TitlePosition
 from .ring_buffer import RingBuffer
+
 
 class DataPoint:
     def __init__(self, data):
