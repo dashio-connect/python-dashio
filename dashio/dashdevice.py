@@ -165,9 +165,9 @@ class DashDevice(threading.Thread):
         self._cfg["deviceSetup"] = ','.join(self._device_setup_list)
 
     def __init__(self,
-                 device_type,
-                 device_id,
-                 device_name,
+                 device_type: str,
+                 device_id: str,
+                 device_name: str,
                  edit_lock=False,
                  set_name=False,
                  set_wifi=False,
@@ -175,6 +175,20 @@ class DashDevice(threading.Thread):
                  set_tcp=False,
                  set_mqtt=False,
                  context=None) -> None:
+        """DashDevice
+
+        Args:
+            device_type (str): A Short description of the device type.
+            device_id (str): A unique identifier for this device
+            device_name (str): The name for this device
+            edit_lock (bool, optional): [description]. Defaults to False.
+            set_name (bool, optional): Allows IoT Dashboard to set the device name. Defaults to False.
+            set_wifi (bool, optional): Allows IOT Dashboard to set the wifi parameters. Defaults to False.
+            set_dashio (bool, optional): Allows IOT Dashboard to set the dash server connection parameters. Defaults to False.
+            set_tcp (bool, optional): Allows IOT Dashboard to set the tcp connection parameters. Defaults to False.
+            set_mqtt (bool, optional): Allows IOT Dashboard to set the mqtt connection parameters.. Defaults to False.
+            context ([type], optional): [description]. Defaults to None.
+        """
         threading.Thread.__init__(self, daemon=True)
 
         self.zmq_pub_id = shortuuid.uuid()
