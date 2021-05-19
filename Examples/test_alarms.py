@@ -90,7 +90,7 @@ class TestControls:
         logging.info("       Control topic: %s/%s/control", args.username, args.device_id)
         logging.info("          Data topic: %s/%s/data", args.username, args.device_id)
 
-        device = dashio.dashDevice(args.device_type, args.device_id, args.device_name)
+        device = dashio.DashDevice(args.device_type, args.device_id, args.device_name)
         dash_conn = dashio.DashConnection(args.username, args.password)
         dash_conn.add_device(device)
 

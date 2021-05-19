@@ -86,7 +86,7 @@ def main():
     logging.info("       Control topic: %s/%s/%s/control", args.username, args.connection, args.device_id)
     logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
 
-    device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
+    device = dashio.DashDevice(args.connection, args.device_id, args.device_name)
     dash_conn = dashio.DashConnection(args.username, args.password)
 
     def dash_rx_event_handler(msg):
