@@ -1,6 +1,6 @@
 #!/bin/python3
 
-from dashio.dashdevice import dashDevice
+from dashio.dashdevice import DashDevice
 import time
 import argparse
 import signal
@@ -78,7 +78,7 @@ class TestControls:
         logging.info("       Control topic: %s/%s/%s/control", args.username, args.connection, args.device_id)
         logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
 
-        device = dashio.dashDevice(args.connection, args.device_id, args.device_name)
+        device = dashio.DashDevice(args.connection, args.device_id, args.device_name)
         dash_conn = dashio.DashConnection(args.username, args.password)
         dash_conn.add_device(device)
 

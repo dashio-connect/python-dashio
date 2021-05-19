@@ -11,7 +11,7 @@ from .iotcontrol.event import Event
 from .iotcontrol.page import Page
 
 
-class dashDevice(threading.Thread):
+class DashDevice(threading.Thread):
 
     """Device for IoTDashboard."""
 
@@ -122,7 +122,7 @@ class dashDevice(threading.Thread):
         self.tx_zmq_pub.send_multipart([b"ANNOUNCE", b'0', payload.encode('utf-8')])
 
     def add_control(self, iot_control):
-        """Add a control to the connection.
+        """Add a control to the device.
 
         Parameters
         ----------
@@ -141,6 +141,11 @@ class dashDevice(threading.Thread):
         self.control_dict[key] = iot_control
 
     def add_connection(self, connection):
+        """Add a connection to the device
+
+        Args:
+            connection ([type]): [description]
+        """
         self.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=connection.connection_id))
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, connection.connection_id.encode('utf-8'))
 

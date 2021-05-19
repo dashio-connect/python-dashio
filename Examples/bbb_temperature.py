@@ -90,7 +90,7 @@ class BBB_Temperature:
         logging.info("          Data topic: %s/%s/data", args.username, args.device_id)
 
         dash_con = dashio.DashConnection(args.username, args.password)
-        device = dashio.dashDevice(args.device_type, args.device_id, args.device_name)
+        device = dashio.DashDevice(args.device_type, args.device_id, args.device_name)
         dash_con.add_device(device)
 
         gph_15_minutes = dashio.TimeGraph("Temperature15M")

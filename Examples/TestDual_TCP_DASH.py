@@ -125,7 +125,7 @@ class TestControls:
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
 
-        self.device = dashio.dashDevice(args.device_type,
+        self.device = dashio.DashDevice(args.device_type,
                                         args.device_id,
                                         args.device_name,
                                         set_name=True,

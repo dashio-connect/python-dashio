@@ -98,7 +98,7 @@ def main():
     if not new_ini_file:
         config_file_parser.read(ini_file)
     config_file_parser.get('DEFAULT', 'username')
-    device = dashio.dashDevice(
+    device = dashio.DashDevice(
         config_file_parser.get('DEFAULT', 'DeviceType'),
         config_file_parser.get('DEFAULT', 'DeviceID'),
         config_file_parser.get('DEFAULT', 'DeviceName')
