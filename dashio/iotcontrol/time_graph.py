@@ -8,7 +8,16 @@ from .ring_buffer import RingBuffer
 
 
 class DataPoint:
+    """
+    A time stamped data point for a Time Graph
+    """
     def __init__(self, data):
+        """
+        A time stamped data point for a time series graph.
+
+        Args:
+            data: A data point can be an int, float, or boolean, or string representing a number.
+        """
         self.timestamp = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
         self.data_point = data
 
@@ -18,6 +27,7 @@ class DataPoint:
 
 
 class TimeGraphLine:
+
     def __init__(
         self, name="", line_type=TimeGraphLineType.LINE, color=Color.BLACK, max_data_points=60, break_data=False
     ):
@@ -58,7 +68,7 @@ class TimeGraphLine:
         """Add and sends a single datapoint to the line. It automatically timestamps to the current time.
 
         Arguments:
-            data_point {str} -- A single data point
+            data_point -- A single data point
         """
         data_p = DataPoint(data_point)
         self.data.append(data_p)

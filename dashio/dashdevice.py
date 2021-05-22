@@ -169,11 +169,11 @@ class DashDevice(threading.Thread):
                  device_id: str,
                  device_name: str,
                  edit_lock=False,
-                 set_name=False,
-                 set_wifi=False,
-                 set_dashio=False,
-                 set_tcp=False,
-                 set_mqtt=False,
+                 name_setable=False,
+                 wifi_setable=False,
+                 dashio_setable=False,
+                 tcp_setable=False,
+                 mqtt_setable=False,
                  context=None) -> None:
         """DashDevice
 
@@ -181,7 +181,7 @@ class DashDevice(threading.Thread):
             device_type (str): A Short description of the device type.
             device_id (str): A unique identifier for this device
             device_name (str): The name for this device
-            edit_lock (bool, optional): [description]. Defaults to False.
+            edit_lock (bool, optional): Enables/Disables editing in IoTDashboard. Defaults to False.
             set_name (bool, optional): Allows IoT Dashboard to set the device name. Defaults to False.
             set_wifi (bool, optional): Allows IOT Dashboard to set the wifi parameters. Defaults to False.
             set_dashio (bool, optional): Allows IOT Dashboard to set the dash server connection parameters. Defaults to False.
@@ -212,16 +212,21 @@ class DashDevice(threading.Thread):
         self.number_of_pages = 0
 
         self.edit_lock = edit_lock
-        self.set_name = set_name
-        self.set_wifi = set_wifi
-        self.set_dashio = set_dashio
-        self.set_tcp = set_tcp
-        self.set_mqtt = set_mqtt
+        self.name_setable = name_setable
+        self.wifi_setable = wifi_setable
+        self.dashio_setable = dashio_setable
+        self.tcp_setable = tcp_setable
+        self.mqtt_setable = mqtt_setable
         self.running = True
         self.start()
 
     @property
     def edit_lock(self) -> bool:
+        """Enables/Disables editing in IoTDashboard
+
+        Returns:
+            bool: 
+        """
         return self._cfg["editLock"]
 
     @edit_lock.setter
@@ -237,48 +242,48 @@ class DashDevice(threading.Thread):
         self._cfg["numPages"] = val
 
     @property
-    def set_name(self) -> bool:
-        return self._set_name
+    def name_setable(self) -> bool:
+        return self._name_setable
 
-    @set_name.setter
-    def set_name(self, val: bool):
-        self._set_name = val
+    @name_setable.setter
+    def name_setable(self, val: bool):
+        self._name_setable = val
         self._set_devicesetup("name", val)
 
     @property
-    def set_wifi(self) -> bool:
-        return self._set_wifi
+    def wifi_setable(self) -> bool:
+        return self._wifi_setable
 
-    @set_wifi.setter
-    def set_wifi(self, val: bool):
-        self._set_wifi = val
+    @wifi_setable.setter
+    def wifi_setable(self, val: bool):
+        self._wifi_setable = val
         self._set_devicesetup("wifi", val)
 
     @property
-    def set_dashio(self) -> bool:
-        return self._set_dashio
+    def dashio_setable(self) -> bool:
+        return self._dashio_setable
 
-    @set_dashio.setter
-    def set_dashio(self, val: bool):
-        self._set_dashio = val
+    @dashio_setable.setter
+    def dashio_setable(self, val: bool):
+        self._dashio_setable = val
         self._set_devicesetup("dashio", val)
 
     @property
-    def set_tcp(self) -> bool:
-        return self._set_tcp
+    def tcp_setable(self) -> bool:
+        return self._tcp_setable
 
-    @set_tcp.setter
-    def set_tcp(self, val: bool):
-        self._set_tcp = val
+    @tcp_setable.setter
+    def tcp_setable(self, val: bool):
+        self._tcp_setable = val
         self._set_devicesetup("tcp", val)
 
     @property
-    def set_mqtt(self) -> bool:
-        return self._set_mqtt
+    def mqtt_setable(self) -> bool:
+        return self._mqtt_setable
 
-    @set_mqtt.setter
-    def set_mqtt(self, val: bool):
-        self._set_mqtt = val
+    @mqtt_setable.setter
+    def mqtt_setable(self, val: bool):
+        self._mqtt_setable= val
         self._set_devicesetup("mqtt", val)
 
     @property
