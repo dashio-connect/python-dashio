@@ -128,11 +128,11 @@ class TestControls:
         self.device = dashio.DashDevice(args.device_type,
                                         args.device_id,
                                         args.device_name,
-                                        set_name=True,
-                                        set_wifi=True,
-                                        set_dashio=True,
-                                        set_tcp=True,
-                                        set_mqtt=True)
+                                        name_setable=True,
+                                        wifi_setable=True,
+                                        dashio_setable=True,
+                                        tcp_setable=True,
+                                        mqtt_setable=True)
 
         self.device.dash_rx_event += self.dashio_handler
         self.device.wifi_rx_event += self.wifi_handler

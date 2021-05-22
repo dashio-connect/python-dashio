@@ -93,7 +93,7 @@ def main():
         dash_conn.set_connection(msg[2], msg[3])
 
     device.dash_rx_event += dash_rx_event_handler
-    device.set_dashio = True
+    device.dashio_setable = True
     dash_conn.add_device(device)
 
     monitor_page = dashio.Page("monpg", "Dash Server Moniter")

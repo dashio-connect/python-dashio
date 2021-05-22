@@ -182,11 +182,11 @@ class DashDevice(threading.Thread):
             device_id (str): A unique identifier for this device
             device_name (str): The name for this device
             edit_lock (bool, optional): Enables/Disables editing in IoTDashboard. Defaults to False.
-            set_name (bool, optional): Allows IoT Dashboard to set the device name. Defaults to False.
-            set_wifi (bool, optional): Allows IOT Dashboard to set the wifi parameters. Defaults to False.
-            set_dashio (bool, optional): Allows IOT Dashboard to set the dash server connection parameters. Defaults to False.
-            set_tcp (bool, optional): Allows IOT Dashboard to set the tcp connection parameters. Defaults to False.
-            set_mqtt (bool, optional): Allows IOT Dashboard to set the mqtt connection parameters.. Defaults to False.
+            name_setable (bool, optional): Allows IoT Dashboard to set the device name. Defaults to False.
+            wifi_setable (bool, optional): Allows IOT Dashboard to set the wifi parameters. Defaults to False.
+            dashio_setable (bool, optional): Allows IOT Dashboard to set the dash server connection parameters. Defaults to False.
+            tcp_setable (bool, optional): Allows IOT Dashboard to set the tcp connection parameters. Defaults to False.
+            mqtt_setable (bool, optional): Allows IOT Dashboard to set the mqtt connection parameters.. Defaults to False.
             context ([type], optional): [description]. Defaults to None.
         """
         threading.Thread.__init__(self, daemon=True)
