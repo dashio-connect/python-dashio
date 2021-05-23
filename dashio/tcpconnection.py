@@ -66,6 +66,10 @@ class TCPConnection(threading.Thread):
         self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
 
+    def _is_port_in_use(self, port):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as port_s:
+            return port_s.connect_ex(('localhost', port)) == 0
+
     def __init__(self, ip_address="*", port=5650, use_zero_conf=True, context=None):
         """
         """
@@ -75,6 +79,9 @@ class TCPConnection(threading.Thread):
         self.connection_id = shortuuid.uuid()
         self.b_connection_id = self.connection_id.encode('utf-8')
         self.use_zeroconf = use_zero_conf
+        while self._is_port_in_use(port) and use_zero_conf:
+            # increment port until we find one that is free. 
+            port += 1
         self.ext_url = "tcp://" + ip_address + ":" + str(port)
 
         self.socket_ids = []
@@ -142,14 +149,14 @@ class TCPConnection(threading.Thread):
                 tcp_id = tcpsocket.recv()
                 message = tcpsocket.recv()
                 if tcp_id not in self.socket_ids:
-                    logging.debug("Added Socket ID: " + tcp_id.hex())
+                    logging.debug("Added Socket ID: %s", tcp_id.hex())
                     self.socket_ids.append(tcp_id)
                 logging.debug("TCP ID: %s, Rx:\n%s", tcp_id.hex(), message.decode('utf-8').rstrip())
                 if message:
                     tx_zmq_pub.send_multipart([self.b_connection_id, tcp_id, message])
                 else:
                     if tcp_id in self.socket_ids:
-                        logging.debug("Removed Socket ID: " + tcp_id.hex())
+                        logging.debug("Removed Socket ID: %s", tcp_id.hex())
                         self.socket_ids.remove(tcp_id)
             if self.rx_zmq_sub in socks:
                 [address, msg_id, data] = self.rx_zmq_sub.recv_multipart()
@@ -166,6 +173,6 @@ class TCPConnection(threading.Thread):
         for tcp_id in self.socket_ids:
             _zmq_tcp_send(tcp_id, b'')
 
-        self.tcpsocket.close()
-        self.tx_zmq_pub.close()
+        tcpsocket.close()
+        tx_zmq_pub.close()
         self.rx_zmq_sub.close()
