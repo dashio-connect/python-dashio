@@ -18,4 +18,3 @@ setup(
     install_requires=["paho-mqtt", "pyzmq", "python-dateutil", "zeroconf", "shortuuid"],
     python_requires='>3.6.0',
 )
-

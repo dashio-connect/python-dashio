@@ -1,16 +1,15 @@
 #!/bin/python3
 
-import time
-import random
 import argparse
-import signal
-import dashio
 import logging
+import random
+import signal
+import time
 
+import dashio
 import numpy as np
-
-
-from dashio.iotcontrol.enums import ButtonState, DialNumberPosition, Icon, LabelStyle, TextAlignment
+from dashio.iotcontrol.enums import (ButtonState, DialNumberPosition, Icon,
+                                     LabelStyle, TextAlignment)
 from dashio.iotcontrol.graph import GraphLine
 
 
@@ -104,14 +103,6 @@ class TestControls:
         else:
             self.btn2.btn_state = ButtonState.ON
 
-    def slider_event_handler(self, msg):
-        self.sldr_cntrl.slider_value = float(msg[3])
-        self.knb_control.knob_dial_value = float(msg[3])
-
-    def slider_dbl_event_handler(self, msg):
-        self.sldr_dbl_cntrl.slider_value = float(msg[3])
-        self.selector_ctrl.position = int(float(msg[3]))
-
     def knb_normal_event_handler(self, msg):
         self.knb_pan.knob_dial_value = float(msg[3])
 
@@ -120,11 +111,8 @@ class TestControls:
 
     def text_cntrl_message_handler(self, msg):
         self.device.send_popup_message("TCPTest", "Text Box message", msg[3])
-        self.text_cntrl.text = "Popup sent: " + msg[3]
         logging.info(msg)
 
-    def selector_ctrl_handler(self, msg):
-        print(self.selector_ctrl.selection_list[int(msg[3])])
 
     def _init_knobs(self):
         self.page_knobs = dashio.Page("Testknobs", "Knobs")
@@ -134,7 +122,7 @@ class TestControls:
         self.knb_normal.message_rx_event += self.knb_normal_event_handler
         self.knb_normal.message_rx_event += self.event_log_handler
         self.knb_normal.title = "Knob Normal"
-        self.knb_normal.max = 10
+        self.knb_normal.dial_max = 10
         self.knb_normal.red_value = 8
         self.page_knobs.add_control(self.knb_normal)
 
@@ -145,7 +133,7 @@ class TestControls:
         self.knb_pan.message_rx_event += self.knb_pan_event_handler
         self.knb_pan.message_rx_event += self.event_log_handler
         self.knb_pan.title = "Knob Pan"
-        self.knb_pan.max = 10
+        self.knb_pan.dial_max = 10
         self.knb_pan.red_value = 8
         self.page_knobs.add_control(self.knb_pan)
         self.device.add_control(self.page_knobs)
@@ -317,8 +305,8 @@ class TestControls:
 
         self.menu_tb = dashio.TextBox("txt1", "Menu TextBox")
         self.menu_sldr = dashio.SliderSingleBar("mnu_sldr", "Menu Slider")
-        self.menu_sldr.max = 20
-        self.menu_sldr.min = 0
+        self.menu_sldr.bar_max = 20
+        self.menu_sldr.bar_min = 0
         self.menu_slctr = dashio.Selector("sltr1", "Menu Selector")
         self.menu.add_control(self.btn3)
         self.menu.add_control(self.btn4)
