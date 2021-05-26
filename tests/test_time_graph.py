@@ -14,12 +14,12 @@ class TestTimeGraph(unittest.TestCase):
 
     def test_time_graph_control_type(self):
         test_control = TimeGraph("TIMEGRAPHID")
-        test_str_list = test_control._state_str.split('\t')
+        test_str_list = test_control._control_hdr_str.split('\t')
         self.assertEqual(test_str_list[2], 'TGRPH', "control type should be TEXT")
 
     def test_time_graph_control_id(self):
         test_control = TimeGraph("TIMEGRAPHID")
-        test_str_list = test_control._state_str.split('\t')
+        test_str_list = test_control._control_hdr_str.split('\t')
         self.assertEqual(test_str_list[3], 'TIMEGRAPHID', "control type should be TEXTBOXID")
 
     def test_time_graph_cfg_y_axis_label(self):

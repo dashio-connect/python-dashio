@@ -23,12 +23,12 @@ class TestEventLog(unittest.TestCase):
 
     def test_event_log_control_type(self):
         test_control = EventLog("EVENTLOGID")
-        test_str_list = test_control._state_str.split('\t')
+        test_str_list = test_control._control_hdr_str.split('\t')
         self.assertEqual(test_str_list[2], 'LOG', "control type should be LOG")
 
     def test_event_log_control_id(self):
         test_control = EventLog("EVENTLOGID")
-        test_str_list = test_control._state_str.split('\t')
+        test_str_list = test_control._control_hdr_str.split('\t')
         self.assertEqual(test_str_list[3], 'EVENTLOGID', "control_id type should be EVENTLOGID")
 
     

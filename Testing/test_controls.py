@@ -6,8 +6,8 @@ import random
 import signal
 import time
 
-import dashio
 import numpy as np
+import dashio
 from dashio.iotcontrol.enums import (ButtonState, DialNumberPosition, Icon,
                                      LabelStyle, TextAlignment)
 from dashio.iotcontrol.graph import GraphLine

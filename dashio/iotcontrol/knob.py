@@ -32,7 +32,7 @@ class Knob(Control):
         self.dial_follows_knob = dial_follows_knob
         self.dial_color = dial_color
         self.knob_color = knob_color
-        self._state_str_knob = self._state_str + f"{self._knob_value}\n"
+        self._state_str_knob = self._control_hdr_str + f"{self._knob_value}\n"
         self._state_str_dial = self._control_id_dial + f"{self._knob_dial_value}\n"
         self._knob_dial_state_str = self._state_str_knob + self._state_str_dial
 
@@ -46,7 +46,7 @@ class Knob(Control):
     @knob_value.setter
     def knob_value(self, val: float):
         self._knob_value = val
-        self._state_str_knob = self._state_str + f"{val}\n"
+        self._state_str_knob = self._control_hdr_str + f"{val}\n"
         self.message_tx_event(self._state_str_knob)
         self._knob_dial_state_str = self._state_str_knob + self._state_str_dial
 

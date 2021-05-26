@@ -11,7 +11,7 @@ class TestControl(unittest.TestCase):
 
     def test_control_id(self):
         test_control = Control("CONTROLTYPE","CONTROLID")
-        self.assertEqual(test_control._state_str, '\t{device_id}\tCONTROLTYPE\tCONTROLID\t', "ControlID Should be CONTROLID")
+        self.assertEqual(test_control._control_hdr_str, '\t{device_id}\tCONTROLTYPE\tCONTROLID\t', "ControlID Should be CONTROLID")
 
     def test_control_cfg(self):
         test_control = Control("CONTROLTYPE","CONTROLID")

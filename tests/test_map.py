@@ -64,12 +64,12 @@ class TestKnob(unittest.TestCase):
 
     def test_knob_control_type(self):
         test_control = Map("MAPID")
-        test_str_list = test_control._state_str.split('\t')
+        test_str_list = test_control._control_hdr_str.split('\t')
         self.assertEqual(test_str_list[2], 'MAP', "control type should be MAP")
 
     def test_knob_control_id(self):
         test_control = Map("MAPID")
-        test_str_list = test_control._state_str.split('\t')
+        test_str_list = test_control._control_hdr_str.split('\t')
         self.assertEqual(test_str_list[3], 'MAPID', "control type should be MAPID")
 
 

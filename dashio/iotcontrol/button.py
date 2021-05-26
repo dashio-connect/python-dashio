@@ -34,10 +34,10 @@ class Button(Control):
     def get_state(self):
         text = self._cfg["text"]
         if (not text) and ( self.icon_name == Icon.NONE):
-            return self._state_str + f"{self._btn_state.value}\n"
+            return self._control_hdr_str + f"{self._btn_state.value}\n"
         if (not text) and self.icon_name != Icon.NONE:
-            return self._state_str + f"{self._btn_state.value}\t{self._icon_name.value}\n"
-        return self._state_str + f"{self._btn_state.value}\t{self._icon_name.value}\t{text}\n"
+            return self._control_hdr_str + f"{self._btn_state.value}\t{self._icon_name.value}\n"
+        return self._control_hdr_str + f"{self._btn_state.value}\t{self._icon_name.value}\t{text}\n"
 
     @property
     def button_enabled(self) -> bool:
@@ -73,7 +73,7 @@ class Button(Control):
     def icon_name(self, val: Icon):
         self._icon_name = val
         self._cfg["iconName"] = val.value
-        self.state_str = self._state_str + f"{self._btn_state.value}\t{val.value}\n"
+        self.state_str = self._control_hdr_str + f"{self._btn_state.value}\t{val.value}\n"
 
     @property
     def text(self) -> str:
@@ -82,7 +82,7 @@ class Button(Control):
     @text.setter
     def text(self, val: str):
         self._cfg["text"] = val
-        self.state_str = self._state_str + f"{self._btn_state.value}\t{self._icon_name.value}\t{val}\n"
+        self.state_str = self._control_hdr_str + f"{self._btn_state.value}\t{self._icon_name.value}\t{val}\n"
 
     @property
     def btn_state(self) -> ButtonState:
@@ -91,11 +91,11 @@ class Button(Control):
     @btn_state.setter
     def btn_state(self, val: ButtonState):
         self._btn_state = val
-        self.state_str = self._state_str + f"{val.value}\n"
+        self.state_str = self._control_hdr_str + f"{val.value}\n"
 
     def send_button(self, btn_state: ButtonState, btn_icon: Icon, text: str):
         self._btn_state = btn_state
         self._icon_name = btn_icon
         self._cfg["iconName"] = btn_icon.value
         self._cfg["text"] = text
-        self.state_str = self._state_str + f"{self._btn_state.value}\t{self._icon_name.value}\t{text}\n"
+        self.state_str = self._control_hdr_str + f"{self._btn_state.value}\t{self._icon_name.value}\t{text}\n"

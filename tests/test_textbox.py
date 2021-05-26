@@ -14,12 +14,12 @@ class TestTextBox(unittest.TestCase):
 
     def test_text_box_control_type(self):
         test_control = TextBox("TEXTBOXID")
-        test_str_list = test_control._state_str.split('\t')
+        test_str_list = test_control._control_hdr_str.split('\t')
         self.assertEqual(test_str_list[2], 'TEXT', "control type should be TEXT")
 
     def test_text_box_control_id(self):
         test_control = TextBox("TEXTBOXID")
-        test_str_list = test_control._state_str.split('\t')
+        test_str_list = test_control._control_hdr_str.split('\t')
         self.assertEqual(test_str_list[3], 'TEXTBOXID', "control type should be TEXTBOXID")
 
     def test_text_box_cfg_text_align(self):

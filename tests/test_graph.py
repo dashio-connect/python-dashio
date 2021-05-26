@@ -18,12 +18,12 @@ class TestGraph(unittest.TestCase):
 
     def test_graph_control_type(self):
         test_control = Graph("GRAPHID")
-        test_str_list = test_control._state_str.split('\t')
+        test_str_list = test_control._control_hdr_str.split('\t')
         self.assertEqual(test_str_list[2], 'GRPH', "control type should be GRPH")
 
     def test_graph_control_id(self):
         test_control = Graph("GRAPHID")
-        test_str_list = test_control._state_str.split('\t')
+        test_str_list = test_control._control_hdr_str.split('\t')
         self.assertEqual(test_str_list[3], 'GRAPHID', "control_id type should be GRAPHID")
 
     def test_graph_x_axis_label(self):
