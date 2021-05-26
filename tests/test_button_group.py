@@ -14,12 +14,12 @@ class TestButtonGroup(unittest.TestCase):
 
     def test_button_group_control_type(self):
         test_control = ButtonGroup("BGROUPID")
-        test_str_list = test_control._state_str.split('\t')
+        test_str_list = test_control._control_hdr_str.split('\t')
         self.assertEqual(test_str_list[2], 'BTGP', "control type should be BTGP")
 
     def test_button_group_control_id(self):
         test_control = ButtonGroup("BGROUPID")
-        test_str_list = test_control._state_str.split('\t')
+        test_str_list = test_control._control_hdr_str.split('\t')
         self.assertEqual(test_str_list[3], 'BGROUPID', "control type should be BGROUPID")
 
     def test_time_graph_cfg_grid_view(self):

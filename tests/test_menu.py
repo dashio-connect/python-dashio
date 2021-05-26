@@ -16,12 +16,12 @@ class TestMenu(unittest.TestCase):
 
     def test_menu_control_type(self):
         test_control = Menu("MENUID")
-        test_str_list = test_control._state_str.split('\t')
+        test_str_list = test_control._control_hdr_str.split('\t')
         self.assertEqual(test_str_list[2], 'MENU', "control type should be KNOB")
 
     def test_menu_control_id(self):
         test_control = Menu("MENUID")
-        test_str_list = test_control._state_str.split('\t')
+        test_str_list = test_control._control_hdr_str.split('\t')
         self.assertEqual(test_str_list[3], 'MENUID', "control type should be KNOBID")
 
     def test_menu_cfg_icon_name(self):

@@ -26,9 +26,9 @@ class Direction(Control):
 
     def get_state(self):
         if self._direction_text:
-            s_str = self._state_str + f"{self._direction_value}\t{self._direction_text}\n"
+            s_str = self._control_hdr_str + f"{self._direction_value}\t{self._direction_text}\n"
         else:
-            s_str = self._state_str + f"{self._direction_value}\n"
+            s_str = self._control_hdr_str + f"{self._direction_value}\n"
         return s_str
 
     @property
@@ -39,9 +39,9 @@ class Direction(Control):
     def direction_value(self, val: float):
         self._direction_value = val
         if self._direction_text:
-            s_str = self._state_str + f"{self._direction_value}\t{self._direction_text}\n"
+            s_str = self._control_hdr_str + f"{self._direction_value}\t{self._direction_text}\n"
         else:
-            s_str = self._state_str + f"{self._direction_value}\n"
+            s_str = self._control_hdr_str + f"{self._direction_value}\n"
         self.state_str = s_str
 
     @property
@@ -52,9 +52,9 @@ class Direction(Control):
     def direction_text(self, val: str):
         self._direction_text = val
         if self._direction_text:
-            s_str = self._state_str + f"{self._direction_value}\t{self._direction_text}\n"
+            s_str = self._control_hdr_str + f"{self._direction_value}\t{self._direction_text}\n"
         else:
-            s_str = self._state_str + f"{self._direction_value}\n"
+            s_str = self._control_hdr_str + f"{self._direction_value}\n"
         self.state_str = s_str
 
     @property

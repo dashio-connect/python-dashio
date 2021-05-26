@@ -40,14 +40,14 @@ class EventLog(Control):
         data_str = ""
         for log in self.log.get():
             if log.timestamp > log_date:
-                data_str += self._state_str + log.to_string()
+                data_str += self._control_hdr_str + log.to_string()
         self.state_str = data_str
 
     def add_event_data(self, data: EventData):
         if isinstance(data, EventData):
             self.log.append(data)
-            self.state_str = self._state_str + data.to_string()
+            self.state_str = self._control_hdr_str + data.to_string()
 
     def send_data(self):
         if self.log:
-            self.state_str = self._state_str + self.log.get_latest().to_string()
+            self.state_str = self._control_hdr_str + self.log.get_latest().to_string()

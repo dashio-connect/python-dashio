@@ -66,6 +66,6 @@ class SliderDoubleBar(SliderSingleBar):
     @slider_value.setter
     def slider_value(self, val: float):
         self._slider_value = val
-        self._slider_state_str = self._state_str + f"{self._slider_value}\n"
+        self._slider_state_str = self._control_hdr_str + f"{self._slider_value}\n"
         self.message_tx_event(self._slider_state_str)
         self._bar_slider_state_str = self._slider_state_str + self._bar_state_str

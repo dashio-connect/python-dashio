@@ -56,7 +56,7 @@ class Map(Control):
     def get_state(self):
         state_str = ""
         for locs in self.location_list:
-            state_str += self._state_str + locs.get_location_data()
+            state_str += self._control_hdr_str + locs.get_location_data()
         return state_str
 
     def __init__(self,
@@ -73,5 +73,5 @@ class Map(Control):
     def send_locations(self):
         state_str = ""
         for locs in self.location_list:
-            state_str += self._state_str + locs.get_location_data()
+            state_str += self._control_hdr_str + locs.get_location_data()
         self.state_str = state_str

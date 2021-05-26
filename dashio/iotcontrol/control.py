@@ -42,17 +42,19 @@ class Control:
         self.control_id = control_id
         self.message_rx_event = Event()
         self.message_tx_event = Event()
-        self._state_str = f"\t{{device_id}}\t{self.msg_type}\t{self.control_id}\t"
+        self._control_hdr_str = f"\t{{device_id}}\t{self.msg_type}\t{self.control_id}\t"
+        self._tx_message = ""
         self._control_position = None
         if control_position is not None:
             self.control_position = control_position
 
     @property
     def state_str(self):
-        return self._state_str
+        return self._control_hdr_str
 
     @state_str.setter
     def state_str(self, val):
+        self._tx_message = val
         self.message_tx_event(val)
 
     # Use getter, setter properties to store the settings in the config dictionary
