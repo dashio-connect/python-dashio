@@ -28,6 +28,5 @@ class TestSelector(unittest.TestCase):
         self.assertEqual(test_str_list[5], 'ASELECTION\n', "control type should be SELECTORID")
 
 
-
 if __name__ == '__main__':
     unittest.main()
