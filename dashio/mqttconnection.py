@@ -152,7 +152,6 @@ class MQTTConnection(threading.Thread):
     def run(self):
         self.mqttc.loop_start()
 
-
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
         self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
 
