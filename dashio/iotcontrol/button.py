@@ -26,7 +26,7 @@ class Button(Control):
         super().__init__("BTTN", control_id, title=title, control_position=control_position, title_position=title_position)
         self._btn_state = ButtonState.OFF
         self.button_enabled = button_enabled
-        self._icon_name = icon_name
+        self.icon_name = icon_name
         self.on_color = on_color
         self.off_color = off_color
         self.text = text

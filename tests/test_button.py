@@ -14,7 +14,7 @@ class TestButton(unittest.TestCase):
         cfg_dict = self._get_cfg_dict(test_control.get_cfg(1,1))
         self.assertEqual(cfg_dict['buttonEnabled'], True, "CFG buttonEnabled Should be True")
 
-    def test_button_icon(self):
+    def test_button_icon_name(self):
         test_control = Button("BUTTONID", icon_name=Icon.PAD)
         cfg_dict = self._get_cfg_dict(test_control.get_cfg(1,1))
         self.assertEqual(cfg_dict['iconName'], "Pad", "CFG iconName Should be Pad")
@@ -49,12 +49,12 @@ class TestButton(unittest.TestCase):
         test_control.btn_state = ButtonState.FLASH
         self.assertEqual(test_control.get_state(), '\t{device_id}\tBTTN\tBUTTONID\tFLASH\n', "Should be 'FLASH'")
 
-    def test_button_icon(self):
+    def test_button_set_icon(self):
         test_control = Button("BUTTONID")
         test_control.icon_name = Icon.UP
         self.assertEqual(test_control.get_state(), '\t{device_id}\tBTTN\tBUTTONID\tOFF\tUp\n', "Icon Should be UP")
 
-    def test_button_text(self):
+    def test_button_set_text(self):
         test_control = Button("BUTTONID")
         test_control.text = "HELLO"
         self.assertEqual(test_control.get_state(), '\t{device_id}\tBTTN\tBUTTONID\tOFF\tNone\tHELLO\n', "text Should be Hello")
