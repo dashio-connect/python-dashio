@@ -8,7 +8,7 @@ import zmq
 from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.event import Event
-from .iotcontrol.page import ControlsBox
+from .iotcontrol.controls_box import ControlsBox
 
 
 class DashDevice(threading.Thread):
@@ -129,7 +129,7 @@ class DashDevice(threading.Thread):
         iot_control : iotControl
         """
         if isinstance(iot_control, ControlsBox):
-            self.number_of_pages += 1
+            self._cfg["numCtrlsBoxes"] += 1
         try:
             if isinstance(iot_control, Alarm):
                 iot_control.message_tx_event += self.send_alarm
@@ -209,7 +209,7 @@ class DashDevice(threading.Thread):
         self._cfg = {}
         self.device_id_str = f"\t{device_id}"
         self.connect = self.device_id_str + "\tCONNECT\n"
-        self.number_of_pages = 0
+        self._cfg["numCtrlsBoxes"] = 0
 
         self.edit_lock = edit_lock
         self.name_setable = name_setable
@@ -225,7 +225,7 @@ class DashDevice(threading.Thread):
         """Enables/Disables editing in IoTDashboard
 
         Returns:
-            bool: 
+            bool:
         """
         return self._cfg["editLock"]
 
@@ -234,12 +234,12 @@ class DashDevice(threading.Thread):
         self._cfg["editLock"] = val
 
     @property
-    def number_of_pages(self) -> int:
-        return self._cfg["numPages"]
+    def number_of_controls_boxes(self) -> int:
+        return self._cfg["numCtrlsBoxes"]
 
-    @number_of_pages.setter
-    def number_of_pages(self, val: int):
-        self._cfg["numPages"] = val
+    @number_of_controls_boxes.setter
+    def number_of_controls_boxes(self, val: int):
+        self._cfg["numCtrlsBoxes"] = val
 
     @property
     def name_setable(self) -> bool:
@@ -283,7 +283,7 @@ class DashDevice(threading.Thread):
 
     @mqtt_setable.setter
     def mqtt_setable(self, val: bool):
-        self._mqtt_setable= val
+        self._mqtt_setable = val
         self._set_devicesetup("mqtt", val)
 
     @property
