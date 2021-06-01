@@ -111,7 +111,7 @@ class TestControls:
         dash_conn = dashio.DashConnection(args.username, args.password)
         dash_conn.add_device(device)
 
-        self.page_test = dashio.Page("TestPage", "Testing Pages", 1)
+        self.page_test = dashio.ControlsBox("TestPage", "Testing Pages", 1)
         self.up_btn = dashio.Button("UP_BTN")
         self.up_btn.btn_state = dashio.ButtonState.OFF
         self.up_btn.icon_name = dashio.Icon.UP

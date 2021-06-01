@@ -37,7 +37,7 @@ from .iotcontrol.alarm import Alarm
 from .iotcontrol.menu import Menu
 from .iotcontrol.selector import Selector
 from .iotcontrol.label import Label
-from .iotcontrol.page import Page
+from .iotcontrol.controls_box import ControlsBox
 from .iotcontrol.control import Control, ControlPosition
 from .iotcontrol.button_group import ButtonGroup
 from .iotcontrol.event_log import EventData, EventLog

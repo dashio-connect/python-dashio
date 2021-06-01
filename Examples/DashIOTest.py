@@ -6,14 +6,14 @@ import configparser
 import uuid
 import time
 
-shutdown = False
-counter = 0
+SHUTDOWN = False
+COUNTER = 0
 
 
 def signal_cntrl_c(os_signal, os_frame):
-    global shutdown
+    global SHUTDOWN
     print("Shutdown")
-    shutdown = True
+    SHUTDOWN = True
 
 
 def init_logging(logfilename, level):
@@ -62,14 +62,14 @@ def parse_commandline_arguments():
 def main():
 
     def up_btn_event_handler(msg):
-        global counter
-        counter += 1
-        txt_box.text = f"{counter}"
+        global COUNTER
+        COUNTER += 1
+        txt_box.text = f"{COUNTER}"
 
     def down_btn_event_handler(msg):
-        global counter
-        counter -= 1
-        txt_box.text = f"{counter}"
+        global COUNTER
+        COUNTER -= 1
+        txt_box.text = f"{COUNTER}"
 
     signal.signal(signal.SIGINT, signal_cntrl_c)
     args = parse_commandline_arguments()
@@ -108,7 +108,7 @@ def main():
         config_file_parser.get('DEFAULT', 'password')
     )
     dash_conn.add_device(device)
-    pg = dashio.Page('Dashio_pg1', 'DashIO Public Test')
+    pg = dashio.ControlsBox('Dashio_pg1', 'DashIO Public Test')
 
     up_button = dashio.Button(
         'up',
@@ -132,7 +132,7 @@ def main():
     txt_box = dashio.TextBox('txtbox1', 'Counter', control_position=dashio.ControlPosition(0.0, 0.43, 1.0, 0.1))
     txt_box.keyboard_type = dashio.Keyboard.NONE
     txt_box.text_align = dashio.TextAlignment.CENTER
-    txt_box.text = f"{counter}"
+    txt_box.text = f"{COUNTER}"
 
     pg.add_control(up_button)
     pg.add_control(down_button)
@@ -142,8 +142,8 @@ def main():
     device.add_control(down_button)
     device.add_control(txt_box)
 
-    global shutdown
-    while not shutdown:
+    global SHUTDOWN
+    while not SHUTDOWN:
         time.sleep(1)
 
     device.close()

@@ -8,7 +8,7 @@ import zmq
 from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.event import Event
-from .iotcontrol.page import Page
+from .iotcontrol.page import ControlsBox
 
 
 class DashDevice(threading.Thread):
@@ -128,7 +128,7 @@ class DashDevice(threading.Thread):
         ----------
         iot_control : iotControl
         """
-        if isinstance(iot_control, Page):
+        if isinstance(iot_control, ControlsBox):
             self.number_of_pages += 1
         try:
             if isinstance(iot_control, Alarm):
