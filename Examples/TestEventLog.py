@@ -80,7 +80,7 @@ class TestEventLog:
         dash_conn.add_device(device)
 
         el = dashio.EventLog("ELTest")
-        el_page = dashio.Page("el_page", "Event Log Test")
+        el_page = dashio.ControlsBox("el_page", "Event Log Test")
         el_page.add_control(el)
         device.add_control(el)
         device.add_control(el_page)

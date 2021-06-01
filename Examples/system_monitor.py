@@ -96,7 +96,7 @@ def main():
     device.dashio_setable = True
     dash_conn.add_device(device)
 
-    monitor_page = dashio.Page("monpg", "Dash Server Moniter")
+    monitor_page = dashio.ControlsBox("monpg", "Dash Server Moniter")
     gph_network = dashio.TimeGraph("NETWORKGRAPH")
     gph_network.title = "Server Network Traffic: {}".format(args.connection)
     gph_network.y_axis_label = "Kbytes"

@@ -94,7 +94,7 @@ class TestControls:
         dash_conn = dashio.DashConnection(args.username, args.password)
         dash_conn.add_device(device)
 
-        self.tapage = dashio.Page("testAlarm", "Test Alarm")
+        self.tapage = dashio.ControlsBox("testAlarm", "Test Alarm")
         self.alarm_btn1 = dashio.Button("ALARM_BTN1")
         self.tapage.add_control(self.alarm_btn1)
         self.alarm_btn1.title = "A1"

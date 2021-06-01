@@ -4,12 +4,12 @@ import argparse
 import signal
 import dashio
 
-shutdown = False
+SHUTDOWN = False
 
 
 def signal_cntrl_c(os_signal, os_frame):
-    global shutdown
-    shutdown = True
+    global SHUTDOWN
+    SHUTDOWN = True
 
 
 def parse_commandline_arguments():
@@ -50,7 +50,7 @@ def parse_commandline_arguments():
 
 def main():
     # Catch CNTRL-C signel
-    global shutdown
+    global SHUTDOWN
     signal.signal(signal.SIGINT, signal_cntrl_c)
 
     args = parse_commandline_arguments()
@@ -69,7 +69,7 @@ def main():
     my_map.add_location(myloc)
     device.add_control(my_map)
 
-    while not shutdown:
+    while not SHUTDOWN:
         time.sleep(1)
 
     device.close()
