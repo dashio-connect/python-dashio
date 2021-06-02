@@ -20,7 +20,7 @@ class TestControlsBox(unittest.TestCase):
     def test_controls_box_cfg_page_color(self):
         test_control = ControlsBox("PAGEID", color=Color.BURLY_WOOD)
         cfg_dict = _get_cfg_dict(test_control.get_cfg(1, 1))
-        self.assertEqual(Color(int(cfg_dict['color'])), Color.BURLY_WOOD, "CFG pageColor should be BURLY_WOOD")
+        self.assertEqual(Color(int(cfg_dict['color'])), Color.BURLY_WOOD, "CFG color should be BURLY_WOOD")
 
     def test_controls_box_cfg_control_title_box_color(self):
         test_control = ControlsBox("PAGEID", control_title_box_color=Color.CHOCOLATE)

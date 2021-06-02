@@ -23,7 +23,7 @@ class ControlsBox(Control):
     ):
         super().__init__("CBOX", control_id, title=title)
         self.icon_name = icon
-        self._color = color
+        self.color = color
         self.control_title_box_color = control_title_box_color
         self.control_title_box_transparency = control_title_box_transparency
         self.control_color = control_color
