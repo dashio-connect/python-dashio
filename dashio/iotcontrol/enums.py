@@ -1,7 +1,13 @@
+"""
+    All the different Enum definitions in one conveniant place.
+"""
 from enum import Enum
 
 
 class Icon(Enum):
+    """
+    All the Icons
+    """
     NONE = "None"
     DOT = "Dot"
     PAD = "Pad"
