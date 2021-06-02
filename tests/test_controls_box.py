@@ -18,9 +18,9 @@ class TestControlsBox(unittest.TestCase):
         self.assertEqual(Icon(cfg_dict['iconName']), Icon.RIGHT_DOUBLE, "CFG iconName should be RIGHT_DOUBLE")
 
     def test_controls_box_cfg_page_color(self):
-        test_control = ControlsBox("PAGEID", page_color=Color.BURLY_WOOD)
+        test_control = ControlsBox("PAGEID", color=Color.BURLY_WOOD)
         cfg_dict = _get_cfg_dict(test_control.get_cfg(1, 1))
-        self.assertEqual(Color(int(cfg_dict['pageColor'])), Color.BURLY_WOOD, "CFG pageColor should be BURLY_WOOD")
+        self.assertEqual(Color(int(cfg_dict['color'])), Color.BURLY_WOOD, "CFG pageColor should be BURLY_WOOD")
 
     def test_controls_box_cfg_control_title_box_color(self):
         test_control = ControlsBox("PAGEID", control_title_box_color=Color.CHOCOLATE)
