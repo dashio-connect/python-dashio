@@ -17,10 +17,15 @@ class TestControlsBox(unittest.TestCase):
         cfg_dict = _get_cfg_dict(test_control.get_cfg(1, 1))
         self.assertEqual(Icon(cfg_dict['iconName']), Icon.RIGHT_DOUBLE, "CFG iconName should be RIGHT_DOUBLE")
 
-    def test_controls_box_cfg_page_color(self):
+    def test_controls_box_cfg_color(self):
         test_control = ControlsBox("PAGEID", color=Color.BURLY_WOOD)
         cfg_dict = _get_cfg_dict(test_control.get_cfg(1, 1))
         self.assertEqual(Color(int(cfg_dict['color'])), Color.BURLY_WOOD, "CFG color should be BURLY_WOOD")
+
+    def test_controls_box_cfg_share_column(self):
+        test_control = ControlsBox("PAGEID", share_column=False)
+        cfg_dict = _get_cfg_dict(test_control.get_cfg(1, 1))
+        self.assertEqual(Color(int(cfg_dict['shareColumn'])), False, "CFG share_column should be False")
 
     def test_controls_box_cfg_control_title_box_color(self):
         test_control = ControlsBox("PAGEID", control_title_box_color=Color.CHOCOLATE)
