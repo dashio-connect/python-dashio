@@ -11,6 +11,7 @@ class ControlsBox(Control):
         title="A ControlsBox",
         icon=Icon.SQUARE,
         color=Color.BLACK,
+        share_column = True,
         control_title_box_color=Color.BLACK,
         control_title_box_transparency=0,
         control_color=Color.WHITE_SMOKE,
@@ -24,6 +25,7 @@ class ControlsBox(Control):
         super().__init__("CBOX", control_id, title=title)
         self.icon_name = icon
         self.color = color
+        self.share_column = share_column
         self.control_title_box_color = control_title_box_color
         self.control_title_box_transparency = control_title_box_transparency
         self.control_color = control_color
@@ -46,6 +48,14 @@ class ControlsBox(Control):
     def icon_name(self, val: Icon):
         self._icon_name = val
         self._cfg["iconName"] = val.value
+
+    @property
+    def share_column(self) -> bool:
+        return self._cfg["shareColumn"]
+
+    @share_column.setter
+    def share_column(self, val: bool):
+        self._cfg["shareColumn"] = val
 
     @property
     def color(self) -> Color:
