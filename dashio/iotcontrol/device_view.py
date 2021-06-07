@@ -65,7 +65,10 @@ class DeviceView(Control):
 
     @num_columns.setter
     def num_columns(self, val: int):
-        self._cfg["numColumns"] = val
+        if 1 <= val <= 3:
+            self._cfg["numColumns"] = val
+        else:
+            raise ValueError("Value must be in the range 1 to 3")
 
     @property
     def color(self) -> Color:

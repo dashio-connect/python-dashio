@@ -66,6 +66,7 @@ class DashDevice(threading.Thread):
         reply = self.device_id_str + '\tCFG\tDVCE\t' + json.dumps(self._cfg) + "\n"
         for key in self.control_dict:
             reply += self.device_id_str + self.control_dict[key].get_cfg(data[2])
+        logging.debug(reply)
         return reply
 
     def send_popup_message(self, title, header, message):
@@ -129,7 +130,7 @@ class DashDevice(threading.Thread):
         iot_control : iotControl
         """
         if isinstance(iot_control, DeviceView):
-            self._cfg["numCtrlsBoxes"] += 1
+            self._cfg["numDeviceViews"] += 1
         try:
             if isinstance(iot_control, Alarm):
                 iot_control.message_tx_event += self.send_alarm
@@ -207,7 +208,7 @@ class DashDevice(threading.Thread):
         self._cfg = {}
         self.device_id_str = f"\t{device_id}"
         self.connect = self.device_id_str + "\tCONNECT\n"
-        self._cfg["numCtrlsBoxes"] = 0
+        self._cfg["numDeviceViews"] = 0
 
         self.name_setable = name_setable
         self.wifi_setable = wifi_setable
