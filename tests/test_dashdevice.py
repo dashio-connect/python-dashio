@@ -22,13 +22,9 @@ class TestDashDevice(unittest.TestCase):
         test_device = DashDevice("DEVICETYPE", "DEVICEID", "DEVICENAME")
         self.assertEqual(test_device._device_name, 'DEVICENAME', "_device_name type should be DEVICENAME")
 
-    def test_dash_device_cfg_edit_lock(self):
-        test_device = DashDevice("DEVICETYPE", "DEVICEID", "DEVICENAME", edit_lock=True)
-        self.assertEqual(test_device._cfg['editLock'], True, "editLock type should be True")
-
     def test_dash_device_cfg_number_of_controls_boxes(self):
         test_device = DashDevice("DEVICETYPE", "DEVICEID", "DEVICENAME",)
-        self.assertEqual(test_device._cfg['numCtrlsBoxes'], 0, "editLock type should be 0")
+        self.assertEqual(test_device._cfg['numDeviceViews'], 0, "editLock type should be 0")
 
     def test_dash_device_cfg_name_setable(self):
         test_device = DashDevice("DEVICETYPE", "DEVICEID", "DEVICENAME", name_setable=True)

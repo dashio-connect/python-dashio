@@ -17,7 +17,7 @@ class MQTT():
     def get_state(self):
         return ""
 
-    def get_cfg(self, page_size_x, page_size_y):
+    def get_cfg(self, num_columns):
         cfg_str = "\tCFG\t" + self.msg_type + "\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
 
