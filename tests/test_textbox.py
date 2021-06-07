@@ -24,32 +24,32 @@ class TestTextBox(unittest.TestCase):
 
     def test_text_box_cfg_text_align(self):
         test_control = TextBox("TEXTBOXID", text_align=TextAlignment.CENTER)
-        cfg_dict = _get_cfg_dict(test_control.get_cfg(1, 1))
+        cfg_dict = _get_cfg_dict(test_control.get_cfg(1))
         self.assertEqual(TextAlignment(cfg_dict['textAlign']), TextAlignment.CENTER, "CFG textAlign should be CENTER")
 
     def test_text_box_cfg_text_format(self):
         test_control = TextBox("TEXTBOXID", text_format=TextFormat.NUMBER)
-        cfg_dict = _get_cfg_dict(test_control.get_cfg(1, 1))
+        cfg_dict = _get_cfg_dict(test_control.get_cfg(1))
         self.assertEqual(TextFormat(cfg_dict['format']), TextFormat.NUMBER, "CFG format should be CENTER")
 
     def test_text_box_cfg_units(self):
         test_control = TextBox("TEXTBOXID", units='Amps')
-        cfg_dict = _get_cfg_dict(test_control.get_cfg(1, 1))
+        cfg_dict = _get_cfg_dict(test_control.get_cfg(1))
         self.assertEqual(cfg_dict['units'], 'Amps', "CFG units should be 'Amps'")
 
     def test_text_box_cfg_keyboard_type(self):
         test_control = TextBox("TEXTBOXID", keyboard_type=Keyboard.HEX)
-        cfg_dict = _get_cfg_dict(test_control.get_cfg(1, 1))
+        cfg_dict = _get_cfg_dict(test_control.get_cfg(1))
         self.assertEqual(Keyboard(cfg_dict['kbdType']), Keyboard.HEX, "CFG kbdType should be HEX")
 
     def test_text_box_cfg_precision(self):
         test_control = TextBox("TEXTBOXID", precision=Precision.SIX)
-        cfg_dict = _get_cfg_dict(test_control.get_cfg(1, 1))
+        cfg_dict = _get_cfg_dict(test_control.get_cfg(1))
         self.assertEqual(Precision(cfg_dict['precision']), Precision.SIX, "CFG precision should be SIX")
 
     def test_text_box_cfg_close_keyboard_on_send(self):
         test_control = TextBox("TEXTBOXID", close_keyboard_on_send=True)
-        cfg_dict = _get_cfg_dict(test_control.get_cfg(1, 1))
+        cfg_dict = _get_cfg_dict(test_control.get_cfg(1))
         self.assertEqual(cfg_dict['closeKbdOnSend'], True, "CFG closeKbdOnSend should be True")
 
 

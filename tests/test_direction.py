@@ -22,27 +22,27 @@ class TestDial(unittest.TestCase):
 
     def test_direction_pointer_color(self):
         test_control = Direction("DIRECTIONID", pointer_color=Color.BLUE)
-        cfg_dict = self._get_cfg_dict(test_control.get_cfg(1,1))
+        cfg_dict = self._get_cfg_dict(test_control.get_cfg(1))
         self.assertEqual(cfg_dict['pointerColor'], '18', "CFG pointerColor should be '18'")
 
     def test_direction_calibration_angle(self):
         test_control = Direction("DIRECTIONID", calibration_angle=1.2)
-        cfg_dict = self._get_cfg_dict(test_control.get_cfg(1,1))
+        cfg_dict = self._get_cfg_dict(test_control.get_cfg(1))
         self.assertEqual(cfg_dict['calAngle'], 1.2, "CFG calAngle should be 1.2")
 
     def test_direction_style(self):
         test_control = Direction("DIRECTIONID", style=DirectionStyle.NSEW)
-        cfg_dict = self._get_cfg_dict(test_control.get_cfg(1,1))
+        cfg_dict = self._get_cfg_dict(test_control.get_cfg(1))
         self.assertEqual(cfg_dict['style'], 'nsew', "CFG style should be 'nsew'")
 
     def test_direction_units(self):
         test_control = Direction("DIRECTIONID", units='Volts')
-        cfg_dict = self._get_cfg_dict(test_control.get_cfg(1,1))
+        cfg_dict = self._get_cfg_dict(test_control.get_cfg(1))
         self.assertEqual(cfg_dict['units'], 'Volts', "CFG units should be 'Volts'")
 
     def test_direction_precision(self):
         test_control = Direction("DIRECTIONID", precision=Precision.FIVE)
-        cfg_dict = self._get_cfg_dict(test_control.get_cfg(1,1))
+        cfg_dict = self._get_cfg_dict(test_control.get_cfg(1))
         self.assertEqual(cfg_dict['precision'], 5, "CFG precision should be 5")
 
 if __name__ == '__main__':
