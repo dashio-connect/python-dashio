@@ -27,6 +27,11 @@ class TestControlsBox(unittest.TestCase):
         cfg_dict = _get_cfg_dict(test_control.get_cfg(1, 1))
         self.assertEqual(cfg_dict['shareColumn'], False, "CFG share_column should be False")
 
+    def test_controls_box_cfg_num_column(self):
+        test_control = ControlsBox("CTRLBXID", num_columns=3)
+        cfg_dict = _get_cfg_dict(test_control.get_cfg(1, 1))
+        self.assertEqual(cfg_dict['numColumns'], 3, "CFG num_column should be 3")
+
     def test_controls_box_cfg_control_title_box_color(self):
         test_control = ControlsBox("CTRLBXID", control_title_box_color=Color.CHOCOLATE)
         cfg_dict = _get_cfg_dict(test_control.get_cfg(1, 1))
