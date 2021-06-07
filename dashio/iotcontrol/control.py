@@ -13,8 +13,8 @@ class ControlPosition:
         self.width_ratio = width_ratio
         self.height_ratio = height_ratio
 
-    def set_size(self, page_size_x, page_size_y):
-        logging.debug("Page X: %s, Page Y: %s", page_size_x, page_size_y)
+    def set_size(self, num_columns):
+        logging.debug("Number of Columns: %s", num_columns)
 
 
 class Control:
@@ -23,9 +23,9 @@ class Control:
     def get_state(self) -> str:
         return ""
 
-    def get_cfg(self, page_size_x, page_size_y):
+    def get_cfg(self, num_columns):
         if self.control_position:
-            self.control_position.set_size(page_size_x, page_size_y)
+            self.control_position.set_size(num_columns)
         cfg_str = "\tCFG\t" + self.msg_type + "\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
 

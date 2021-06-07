@@ -65,7 +65,7 @@ class DashDevice(threading.Thread):
     def _make_cfg(self, data):
         reply = self.device_id_str + '\tCFG\tDVCE\t' + json.dumps(self._cfg) + "\n"
         for key in self.control_dict:
-            reply += self.device_id_str + self.control_dict[key].get_cfg(data[2], data[3])
+            reply += self.device_id_str + self.control_dict[key].get_cfg(data[2])
         return reply
 
     def send_popup_message(self, title, header, message):
@@ -168,7 +168,6 @@ class DashDevice(threading.Thread):
                  device_type: str,
                  device_id: str,
                  device_name: str,
-                 edit_lock=False,
                  name_setable=False,
                  wifi_setable=False,
                  dashio_setable=False,
@@ -181,7 +180,6 @@ class DashDevice(threading.Thread):
             device_type (str): A Short description of the device type.
             device_id (str): A unique identifier for this device
             device_name (str): The name for this device
-            edit_lock (bool, optional): Enables/Disables editing in IoTDashboard. Defaults to False.
             name_setable (bool, optional): Allows IoT Dashboard to set the device name. Defaults to False.
             wifi_setable (bool, optional): Allows IOT Dashboard to set the wifi parameters. Defaults to False.
             dashio_setable (bool, optional): Allows IOT Dashboard to set the dash server connection parameters. Defaults to False.
@@ -211,7 +209,6 @@ class DashDevice(threading.Thread):
         self.connect = self.device_id_str + "\tCONNECT\n"
         self._cfg["numCtrlsBoxes"] = 0
 
-        self.edit_lock = edit_lock
         self.name_setable = name_setable
         self.wifi_setable = wifi_setable
         self.dashio_setable = dashio_setable
@@ -219,19 +216,6 @@ class DashDevice(threading.Thread):
         self.mqtt_setable = mqtt_setable
         self.running = True
         self.start()
-
-    @property
-    def edit_lock(self) -> bool:
-        """Enables/Disables editing in IoTDashboard
-
-        Returns:
-            bool:
-        """
-        return self._cfg["editLock"]
-
-    @edit_lock.setter
-    def edit_lock(self, val: bool):
-        self._cfg["editLock"] = val
 
     @property
     def number_of_device_views(self) -> int:
