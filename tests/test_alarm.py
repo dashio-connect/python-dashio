@@ -11,12 +11,12 @@ class TestControl(unittest.TestCase):
 
     def test_alarm_description(self):
         test_control = Alarm("ALARMID", description="DESCRIPTION")
-        cfg_dict = self._get_cfg_dict(test_control.get_cfg(1,1))
+        cfg_dict = self._get_cfg_dict(test_control.get_cfg(1))
         self.assertEqual(cfg_dict['description'], "DESCRIPTION", "CFG description Should be DESCRIPTION")
 
     def test_alarm_soundName(self):
         test_control = Alarm("ALARMID", sound_name=SoundName.BELL)
-        cfg_dict = self._get_cfg_dict(test_control.get_cfg(1,1))
+        cfg_dict = self._get_cfg_dict(test_control.get_cfg(1))
         self.assertEqual(cfg_dict['soundName'], "Bell", "CFG soundName Should be Bell")
 
 

@@ -12,12 +12,12 @@ class TestLabel(unittest.TestCase):
 
     def test_label_control_type(self):
         test_control = Label("LABELID", color=Color.BLUE)
-        cfg_dict = self._get_cfg_dict(test_control.get_cfg(1, 1))
+        cfg_dict = self._get_cfg_dict(test_control.get_cfg(1))
         self.assertEqual(Color(int(cfg_dict['color'])), Color.BLUE, "CFG yAxisMax Should be 1.0")
 
     def test_label_control_id(self):
         test_control = Label("LABELID", style=LabelStyle.BORDER)
-        cfg_dict = self._get_cfg_dict(test_control.get_cfg(1, 1))
+        cfg_dict = self._get_cfg_dict(test_control.get_cfg(1))
         self.assertEqual(LabelStyle(cfg_dict['style']), LabelStyle.BORDER, "CFG style Should be 1.0")
 
 
