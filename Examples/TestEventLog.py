@@ -79,17 +79,17 @@ class TestEventLog:
         dash_conn = dashio.DashConnection(args.username, args.password)
         dash_conn.add_device(device)
 
-        el = dashio.EventLog("ELTest")
-        el_page = dashio.ControlsBox("el_page", "Event Log Test")
-        el_page.add_control(el)
-        device.add_control(el)
+        event_l = dashio.EventLog("ELTest")
+        el_page = dashio.DeviceView("el_page", "Event Log Test")
+        el_page.add_control(event_l)
+        device.add_control(event_l)
         device.add_control(el_page)
 
         self.connection = args.connection
         count = 1
         while not self.shutdown:
             time.sleep(5)
-            el.add_event_data("Hello:{}".format(count), "Testing")
+            event_l.add_event_data("Hello:{}".format(count))
             count += 1
         device.close()
 

@@ -96,23 +96,23 @@ def main():
     device.dashio_setable = True
     dash_conn.add_device(device)
 
-    monitor_page = dashio.ControlsBox("monpg", "Dash Server Moniter")
+    monitor_page = dashio.DeviceView("monpg", "Dash Server Moniter")
     gph_network = dashio.TimeGraph("NETWORKGRAPH")
     gph_network.title = "Server Network Traffic: {}".format(args.connection)
     gph_network.y_axis_label = "Kbytes"
     gph_network.y_axis_min = 0.0
     gph_network.y_axis_max = 1000.0
     gph_network.y_axis_num_bars = 11
-    Network_Rx = dashio.TimeGraphLine(
+    network_rx = dashio.TimeGraphLine(
         "RX", dashio.TimeGraphLineType.LINE, color=dashio.Color.FUSCIA, max_data_points=no_datapoints, break_data=True
     )
-    Network_Tx = dashio.TimeGraphLine(
+    network_tx = dashio.TimeGraphLine(
         "TX", dashio.TimeGraphLineType.LINE, color=dashio.Color.AQUA, max_data_points=no_datapoints, break_data=True
     )
 
-    gph_network.add_line("NET_RX", Network_Rx)
-    gph_network.add_line("NET_TX", Network_Tx)
-    last_Tx, last_Rx = get_network_rx_tx()
+    gph_network.add_line("NET_RX", network_rx)
+    gph_network.add_line("NET_TX", network_tx)
+    last_tx, last_rx = get_network_rx_tx()
 
     gph_cpu = dashio.TimeGraph("CPULOAD")
     gph_cpu.title = "CPU load: {}".format(args.connection)
@@ -155,11 +155,11 @@ def main():
 
         Tx, Rx = get_network_rx_tx()
 
-        Network_Rx.add_data_point(Tx - last_Tx)
-        Network_Tx.add_data_point(Rx - last_Rx)
+        network_rx.add_data_point(Tx - last_tx)
+        network_tx.add_data_point(Rx - last_rx)
 
-        last_Tx = Tx
-        last_Rx = Rx
+        last_tx = Tx
+        last_rx = Rx
 
         gph_network.send_data()
 

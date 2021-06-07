@@ -86,8 +86,7 @@ class TestControls:
         self.sldr_dbl_cntrl.bar2_value = float(msg[3])
 
     def text_cntrl_message_handler(self, msg):
-        self.alarm_ctrl.body = msg[3]
-        self.alarm_ctrl.send()
+        self.alarm_ctrl.send("TestControls", msg[3])
         self.text_cntrl.text = "Alarm sent: " + msg[3]
         logging.info(msg)
 
@@ -111,7 +110,7 @@ class TestControls:
         dash_conn = dashio.DashConnection(args.username, args.password)
         dash_conn.add_device(device)
 
-        self.page_test = dashio.ControlsBox("TestPage", "Testing Pages", 1)
+        self.page_test = dashio.DeviceView("TestPage", "Testing Pages", 1)
         self.up_btn = dashio.Button("UP_BTN")
         self.up_btn.btn_state = dashio.ButtonState.OFF
         self.up_btn.icon_name = dashio.Icon.UP
@@ -136,7 +135,7 @@ class TestControls:
         self.sldr_cntrl.title = "Slider"
         self.sldr_cntrl.bar_max = 10
         self.sldr_cntrl.slider_enabled = True
-        self.sldr_cntrl.red_value
+        self.sldr_cntrl.red_value = 10
         self.sldr_cntrl.message_rx_event += self.slider_event_handler
         device.add_control(self.sldr_cntrl)
         self.page_test.add_control(self.sldr_cntrl)
@@ -145,7 +144,7 @@ class TestControls:
         self.sldr_dbl_cntrl.title = "Slider Double"
         self.sldr_dbl_cntrl.bar_max = 5
         self.sldr_dbl_cntrl.slider_enabled = True
-        self.sldr_dbl_cntrl.red_value
+        self.sldr_dbl_cntrl.red_value = 5
         self.sldr_dbl_cntrl.message_rx_event += self.slider_dbl_event_handler
         device.add_control(self.sldr_dbl_cntrl)
         self.page_test.add_control(self.sldr_dbl_cntrl)
@@ -173,7 +172,7 @@ class TestControls:
         device.add_control(self.text_cntrl)
         self.page_test.add_control(self.text_cntrl)
 
-        self.alarm_ctrl = dashio.Alarm("TestingAlarms", "Test Alarms", "Hello", "Test of Shared Alarms")
+        self.alarm_ctrl = dashio.Alarm("TestingAlarms", "Test Alarms")
         device.add_control(self.alarm_ctrl)
         self.comp_control = dashio.Direction("COMP1")
         self.comp_control.title = "A direction control"

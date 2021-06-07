@@ -108,14 +108,14 @@ class TestControls:
 
         self.device = dashio.DashDevice(args.connection, args.device_id, args.device_name)
         time.sleep(1)
-        self.zmq_con = dashio.zmqConnection(pub_port=args.pub_port, sub_port=args.sub_port)
+        self.zmq_con = dashio.ZMQConnection(pub_port=args.pub_port, sub_port=args.sub_port)
         time.sleep(1)
         self.zmq_con.add_device(self.device)
 
         self.connection = args.connection
         self.page_name = "TestZMQ: " + platform.node()
 
-        self.page_test = dashio.ControlsBox("TestZMQ", self.page_name, 1)
+        self.page_test = dashio.DeviceView("TestZMQ", self.page_name, 1)
         self.up_btn = dashio.Button("UP_BTN", control_position=dashio.ControlPosition(0.02, 0.01, 0.22, 0.12))
         self.up_btn.btn_state = dashio.ButtonState.OFF
         self.up_btn.icon_name = dashio.Icon.UP
@@ -142,7 +142,7 @@ class TestControls:
         self.sldr_cntrl.title = "Slider"
         self.sldr_cntrl.max = 10
         self.sldr_cntrl.slider_enabled = True
-        self.sldr_cntrl.red_value
+        self.sldr_cntrl.red_value = 10
         self.sldr_cntrl.message_rx_event += self.slider_event_handler
         self.page_test.add_control(self.sldr_cntrl)
 
@@ -152,7 +152,7 @@ class TestControls:
         self.sldr_dbl_cntrl.title = "Slider Double"
         self.sldr_dbl_cntrl.max = 5
         self.sldr_dbl_cntrl.slider_enabled = True
-        self.sldr_dbl_cntrl.red_value
+        self.sldr_dbl_cntrl.red_value = 5
         self.sldr_dbl_cntrl.message_rx_event += self.slider_dbl_event_handler
         self.page_test.add_control(self.sldr_dbl_cntrl)
 
@@ -178,7 +178,7 @@ class TestControls:
         self.text_cntrl.message_rx_event += self.text_cntrl_message_handler
         self.page_test.add_control(self.text_cntrl)
 
-        self.alarm_ctrl = dashio.Alarm("TestingAlarms", "Test Alarms", "Hello", "Test of Shared Alarms")
+        self.alarm_ctrl = dashio.Alarm("TestingAlarms", "Test Alarms")
         self.device.add_control(self.alarm_ctrl)
         self.comp_control = dashio.Direction("COMP1", control_position=dashio.ControlPosition(0.24, 0.35, 0.54, 0.22))
         self.comp_control.title = "A direction control"

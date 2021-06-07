@@ -94,9 +94,9 @@ class TestControls:
         dash_conn = dashio.DashConnection(args.username, args.password)
         dash_conn.add_device(device)
 
-        self.tapage = dashio.ControlsBox("testAlarm", "Test Alarm")
+        self.tadevice_view = dashio.DeviceView("testAlarm", "Test Alarm")
         self.alarm_btn1 = dashio.Button("ALARM_BTN1")
-        self.tapage.add_control(self.alarm_btn1)
+        self.tadevice_view.add_control(self.alarm_btn1)
         self.alarm_btn1.title = "A1"
         self.alarm_btn1.btn_state = dashio.ButtonState.OFF
         self.alarm_btn1.icon_name = dashio.Icon.BELL
@@ -111,7 +111,7 @@ class TestControls:
         self.alarm_btn2.on_color = dashio.Color.RED
         self.alarm_btn2.message_rx_event += self.alarm_btn2_handler
         device.add_control(self.alarm_btn2)
-        self.tapage.add_control(self.alarm_btn2)
+        self.tadevice_view.add_control(self.alarm_btn2)
 
         self.alarm_btn3 = dashio.Button("ALARM_BTN3")
         self.alarm_btn3.title = "A3"
@@ -120,7 +120,7 @@ class TestControls:
         self.alarm_btn3.on_color = dashio.Color.RED
         self.alarm_btn3.message_rx_event += self.alarm_btn3_handler
         device.add_control(self.alarm_btn3)
-        self.tapage.add_control(self.alarm_btn3)
+        self.tadevice_view.add_control(self.alarm_btn3)
 
         self.alarm1_ctrl = dashio.Alarm("TestingAlarms1", "A plop form Alarm1", SoundName.PLOP)
         self.alarm2_ctrl = dashio.Alarm("TestingAlarms2", "Squeaky from Alarm2", SoundName.SQUEAKY)
@@ -128,10 +128,10 @@ class TestControls:
         device.add_control(self.alarm1_ctrl)
         device.add_control(self.alarm2_ctrl)
         device.add_control(self.alarm3_ctrl)
-        self.tapage.add_control(self.alarm1_ctrl)
-        self.tapage.add_control(self.alarm2_ctrl)
-        self.tapage.add_control(self.alarm3_ctrl)
-        device.add_control(self.tapage)
+        self.tadevice_view.add_control(self.alarm1_ctrl)
+        self.tadevice_view.add_control(self.alarm2_ctrl)
+        self.tadevice_view.add_control(self.alarm3_ctrl)
+        device.add_control(self.tadevice_view)
 
         while not self.shutdown:
             time.sleep(1)

@@ -96,21 +96,18 @@ class TestControls:
         self.bar_15_minutes = dashio.TimeGraphLine(
             "Bar",
             dashio.TimeGraphLineType.BAR,
-            transparency=0.45,
             color=dashio.Color.ORANGE,
             max_data_points=15 * 60 / LOGGER_PERIOD,
         )
         self.bin_15_minutes = dashio.TimeGraphLine(
             "Bin",
             dashio.TimeGraphLineType.BOOL,
-            transparency=0.45,
             color=dashio.Color.YELLOW,
             max_data_points=15 * 60 / LOGGER_PERIOD,
         )
         self.am_pm_15_minutes = dashio.TimeGraphLine(
             "Hour",
             dashio.TimeGraphLineType.BOOL,
-            transparency=0.30,
             color=dashio.Color.SILVER,
             max_data_points=15 * 60 / LOGGER_PERIOD,
         )
@@ -165,7 +162,7 @@ class TestControls:
 
             tstamp = datetime.datetime.now()
             seconds_left = tstamp.second + tstamp.microsecond / 1000000.0
-            div, sleep_time = divmod(seconds_left, LOGGER_PERIOD)
+            _, sleep_time = divmod(seconds_left, LOGGER_PERIOD)
             sleep_time = LOGGER_PERIOD - sleep_time
             time.sleep(sleep_time)
 
