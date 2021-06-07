@@ -8,7 +8,7 @@ import zmq
 from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.event import Event
-from .iotcontrol.controls_box import ControlsBox
+from .iotcontrol.device_view import DeviceView
 
 
 class DashDevice(threading.Thread):
@@ -128,7 +128,7 @@ class DashDevice(threading.Thread):
         ----------
         iot_control : iotControl
         """
-        if isinstance(iot_control, ControlsBox):
+        if isinstance(iot_control, DeviceView):
             self._cfg["numCtrlsBoxes"] += 1
         try:
             if isinstance(iot_control, Alarm):
@@ -234,12 +234,12 @@ class DashDevice(threading.Thread):
         self._cfg["editLock"] = val
 
     @property
-    def number_of_controls_boxes(self) -> int:
-        return self._cfg["numCtrlsBoxes"]
+    def number_of_device_views(self) -> int:
+        return self._cfg["numDeviceViews"]
 
-    @number_of_controls_boxes.setter
-    def number_of_controls_boxes(self, val: int):
-        self._cfg["numCtrlsBoxes"] = val
+    @number_of_device_views.setter
+    def number_of_device_views(self, val: int):
+        self._cfg["numDeviceViews"] = val
 
     @property
     def name_setable(self) -> bool:

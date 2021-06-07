@@ -21,7 +21,8 @@ from .iotcontrol.enums import (
     LabelStyle,
     KnobStyle,
     GraphXAxisLabelsStyle,
-    TextFormat
+    TextFormat,
+    DirectionStyle
 )
 from .iotcontrol.graph import Graph, GraphLine
 from .iotcontrol.slider_single_bar import SliderSingleBar
@@ -37,7 +38,7 @@ from .iotcontrol.alarm import Alarm
 from .iotcontrol.menu import Menu
 from .iotcontrol.selector import Selector
 from .iotcontrol.label import Label
-from .iotcontrol.controls_box import ControlsBox
+from .iotcontrol.device_view import DeviceView
 from .iotcontrol.control import Control, ControlPosition
 from .iotcontrol.button_group import ButtonGroup
 from .iotcontrol.event_log import EventData, EventLog
