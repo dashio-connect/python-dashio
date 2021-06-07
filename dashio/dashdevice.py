@@ -66,7 +66,6 @@ class DashDevice(threading.Thread):
         reply = self.device_id_str + '\tCFG\tDVCE\t' + json.dumps(self._cfg) + "\n"
         for key in self.control_dict:
             reply += self.device_id_str + self.control_dict[key].get_cfg(data[2])
-        logging.debug(reply)
         return reply
 
     def send_popup_message(self, title, header, message):

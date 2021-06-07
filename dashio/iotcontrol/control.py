@@ -27,7 +27,6 @@ class Control:
         if self.control_position:
             self.control_position.set_size(num_columns)
         cfg_str = "\tCFG\t" + self.msg_type + "\t" + json.dumps(self._cfg) + "\n"
-        # logging.debug(cfg_str)
         return cfg_str
 
     def __init__(self, msg_type, control_id, title=None, control_position=None, title_position=None):
