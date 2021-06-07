@@ -108,7 +108,7 @@ def main():
         config_file_parser.get('DEFAULT', 'password')
     )
     dash_conn.add_device(device)
-    pg = dashio.ControlsBox('Dashio_pg1', 'DashIO Public Test')
+    dview = dashio.DeviceView('Dashio_pg1', 'DashIO Public Test')
 
     up_button = dashio.Button(
         'up',
@@ -134,10 +134,10 @@ def main():
     txt_box.text_align = dashio.TextAlignment.CENTER
     txt_box.text = f"{COUNTER}"
 
-    pg.add_control(up_button)
-    pg.add_control(down_button)
-    pg.add_control(txt_box)
-    device.add_control(pg)
+    dview.add_control(up_button)
+    dview.add_control(down_button)
+    dview.add_control(txt_box)
+    device.add_control(dview)
     device.add_control(up_button)
     device.add_control(down_button)
     device.add_control(txt_box)

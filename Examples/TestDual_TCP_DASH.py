@@ -146,7 +146,7 @@ class TestControls:
 
         self.page_name = "TestTCP: " + platform.node()
 
-        self.page_test = dashio.ControlsBox("TestTCP", self.page_name)
+        self.page_test = dashio.DeviceView("TestTCP", self.page_name)
         self.up_btn = dashio.Button("UP_BTN", control_position=dashio.ControlPosition(0.02, 0.01, 0.22, 0.12))
         self.up_btn.btn_state = dashio.ButtonState.OFF
         self.up_btn.icon_name = dashio.Icon.UP
@@ -171,7 +171,7 @@ class TestControls:
             "SLDR", control_position=dashio.ControlPosition(0.02, 0.13, 0.22, 0.73)
         )
         self.sldr_cntrl.title = "Slider"
-        self.sldr_cntrl.max = 10
+        self.sldr_cntrl.bar_max = 10
         self.sldr_cntrl.slider_enabled = True
         self.sldr_cntrl.red_value = 10
         self.sldr_cntrl.message_rx_event += self.slider_event_handler
@@ -181,9 +181,9 @@ class TestControls:
             "SLDR_DBL", control_position=dashio.ControlPosition(0.78, 0.01, 0.2, 0.98)
         )
         self.sldr_dbl_cntrl.title = "Slider Double"
-        self.sldr_dbl_cntrl.max = 5
+        self.sldr_dbl_cntrl.bar_max = 5
         self.sldr_dbl_cntrl.slider_enabled = True
-        self.sldr_dbl_cntrl.red_value = 10
+        self.sldr_dbl_cntrl.red_value = 5
         self.sldr_dbl_cntrl.message_rx_event += self.slider_dbl_event_handler
         self.page_test.add_control(self.sldr_dbl_cntrl)
 

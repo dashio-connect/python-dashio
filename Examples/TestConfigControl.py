@@ -82,9 +82,9 @@ class TestControls:
         dash_conn = dashio.DashConnection(args.username, args.password)
         dash_conn.add_device(device)
 
-        self.tmpage = dashio.ControlsBox("tmpage", "Test Alarm")
+        self.tmpage = dashio.DeviceView("tmpage", "Test Alarm")
         self.test_menu = dashio.Menu("TestTheMenu", control_position=dashio.ControlPosition(0.3, 0.5, 0.5, 0.5))
-        self.test_page = dashio.ControlsBox("TestCFG", "Test the Menus")
+        self.test_page = dashio.DeviceView("TestCFG", "Test the Menus")
         device.add_control(self.test_page)
 
         self.up_btn = dashio.Button("UP_BTN")
