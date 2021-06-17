@@ -23,8 +23,8 @@ SOFTWARE.
 
 import dbus
 
-from .ble_advertisement import Advertisement
-from .ble_service import Application, Service, Characteristic, Descriptor
+from ble_advertisement import Advertisement
+from ble_service import Application, Service, Characteristic, Descriptor
 #from gpiozero import CPUTemperature
 
 GATT_CHRC_IFACE = "org.bluez.GattCharacteristic1"
