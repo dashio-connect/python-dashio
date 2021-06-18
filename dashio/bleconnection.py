@@ -479,7 +479,7 @@ class TempCharacteristic(Characteristic):
 
         Characteristic.__init__(
                 self, self.TEMP_CHARACTERISTIC_UUID,
-                ["notify", "write_nr"], service)
+                ["notify", "read"], service)
         self.add_descriptor(TempDescriptor(self))
 
     def get_temperature(self):
