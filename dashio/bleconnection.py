@@ -18,6 +18,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+import zmq
+import logging
+import threading
 
 import dbus
 import dbus.service
@@ -557,10 +560,8 @@ class UnitCharacteristic(Characteristic):
     def ReadValue(self, options):
         value = []
 
-        if self.service.is_farenheit(): 
-            val = "F"
-        else: 
-            val = "C"
+        if self.service.is_farenheit(): val = "F"
+        else: val = "C"
         value.append(dbus.Byte(val.encode()))
 
         return value
