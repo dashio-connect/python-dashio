@@ -18,15 +18,16 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+import zmq
+import logging
+import threading
 
 import dbus
 import dbus.service
 import dbus.mainloop.glib
 import dbus.exceptions
-try:
-  from gi.repository import GObject
-except ImportError:
-    import gobject as GObject
+
+from gi.repository import GLib
 
 
 GATT_CHRC_IFACE = "org.bluez.GattCharacteristic1"
@@ -180,7 +181,7 @@ class NotPermittedException(dbus.exceptions.DBusException):
 class Application(dbus.service.Object):
     def __init__(self):
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-        self.mainloop = GObject.MainLoop()
+        self.mainloop = GLib.MainLoop()
         self.bus = BleTools.get_bus()
         self.path = "/"
         self.services = []
@@ -378,7 +379,7 @@ class Characteristic(dbus.service.Object):
         return idx
 
     def add_timeout(self, timeout, callback):
-        GObject.timeout_add(timeout, callback)
+        GLib.timeout_add(timeout, callback)
 
 
 class Descriptor(dbus.service.Object):
