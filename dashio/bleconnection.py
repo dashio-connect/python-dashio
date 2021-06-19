@@ -20,8 +20,13 @@ SOFTWARE.
 """
 import zmq
 import logging
-import threading
 
+import signal
+import logging
+import argparse
+import configparser
+import threading
+import argparse
 import dbus
 import dbus.service
 import dbus.mainloop.glib
@@ -39,7 +44,7 @@ DBUS_PROP_IFACE = "org.freedesktop.DBus.Properties"
 LE_ADVERTISEMENT_IFACE = "org.bluez.LEAdvertisement1"
 GATT_MANAGER_IFACE = "org.bluez.GattManager1"
 GATT_SERVICE_IFACE = "org.bluez.GattService1"
-GATT_DESC_IFACE =    "org.bluez.GattDescriptor1"
+GATT_DESC_IFACE = "org.bluez.GattDescriptor1"
 
 class BleTools(object):
     @classmethod
@@ -49,8 +54,7 @@ class BleTools(object):
 
     @classmethod
     def find_adapter(self, bus):
-        remote_om = dbus.Interface(bus.get_object(BLUEZ_SERVICE_NAME, "/"),
-                               DBUS_OM_IFACE)
+        remote_om = dbus.Interface(bus.get_object(BLUEZ_SERVICE_NAME, "/"), DBUS_OM_IFACE)
         objects = remote_om.GetManagedObjects()
 
         for o, props in objects.items():
@@ -150,7 +154,7 @@ class Advertisement(dbus.service.Object):
                          in_signature='',
                          out_signature='')
     def Release(self):
-        print ('%s: Released!' % self.path)
+        print('%s: Released!' % self.path)
 
     def register_ad_callback(self):
         print("GATT advertisement registered")
@@ -162,11 +166,8 @@ class Advertisement(dbus.service.Object):
         bus = BleTools.get_bus()
         adapter = BleTools.find_adapter(bus)
 
-        ad_manager = dbus.Interface(bus.get_object(BLUEZ_SERVICE_NAME, adapter),
-                                LE_ADVERTISING_MANAGER_IFACE)
-        ad_manager.RegisterAdvertisement(self.get_path(), {},
-                                     reply_handler=self.register_ad_callback,
-                                     error_handler=self.register_ad_error_callback)
+        ad_manager = dbus.Interface(bus.get_object(BLUEZ_SERVICE_NAME, adapter), LE_ADVERTISING_MANAGER_IFACE)
+        ad_manager.RegisterAdvertisement(self.get_path(), {}, reply_handler=self.register_ad_callback, error_handler=self.register_ad_error_callback)
 
 
 class InvalidArgsException(dbus.exceptions.DBusException):
@@ -194,7 +195,7 @@ class Application(dbus.service.Object):
     def add_service(self, service):
         self.services.append(service)
 
-    @dbus.service.method(DBUS_OM_IFACE, out_signature = "a{oa{sa{sv}}}")
+    @dbus.service.method(DBUS_OM_IFACE, out_signature="a{oa{sa{sv}}}")
     def GetManagedObjects(self):
         response = {}
 
@@ -218,13 +219,9 @@ class Application(dbus.service.Object):
     def register(self):
         adapter = BleTools.find_adapter(self.bus)
 
-        service_manager = dbus.Interface(
-                self.bus.get_object(BLUEZ_SERVICE_NAME, adapter),
-                GATT_MANAGER_IFACE)
+        service_manager = dbus.Interface(self.bus.get_object(BLUEZ_SERVICE_NAME, adapter), GATT_MANAGER_IFACE)
 
-        service_manager.RegisterApplication(self.get_path(), {},
-                reply_handler=self.register_app_callback,
-                error_handler=self.register_app_error_callback)
+        service_manager.RegisterApplication(self.get_path(), {}, reply_handler=self.register_app_callback, error_handler=self.register_app_error_callback)
 
     def run(self):
         self.mainloop.run()
@@ -247,13 +244,13 @@ class Service(dbus.service.Object):
 
     def get_properties(self):
         return {
-                GATT_SERVICE_IFACE: {
-                        'UUID': self.uuid,
-                        'Primary': self.primary,
-                        'Characteristics': dbus.Array(
-                                self.get_characteristic_paths(),
-                                signature='o')
-                }
+            GATT_SERVICE_IFACE: {
+                'UUID': self.uuid,
+                'Primary': self.primary,
+                'Characteristics': dbus.Array(
+                    self.get_characteristic_paths(),
+                    signature='o')
+            }
         }
 
     def get_path(self):
@@ -306,14 +303,14 @@ class Characteristic(dbus.service.Object):
 
     def get_properties(self):
         return {
-                GATT_CHRC_IFACE: {
-                        'Service': self.service.get_path(),
-                        'UUID': self.uuid,
-                        'Flags': self.flags,
-                        'Descriptors': dbus.Array(
-                                self.get_descriptor_paths(),
-                                signature='o')
-                }
+            GATT_CHRC_IFACE: {
+                'Service': self.service.get_path(),
+                'UUID': self.uuid,
+                'Flags': self.flags,
+                'Descriptors': dbus.Array(
+                    self.get_descriptor_paths(),
+                    signature='o')
+            }
         }
 
     def get_path(self):
@@ -331,18 +328,14 @@ class Characteristic(dbus.service.Object):
     def get_descriptors(self):
         return self.descriptors
 
-    @dbus.service.method(DBUS_PROP_IFACE,
-                         in_signature='s',
-                         out_signature='a{sv}')
+    @dbus.service.method(DBUS_PROP_IFACE, in_signature='s', out_signature='a{sv}')
     def GetAll(self, interface):
         if interface != GATT_CHRC_IFACE:
             raise InvalidArgsException()
 
         return self.get_properties()[GATT_CHRC_IFACE]
 
-    @dbus.service.method(GATT_CHRC_IFACE,
-                        in_signature='a{sv}',
-                        out_signature='ay')
+    @dbus.service.method(GATT_CHRC_IFACE, in_signature='a{sv}', out_signature='ay')
     def ReadValue(self, options):
         print('Default ReadValue called, returning error')
         raise NotSupportedException()
@@ -394,11 +387,11 @@ class Descriptor(dbus.service.Object):
 
     def get_properties(self):
         return {
-                GATT_DESC_IFACE: {
-                        'Characteristic': self.chrc.get_path(),
-                        'UUID': self.uuid,
-                        'Flags': self.flags,
-                }
+            GATT_DESC_IFACE: {
+                'Characteristic': self.chrc.get_path(),
+                'UUID': self.uuid,
+                'Flags': self.flags,
+            }
         }
 
     def get_path(self):
@@ -413,11 +406,9 @@ class Descriptor(dbus.service.Object):
 
         return self.get_properties()[GATT_DESC_IFACE]
 
-    @dbus.service.method(GATT_DESC_IFACE,
-                        in_signature='a{sv}',
-                        out_signature='ay')
+    @dbus.service.method(GATT_DESC_IFACE, in_signature='a{sv}', out_signature='ay')
     def ReadValue(self, options):
-        print ('Default ReadValue called, returning error')
+        print('Default ReadValue called, returning error')
         raise NotSupportedException()
 
     @dbus.service.method(GATT_DESC_IFACE, in_signature='aya{sv}')
@@ -434,10 +425,11 @@ class CharacteristicUserDescriptionDescriptor(Descriptor):
         self.value = array.array('B', b'This is a characteristic for testing')
         self.value = self.value.tolist()
         Descriptor.__init__(
-                self, bus, index,
-                self.CUD_UUID,
-                ['read', 'write'],
-                characteristic)
+            self, bus, index,
+            self.CUD_UUID,
+            ['read', 'write'],
+            characteristic
+        )
 
     def ReadValue(self, options):
         return self.value
@@ -446,7 +438,6 @@ class CharacteristicUserDescriptionDescriptor(Descriptor):
         if not self.writable:
             raise NotPermittedException()
         self.value = value
-
 
 
 class ThermometerAdvertisement(Advertisement):
@@ -462,8 +453,9 @@ class ThermometerService(Service):
         self.farenheit = True
 
         Service.__init__(self, index, self.THERMOMETER_SVC_UUID, True)
-        self.add_characteristic(TempCharacteristic(self))
-        self.add_characteristic(UnitCharacteristic(self))
+        # self.add_characteristic(TempCharacteristic(self))
+        # self.add_characteristic(UnitCharacteristic(self))
+        self.add_characteristic(DashConCharacteristic(self))
 
     def is_farenheit(self):
         return self.farenheit
@@ -477,9 +469,7 @@ class TempCharacteristic(Characteristic):
     def __init__(self, service):
         self.notifying = False
 
-        Characteristic.__init__(
-                self, self.TEMP_CHARACTERISTIC_UUID,
-                ["notify", "read"], service)
+        Characteristic.__init__(self, self.TEMP_CHARACTERISTIC_UUID, ["notify", "read"], service)
         self.add_descriptor(TempDescriptor(self))
 
     def get_temperature(self):
@@ -519,7 +509,6 @@ class TempCharacteristic(Characteristic):
 
     def ReadValue(self, options):
         value = self.get_temperature()
-
         return value
 
 class TempDescriptor(Descriptor):
@@ -527,10 +516,7 @@ class TempDescriptor(Descriptor):
     TEMP_DESCRIPTOR_VALUE = "CPU Temperature"
 
     def __init__(self, characteristic):
-        Descriptor.__init__(
-                self, self.TEMP_DESCRIPTOR_UUID,
-                ["read"],
-                characteristic)
+        Descriptor.__init__(self, self.TEMP_DESCRIPTOR_UUID, ["read"], characteristic)
 
     def ReadValue(self, options):
         value = []
@@ -538,16 +524,13 @@ class TempDescriptor(Descriptor):
 
         for c in desc:
             value.append(dbus.Byte(c.encode()))
-
         return value
 
 class UnitCharacteristic(Characteristic):
     UNIT_CHARACTERISTIC_UUID = "00000003-710e-4a5b-8d75-3e5b444bc3cf"
 
     def __init__(self, service):
-        Characteristic.__init__(
-                self, self.UNIT_CHARACTERISTIC_UUID,
-                ["read", "write"], service)
+        Characteristic.__init__(self, self.UNIT_CHARACTERISTIC_UUID, ["read", "write"], service)
         self.add_descriptor(UnitDescriptor(self))
 
     def WriteValue(self, value, options):
@@ -560,10 +543,11 @@ class UnitCharacteristic(Characteristic):
     def ReadValue(self, options):
         value = []
 
-        if self.service.is_farenheit(): val = "F"
-        else: val = "C"
+        if self.service.is_farenheit():
+            val = "F"
+        else:
+            val = "C"
         value.append(dbus.Byte(val.encode()))
-
         return value
 
 class UnitDescriptor(Descriptor):
@@ -571,10 +555,7 @@ class UnitDescriptor(Descriptor):
     UNIT_DESCRIPTOR_VALUE = "Temperature Units (F or C)"
 
     def __init__(self, characteristic):
-        Descriptor.__init__(
-                self, self.UNIT_DESCRIPTOR_UUID,
-                ["read"],
-                characteristic)
+        Descriptor.__init__(self, self.UNIT_DESCRIPTOR_UUID, ["read"], characteristic)
 
     def ReadValue(self, options):
         value = []
@@ -582,17 +563,129 @@ class UnitDescriptor(Descriptor):
 
         for c in desc:
             value.append(dbus.Byte(c.encode()))
-
         return value
 
-app = Application()
-app.add_service(ThermometerService(0))
-app.register()
 
-adv = ThermometerAdvertisement(0)
-adv.register()
+class DashConCharacteristic(Characteristic):
+    UNIT_CHARACTERISTIC_UUID = "00000003-710e-4a5b-8d75-3e5b444bc3cf"
 
-try:
-    app.run()
-except KeyboardInterrupt:
-    app.quit()
+    def __init__(self, service):
+        Characteristic.__init__(self, self.UNIT_CHARACTERISTIC_UUID, ["notify", "write-without-response"], service)
+        self.add_descriptor(DashConDescriptor(self))
+        self.notifying = True
+
+    def dashio_callback(self):
+        if self.notifying:
+            value = "HELLO"
+            self.PropertiesChanged(GATT_CHRC_IFACE, {"Value": value}, [])
+
+        return self.notifying
+
+    def StartNotify(self):
+        if self.notifying:
+            return
+
+        self.notifying = True
+
+        value = self.get_temperature()
+        self.PropertiesChanged(GATT_CHRC_IFACE, {"Value": value}, [])
+        self.add_timeout(NOTIFY_TIMEOUT, self.dashio_callback)
+
+    def StopNotify(self):
+        self.notifying = False
+
+    def WriteValue(self, value, options):
+        rx_str = ''.join([str(v) for v in value])
+        logging.debug("BLE RX: %s", rx_str)
+
+
+class DashConDescriptor(Descriptor):
+    UNIT_DESCRIPTOR_UUID = "2901"
+    UNIT_DESCRIPTOR_VALUE = "DashIOCon"
+
+    def __init__(self, characteristic):
+        self.notifying = True
+        Descriptor.__init__(self, self.UNIT_DESCRIPTOR_UUID, ["write"], characteristic)
+
+    def WriteValue(self, options):
+        value = []
+        desc = self.UNIT_DESCRIPTOR_VALUE
+
+        for c in desc:
+            value.append(dbus.Byte(c.encode()))
+        return value
+
+
+def signal_cntrl_c(os_signal, os_frame):
+    global SHUTDOWN
+    print("Shutdown")
+    SHUTDOWN = True
+
+
+def init_logging(logfilename, level):
+    log_level = logging.WARN
+    if level == 1:
+        log_level = logging.INFO
+    elif level == 2:
+        log_level = logging.DEBUG
+    if not logfilename:
+        formatter = logging.Formatter("%(asctime)s, %(message)s")
+        handler = logging.StreamHandler()
+        handler.setFormatter(formatter)
+        logger = logging.getLogger()
+        logger.addHandler(handler)
+        logger.setLevel(log_level)
+    else:
+        logging.basicConfig(
+            filename=logfilename,
+            level=log_level,
+            format="%(asctime)s, %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
+    logging.info("==== Started ====")
+
+
+def parse_commandline_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        const=1,
+        default=1,
+        type=int,
+        nargs="?",
+        help="""increase verbosity:
+                        0 = only warnings, 1 = info, 2 = debug.
+                        No number means info. Default is no verbosity.""",
+    )
+    parser.add_argument("-u", "--username", help="Dashio Username", dest="username", default="")
+    parser.add_argument("-w", "--password", help="DashIO Password", dest="password", default="")
+    parser.add_argument("-l", "--logfile", dest="logfilename", default="", help="logfile location", metavar="FILE")
+    args = parser.parse_args()
+    return args
+
+
+def main():
+
+    # signal.signal(signal.SIGINT, signal_cntrl_c)
+    args = parse_commandline_arguments()
+    init_logging(args.logfilename, args.verbose)
+    config_file_parser = configparser.ConfigParser()
+    config_file_parser.defaults()
+
+    app = Application()
+    app.add_service(ThermometerService(0))
+    app.register()
+
+    adv = ThermometerAdvertisement(0)
+    adv.register()
+
+    try:
+        app.run()
+    except KeyboardInterrupt:
+        app.quit()
+
+
+
+if __name__ == "__main__":
+    main()
