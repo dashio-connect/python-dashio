@@ -447,7 +447,7 @@ class ThermometerAdvertisement(Advertisement):
         self.include_tx_power = True
 
 class ThermometerService(Service):
-    THERMOMETER_SVC_UUID = "00000001-710e-4a5b-8d75-3e5b444bc3cf"
+    THERMOMETER_SVC_UUID = "4FAFC201-1FB5-459E-8FCC-C5C9C331914B"
 
     def __init__(self, index):
         self.farenheit = True
@@ -567,7 +567,7 @@ class UnitDescriptor(Descriptor):
 
 
 class DashConCharacteristic(Characteristic):
-    UNIT_CHARACTERISTIC_UUID = "00000003-710e-4a5b-8d75-3e5b444bc3cf"
+    UNIT_CHARACTERISTIC_UUID = "4FAFC201-1FB5-459E-8FCC-C5C9C331914B"
 
     def __init__(self, service):
         Characteristic.__init__(self, self.UNIT_CHARACTERISTIC_UUID, ["notify", "write-without-response"], service)
