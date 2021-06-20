@@ -78,9 +78,7 @@ class DashIOAdvertisement(dbus.service.Object):
         self.local_name = dbus.String(device_type)
         self.service_uuids = []
         self.service_uuids.append(service_uuid)
-        self.solicit_uuids = None
         self.manufacturer_data = None
-        self.service_data = None
         self.include_tx_power = True
         dbus.service.Object.__init__(self, self.bus, self.path)
 
@@ -94,46 +92,22 @@ class DashIOAdvertisement(dbus.service.Object):
         if self.service_uuids is not None:
             properties["ServiceUUIDs"] = dbus.Array(self.service_uuids,
                                                     signature='s')
-        if self.solicit_uuids is not None:
-            properties["SolicitUUIDs"] = dbus.Array(self.solicit_uuids,
-                                                    signature='s')
         if self.manufacturer_data is not None:
             properties["ManufacturerData"] = dbus.Dictionary(
                 self.manufacturer_data, signature='qv')
 
-        if self.service_data is not None:
-            properties["ServiceData"] = dbus.Dictionary(self.service_data,
-                                                        signature='sv')
         if self.include_tx_power is not None:
             properties["IncludeTxPower"] = dbus.Boolean(self.include_tx_power)
-
-        if self.local_name is not None:
-            properties["LocalName"] = dbus.String(self.local_name)
 
         return {LE_ADVERTISEMENT_IFACE: properties}
 
     def get_path(self):
         return dbus.ObjectPath(self.path)
 
-    def add_service_uuid(self, uuid):
-        if not self.service_uuids:
-            self.service_uuids = []
-        self.service_uuids.append(uuid)
-
-    def add_solicit_uuid(self, uuid):
-        if not self.solicit_uuids:
-            self.solicit_uuids = []
-        self.solicit_uuids.append(uuid)
-
     def add_manufacturer_data(self, manuf_code, data):
         if not self.manufacturer_data:
             self.manufacturer_data = dbus.Dictionary({}, signature="qv")
         self.manufacturer_data[manuf_code] = dbus.Array(data, signature="y")
-
-    def add_service_data(self, uuid, data):
-        if not self.service_data:
-            self.service_data = dbus.Dictionary({}, signature="sv")
-        self.service_data[uuid] = dbus.Array(data, signature="y")
 
     @dbus.service.method(DBUS_PROP_IFACE, in_signature="s", out_signature="a{sv}")
     def GetAll(self, interface):
