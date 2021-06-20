@@ -301,7 +301,7 @@ class DashConCharacteristic(dbus.service.Object):
     org.bluez.GattCharacteristic1 interface implementation
     """
     def __init__(self, service, chacteristic_uuid):
-        index = service.get_next_index()
+        self.index = service.get_next_index()
         self.path = service.path + '/char' + str(index)
         self.bus = service.get_bus()
         self.uuid = chacteristic_uuid
@@ -375,10 +375,10 @@ class DashConCharacteristic(dbus.service.Object):
         bus = self.bus
         return bus
 
-    # def get_next_index(self):
-    #    idx = self.next_index
-    #    self.next_index += 1
-    #    return idx
+    def get_next_index(self):
+        idx = self.next_index
+        self.next_index += 1
+        return idx
 
     def dashio_callback(self):
         if self.notifying:
