@@ -389,14 +389,14 @@ class DashConCharacteristic(dbus.service.Object):
             self.PropertiesChanged(GATT_CHRC_IFACE, {"Value": value}, [])
         return self.notifying
 
-    #@dbus.service.method(GATT_CHRC_IFACE)
+    @dbus.service.method(GATT_CHRC_IFACE)
     def StartNotify(self):
         if self.notifying:
             return
         self.notifying = True
-        self.add_timeout(NOTIFY_TIMEOUT, self.dashio_callback)
+        self.dashio_callback()
 
-    #@dbus.service.method(GATT_CHRC_IFACE)
+    @dbus.service.method(GATT_CHRC_IFACE)
     def StopNotify(self):
         self.notifying = False
 
