@@ -76,7 +76,7 @@ class DashIOAdvertisement(dbus.service.Object):
         self.bus = BleTools.get_bus()
         self.service_uuids = []
         self.service_uuids.append(service_uuid)
-        self.properties = []
+        self.properties = {}
         self.properties["Type"] = "peripheral"
         self.properties["LocalName"] = dbus.String(device_type)
         self.properties["ServiceUUIDs"] = dbus.Array(self.service_uuids, signature='s')
