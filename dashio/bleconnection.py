@@ -537,7 +537,7 @@ def main():
     app.add_service(DashIOService(0))
     app.register()
 
-    adv = DashIOAdvertisement(0)
+    adv = DashIOAdvertisement(0, "DashIO")
     adv.register()
 
     try:
