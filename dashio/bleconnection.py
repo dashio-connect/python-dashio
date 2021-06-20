@@ -370,6 +370,48 @@ class Characteristic(dbus.service.Object):
         GLib.timeout_add(timeout, callback)
 
 
+class Descriptor(dbus.service.Object):
+    def __init__(self, uuid, flags, characteristic):
+        index = characteristic.get_next_index()
+        self.path = characteristic.path + '/desc' + str(index)
+        self.uuid = uuid
+        self.flags = flags
+        self.chrc = characteristic
+        self.bus = characteristic.get_bus()
+        dbus.service.Object.__init__(self, self.bus, self.path)
+
+    def get_properties(self):
+        return {
+            GATT_DESC_IFACE: {
+                'Characteristic': self.chrc.get_path(),
+                'UUID': self.uuid,
+                'Flags': self.flags,
+            }
+        }
+
+    def get_path(self):
+        return dbus.ObjectPath(self.path)
+
+    @dbus.service.method(DBUS_PROP_IFACE,
+                         in_signature='s',
+                         out_signature='a{sv}')
+    def GetAll(self, interface):
+        if interface != GATT_DESC_IFACE:
+            raise InvalidArgsException()
+
+        return self.get_properties()[GATT_DESC_IFACE]
+
+    @dbus.service.method(GATT_DESC_IFACE, in_signature='a{sv}', out_signature='ay')
+    def ReadValue(self, options):
+        logging.debug('Default ReadValue called, returning error')
+        raise NotSupportedException()
+
+    @dbus.service.method(GATT_DESC_IFACE, in_signature='aya{sv}')
+    def WriteValue(self, value, options):
+        logging.debug('Default WriteValue called, returning error')
+        raise NotSupportedException()
+
+
 class DashIOAdvertisement(Advertisement):
     def __init__(self, index, device_type, service_uuid):
         Advertisement.__init__(self, index, "peripheral")
@@ -411,45 +453,14 @@ class DashConCharacteristic(Characteristic):
         logging.debug("BLE RX: %s", rx_str)
 
 
-
-class DashConDescriptor(dbus.service.Object):
-
+class DashConDescriptor(Descriptor):
     UNIT_DESCRIPTOR_UUID = "2901"
     UNIT_DESCRIPTOR_VALUE = "DashIOCon"
 
-
     def __init__(self, characteristic):
         self.notifying = True
-        index = characteristic.get_next_index()
-        self.path = characteristic.path + '/desc' + str(index)
-        self.uuid = self.UNIT_DESCRIPTOR_UUID
-        self.flags = ["read"]
-        self.chrc = characteristic
-        self.bus = characteristic.get_bus()
-        dbus.service.Object.__init__(self, self.bus, self.path)
+        Descriptor.__init__(self, self.UNIT_DESCRIPTOR_UUID, ["read"], characteristic)
 
-    def get_properties(self):
-        return {
-            GATT_DESC_IFACE: {
-                'Characteristic': self.chrc.get_path(),
-                'UUID': self.uuid,
-                'Flags': self.flags,
-            }
-        }
-
-    def get_path(self):
-        return dbus.ObjectPath(self.path)
-
-    @dbus.service.method(DBUS_PROP_IFACE,
-                         in_signature='s',
-                         out_signature='a{sv}')
-    def GetAll(self, interface):
-        if interface != GATT_DESC_IFACE:
-            raise InvalidArgsException()
-
-        return self.get_properties()[GATT_DESC_IFACE]
-
-    # @dbus.service.method(GATT_DESC_IFACE, in_signature='a{sv}', out_signature='ay')
     def ReadValue(self, options):
         value = []
         desc = self.UNIT_DESCRIPTOR_VALUE
@@ -457,11 +468,6 @@ class DashConDescriptor(dbus.service.Object):
         for c in desc:
             value.append(dbus.Byte(c.encode()))
         return value
-    
-    @dbus.service.method(GATT_DESC_IFACE, in_signature='aya{sv}')
-    def WriteValue(self, value, options):
-        logging.debug('Default WriteValue called, returning error')
-        raise NotSupportedException()
 
 
 def signal_cntrl_c(os_signal, os_frame):
