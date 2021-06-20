@@ -449,7 +449,7 @@ class DashConDescriptor(dbus.service.Object):
 
         return self.get_properties()[GATT_DESC_IFACE]
 
-    @dbus.service.method(GATT_DESC_IFACE, in_signature='a{sv}', out_signature='ay')
+    # @dbus.service.method(GATT_DESC_IFACE, in_signature='a{sv}', out_signature='ay')
     def ReadValue(self, options):
         value = []
         desc = self.UNIT_DESCRIPTOR_VALUE
