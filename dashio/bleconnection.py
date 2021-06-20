@@ -73,7 +73,7 @@ class DashIOAdvertisement(dbus.service.Object):
 
     def __init__(self, index, device_type, service_uuid):
         self.path = self.PATH_BASE + str(index)
-        self.bus = BleTools.get_bus()
+        self.bus = dbus.SystemBus()
         self.service_uuids = []
         self.service_uuids.append(service_uuid)
         self.properties = {}
@@ -106,9 +106,17 @@ class DashIOAdvertisement(dbus.service.Object):
     def register_ad_error_callback(self):
         logging.debug("Failed to register GATT advertisement")
 
+    def find_adapter(self, bus):
+        remote_om = dbus.Interface(bus.get_object(BLUEZ_SERVICE_NAME, "/"), DBUS_OM_IFACE)
+        objects = remote_om.GetManagedObjects()
+        for o, props in objects.items():
+            if LE_ADVERTISING_MANAGER_IFACE in props:
+                return o
+        return None
+
     def register(self):
-        bus = BleTools.get_bus()
-        adapter = BleTools.find_adapter(bus)
+        bus = dbus.SystemBus()
+        adapter = self.find_adapter(bus)
         ad_manager = dbus.Interface(bus.get_object(BLUEZ_SERVICE_NAME, adapter), LE_ADVERTISING_MANAGER_IFACE)
         ad_manager.RegisterAdvertisement(self.get_path(), {}, reply_handler=self.register_ad_callback, error_handler=self.register_ad_error_callback)
 
