@@ -44,6 +44,7 @@ GATT_MANAGER_IFACE = "org.bluez.GattManager1"
 GATT_SERVICE_IFACE = "org.bluez.GattService1"
 GATT_DESC_IFACE = "org.bluez.GattDescriptor1"
 DASHIO_SERVICE_UUID = "4FAFC201-1FB5-459E-8FCC-C5C9C331914B"
+
 class BleTools(object):
     @classmethod
     def get_bus(self):
@@ -64,7 +65,7 @@ class BleTools(object):
     @classmethod
     def power_adapter(self):
         adapter = self.get_adapter()
-        adapter_props = dbus.Interface(bus.get_object(BLUEZ_SERVICE_NAME, adapter),"org.freedesktop.DBus.Properties")
+        adapter_props = dbus.Interface(bus.get_object(BLUEZ_SERVICE_NAME, adapter), "org.freedesktop.DBus.Properties")
         adapter_props.Set("org.bluez.Adapter1", "Powered", dbus.Boolean(1))
 
 
@@ -216,9 +217,7 @@ class blecon(dbus.service.Object):
 
     def register(self):
         adapter = BleTools.find_adapter(self.bus)
-
         service_manager = dbus.Interface(self.bus.get_object(BLUEZ_SERVICE_NAME, adapter), GATT_MANAGER_IFACE)
-
         service_manager.RegisterApplication(self.get_path(), {}, reply_handler=self.register_app_callback, error_handler=self.register_app_error_callback)
 
     def run(self):
@@ -383,8 +382,8 @@ class DashIOService(Service):
         self.add_characteristic(DashConCharacteristic(self, service_uuid))
 
 class DashConCharacteristic(Characteristic):
-    def __init__(self, service, cahacteristic_uuid):
-        Characteristic.__init__(self, cahacteristic_uuid, ["notify", "write-without-response"], service)
+    def __init__(self, service, chacteristic_uuid):
+        Characteristic.__init__(self, chacteristic_uuid, ["notify", "write-without-response"], service)
         self.add_descriptor(DashConDescriptor(self))
         self.notifying = False
 
@@ -411,12 +410,10 @@ class DashConCharacteristic(Characteristic):
         logging.debug("BLE RX: %s", rx_str)
 
 
-
 class DashConDescriptor(dbus.service.Object):
 
     UNIT_DESCRIPTOR_UUID = "2901"
     UNIT_DESCRIPTOR_VALUE = "DashIOCon"
-
 
     def __init__(self, characteristic):
         self.notifying = True
