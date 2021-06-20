@@ -240,7 +240,7 @@ class DashConCharacteristic(dbus.service.Object):
     def __init__(self, service, chacteristic_uuid):
         self.index = 1
         self.path = service.path + '/char' + str(self.index)
-        self.bus = service.get_bus()
+        self.bus = dbus.SystemBus()
         self.uuid = chacteristic_uuid
         self.service = service
         self.flags = ["notify", "write-without-response"]
