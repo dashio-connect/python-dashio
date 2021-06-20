@@ -68,20 +68,20 @@ class BleTools(object):
         adapter_props = dbus.Interface(bus.get_object(BLUEZ_SERVICE_NAME, adapter), "org.freedesktop.DBus.Properties")
         adapter_props.Set("org.bluez.Adapter1", "Powered", dbus.Boolean(1))
 
-
-class Advertisement(dbus.service.Object):
+class DashIOAdvertisement(dbus.service.Object):
     PATH_BASE = "/org/bluez/example/advertisement"
 
-    def __init__(self, index, advertising_type):
+    def __init__(self, index, device_type, service_uuid):
         self.path = self.PATH_BASE + str(index)
         self.bus = BleTools.get_bus()
-        self.ad_type = advertising_type
-        self.local_name = None
-        self.service_uuids = None
+        self.ad_type = "peripheral"
+        self.local_name = dbus.String(device_type)
+        self.service_uuids = []
+        self.service_uuids.append(service_uuid)
         self.solicit_uuids = None
         self.manufacturer_data = None
         self.service_data = None
-        self.include_tx_power = None
+        self.include_tx_power = True
         dbus.service.Object.__init__(self, self.bus, self.path)
 
     def get_properties(self):
@@ -282,13 +282,15 @@ class Service(dbus.service.Object):
             raise InvalidArgsException()
 
         return self.get_properties()[GATT_SERVICE_IFACE]
-
+"""
 class DashIOAdvertisement(Advertisement):
     def __init__(self, index, device_type, service_uuid):
         Advertisement.__init__(self, index, "peripheral")
         self.add_local_name(device_type)
         self.add_service_uuid(service_uuid)
         self.include_tx_power = True
+
+"""
 
 class DashIOService(Service):
     def __init__(self, index, service_uuid):
@@ -352,21 +354,6 @@ class DashConCharacteristic(dbus.service.Object):
         logging.debug('Default ReadValue called, returning error')
         raise NotSupportedException()
 
-    # @dbus.service.method(GATT_CHRC_IFACE, in_signature='aya{sv}')
-    # def WriteValue(self, value, options):
-    #     logging.debug('Default WriteValue called, returning error')
-    #     raise NotSupportedException()
-
-    # @dbus.service.method(GATT_CHRC_IFACE)
-    # def StartNotify(self):
-    #     logging.debug('Default StartNotify called, returning error')
-    #     raise NotSupportedException()
-
-    # @dbus.service.method(GATT_CHRC_IFACE)
-    # def StopNotify(self):
-    #    logging.debug('Default StopNotify called, returning error')
-    #    raise NotSupportedException()
-
     @dbus.service.signal(DBUS_PROP_IFACE, signature='sa{sv}as')
     def PropertiesChanged(self, interface, changed, invalidated):
         pass
@@ -374,11 +361,6 @@ class DashConCharacteristic(dbus.service.Object):
     def get_bus(self):
         bus = self.bus
         return bus
-
-    #def get_next_index(self):
-    #    idx = self.index
-    #    self.next_index += 1
-    #    return idx
 
     def dashio_callback(self):
         if self.notifying:
@@ -405,36 +387,6 @@ class DashConCharacteristic(dbus.service.Object):
         rx_str = ''.join([str(v) for v in value])
         logging.debug("BLE RX: %s", rx_str)
 
-
-"""
-class DashConCharacteristic(Characteristic):
-    def __init__(self, service, chacteristic_uuid):
-        Characteristic.__init__(self, chacteristic_uuid, ["notify", "write-without-response"], service)
-        self.add_descriptor(DashConDescriptor(self))
-        self.notifying = False
-
-    def dashio_callback(self):
-        if self.notifying:
-            desc = "HELLO"
-            value = []
-            for c in desc:
-                value.append(dbus.Byte(c.encode()))
-            self.PropertiesChanged(GATT_CHRC_IFACE, {"Value": value}, [])
-        return self.notifying
-
-    def StartNotify(self):
-        if self.notifying:
-            return
-        self.notifying = True
-        self.add_timeout(NOTIFY_TIMEOUT, self.dashio_callback)
-
-    def StopNotify(self):
-        self.notifying = False
-
-    def WriteValue(self, value, options):
-        rx_str = ''.join([str(v) for v in value])
-        logging.debug("BLE RX: %s", rx_str)
-"""
 
 class DashConDescriptor(dbus.service.Object):
 
