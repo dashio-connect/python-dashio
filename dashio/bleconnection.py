@@ -226,12 +226,6 @@ class DashIOService(dbus.service.Object):
     def get_bus(self):
         return self.bus
 
-    def get_next_index(self):
-        idx = self.next_index
-        self.next_index += 1
-
-        return idx
-
     @dbus.service.method(DBUS_PROP_IFACE,
                          in_signature='s',
                          out_signature='a{sv}')
@@ -254,7 +248,7 @@ class DashConCharacteristic(dbus.service.Object):
     org.bluez.GattCharacteristic1 interface implementation
     """
     def __init__(self, service, chacteristic_uuid):
-        self.index = service.get_next_index()
+        self.index = 1
         self.path = service.path + '/char' + str(self.index)
         self.bus = service.get_bus()
         self.uuid = chacteristic_uuid
