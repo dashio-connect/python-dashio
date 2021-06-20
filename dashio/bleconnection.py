@@ -375,10 +375,10 @@ class DashConCharacteristic(dbus.service.Object):
         bus = self.bus
         return bus
 
-    def get_next_index(self):
-        idx = self.index
-        self.next_index += 1
-        return idx
+    #def get_next_index(self):
+    #    idx = self.index
+    #    self.next_index += 1
+    #    return idx
 
     def dashio_callback(self):
         if self.notifying:
@@ -443,7 +443,7 @@ class DashConDescriptor(dbus.service.Object):
 
     def __init__(self, characteristic):
         self.notifying = True
-        index = characteristic.get_next_index()
+        index = 1
         self.path = characteristic.path + '/desc' + str(index)
         self.uuid = self.UNIT_DESCRIPTOR_UUID
         self.flags = ["read"]
