@@ -444,6 +444,7 @@ class ThermometerAdvertisement(Advertisement):
     def __init__(self, index):
         Advertisement.__init__(self, index, "peripheral")
         self.add_local_name("Thermometer")
+        self.add_service_uuid("4FAFC201-1FB5-459E-8FCC-C5C9C331914B")
         self.include_tx_power = True
 
 class ThermometerService(Service):
