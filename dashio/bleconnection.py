@@ -367,7 +367,7 @@ class DashConCharacteristic(dbus.service.Object):
     #    logging.debug('Default StopNotify called, returning error')
     #    raise NotSupportedException()
 
-    #@dbus.service.signal(DBUS_PROP_IFACE, signature='sa{sv}as')
+    @dbus.service.signal(DBUS_PROP_IFACE, signature='sa{sv}as')
     def PropertiesChanged(self, interface, changed, invalidated):
         pass
 
