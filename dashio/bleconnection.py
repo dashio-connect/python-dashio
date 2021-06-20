@@ -605,9 +605,9 @@ class DashConDescriptor(Descriptor):
 
     def __init__(self, characteristic):
         self.notifying = True
-        Descriptor.__init__(self, self.UNIT_DESCRIPTOR_UUID, ["write"], characteristic)
+        Descriptor.__init__(self, self.UNIT_DESCRIPTOR_UUID, ["read"], characteristic)
 
-    def WriteValue(self, options):
+    def ReadValue(self, options):
         value = []
         desc = self.UNIT_DESCRIPTOR_VALUE
 
