@@ -73,7 +73,7 @@ class DashIOAdvertisement(dbus.service.Object):
 
     def __init__(self, index, device_type, service_uuid):
         self.path = self.PATH_BASE + str(index)
-        self.bus = dbus.SystemBus()
+        self.bus = BleTools.get_bus()
         self.service_uuids = []
         self.service_uuids.append(service_uuid)
         self.properties = {}
@@ -106,17 +106,9 @@ class DashIOAdvertisement(dbus.service.Object):
     def register_ad_error_callback(self):
         logging.debug("Failed to register GATT advertisement")
 
-    def find_adapter(self, bus):
-        remote_om = dbus.Interface(bus.get_object(BLUEZ_SERVICE_NAME, "/"), DBUS_OM_IFACE)
-        objects = remote_om.GetManagedObjects()
-        for o, props in objects.items():
-            if LE_ADVERTISING_MANAGER_IFACE in props:
-                return o
-        return None
-
     def register(self):
-        bus = dbus.SystemBus()
-        adapter = self.find_adapter(bus)
+        bus = BleTools.get_bus()
+        adapter = BleTools.find_adapter(bus)
         ad_manager = dbus.Interface(bus.get_object(BLUEZ_SERVICE_NAME, adapter), LE_ADVERTISING_MANAGER_IFACE)
         ad_manager.RegisterAdvertisement(self.get_path(), {}, reply_handler=self.register_ad_callback, error_handler=self.register_ad_error_callback)
 
@@ -134,7 +126,7 @@ class bleconnection(dbus.service.Object):
     def __init__(self):
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
         self.mainloop = GLib.MainLoop()
-        self.bus = dbus.SystemBus()
+        self.bus = BleTools.get_bus()
         self.path = "/"
         self.services = []
         self.services.append(DashIOService(0, DASHIO_SERVICE_UUID))
@@ -187,7 +179,7 @@ class DashIOService(dbus.service.Object):
     PATH_BASE = "/org/bluez/example/service"
 
     def __init__(self, index, service_uuid):
-        self.bus = dbus.SystemBus()
+        self.bus = BleTools.get_bus()
         self.path = self.PATH_BASE + str(index)
         self.uuid = service_uuid
         self.primary = True
@@ -210,11 +202,20 @@ class DashIOService(dbus.service.Object):
     def get_path(self):
         return dbus.ObjectPath(self.path)
 
+    def add_characteristic(self, characteristic):
+        self.characteristics.append(characteristic)
+
     def get_characteristic_paths(self):
         result = []
         for chrc in self.characteristics:
             result.append(chrc.get_path())
         return result
+
+    def get_characteristics(self):
+        return self.characteristics
+
+    def get_bus(self):
+        return self.bus
 
     @dbus.service.method(DBUS_PROP_IFACE,
                          in_signature='s',
@@ -240,7 +241,7 @@ class DashConCharacteristic(dbus.service.Object):
     def __init__(self, service, chacteristic_uuid):
         self.index = 1
         self.path = service.path + '/char' + str(self.index)
-        self.bus = dbus.SystemBus()
+        self.bus = service.get_bus()
         self.uuid = chacteristic_uuid
         self.service = service
         self.flags = ["notify", "write-without-response"]
