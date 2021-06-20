@@ -375,10 +375,10 @@ class DashConCharacteristic(dbus.service.Object):
         bus = self.bus
         return bus
 
-    def get_next_index(self):
-        idx = self.next_index
-        self.next_index += 1
-        return idx
+    # def get_next_index(self):
+    #    idx = self.next_index
+    #    self.next_index += 1
+    #    return idx
 
     def dashio_callback(self):
         if self.notifying:
