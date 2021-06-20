@@ -302,7 +302,7 @@ class DashConCharacteristic(dbus.service.Object):
     """
     def __init__(self, service, chacteristic_uuid):
         self.index = service.get_next_index()
-        self.path = service.path + '/char' + str(index)
+        self.path = service.path + '/char' + str(self.index)
         self.bus = service.get_bus()
         self.uuid = chacteristic_uuid
         self.service = service
