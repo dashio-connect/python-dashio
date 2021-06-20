@@ -529,7 +529,7 @@ def main():
     config_file_parser.defaults()
 
     app = Application()
-    app.add_service(DashIOService(0), DASHIO_SERVICE_UUID)
+    app.add_service(DashIOService(0, DASHIO_SERVICE_UUID))
     app.register()
 
     adv = DashIOAdvertisement(0, "DashIO", DASHIO_SERVICE_UUID)
