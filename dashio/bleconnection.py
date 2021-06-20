@@ -135,23 +135,13 @@ class DashIOAdvertisement(dbus.service.Object):
             self.service_data = dbus.Dictionary({}, signature="sv")
         self.service_data[uuid] = dbus.Array(data, signature="y")
 
-    def add_local_name(self, name):
-        if not self.local_name:
-            self.local_name = ""
-        self.local_name = dbus.String(name)
-
-    @dbus.service.method(DBUS_PROP_IFACE,
-                         in_signature="s",
-                         out_signature="a{sv}")
+    @dbus.service.method(DBUS_PROP_IFACE, in_signature="s", out_signature="a{sv}")
     def GetAll(self, interface):
         if interface != LE_ADVERTISEMENT_IFACE:
             raise InvalidArgsException()
-
         return self.get_properties()[LE_ADVERTISEMENT_IFACE]
 
-    @dbus.service.method(LE_ADVERTISEMENT_IFACE,
-                         in_signature='',
-                         out_signature='')
+    @dbus.service.method(LE_ADVERTISEMENT_IFACE, in_signature='', out_signature='')
     def Release(self):
         logging.debug('%s: Released!', self.path)
 
@@ -177,15 +167,15 @@ class NotSupportedException(dbus.exceptions.DBusException):
 class NotPermittedException(dbus.exceptions.DBusException):
     _dbus_error_name = "org.bluez.Error.NotPermitted"
 
-class blecon(dbus.service.Object):
+class bleconnection(dbus.service.Object):
     def __init__(self):
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
         self.mainloop = GLib.MainLoop()
         self.bus = BleTools.get_bus()
         self.path = "/"
         self.services = []
+        self.services.append(DashIOService(0, DASHIO_SERVICE_UUID))
         self.next_index = 0
-
         dbus.service.Object.__init__(self, self.bus, self.path)
 
     def get_path(self):
@@ -496,8 +486,7 @@ def main():
     config_file_parser = configparser.ConfigParser()
     config_file_parser.defaults()
 
-    app = blecon()
-    app.add_service(DashIOService(0, DASHIO_SERVICE_UUID))
+    app = bleconnection()
     app.register()
 
     adv = DashIOAdvertisement(0, "DashIO", DASHIO_SERVICE_UUID)
