@@ -25,7 +25,6 @@ import logging
 import argparse
 import configparser
 import threading
-import argparse
 import dbus
 import dbus.service
 import dbus.mainloop.glib
@@ -44,7 +43,7 @@ LE_ADVERTISEMENT_IFACE = "org.bluez.LEAdvertisement1"
 GATT_MANAGER_IFACE = "org.bluez.GattManager1"
 GATT_SERVICE_IFACE = "org.bluez.GattService1"
 GATT_DESC_IFACE = "org.bluez.GattDescriptor1"
-
+DASHIO_SERVICE_UUID = "4FAFC201-1FB5-459E-8FCC-C5C9C331914B"
 class BleTools(object):
     @classmethod
     def get_bus(self):
@@ -153,13 +152,13 @@ class Advertisement(dbus.service.Object):
                          in_signature='',
                          out_signature='')
     def Release(self):
-        print('%s: Released!' % self.path)
+        logging.debug('%s: Released!', self.path)
 
     def register_ad_callback(self):
-        print("GATT advertisement registered")
+        logging.debug("GATT advertisement registered")
 
     def register_ad_error_callback(self):
-        print("Failed to register GATT advertisement")
+        logging.debug("Failed to register GATT advertisement")
 
     def register(self):
         bus = BleTools.get_bus()
@@ -210,10 +209,10 @@ class Application(dbus.service.Object):
         return response
 
     def register_app_callback(self):
-        print("GATT application registered")
+        logging.debug("GATT application registered")
 
     def register_app_error_callback(self, error):
-        print("Failed to register application: " + str(error))
+        logging.debug("Failed to register application: %s", str(error))
 
     def register(self):
         adapter = BleTools.find_adapter(self.bus)
@@ -226,7 +225,7 @@ class Application(dbus.service.Object):
         self.mainloop.run()
 
     def quit(self):
-        print("\nGATT application terminated")
+        logging.debug("\nGATT application terminated")
         self.mainloop.quit()
 
 class Service(dbus.service.Object):
@@ -336,22 +335,22 @@ class Characteristic(dbus.service.Object):
 
     @dbus.service.method(GATT_CHRC_IFACE, in_signature='a{sv}', out_signature='ay')
     def ReadValue(self, options):
-        print('Default ReadValue called, returning error')
+        logging.debug('Default ReadValue called, returning error')
         raise NotSupportedException()
 
     @dbus.service.method(GATT_CHRC_IFACE, in_signature='aya{sv}')
     def WriteValue(self, value, options):
-        print('Default WriteValue called, returning error')
+        logging.debug('Default WriteValue called, returning error')
         raise NotSupportedException()
 
     @dbus.service.method(GATT_CHRC_IFACE)
     def StartNotify(self):
-        print('Default StartNotify called, returning error')
+        logging.debug('Default StartNotify called, returning error')
         raise NotSupportedException()
 
     @dbus.service.method(GATT_CHRC_IFACE)
     def StopNotify(self):
-        print('Default StopNotify called, returning error')
+        logging.debug('Default StopNotify called, returning error')
         raise NotSupportedException()
 
     @dbus.service.signal(DBUS_PROP_IFACE, signature='sa{sv}as')
@@ -404,34 +403,30 @@ class Descriptor(dbus.service.Object):
 
     @dbus.service.method(GATT_DESC_IFACE, in_signature='a{sv}', out_signature='ay')
     def ReadValue(self, options):
-        print('Default ReadValue called, returning error')
+        logging.debug('Default ReadValue called, returning error')
         raise NotSupportedException()
 
     @dbus.service.method(GATT_DESC_IFACE, in_signature='aya{sv}')
     def WriteValue(self, value, options):
-        print('Default WriteValue called, returning error')
+        logging.debug('Default WriteValue called, returning error')
         raise NotSupportedException()
 
 
 class DashIOAdvertisement(Advertisement):
-    def __init__(self, index, device_type):
+    def __init__(self, index, device_type, service_uuid):
         Advertisement.__init__(self, index, "peripheral")
         self.add_local_name(device_type)
-        self.add_service_uuid("4FAFC201-1FB5-459E-8FCC-C5C9C331914B")
+        self.add_service_uuid(service_uuid)
         self.include_tx_power = True
 
 class DashIOService(Service):
-    THERMOMETER_SVC_UUID = "4FAFC201-1FB5-459E-8FCC-C5C9C331914B"
-
-    def __init__(self, index):
-        Service.__init__(self, index, self.THERMOMETER_SVC_UUID, True)
-        self.add_characteristic(DashConCharacteristic(self))
+    def __init__(self, index, service_uuid):
+        Service.__init__(self, index, service_uuid, True)
+        self.add_characteristic(DashConCharacteristic(self, service_uuid))
 
 class DashConCharacteristic(Characteristic):
-    UNIT_CHARACTERISTIC_UUID = "4FAFC201-1FB5-459E-8FCC-C5C9C331914B"
-
-    def __init__(self, service):
-        Characteristic.__init__(self, self.UNIT_CHARACTERISTIC_UUID, ["notify", "write-without-response"], service)
+    def __init__(self, service, cahacteristic_uuid):
+        Characteristic.__init__(self, cahacteristic_uuid, ["notify", "write-without-response"], service)
         self.add_descriptor(DashConDescriptor(self))
         self.notifying = False
 
@@ -478,7 +473,7 @@ class DashConDescriptor(Descriptor):
 
 def signal_cntrl_c(os_signal, os_frame):
     global SHUTDOWN
-    print("Shutdown")
+    logging.debug("Shutdown")
     SHUTDOWN = True
 
 
@@ -534,10 +529,10 @@ def main():
     config_file_parser.defaults()
 
     app = Application()
-    app.add_service(DashIOService(0))
+    app.add_service(DashIOService(0), DASHIO_SERVICE_UUID)
     app.register()
 
-    adv = DashIOAdvertisement(0, "DashIO")
+    adv = DashIOAdvertisement(0, "DashIO", DASHIO_SERVICE_UUID)
     adv.register()
 
     try:
