@@ -226,14 +226,6 @@ class DashIOService(dbus.service.Object):
 
         return self.get_properties()[GATT_SERVICE_IFACE]
 
-
-"""
-class DashIOService(Service):
-    def __init__(self, index, service_uuid):
-        Service.__init__(self, index, service_uuid, True)
-        self.add_characteristic(DashConCharacteristic(self, service_uuid))
-"""
-
 class DashConCharacteristic(dbus.service.Object):
     """
     org.bluez.GattCharacteristic1 interface implementation
@@ -246,7 +238,7 @@ class DashConCharacteristic(dbus.service.Object):
         self.service = service
         self.flags = ["notify", "write-without-response"]
         self.descriptors = []
-        self.descriptors.append(DashConDescriptor(self))
+        # self.descriptors.append(DashConDescriptor(self))
         self.next_index = 0
         self.notifying = False
         dbus.service.Object.__init__(self, self.bus, self.path)
