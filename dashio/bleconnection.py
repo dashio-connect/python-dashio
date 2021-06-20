@@ -143,6 +143,8 @@ class bleconnection(dbus.service.Object):
         self.services.append(DashIOService(0, DASHIO_SERVICE_UUID))
         self.next_index = 0
         dbus.service.Object.__init__(self, self.bus, self.path)
+        self.register()
+        adv = DashIOAdvertisement(0, "DashIO", DASHIO_SERVICE_UUID)
 
     def get_path(self):
         return dbus.ObjectPath(self.path)
@@ -442,10 +444,8 @@ def main():
     config_file_parser.defaults()
 
     app = bleconnection()
-    app.register()
 
-    adv = DashIOAdvertisement(0, "DashIO", DASHIO_SERVICE_UUID)
-    # adv.register()
+    
 
     try:
         app.run()
