@@ -376,7 +376,7 @@ class DashConCharacteristic(dbus.service.Object):
         return bus
 
     def get_next_index(self):
-        idx = self.next_index
+        idx = self.index
         self.next_index += 1
         return idx
 
