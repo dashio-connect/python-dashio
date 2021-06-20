@@ -81,6 +81,7 @@ class DashIOAdvertisement(dbus.service.Object):
         self.manufacturer_data = None
         self.include_tx_power = True
         dbus.service.Object.__init__(self, self.bus, self.path)
+        self.register()
 
     def get_properties(self):
         properties = dict()
@@ -92,22 +93,13 @@ class DashIOAdvertisement(dbus.service.Object):
         if self.service_uuids is not None:
             properties["ServiceUUIDs"] = dbus.Array(self.service_uuids,
                                                     signature='s')
-        if self.manufacturer_data is not None:
-            properties["ManufacturerData"] = dbus.Dictionary(
-                self.manufacturer_data, signature='qv')
 
         if self.include_tx_power is not None:
             properties["IncludeTxPower"] = dbus.Boolean(self.include_tx_power)
-
         return {LE_ADVERTISEMENT_IFACE: properties}
 
     def get_path(self):
         return dbus.ObjectPath(self.path)
-
-    def add_manufacturer_data(self, manuf_code, data):
-        if not self.manufacturer_data:
-            self.manufacturer_data = dbus.Dictionary({}, signature="qv")
-        self.manufacturer_data[manuf_code] = dbus.Array(data, signature="y")
 
     @dbus.service.method(DBUS_PROP_IFACE, in_signature="s", out_signature="a{sv}")
     def GetAll(self, interface):
@@ -191,15 +183,17 @@ class bleconnection(dbus.service.Object):
         logging.debug("\nGATT application terminated")
         self.mainloop.quit()
 
-class Service(dbus.service.Object):
+
+class DashIOService(dbus.service.Object):
     PATH_BASE = "/org/bluez/example/service"
 
-    def __init__(self, index, uuid, primary):
+    def __init__(self, index, service_uuid):
         self.bus = BleTools.get_bus()
         self.path = self.PATH_BASE + str(index)
-        self.uuid = uuid
-        self.primary = primary
+        self.uuid = service_uuid
+        self.primary = True
         self.characteristics = []
+        self.characteristics.append(DashConCharacteristic(self, service_uuid))
         self.next_index = 0
         dbus.service.Object.__init__(self, self.bus, self.path)
 
@@ -246,21 +240,14 @@ class Service(dbus.service.Object):
             raise InvalidArgsException()
 
         return self.get_properties()[GATT_SERVICE_IFACE]
-"""
-class DashIOAdvertisement(Advertisement):
-    def __init__(self, index, device_type, service_uuid):
-        Advertisement.__init__(self, index, "peripheral")
-        self.add_local_name(device_type)
-        self.add_service_uuid(service_uuid)
-        self.include_tx_power = True
+
 
 """
-
 class DashIOService(Service):
     def __init__(self, index, service_uuid):
         Service.__init__(self, index, service_uuid, True)
         self.add_characteristic(DashConCharacteristic(self, service_uuid))
-
+"""
 
 class DashConCharacteristic(dbus.service.Object):
     """
@@ -464,7 +451,7 @@ def main():
     app.register()
 
     adv = DashIOAdvertisement(0, "DashIO", DASHIO_SERVICE_UUID)
-    adv.register()
+    # adv.register()
 
     try:
         app.run()
