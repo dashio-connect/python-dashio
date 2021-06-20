@@ -283,19 +283,34 @@ class Service(dbus.service.Object):
 
         return self.get_properties()[GATT_SERVICE_IFACE]
 
-class Characteristic(dbus.service.Object):
+class DashIOAdvertisement(Advertisement):
+    def __init__(self, index, device_type, service_uuid):
+        Advertisement.__init__(self, index, "peripheral")
+        self.add_local_name(device_type)
+        self.add_service_uuid(service_uuid)
+        self.include_tx_power = True
+
+class DashIOService(Service):
+    def __init__(self, index, service_uuid):
+        Service.__init__(self, index, service_uuid, True)
+        self.add_characteristic(DashConCharacteristic(self, service_uuid))
+
+
+class DashConCharacteristic(dbus.service.Object):
     """
     org.bluez.GattCharacteristic1 interface implementation
     """
-    def __init__(self, uuid, flags, service):
+    def __init__(self, service, chacteristic_uuid):
         index = service.get_next_index()
         self.path = service.path + '/char' + str(index)
         self.bus = service.get_bus()
-        self.uuid = uuid
+        self.uuid = chacteristic_uuid
         self.service = service
-        self.flags = flags
+        self.flags = ["notify", "write-without-response"]
         self.descriptors = []
+        self.descriptors.append(DashConDescriptor(self))
         self.next_index = 0
+        self.notifying = False
         dbus.service.Object.__init__(self, self.bus, self.path)
 
     def get_properties(self):
@@ -337,20 +352,20 @@ class Characteristic(dbus.service.Object):
         logging.debug('Default ReadValue called, returning error')
         raise NotSupportedException()
 
-    @dbus.service.method(GATT_CHRC_IFACE, in_signature='aya{sv}')
-    def WriteValue(self, value, options):
-        logging.debug('Default WriteValue called, returning error')
-        raise NotSupportedException()
+    # @dbus.service.method(GATT_CHRC_IFACE, in_signature='aya{sv}')
+    # def WriteValue(self, value, options):
+    #     logging.debug('Default WriteValue called, returning error')
+    #     raise NotSupportedException()
 
-    @dbus.service.method(GATT_CHRC_IFACE)
-    def StartNotify(self):
-        logging.debug('Default StartNotify called, returning error')
-        raise NotSupportedException()
+    # @dbus.service.method(GATT_CHRC_IFACE)
+    # def StartNotify(self):
+    #     logging.debug('Default StartNotify called, returning error')
+    #     raise NotSupportedException()
 
-    @dbus.service.method(GATT_CHRC_IFACE)
-    def StopNotify(self):
-        logging.debug('Default StopNotify called, returning error')
-        raise NotSupportedException()
+    # @dbus.service.method(GATT_CHRC_IFACE)
+    # def StopNotify(self):
+    #    logging.debug('Default StopNotify called, returning error')
+    #    raise NotSupportedException()
 
     @dbus.service.signal(DBUS_PROP_IFACE, signature='sa{sv}as')
     def PropertiesChanged(self, interface, changed, invalidated):
@@ -365,22 +380,33 @@ class Characteristic(dbus.service.Object):
         self.next_index += 1
         return idx
 
-    def add_timeout(self, timeout, callback):
-        GLib.timeout_add(timeout, callback)
+    def dashio_callback(self):
+        if self.notifying:
+            desc = "HELLO"
+            value = []
+            for c in desc:
+                value.append(dbus.Byte(c.encode()))
+            self.PropertiesChanged(GATT_CHRC_IFACE, {"Value": value}, [])
+        return self.notifying
+
+    @dbus.service.method(GATT_CHRC_IFACE)
+    def StartNotify(self):
+        if self.notifying:
+            return
+        self.notifying = True
+        self.add_timeout(NOTIFY_TIMEOUT, self.dashio_callback)
+
+    @dbus.service.method(GATT_CHRC_IFACE)
+    def StopNotify(self):
+        self.notifying = False
+
+    @dbus.service.method(GATT_CHRC_IFACE, in_signature='aya{sv}')
+    def WriteValue(self, value, options):
+        rx_str = ''.join([str(v) for v in value])
+        logging.debug("BLE RX: %s", rx_str)
 
 
-class DashIOAdvertisement(Advertisement):
-    def __init__(self, index, device_type, service_uuid):
-        Advertisement.__init__(self, index, "peripheral")
-        self.add_local_name(device_type)
-        self.add_service_uuid(service_uuid)
-        self.include_tx_power = True
-
-class DashIOService(Service):
-    def __init__(self, index, service_uuid):
-        Service.__init__(self, index, service_uuid, True)
-        self.add_characteristic(DashConCharacteristic(self, service_uuid))
-
+"""
 class DashConCharacteristic(Characteristic):
     def __init__(self, service, chacteristic_uuid):
         Characteristic.__init__(self, chacteristic_uuid, ["notify", "write-without-response"], service)
@@ -408,7 +434,7 @@ class DashConCharacteristic(Characteristic):
     def WriteValue(self, value, options):
         rx_str = ''.join([str(v) for v in value])
         logging.debug("BLE RX: %s", rx_str)
-
+"""
 
 class DashConDescriptor(dbus.service.Object):
 
