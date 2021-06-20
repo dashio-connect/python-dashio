@@ -74,29 +74,18 @@ class DashIOAdvertisement(dbus.service.Object):
     def __init__(self, index, device_type, service_uuid):
         self.path = self.PATH_BASE + str(index)
         self.bus = BleTools.get_bus()
-        self.ad_type = "peripheral"
-        self.local_name = dbus.String(device_type)
         self.service_uuids = []
         self.service_uuids.append(service_uuid)
-        self.manufacturer_data = None
-        self.include_tx_power = True
+        self.properties = []
+        self.properties["Type"] = "peripheral"
+        self.properties["LocalName"] = dbus.String(device_type)
+        self.properties["ServiceUUIDs"] = dbus.Array(self.service_uuids, signature='s')
+        self.properties["IncludeTxPower"] = dbus.Boolean(True)
         dbus.service.Object.__init__(self, self.bus, self.path)
         self.register()
 
     def get_properties(self):
-        properties = dict()
-        properties["Type"] = self.ad_type
-
-        if self.local_name is not None:
-            properties["LocalName"] = dbus.String(self.local_name)
-
-        if self.service_uuids is not None:
-            properties["ServiceUUIDs"] = dbus.Array(self.service_uuids,
-                                                    signature='s')
-
-        if self.include_tx_power is not None:
-            properties["IncludeTxPower"] = dbus.Boolean(self.include_tx_power)
-        return {LE_ADVERTISEMENT_IFACE: properties}
+        return {LE_ADVERTISEMENT_IFACE: self.properties}
 
     def get_path(self):
         return dbus.ObjectPath(self.path)
