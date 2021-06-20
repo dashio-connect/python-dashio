@@ -134,7 +134,7 @@ class bleconnection(dbus.service.Object):
     def __init__(self):
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
         self.mainloop = GLib.MainLoop()
-        self.bus = BleTools.get_bus()
+        self.bus = dbus.SystemBus()
         self.path = "/"
         self.services = []
         self.services.append(DashIOService(0, DASHIO_SERVICE_UUID))
@@ -187,7 +187,7 @@ class DashIOService(dbus.service.Object):
     PATH_BASE = "/org/bluez/example/service"
 
     def __init__(self, index, service_uuid):
-        self.bus = BleTools.get_bus()
+        self.bus = dbus.SystemBus()
         self.path = self.PATH_BASE + str(index)
         self.uuid = service_uuid
         self.primary = True
@@ -210,20 +210,11 @@ class DashIOService(dbus.service.Object):
     def get_path(self):
         return dbus.ObjectPath(self.path)
 
-    def add_characteristic(self, characteristic):
-        self.characteristics.append(characteristic)
-
     def get_characteristic_paths(self):
         result = []
         for chrc in self.characteristics:
             result.append(chrc.get_path())
         return result
-
-    def get_characteristics(self):
-        return self.characteristics
-
-    def get_bus(self):
-        return self.bus
 
     @dbus.service.method(DBUS_PROP_IFACE,
                          in_signature='s',
