@@ -150,7 +150,7 @@ class bleconnection(dbus.service.Object):
 
         self.response[self.dash_service.get_path()] = self.dash_service.get_properties()
         
-        sock = self.zmq_socket("test_zmq")
+        sock = self.zmq_socket(b"test_zmq")
         zmq_fd = sock.getsockopt(zmq.FD)
         Glib.Gobject.io_add_watch(zmq_fd, Glib.GObject.IO_IN|Glib.GObject.IO_ERR|Glib.GObject.IO_HUP, self.zmq_callback, sock)
 
