@@ -124,6 +124,21 @@ class NotPermittedException(dbus.exceptions.DBusException):
 
 class bleconnection(dbus.service.Object):
 
+    def zmq_socket(self, address):
+        ctx = zmq.Context()
+        sock = ctx.socket(zmq.SUB)
+        sock.setsockopt(zmq.SUBSCRIBE, b'')
+        return sock
+
+    def zmq_callback(self, queue, condition, sock):
+        print ('zmq_callback', queue, condition, sock)
+
+        while sock.getsockopt(zmq.EVENTS) & zmq.POLLIN:
+            observed = sock.recv()
+            print(observed)
+        return True
+
+        
     def __init__(self):
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
         self.mainloop = GLib.MainLoop()
@@ -133,6 +148,12 @@ class bleconnection(dbus.service.Object):
         self.response = {}
 
         self.response[self.dash_service.get_path()] = self.dash_service.get_properties()
+        
+        sock = self.zmq_socket(b'test_zmq')
+        zmq_fd = sock.getsockopt(zmq.FD)
+        GLib.io_add_watch(zmq_fd, GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP, self.zmq_callback, sock)
+
+
 
         chrcs = self.dash_service.get_characteristics()
         for chrc in chrcs:
