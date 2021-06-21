@@ -123,6 +123,23 @@ class NotPermittedException(dbus.exceptions.DBusException):
     _dbus_error_name = "org.bluez.Error.NotPermitted"
 
 class bleconnection(dbus.service.Object):
+
+    def zmq_socket(self, address):
+        ctx = zmq.Context()
+        sock = ctx.socket(zmq.SUB)
+        sock.setsockopt(zmq.SUBSCRIBE, "")
+        sock.connect(address)
+        return sock
+
+    def zmq_callback(self, queue, condition, sock):
+        print ('zmq_callback', queue, condition, sock)
+
+        while sock.getsockopt(zmq.EVENTS) & zmq.POLLIN:
+            observed = sock.recv()
+            print(observed)
+        return True
+
+        
     def __init__(self):
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
         self.mainloop = GLib.MainLoop()
@@ -133,10 +150,16 @@ class bleconnection(dbus.service.Object):
 
         self.response[self.dash_service.get_path()] = self.dash_service.get_properties()
         
+        sock = self.zmq_socket("test_zmq")
+        zmq_fd = sock.getsockopt(zmq.FD)
+        Glib.Gobject.io_add_watch(zmq_fd, Glib.GObject.IO_IN|Glib.GObject.IO_ERR|Glib.GObject.IO_HUP, self.zmq_callback, sock)
+
+
+
         chrcs = self.dash_service.get_characteristics()
         for chrc in chrcs:
             self.response[chrc.get_path()] = chrc.get_properties()
-            
+
         dbus.service.Object.__init__(self, self.bus, self.path)
         self.register()
         self.adv = DashIOAdvertisement(0, "DashIO", DASHIO_SERVICE_UUID)
