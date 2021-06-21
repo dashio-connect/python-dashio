@@ -151,7 +151,7 @@ class bleconnection(dbus.service.Object):
         
         sock = self.zmq_socket(b'test_zmq')
         zmq_fd = sock.getsockopt(zmq.FD)
-        Glib.Gobject.io_add_watch(zmq_fd, Glib.GObject.IO_IN|Glib.GObject.IO_ERR|Glib.GObject.IO_HUP, self.zmq_callback, sock)
+        GLib.Gobject.io_add_watch(zmq_fd, GLib.GObject.IO_IN|GLib.GObject.IO_ERR|GLib.GObject.IO_HUP, self.zmq_callback, sock)
 
 
 
