@@ -32,7 +32,7 @@ import dbus.mainloop.glib
 import dbus.exceptions
 
 from gi.repository import GLib
-from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
+from constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 
 
 GATT_CHRC_IFACE = "org.bluez.GattCharacteristic1"
