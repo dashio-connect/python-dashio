@@ -128,12 +128,21 @@ class bleconnection(dbus.service.Object):
         self.mainloop = GLib.MainLoop()
         self.bus = BleTools.get_bus()
         self.path = "/"
-        self.services = []
-        self.services.append(DashIOService(0, DASHIO_SERVICE_UUID))
+        self.dash_service = DashIOService(0, DASHIO_SERVICE_UUID)
+        self.response = {}
+        
+        self.response[self.dash_service.get_path()] = self.dash_service.get_properties()
+        chrcs = self.dash_service.get_characteristics()
+        for chrc in chrcs:
+            self.response[chrc.get_path()] = chrc.get_properties()
+            descs = chrc.get_descriptors()
+            for desc in descs:
+                self.response[desc.get_path()] = desc.get_properties()
+
         self.next_index = 0
         dbus.service.Object.__init__(self, self.bus, self.path)
         self.register()
-        adv = DashIOAdvertisement(0, "DashIO", DASHIO_SERVICE_UUID)
+        self.adv = DashIOAdvertisement(0, "DashIO", DASHIO_SERVICE_UUID)
 
     def get_path(self):
         return dbus.ObjectPath(self.path)
@@ -143,18 +152,7 @@ class bleconnection(dbus.service.Object):
 
     @dbus.service.method(DBUS_OM_IFACE, out_signature="a{oa{sa{sv}}}")
     def GetManagedObjects(self):
-        response = {}
-
-        for service in self.services:
-            response[service.get_path()] = service.get_properties()
-            chrcs = service.get_characteristics()
-            for chrc in chrcs:
-                response[chrc.get_path()] = chrc.get_properties()
-                descs = chrc.get_descriptors()
-                for desc in descs:
-                    response[desc.get_path()] = desc.get_properties()
-
-        return response
+        return self.response
 
     def register_app_callback(self):
         logging.debug("GATT application registered")
@@ -174,7 +172,6 @@ class bleconnection(dbus.service.Object):
         logging.debug("\nGATT application terminated")
         self.mainloop.quit()
 
-
 class DashIOService(dbus.service.Object):
     PATH_BASE = "/org/bluez/example/service"
 
@@ -183,8 +180,7 @@ class DashIOService(dbus.service.Object):
         self.path = self.PATH_BASE + str(index)
         self.uuid = service_uuid
         self.primary = True
-        self.characteristics = []
-        self.characteristics.append(DashConCharacteristic(self, service_uuid))
+        self.dashio_characteristic = DashConCharacteristic(self, service_uuid)
         self.next_index = 0
         dbus.service.Object.__init__(self, self.bus, self.path)
 
@@ -207,8 +203,7 @@ class DashIOService(dbus.service.Object):
 
     def get_characteristic_paths(self):
         result = []
-        for chrc in self.characteristics:
-            result.append(chrc.get_path())
+        result.append(self.dashio_characteristic.get_path())
         return result
 
     def get_characteristics(self):
@@ -237,8 +232,6 @@ class DashConCharacteristic(dbus.service.Object):
         self.uuid = chacteristic_uuid
         self.service = service
         self.flags = ["notify", "write-without-response"]
-        self.descriptors = []
-        # self.descriptors.append(DashConDescriptor(self))
         self.next_index = 0
         self.notifying = False
         dbus.service.Object.__init__(self, self.bus, self.path)
@@ -248,24 +241,12 @@ class DashConCharacteristic(dbus.service.Object):
             GATT_CHRC_IFACE: {
                 'Service': self.service.get_path(),
                 'UUID': self.uuid,
-                'Flags': self.flags,
-                'Descriptors': dbus.Array(
-                    self.get_descriptor_paths(),
-                    signature='o')
+                'Flags': self.flags
             }
         }
 
     def get_path(self):
         return dbus.ObjectPath(self.path)
-
-    def add_descriptor(self, descriptor):
-        self.descriptors.append(descriptor)
-
-    def get_descriptor_paths(self):
-        result = []
-        for desc in self.descriptors:
-            result.append(desc.get_path())
-        return result
 
     def get_descriptors(self):
         return self.descriptors
@@ -314,57 +295,6 @@ class DashConCharacteristic(dbus.service.Object):
     def WriteValue(self, value, options):
         rx_str = ''.join([str(v) for v in value])
         logging.debug("BLE RX: %s", rx_str)
-
-
-class DashConDescriptor(dbus.service.Object):
-
-    UNIT_DESCRIPTOR_UUID = "2901"
-    UNIT_DESCRIPTOR_VALUE = "DashIOCon"
-
-    def __init__(self, characteristic):
-        self.notifying = True
-        index = 1
-        self.path = characteristic.path + '/desc' + str(index)
-        self.uuid = self.UNIT_DESCRIPTOR_UUID
-        self.flags = ["read"]
-        self.chrc = characteristic
-        self.bus = characteristic.get_bus()
-        dbus.service.Object.__init__(self, self.bus, self.path)
-
-    def get_properties(self):
-        return {
-            GATT_DESC_IFACE: {
-                'Characteristic': self.chrc.get_path(),
-                'UUID': self.uuid,
-                'Flags': self.flags,
-            }
-        }
-
-    def get_path(self):
-        return dbus.ObjectPath(self.path)
-
-    @dbus.service.method(DBUS_PROP_IFACE,
-                         in_signature='s',
-                         out_signature='a{sv}')
-    def GetAll(self, interface):
-        if interface != GATT_DESC_IFACE:
-            raise InvalidArgsException()
-
-        return self.get_properties()[GATT_DESC_IFACE]
-
-    # @dbus.service.method(GATT_DESC_IFACE, in_signature='a{sv}', out_signature='ay')
-    def ReadValue(self, options):
-        value = []
-        desc = self.UNIT_DESCRIPTOR_VALUE
-
-        for c in desc:
-            value.append(dbus.Byte(c.encode()))
-        return value
-    
-    @dbus.service.method(GATT_DESC_IFACE, in_signature='aya{sv}')
-    def WriteValue(self, value, options):
-        logging.debug('Default WriteValue called, returning error')
-        raise NotSupportedException()
 
 
 def signal_cntrl_c(os_signal, os_frame):
