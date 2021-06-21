@@ -129,12 +129,15 @@ class bleconnection(dbus.service.Object):
         self.bus = BleTools.get_bus()
         self.path = "/"
         self.dash_service = DashIOService(0, DASHIO_SERVICE_UUID)
-        self.dash_charactoristic = DashConCharacteristic(DASHIO_SERVICE_UUID)
         self.response = {}
         
         self.response[self.dash_service.get_path()] = self.dash_service.get_properties()
-        self.response[self.dash_charactoristic.get_path()] = self.dash_charactoristic.get_properties()
-            
+        chrcs = self.dash_service.get_characteristics()
+        for chrc in chrcs:
+            self.response[chrc.get_path()] = chrc.get_properties()
+            descs = chrc.get_descriptors()
+            for desc in descs:
+                self.response[desc.get_path()] = desc.get_properties()
         self.next_index = 0
         dbus.service.Object.__init__(self, self.bus, self.path)
         self.register()
@@ -177,7 +180,7 @@ class DashIOService(dbus.service.Object):
         self.uuid = service_uuid
         self.primary = True
         self.characteristics = []
-        # self.characteristics.append(DashConCharacteristic(self, service_uuid))
+        self.characteristics.append(DashConCharacteristic(self, service_uuid))
         self.next_index = 0
         dbus.service.Object.__init__(self, self.bus, self.path)
 
@@ -226,7 +229,7 @@ class DashConCharacteristic(dbus.service.Object):
     def __init__(self, service, chacteristic_uuid):
         self.index = 1
         self.path = service.path + '/char' + str(self.index)
-        self.bus = BleTools.get_bus()
+        self.bus = service.get_bus()
         self.uuid = chacteristic_uuid
         self.service = service
         self.flags = ["notify", "write-without-response"]
