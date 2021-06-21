@@ -136,8 +136,7 @@ class bleconnection(dbus.service.Object):
         chrcs = self.dash_service.get_characteristics()
         for chrc in chrcs:
             self.response[chrc.get_path()] = chrc.get_properties()
-
-        self.next_index = 0
+            
         dbus.service.Object.__init__(self, self.bus, self.path)
         self.register()
         self.adv = DashIOAdvertisement(0, "DashIO", DASHIO_SERVICE_UUID)
@@ -178,8 +177,6 @@ class DashIOService(dbus.service.Object):
 
         self.characteristics = []
         self.characteristics.append(DashConCharacteristic(self, service_uuid))
-        
-        self.next_index = 0
         dbus.service.Object.__init__(self, self.bus, self.path)
 
     def get_properties(self):
@@ -225,7 +222,6 @@ class DashConCharacteristic(dbus.service.Object):
         self.uuid = chacteristic_uuid
         self.service = service
         self.flags = ["notify", "write-without-response"]
-        self.next_index = 0
         self.notifying = False
         dbus.service.Object.__init__(self, self.bus, self.path)
 
@@ -272,7 +268,7 @@ class DashConCharacteristic(dbus.service.Object):
             return
         self.notifying = True
         self.ble_send("Hello")
-        
+
     @dbus.service.method(GATT_CHRC_IFACE)
     def StopNotify(self):
         self.notifying = False
