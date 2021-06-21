@@ -250,9 +250,6 @@ class DashConCharacteristic(dbus.service.Object):
     def get_path(self):
         return dbus.ObjectPath(self.path)
 
-    def get_descriptors(self):
-        return self.descriptors
-
     @dbus.service.method(DBUS_PROP_IFACE, in_signature='s', out_signature='a{sv}')
     def GetAll(self, interface):
         if interface != GATT_CHRC_IFACE:
