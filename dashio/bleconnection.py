@@ -130,7 +130,7 @@ class bleconnection(dbus.service.Object):
         self.path = "/"
         self.dash_service = DashIOService(0, DASHIO_SERVICE_UUID)
         self.response = {}
-        
+
         self.response[self.dash_service.get_path()] = self.dash_service.get_properties()
         chrcs = self.dash_service.get_characteristics()
         for chrc in chrcs:
@@ -243,10 +243,7 @@ class DashConCharacteristic(dbus.service.Object):
             GATT_CHRC_IFACE: {
                 'Service': self.service.get_path(),
                 'UUID': self.uuid,
-                'Flags': self.flags,
-                'Descriptors': dbus.Array(
-                    self.get_descriptor_paths(),
-                    signature='o')
+                'Flags': self.flags
             }
         }
 
