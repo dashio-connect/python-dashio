@@ -207,7 +207,9 @@ class DashIOService(dbus.service.Object):
         return result
 
     def get_characteristics(self):
-        return self.characteristics
+        result = []
+        result.append(self.dashio_characteristic)
+        return result
 
     def get_bus(self):
         return self.bus
