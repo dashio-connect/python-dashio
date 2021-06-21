@@ -128,7 +128,6 @@ class bleconnection(dbus.service.Object):
         ctx = zmq.Context()
         sock = ctx.socket(zmq.SUB)
         sock.setsockopt(zmq.SUBSCRIBE, b'')
-        sock.connect(address)
         return sock
 
     def zmq_callback(self, queue, condition, sock):
