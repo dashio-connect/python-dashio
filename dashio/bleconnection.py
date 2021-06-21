@@ -135,9 +135,6 @@ class bleconnection(dbus.service.Object):
         chrcs = self.dash_service.get_characteristics()
         for chrc in chrcs:
             self.response[chrc.get_path()] = chrc.get_properties()
-            descs = chrc.get_descriptors()
-            for desc in descs:
-                self.response[desc.get_path()] = desc.get_properties()
         self.next_index = 0
         dbus.service.Object.__init__(self, self.bus, self.path)
         self.register()
@@ -227,13 +224,11 @@ class DashConCharacteristic(dbus.service.Object):
     org.bluez.GattCharacteristic1 interface implementation
     """
     def __init__(self, service, chacteristic_uuid):
-        self.index = 1
-        self.path = service.path + '/char' + str(self.index)
+        self.path = service.path + '/char' + str(1)
         self.bus = service.get_bus()
         self.uuid = chacteristic_uuid
         self.service = service
         self.flags = ["notify", "write-without-response"]
-        self.descriptors = []
         self.next_index = 0
         self.notifying = False
         dbus.service.Object.__init__(self, self.bus, self.path)
@@ -249,18 +244,6 @@ class DashConCharacteristic(dbus.service.Object):
 
     def get_path(self):
         return dbus.ObjectPath(self.path)
-
-    def add_descriptor(self, descriptor):
-        self.descriptors.append(descriptor)
-
-    def get_descriptor_paths(self):
-        result = []
-        for desc in self.descriptors:
-            result.append(desc.get_path())
-        return result
-
-    def get_descriptors(self):
-        return self.descriptors
 
     @dbus.service.method(DBUS_PROP_IFACE, in_signature='s', out_signature='a{sv}')
     def GetAll(self, interface):
