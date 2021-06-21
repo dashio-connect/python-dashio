@@ -138,7 +138,6 @@ class bleconnection(dbus.service.Object):
             descs = chrc.get_descriptors()
             for desc in descs:
                 self.response[desc.get_path()] = desc.get_properties()
-
         self.next_index = 0
         dbus.service.Object.__init__(self, self.bus, self.path)
         self.register()
@@ -180,7 +179,8 @@ class DashIOService(dbus.service.Object):
         self.path = self.PATH_BASE + str(index)
         self.uuid = service_uuid
         self.primary = True
-        self.dashio_characteristic = DashConCharacteristic(self, service_uuid)
+        self.characteristics = []
+        self.characteristics.append(DashConCharacteristic(self, service_uuid))
         self.next_index = 0
         dbus.service.Object.__init__(self, self.bus, self.path)
 
@@ -203,13 +203,12 @@ class DashIOService(dbus.service.Object):
 
     def get_characteristic_paths(self):
         result = []
-        result.append(self.dashio_characteristic.get_path())
+        for chrc in self.characteristics:
+            result.append(chrc.get_path())
         return result
 
     def get_characteristics(self):
-        result = []
-        result.append(self.dashio_characteristic)
-        return result
+        return self.characteristics
 
     def get_bus(self):
         return self.bus
@@ -234,6 +233,7 @@ class DashConCharacteristic(dbus.service.Object):
         self.uuid = chacteristic_uuid
         self.service = service
         self.flags = ["notify", "write-without-response"]
+        self.descriptors = []
         self.next_index = 0
         self.notifying = False
         dbus.service.Object.__init__(self, self.bus, self.path)
@@ -243,12 +243,27 @@ class DashConCharacteristic(dbus.service.Object):
             GATT_CHRC_IFACE: {
                 'Service': self.service.get_path(),
                 'UUID': self.uuid,
-                'Flags': self.flags
+                'Flags': self.flags,
+                'Descriptors': dbus.Array(
+                    self.get_descriptor_paths(),
+                    signature='o')
             }
         }
 
     def get_path(self):
         return dbus.ObjectPath(self.path)
+
+    def add_descriptor(self, descriptor):
+        self.descriptors.append(descriptor)
+
+    def get_descriptor_paths(self):
+        result = []
+        for desc in self.descriptors:
+            result.append(desc.get_path())
+        return result
+
+    def get_descriptors(self):
+        return self.descriptors
 
     @dbus.service.method(DBUS_PROP_IFACE, in_signature='s', out_signature='a{sv}')
     def GetAll(self, interface):
