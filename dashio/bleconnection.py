@@ -25,14 +25,12 @@ import logging
 import argparse
 import configparser
 import threading
-import shortuuid
 import dbus
 import dbus.service
 import dbus.mainloop.glib
 import dbus.exceptions
 
 from gi.repository import GLib
-from constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 
 
 GATT_CHRC_IFACE = "org.bluez.GattCharacteristic1"
@@ -163,19 +161,6 @@ class bleconnection(dbus.service.Object):
         service_manager.RegisterApplication(self.get_path(), {}, reply_handler=self.register_app_callback, error_handler=self.register_app_error_callback)
 
     def run(self):
-        self.tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
-
-        self.rx_zmq_sub = self.context.socket(zmq.SUB)
-
-        # Subscribe on ALL, and my connection
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ANNOUNCE")
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_id)
-        poller = zmq.Poller()
-        poller.register(self.rx_zmq_sub, zmq.POLLIN)
-
         self.mainloop.run()
 
     def quit(self):
@@ -233,12 +218,8 @@ class DashConCharacteristic(dbus.service.Object):
     """
     org.bluez.GattCharacteristic1 interface implementation
     """
-    def __init__(self, service, chacteristic_uuid, context=None):
-
-        self.context = context or zmq.Context.instance()
-        self.connection_id = shortuuid.uuid()
-        self.b_connection_id = self.connection_id.encode('utf-8')
-
+    def __init__(self, service, chacteristic_uuid):
+        
         self.path = service.path + '/char' + str(1)
         self.bus = service.get_bus()
         self.uuid = chacteristic_uuid
@@ -281,9 +262,7 @@ class DashConCharacteristic(dbus.service.Object):
 
     def ble_send(self, tx_data):
         if self.notifying:
-            value = []
-            for c in tx_data:
-                value.append(dbus.Byte(c.encode()))
+            value = [dbus.Byte(c.encode()) for c in tx_data]
             self.PropertiesChanged(GATT_CHRC_IFACE, {"Value": value}, [])
         return self.notifying
 
@@ -292,17 +271,16 @@ class DashConCharacteristic(dbus.service.Object):
         if self.notifying:
             return
         self.notifying = True
-
+        self.ble_send("Hello")
+        
     @dbus.service.method(GATT_CHRC_IFACE)
     def StopNotify(self):
         self.notifying = False
 
     @dbus.service.method(GATT_CHRC_IFACE, in_signature='aya{sv}')
     def WriteValue(self, value, options):
-        payload = [bytes([v]) for v in value]
-        data = str(payload, "utf-8").strip()
-        self.tx_zmq_pub.send_multipart([self.b_connection_id, b'1', payload])
-        logging.debug("BLE RX: %s", data)
+        rx_str = ''.join([str(v) for v in value])
+        logging.debug("BLE RX: %s", rx_str)
 
 
 def init_logging(logfilename, level):
