@@ -25,12 +25,14 @@ import logging
 import argparse
 import configparser
 import threading
+import shortuuid
 import dbus
 import dbus.service
 import dbus.mainloop.glib
 import dbus.exceptions
 
 from gi.repository import GLib
+from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 
 
 GATT_CHRC_IFACE = "org.bluez.GattCharacteristic1"
@@ -132,9 +134,11 @@ class bleconnection(dbus.service.Object):
         self.response = {}
 
         self.response[self.dash_service.get_path()] = self.dash_service.get_properties()
+        
         chrcs = self.dash_service.get_characteristics()
         for chrc in chrcs:
             self.response[chrc.get_path()] = chrc.get_properties()
+
         self.next_index = 0
         dbus.service.Object.__init__(self, self.bus, self.path)
         self.register()
@@ -142,9 +146,6 @@ class bleconnection(dbus.service.Object):
 
     def get_path(self):
         return dbus.ObjectPath(self.path)
-
-    def add_service(self, service):
-        self.services.append(service)
 
     @dbus.service.method(DBUS_OM_IFACE, out_signature="a{oa{sa{sv}}}")
     def GetManagedObjects(self):
@@ -162,6 +163,19 @@ class bleconnection(dbus.service.Object):
         service_manager.RegisterApplication(self.get_path(), {}, reply_handler=self.register_app_callback, error_handler=self.register_app_error_callback)
 
     def run(self):
+        self.tx_zmq_pub = self.context.socket(zmq.PUB)
+        self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
+
+        self.rx_zmq_sub = self.context.socket(zmq.SUB)
+
+        # Subscribe on ALL, and my connection
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ANNOUNCE")
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_id)
+        poller = zmq.Poller()
+        poller.register(self.rx_zmq_sub, zmq.POLLIN)
+
         self.mainloop.run()
 
     def quit(self):
@@ -176,8 +190,10 @@ class DashIOService(dbus.service.Object):
         self.path = self.PATH_BASE + str(index)
         self.uuid = service_uuid
         self.primary = True
+
         self.characteristics = []
         self.characteristics.append(DashConCharacteristic(self, service_uuid))
+        
         self.next_index = 0
         dbus.service.Object.__init__(self, self.bus, self.path)
 
@@ -195,9 +211,6 @@ class DashIOService(dbus.service.Object):
     def get_path(self):
         return dbus.ObjectPath(self.path)
 
-    def add_characteristic(self, characteristic):
-        self.characteristics.append(characteristic)
-
     def get_characteristic_paths(self):
         result = []
         for chrc in self.characteristics:
@@ -210,20 +223,22 @@ class DashIOService(dbus.service.Object):
     def get_bus(self):
         return self.bus
 
-    @dbus.service.method(DBUS_PROP_IFACE,
-                         in_signature='s',
-                         out_signature='a{sv}')
+    @dbus.service.method(DBUS_PROP_IFACE, in_signature='s', out_signature='a{sv}')
     def GetAll(self, interface):
         if interface != GATT_SERVICE_IFACE:
             raise InvalidArgsException()
-
         return self.get_properties()[GATT_SERVICE_IFACE]
 
 class DashConCharacteristic(dbus.service.Object):
     """
     org.bluez.GattCharacteristic1 interface implementation
     """
-    def __init__(self, service, chacteristic_uuid):
+    def __init__(self, service, chacteristic_uuid, context=None):
+
+        self.context = context or zmq.Context.instance()
+        self.connection_id = shortuuid.uuid()
+        self.b_connection_id = self.connection_id.encode('utf-8')
+
         self.path = service.path + '/char' + str(1)
         self.bus = service.get_bus()
         self.uuid = chacteristic_uuid
@@ -249,7 +264,6 @@ class DashConCharacteristic(dbus.service.Object):
     def GetAll(self, interface):
         if interface != GATT_CHRC_IFACE:
             raise InvalidArgsException()
-
         return self.get_properties()[GATT_CHRC_IFACE]
 
     @dbus.service.method(GATT_CHRC_IFACE, in_signature='a{sv}', out_signature='ay')
@@ -265,11 +279,10 @@ class DashConCharacteristic(dbus.service.Object):
         bus = self.bus
         return bus
 
-    def dashio_callback(self):
+    def ble_send(self, tx_data):
         if self.notifying:
-            desc = "HELLO"
             value = []
-            for c in desc:
+            for c in tx_data:
                 value.append(dbus.Byte(c.encode()))
             self.PropertiesChanged(GATT_CHRC_IFACE, {"Value": value}, [])
         return self.notifying
@@ -279,7 +292,6 @@ class DashConCharacteristic(dbus.service.Object):
         if self.notifying:
             return
         self.notifying = True
-        self.dashio_callback()
 
     @dbus.service.method(GATT_CHRC_IFACE)
     def StopNotify(self):
@@ -287,14 +299,10 @@ class DashConCharacteristic(dbus.service.Object):
 
     @dbus.service.method(GATT_CHRC_IFACE, in_signature='aya{sv}')
     def WriteValue(self, value, options):
-        rx_str = ''.join([str(v) for v in value])
-        logging.debug("BLE RX: %s", rx_str)
-
-
-def signal_cntrl_c(os_signal, os_frame):
-    global SHUTDOWN
-    logging.debug("Shutdown")
-    SHUTDOWN = True
+        payload = [bytes([v]) for v in value]
+        data = str(payload, "utf-8").strip()
+        self.tx_zmq_pub.send_multipart([self.b_connection_id, b'1', payload])
+        logging.debug("BLE RX: %s", data)
 
 
 def init_logging(logfilename, level):
@@ -347,16 +355,11 @@ def main():
     init_logging(args.logfilename, args.verbose)
     config_file_parser = configparser.ConfigParser()
     config_file_parser.defaults()
-
     app = bleconnection()
-
-    
-
     try:
         app.run()
     except KeyboardInterrupt:
         app.quit()
-
 
 
 if __name__ == "__main__":
