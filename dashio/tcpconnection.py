@@ -66,7 +66,8 @@ class TCPConnection(threading.Thread):
         self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
 
-    def _is_port_in_use(self, port):
+    @staticmethod
+    def _is_port_in_use(port):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as port_s:
             return port_s.connect_ex(('localhost', port)) == 0
 

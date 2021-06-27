@@ -14,20 +14,20 @@ class ZeroConfListener:
         self.zmq_socket = self.context.socket(zmq.PUSH)
         self.zmq_socket.bind("inproc://zconf")
 
-    def remove_service(self, zeroconf, type, name):
-        info = zeroconf.get_service_info(type, name)
+    def remove_service(self, zeroconf, service_type, name):
+        info = zeroconf.get_service_info(service_type, name)
         if info:
             for address in info.addresses:
                 self.zmq_socket.send_multipart([name.encode('utf-8'), b"remove", socket.inet_ntoa(address).encode('utf-8'), info.properties[b'sub_port'], info.properties[b'pub_port']])
 
-    def add_service(self, zeroconf, type, name):
-        info = zeroconf.get_service_info(type, name)
+    def add_service(self, zeroconf, service_type, name):
+        info = zeroconf.get_service_info(service_type, name)
         if info:
             for address in info.addresses:
                 self.zmq_socket.send_multipart([name.encode('utf-8'), b"add", socket.inet_ntoa(address).encode('utf-8'), info.properties[b'sub_port'], info.properties[b'pub_port']])
 
-    def update_service(self, zeroconf, type, name):
-        info = zeroconf.get_service_info(type, name)
+    def update_service(self, zeroconf, service_type, name):
+        info = zeroconf.get_service_info(service_type, name)
         if info:
             for address in info.addresses:
                 self.zmq_socket.send_multipart([name.encode('utf-8'), b"update", socket.inet_ntoa(address).encode('utf-8'), info.properties[b'sub_port'], info.properties[b'pub_port']])
@@ -106,8 +106,6 @@ class zmq_tcpBridge(threading.Thread):
         self.start()
 
     def close(self):
-        for id in self.socket_ids:
-            self._zmq_send(id, "")
         self.zeroconf.unregister_all_services()
         self.zeroconf.close()
         self.running = False
@@ -131,35 +129,35 @@ class zmq_tcpBridge(threading.Thread):
         poller.register(self.rx_zmq_sub, zmq.POLLIN)
         poller.register(rx_zconf_pull, zmq.POLLIN)
 
-        def __zmq_tcp_send(id, data):
+        def __zmq_tcp_send(socket_id, data):
             try:
-                self.tcpsocket.send(id, zmq.SNDMORE)
+                self.tcpsocket.send(socket_id, zmq.SNDMORE)
                 self.tcpsocket.send(data, zmq.NOBLOCK)
             except zmq.error.ZMQError as e:
-                logging.debug("Sending TX Error: " + str(e))
-                self.socket_ids.remove(id)
+                logging.debug("Sending TX Error: %s", str(e))
+                self.socket_ids.remove(socket_id)
 
         while self.running:
             socks = dict(poller.poll(50))
             if self.tcpsocket in socks:
-                id = self.tcpsocket.recv()
+                socket_id = self.tcpsocket.recv()
                 message = self.tcpsocket.recv()
-                if id not in self.socket_ids:
-                    logging.debug("Added Socket ID: " + id.hex())
-                    self.socket_ids.append(id)
-                logging.debug("TCP ID: %s, RX: %s", id.hex(), message.decode('utf-8').rstrip())
+                if socket_id not in self.socket_ids:
+                    logging.debug("Added Socket ID: %s", socket_id.hex())
+                    self.socket_ids.append(socket_id)
+                logging.debug("TCP ID: %s, RX: %s", socket_id.hex(), message.decode('utf-8').rstrip())
                 if message:
                     logging.debug("ZMQ PUB TX: %s", message.decode('utf-8').rstrip())
                     self.tx_zmq_pub.send(message)
                 else:
-                    if id in self.socket_ids:
-                        logging.debug("Removed Socket ID: " + id.hex())
-                        self.socket_ids.remove(id)
+                    if socket_id in self.socket_ids:
+                        logging.debug("Removed Socket ID: %s", socket_id.hex())
+                        self.socket_ids.remove(socket_id)
             if self.rx_zmq_sub in socks:
                 data = self.rx_zmq_sub.recv()
-                for id in self.socket_ids:
-                    logging.debug("TCP ID: %s, Tx: %s", id.hex(), data.decode('utf-8').rstrip())
-                    __zmq_tcp_send(id, data)
+                for socket_id in self.socket_ids:
+                    logging.debug("TCP ID: %s, Tx: %s", socket_id.hex(), data.decode('utf-8').rstrip())
+                    __zmq_tcp_send(socket_id, data)
             if rx_zconf_pull in socks:
                 name, action, ip_address, sub_port, pub_port = rx_zconf_pull.recv_multipart()
                 if action == b'add':
@@ -177,7 +175,7 @@ class zmq_tcpBridge(threading.Thread):
         self.tcpsocket.close()
         self.tx_zmq_pub.close()
         self.rx_zmq_sub.close()
-        self.rx_zconf_pull.close()
+        rx_zconf_pull.close()
 
 
 def init_logging(logfilename, level):
@@ -203,17 +201,17 @@ def init_logging(logfilename, level):
     logging.info("==== Started ====")
 
 
-shutdown = False
+SHUTDOWN = False
 
 
 def signal_cntrl_c(os_signal, os_frame):
-    global shutdown
-    shutdown = True
+    global SHUTDOWN
+    SHUTDOWN = True
 
 
 def main():
     # Catch CNTRL-C signel
-    global shutdown
+    global SHUTDOWN
     signal.signal(signal.SIGINT, signal_cntrl_c)
 
     init_logging("", 2)
@@ -224,7 +222,7 @@ def main():
 
     b = zmq_tcpBridge(tcp_port=5001, context=context)
 
-    while not shutdown:
+    while not SHUTDOWN:
         time.sleep(1)
 
     print("Goodbye")
@@ -232,7 +230,7 @@ def main():
     b.close()
     time.sleep(1)
     zeroconf.close()
-
+    browser.cancel()
 
 if __name__ == "__main__":
     main()
