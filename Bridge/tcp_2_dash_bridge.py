@@ -21,21 +21,21 @@ class ZeroConfDashTCPListener:
         self.zmq_socket = self.context.socket(zmq.PUSH)
         self.zmq_socket.connect("inproc://zconf")
 
-    def remove_service(self, zeroconf, type, name):
-        info = zeroconf.get_service_info(type, name)
+    def remove_service(self, zeroconf, service_type, name):
+        info = zeroconf.get_service_info(service_type, name)
         if info:
             for address in info.addresses:
                 self.zmq_socket.send_multipart([b"remove", socket.inet_ntoa(address).encode('utf-8'), str(info.port).encode('utf-8')])
 
-    def add_service(self, zeroconf, type, name):
-        info = zeroconf.get_service_info(type, name)
+    def add_service(self, zeroconf, service_type, name):
+        info = zeroconf.get_service_info(service_type, name)
         if info:
             for address in info.addresses:
                 logging.debug('IP: %s', socket.inet_ntoa(address).encode('utf-8'))
                 self.zmq_socket.send_multipart([b"add", socket.inet_ntoa(address).encode('utf-8'), str(info.port).encode('utf-8')])
 
-    def update_service(self, zeroconf, type, name):
-        info = zeroconf.get_service_info(type, name)
+    def update_service(self, zeroconf, service_type, name):
+        info = zeroconf.get_service_info(service_type, name)
         if info:
             for address in info.addresses:
                 self.zmq_socket.send_multipart([b"update", socket.inet_ntoa(address).encode('utf-8'), str(info.port).encode('utf-8')])
@@ -85,6 +85,9 @@ class TCPPoller(threading.Thread):
         net_str = '{}/{}'.format(net_dict[0]['addr'], net_dict[0]['netmask'])
         self.network = [str(ip) for ip in ipaddress.IPv4Network(net_str, strict=False)]
         self.start()
+
+    def close(self):
+        self.finish = True
 
     def run(self):
         while not self.finish:
@@ -200,6 +203,9 @@ class tcp_dashBridge(threading.Thread):
             pass
         self.dash_c.unsubscribe(control_topic)
 
+    def close(self):
+        self.running = False
+
     def run(self):
         self.dash_c.loop_start()
 
@@ -282,12 +288,12 @@ def init_logging(logfilename, level):
     logging.info("==== Started ====")
 
 
-shutdown = False
+SHUTDOWN = False
 
 
 def signal_cntrl_c(os_signal, os_frame):
-    global shutdown
-    shutdown = True
+    global SHUTDOWN
+    SHUTDOWN = True
 
 
 def load_configfile(filename):
@@ -299,7 +305,7 @@ def load_configfile(filename):
 
 def main():
     # Catch CNTRL-C signel
-    global shutdown
+    global SHUTDOWN
     signal.signal(signal.SIGINT, signal_cntrl_c)
 
     init_logging("", 2)
@@ -311,7 +317,7 @@ def main():
     listener = ZeroConfDashTCPListener(context)
     browser = ServiceBrowser(zeroconf, "_DashIO._tcp.local.", listener)
     pinger = TCPPoller(port=5000, context=context)
-    b = tcp_dashBridge(
+    bridge = tcp_dashBridge(
         configs.get('Dash', 'Username'),
         configs.get('Dash', 'Password'),
         host=configs.get('Dash', 'Server'),
@@ -320,9 +326,12 @@ def main():
         context=context
     )
 
-    while not shutdown:
+    while not SHUTDOWN:
         time.sleep(5)
 
+    pinger.close()
+    bridge.close()
+    browser.cancel()
     zeroconf.unregister_all_services()
     zeroconf.close()
 

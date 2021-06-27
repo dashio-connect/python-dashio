@@ -138,7 +138,7 @@ class bleconnection(dbus.service.Object):
             print(observed)
         return True
 
-        
+
     def __init__(self):
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
         self.mainloop = GLib.MainLoop()
@@ -148,7 +148,7 @@ class bleconnection(dbus.service.Object):
         self.response = {}
 
         self.response[self.dash_service.get_path()] = self.dash_service.get_properties()
-        
+
         sock = self.zmq_socket(b'test_zmq')
         zmq_fd = sock.getsockopt(zmq.FD)
         GLib.io_add_watch(zmq_fd, GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP, self.zmq_callback, sock)
