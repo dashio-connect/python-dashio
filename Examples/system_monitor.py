@@ -94,7 +94,7 @@ def main():
         default = {
             'DeviceID': shortuuid.uuid(),
             'DeviceName': args.device_name,
-            'DeviceType': 'SystemMonitor',
+            'DeviceType': 'ServerMonitor',
             'username': args.username,
             'password': args.password
         }
