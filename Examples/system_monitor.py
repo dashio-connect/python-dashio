@@ -65,6 +65,7 @@ def parse_commandline_arguments():
     parser.add_argument("-n", "--device_name", dest="device_name", default="SystemMon", help="IotDashboard Device name alias.")
     parser.add_argument("-u", "--username", help="mqtt Username", dest="username", default="")
     parser.add_argument("-w", "--password", help="MQTT Password", default="")
+    parser.add_argument("-f", "--inifile", help="ini filename", dest="ini_file", default="system_monitor.ini")
     parser.add_argument("-l", "--logfile", dest="logfilename", default="", help="logfile location", metavar="FILE")
     args = parser.parse_args()
     return args
@@ -82,7 +83,7 @@ def main():
     
     
     new_ini_file = False
-    ini_file = "system_monitor.ini"
+    ini_file = args.ini_file
     config_file_parser = configparser.ConfigParser()
     config_file_parser.defaults()
 
