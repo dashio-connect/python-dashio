@@ -4,8 +4,9 @@ import argparse
 import signal
 import dashio
 import psutil
+import shortuuid
 import logging
-
+import configparser
 
 def get_network_rx_tx():
     data = psutil.net_io_counters()
@@ -60,9 +61,6 @@ def parse_commandline_arguments():
     parser.add_argument(
         "-p", "--port", type=int, help="Port number.", default=1883, dest="port",
     )
-    parser.add_argument(
-        "-c", "--connection_name", dest="connection", default="NETWORK_TRAFFIC", help="IotDashboard Connection name"
-    )
     parser.add_argument("-d", "--device_id", dest="device_id", default="00001", help="IotDashboard Device ID.")
     parser.add_argument("-n", "--device_name", dest="device_name", default="SystemMon", help="IotDashboard Device name alias.")
     parser.add_argument("-u", "--username", help="mqtt Username", dest="username", default="")
@@ -78,31 +76,66 @@ def main():
     signal.signal(signal.SIGINT, signal_cntrl_c)
 
     no_datapoints = 60
+
     args = parse_commandline_arguments()
     init_logging(args.logfilename, args.verbose)
+    
+    
+    new_ini_file = False
+    ini_file = "system_monitor.ini"
+    config_file_parser = configparser.ConfigParser()
+    config_file_parser.defaults()
 
-    logging.info("Connecting to server: %s", args.server)
-    logging.info("       Connection ID: %s", args.connection)
-    logging.info("       Control topic: %s/%s/%s/control", args.username, args.connection, args.device_id)
-    logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
+    try:
+        ini_f = open(ini_file)
+        ini_f.close()
+    except FileNotFoundError:
+        default = {
+            'DeviceID': shortuuid.uuid(),
+            'DeviceName': args.device_name,
+            'DeviceType': 'SystemMonitor',
+            'username': args.username,
+            'password': args.password
+        }
+        config_file_parser['DEFAULT'] = default
+        with open(ini_file, 'w') as configfile:
+            config_file_parser.write(configfile)
+        new_ini_file = True
 
-    device = dashio.DashDevice(args.connection, args.device_id, args.device_name)
-    dash_conn = dashio.DashConnection(args.username, args.password)
+    if not new_ini_file:
+        config_file_parser.read(ini_file)
+    config_file_parser.get('DEFAULT', 'username')
+    device = dashio.DashDevice(
+        config_file_parser.get('DEFAULT', 'DeviceType'),
+        config_file_parser.get('DEFAULT', 'DeviceID'),
+        config_file_parser.get('DEFAULT', 'DeviceName')
+    )
+    dash_conn = dashio.DashConnection(
+        config_file_parser.get('DEFAULT', 'username'),
+        config_file_parser.get('DEFAULT', 'password')
+    )
 
-    def dash_rx_event_handler(msg):
-        dash_conn.set_connection(msg[2], msg[3])
-
-    device.dash_rx_event += dash_rx_event_handler
-    device.dashio_setable = True
+    device = dashio.DashDevice(
+        config_file_parser.get('DEFAULT', 'DeviceType'),
+        config_file_parser.get('DEFAULT', 'DeviceID'),
+        config_file_parser.get('DEFAULT', 'DeviceName')
+    )
+    dash_conn = dashio.DashConnection(
+        config_file_parser.get('DEFAULT', 'username'),
+        config_file_parser.get('DEFAULT', 'password')
+    )
     dash_conn.add_device(device)
 
-    monitor_page = dashio.DeviceView("monpg", "Dash Server Moniter")
-    gph_network = dashio.TimeGraph("NETWORKGRAPH")
-    gph_network.title = "Server Network Traffic: {}".format(args.connection)
+    device.dashio_setable = False
+    dash_conn.add_device(device)
+
+    monitor_page = dashio.DeviceView("monpg", "Dash Server Monitor")
+    gph_network = dashio.TimeGraph("NETWORKGRAPH", control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.45))
+    gph_network.title = "Server Network Traffic: {}".format(args.device_name)
     gph_network.y_axis_label = "Kbytes"
     gph_network.y_axis_min = 0.0
-    gph_network.y_axis_max = 1000.0
-    gph_network.y_axis_num_bars = 11
+    gph_network.y_axis_max = 100000.0
+    gph_network.y_axis_num_bars = 9
     network_rx = dashio.TimeGraphLine(
         "RX", dashio.TimeGraphLineType.LINE, color=dashio.Color.FUSCIA, max_data_points=no_datapoints, break_data=True
     )
@@ -114,12 +147,12 @@ def main():
     gph_network.add_line("NET_TX", network_tx)
     last_tx, last_rx = get_network_rx_tx()
 
-    gph_cpu = dashio.TimeGraph("CPULOAD")
-    gph_cpu.title = "CPU load: {}".format(args.connection)
+    gph_cpu = dashio.TimeGraph("CPULOAD", control_position=dashio.ControlPosition(0.0, 0.45, 1.0, 0.45))
+    gph_cpu.title = "CPU load: {}".format(args.device_name)
     gph_cpu.y_axis_label = "Percent"
     gph_cpu.y_axis_max = 100
     gph_cpu.y_axis_min = 0
-    gph_cpu.y_axis_num_bars = 8
+    gph_cpu.y_axis_num_bars = 9
     monitor_page.add_control(gph_network)
     monitor_page.add_control(gph_cpu)
     device.add_control(gph_network)
@@ -139,7 +172,7 @@ def main():
         cpu_core_line_array.append(line)
         gph_cpu.add_line("CPU:{}".format(cpu), line)
 
-    hd_dial = dashio.Dial("HD_USAGE")
+    hd_dial = dashio.Dial("HD_USAGE", control_position=dashio.ControlPosition(0.0, 0.9, 1.0, 0.1))
     hd_dial.title = "Disk Usage"
     hd_dial.dial_value = psutil.disk_usage("/").percent
     hd_dial.dial_min = 0.0

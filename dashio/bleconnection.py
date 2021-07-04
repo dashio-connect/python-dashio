@@ -25,12 +25,19 @@ import logging
 import argparse
 import configparser
 import threading
-import dbus
-import dbus.service
-import dbus.mainloop.glib
-import dbus.exceptions
+import platform
 
-from gi.repository import GLib
+if platform.system().lower().startswith('lin'):
+    # import linux specific modules
+    import dbus
+    import dbus.service
+    import dbus.mainloop.glib
+    import dbus.exceptions
+    from gi.repository import GLib
+else:
+    raise()
+
+
 
 
 GATT_CHRC_IFACE = "org.bluez.GattCharacteristic1"
