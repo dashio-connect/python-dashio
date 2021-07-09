@@ -61,9 +61,9 @@ tcp_con.add_device(device)
 first_dial_control = dashio.Dial("FirstDial", control_position=dashio.ControlPosition(0.24, 0.36, 0.54, 0.26))
 device.add_control(first_dial_control)
 
-page_dial = dashio.Page("aPageID", "A Dial")
+page_dial = dashio.DeviceView("aDeviceViewID", "A Dial")
 page_dial.add_control(first_dial_control)
-device.add_control(page_dial)
+device.add_control(dv_dial)
 
 while True:
     dial_control.dial_value = random.random() * 100
@@ -85,9 +85,9 @@ tcp_con.add_device(device)
 first_dial_control = dashio.Dial("FirstDial", control_position=dashio.ControlPosition(0.24, 0.36, 0.54, 0.26))
 device.add_control(first_dial_control)
 
-page_dial = dashio.Page("aPageID", "A Dial")
+page_dial = dashio.DeviceView("aDeviceViewID", "A Dial")
 page_dial.add_control(first_dial_control)
-device.add_control(page_dial)
+device.add_control(dv_dial)
 
 def knob_event_handler(msg):
     first_dial_control.dial_value = float(msg[3])
@@ -111,13 +111,12 @@ Controls are objects that represent actions and widgets in the IoTDashboard appl
 #### Alarm
 
 ```python
-alarm = dashio.Alarm("alarm1_ID", header="Alarm1", body="Hello from Alarm1")
-alarm.send()
+alarm = dashio.Alarm("alarm1_ID", description="An alarming alarm", sound_name=SoundName.SHIPHORN)
+alarm.send("Alarm Header", "Alarm Body")
 ```
-An alarm sends a notification throught the dashio mqtt server to registered phones. The ability to send alarms to specific phones, and the notification sound is configured throught the IoTDasboard app. Alarms are only available if you have an account registered on the dashio server and you send the the alarm through a dash connection.
+An alarm sends a notification throught the dashio mqtt server to registered phones. The ability to send alarms to specific phones, and the notification sound can be configured through the IoTDasboard app. Alarms are only available if you have an account registered on the dashio server and you send the the alarm through a dash connection.
 
 #### Button
-
 
 
 #### Button Group
