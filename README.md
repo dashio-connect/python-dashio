@@ -70,7 +70,7 @@ while True:
     time.sleep(5)
 ```
 
-First we altered the instantiation of a Dial by including a control_position. This allows us to place the control at a set location. The added lines instantiated a Page control, which we than added the dial control. Finally we added the page to the device.
+First we altered the instantiation of a Dial by including a control_position. This allows us to place the control at a set location. The added lines instantiated a DeviceView control, which we than added the dial control. Finally we added the page to the device.
 
 The next piece of the puzzle to consider is how do we get data from the IoTDashboard app? Lets add a Knob and connect it to the Dial:
 
