@@ -48,7 +48,7 @@ while True:
 
 This is about the fewest lines of code to get talking to the app. There is a lot happening under the hood to make this work. After the import we create a device with three attributes. These attributes describe the device to the app and allow you to distinguish one of your devices from another. The next two lines create a TCP connection and then add the device to the connection. The connection will be created with the default setting of port 5000 and will also advertise the service using zeroconf, also known as bonjour. This allows IoTDashboard to find your device. After that we create a dial add it to the device and then every five seconds send a randomly generated dial value to the IoTDashboard app.
 
-This device is discoverable by the app and you will be able to manually add the control to any of your existing pages. It would be nice to have IoTDashboard automagically setup a new page and place your control on the new page. To do that we need to add a few more lines of code:
+This device is discoverable by the app. It would be nice to have IoTDashboard automagically setup a new DeviceView and place your control on the new DeviceView. To do that we need to add a few more lines of code:
 
 ```python
 import dashio
@@ -61,8 +61,8 @@ tcp_con.add_device(device)
 first_dial_control = dashio.Dial("FirstDial", control_position=dashio.ControlPosition(0.24, 0.36, 0.54, 0.26))
 device.add_control(first_dial_control)
 
-page_dial = dashio.DeviceView("aDeviceViewID", "A Dial")
-page_dial.add_control(first_dial_control)
+dv_dial = dashio.DeviceView("aDeviceViewID", "A Dial")
+dv_dial.add_control(first_dial_control)
 device.add_control(dv_dial)
 
 while True:
@@ -70,7 +70,7 @@ while True:
     time.sleep(5)
 ```
 
-First we altered the instantiation of a Dial by including a control_position. This allows us to place the control at a set location. The added lines instantiated a DeviceView control, which we than added the dial control. Finally we added the page to the device.
+First we altered the instantiation of a Dial by including a control_position. This allows us to place the control at a set location. The added lines instantiated a DeviceView control, which we than added the dial control. Finally we added the dv to the device.
 
 The next piece of the puzzle to consider is how do we get data from the IoTDashboard app? Lets add a Knob and connect it to the Dial:
 
@@ -85,8 +85,8 @@ tcp_con.add_device(device)
 first_dial_control = dashio.Dial("FirstDial", control_position=dashio.ControlPosition(0.24, 0.36, 0.54, 0.26))
 device.add_control(first_dial_control)
 
-page_dial = dashio.DeviceView("aDeviceViewID", "A Dial")
-page_dial.add_control(first_dial_control)
+dv_dial = dashio.DeviceView("aDeviceViewID", "A Dial")
+dv_dial.add_control(first_dial_control)
 device.add_control(dv_dial)
 
 def knob_event_handler(msg):
@@ -94,19 +94,19 @@ def knob_event_handler(msg):
 
 aknob = dashio.Knob("aKNB", control_position=dashio.ControlPosition(0.24, 0.14, 0.54, 0.26))
 aknob.message_rx_event = knob_event_handler
-page_dial.add_control(aknob)
+dv_dial.add_control(aknob)
 device.add_control(aknob)
 
 while True:
     time.sleep(5)
 ```
 First we added a function that sets the dial value. Next we added a Knob control and set our new function to be called when it receives data from the IoTDashboard app.
-We also add it to the page and to the device. Now when the knob in IoTDashoard is moved the dial is set to the same value. 
+We also add it to the DeviceView and to the device. Now when the knob in IoTDashoard is moved the dial is set to the same value. 
 
 
 ### Controls
 
-Controls are objects that represent actions and widgets in the IoTDashboard application. Controls that are displayed have a ```dashio.ControlPosition``` that is composed of four size and position variables: x_position_ratio, y_position_ratio, width_ratio, height_ratio. The first two are position ratios that place the top left corner of the widget on the page. The last two are ratios that govern the size of the widget. The ratios are propertional to the size of the screen with the full size of the screen representing 1.0.
+Controls are objects that represent actions and widgets in the IoTDashboard application. Controls that are displayed have a ```dashio.ControlPosition``` that is composed of four size and position variables: x_position_ratio, y_position_ratio, width_ratio, height_ratio. The first two are position ratios that place the top left corner of the widget on the DeviceView. The last two are ratios that govern the size of the widget. The ratios are propertional to the size of the screen with the full size of the screen representing 1.0.
 
 #### Alarm
 
