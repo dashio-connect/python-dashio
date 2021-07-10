@@ -5,6 +5,7 @@ import random
 import argparse
 import signal
 import dashio
+from dashio import bleconnection
 import logging
 import platform
 import zmq

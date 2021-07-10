@@ -3,7 +3,7 @@ from .tcpconnection import TCPConnection
 from .mqttconnection import MQTTConnection
 from .zmqconnection import ZMQConnection
 from .dashconnection import DashConnection
-from .bleconnection import BLEConnection
+# from .bleconnection import BLEConnection
 from .iotcontrol.enums import (
     Color,
     Icon,
