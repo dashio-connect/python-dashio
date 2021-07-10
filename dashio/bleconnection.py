@@ -177,7 +177,7 @@ class BLEServer(dbus.service.Object):
         self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
 
 
-        self.mainloop.io_add_watch(zmq_fd, GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP, self.zmq_callback, self.rx_zmq_sub)
+        GLib.io_add_watch(zmq_fd, GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP, self.zmq_callback, self.rx_zmq_sub)
 
         chrc = self.dash_service.get_characteristics()
         self.response[chrc.get_path()] = chrc.get_properties()
