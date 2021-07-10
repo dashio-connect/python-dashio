@@ -126,8 +126,14 @@ class NotSupportedException(dbus.exceptions.DBusException):
 class NotPermittedException(dbus.exceptions.DBusException):
     _dbus_error_name = "org.bluez.Error.NotPermitted"
 
-class BLEServer(dbus.service.Object):
+class BLEConnection(dbus.service.Object, threading.Thread):
 
+    def add_device(self, device):
+        device.add_connection(self)
+        self.zmq_connect(device)
+
+    def close(self):
+        self.ble.quit()
 
     def zmq_callback(self, queue, condition):
         logging.debug('zmq_callback')
@@ -146,13 +152,15 @@ class BLEServer(dbus.service.Object):
     def ble_rx(self, msg: str):
         self.tx_zmq_pub.send_multipart([self.b_connection_id, b'1', msg.encode('utf-8')])
 
-    def __init__(self, connection_id, context=None):
+    def __init__(self, context=None):
+        threading.Thread.__init__(self, daemon=True)
+        
+        self.connection_id = shortuuid.uuid()
+        self.b_connection_id = self.connection_id.encode('utf-8')
+
         dbus.mainloop.glib.threads_init()
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
         self.mainloop = GLib.MainLoop()
-
-        self.connection_id = connection_id
-        self.b_connection_id = self.connection_id.encode('utf-8')
 
         self.bus = BleTools.get_bus()
         self.path = "/"
@@ -174,7 +182,8 @@ class BLEServer(dbus.service.Object):
         dbus.service.Object.__init__(self, self.bus, self.path)
         self.register()
         self.adv = DashIOAdvertisement(0, "DashIO", DASHIO_SERVICE_UUID)
-        
+        self.start()
+        time.sleep(1)
 
     def get_path(self):
         return dbus.ObjectPath(self.path)
@@ -324,6 +333,7 @@ class DashConCharacteristic(dbus.service.Object):
         logging.debug("BLE RX: %s", rx_str)
         self._ble_rx(rx_str)
 
+"""
 class BLEConnection(threading.Thread):
 
     def add_device(self, device):
@@ -343,7 +353,7 @@ class BLEConnection(threading.Thread):
     
     def run(self):
         self.ble.run()
-
+"""
 
 def init_logging(logfilename, level):
     log_level = logging.WARN
