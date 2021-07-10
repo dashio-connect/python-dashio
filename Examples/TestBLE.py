@@ -104,6 +104,7 @@ class TestControls:
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
         self.context = zmq.Context.instance()
+        
         self.ble_con = dashio.BLEConnection(context=self.context)
         self.device = dashio.DashDevice(args.connection, args.device_id, args.device_name, context=self.context)
         self.ble_con.add_device(self.device)
