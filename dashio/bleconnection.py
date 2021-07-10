@@ -133,8 +133,10 @@ class BLEServer(dbus.service.Object):
         print ('zmq_callback', queue, condition, sock)
 
         while sock.getsockopt(zmq.EVENTS) & zmq.POLLIN:
-            observed = sock.recv()
-            print(observed)
+            [address, msg_id, data] = self.rx_zmq_sub.recv_multipart()
+            if not data:
+                continue
+            self.dash_service.
         return True
 
     def zmq_connect(self, device: DashDevice):
@@ -221,8 +223,8 @@ class DashIOService(dbus.service.Object):
         self.uuid = service_uuid
         self.primary = True
 
-        self.characteristics = []
-        self.characteristics.append(DashConCharacteristic(self, service_uuid, ble_rx))
+        self.dash_characteristics = DashConCharacteristic(self, service_uuid, ble_rx)
+
         dbus.service.Object.__init__(self, self.bus, self.path)
 
     def get_properties(self):
@@ -241,12 +243,8 @@ class DashIOService(dbus.service.Object):
 
     def get_characteristic_paths(self):
         result = []
-        for chrc in self.characteristics:
-            result.append(chrc.get_path())
+        result.append(self.dash_characteristics.get_path())
         return result
-
-    def get_characteristics(self):
-        return self.characteristics
 
     def get_bus(self):
         return self.bus
