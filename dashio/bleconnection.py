@@ -320,7 +320,7 @@ class DashConCharacteristic(dbus.service.Object):
         if self.notifying:
             logging.debug("BLE TX: %s", tx_data.strip())
             value = [dbus.Byte(c.encode()) for c in tx_data]
-            self.PropertiesChanged(GATT_CHRC_IFACE, {"Value": value}, [])
+            self.PropertiesChanged(GATT_CHRC_IFACE, {"Value": value, "mtu": 512}, [])
         return self.notifying
 
     @dbus.service.method(GATT_CHRC_IFACE)
@@ -335,7 +335,6 @@ class DashConCharacteristic(dbus.service.Object):
 
     @dbus.service.method(GATT_CHRC_IFACE, in_signature='aya{sv}')
     def WriteValue(self, value, options):
-        logging.debug("Options: %s", options)
         rx_str = ''.join([str(v) for v in value]).strip()
         logging.debug("BLE RX: %s", rx_str)
         self._ble_rx(rx_str)
