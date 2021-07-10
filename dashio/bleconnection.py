@@ -155,12 +155,6 @@ class BLEConnection(dbus.service.Object, threading.Thread):
     def __init__(self, context=None):
         threading.Thread.__init__(self, daemon=True)
 
-        self.bus = BleTools.get_bus()
-        self.path = "/"
-        self.dash_service = DashIOService(0, DASHIO_SERVICE_UUID, self.ble_rx)
-        self.response = {}
-
-
         self.connection_id = shortuuid.uuid()
         self.b_connection_id = self.connection_id.encode('utf-8')
 
@@ -181,13 +175,18 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
         self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
 
-        chrc = self.dash_service.get_characteristics()
-        self.response[chrc.get_path()] = chrc.get_properties()
-
-
         dbus.mainloop.glib.threads_init()
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
         self.mainloop = GLib.MainLoop()
+
+        self.bus = BleTools.get_bus()
+        self.path = "/"
+        self.dash_service = DashIOService(0, DASHIO_SERVICE_UUID, self.ble_rx)
+        self.response = {}
+
+        chrc = self.dash_service.get_characteristics()
+        self.response[chrc.get_path()] = chrc.get_properties()
+
         dbus.service.Object.__init__(self, self.bus, self.path)
         self.register()
         self.adv = DashIOAdvertisement(0, "DashIO", DASHIO_SERVICE_UUID)
