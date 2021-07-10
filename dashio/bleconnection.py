@@ -160,7 +160,8 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         self.watch = GLib.io_add_watch(
             self.rx_zmq_sub.getsockopt(zmq.FD),
             GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP|GLib.IO_PRI,
-            self.zmq_callback
+            self.zmq_callback,
+            self
         )
 
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
