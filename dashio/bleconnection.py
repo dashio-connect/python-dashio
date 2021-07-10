@@ -142,7 +142,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
             if not data:
                 continue
             data_str = data.decode('utf-8')
-            n = 150
+            n = 184
             date_lines = [data_str[i:i+n] for i in range(0, len(data_str), n)]
             # delimiter = '\n'
             # date_lines =  [e+delimiter for e in data_str.split(delimiter) if e]
