@@ -32,7 +32,10 @@ import dbus.service
 import zmq
 from gi.repository import GLib
 
-from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
+try:
+    from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
+except ModuleNotFoundError:
+    from constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 
 GATT_CHRC_IFACE = "org.bluez.GattCharacteristic1"
 NOTIFY_TIMEOUT = 10
