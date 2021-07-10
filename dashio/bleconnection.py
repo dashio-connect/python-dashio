@@ -168,17 +168,14 @@ class BLEServer(dbus.service.Object):
 
         self.context = context or zmq.Context.instance()
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
+        zmq_fd = self.rx_zmq_sub.getsockopt(zmq.FD)
+        watch = GLib.io_add_watch(zmq_fd, GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP, self.zmq_callback)
+
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
 
-        zmq_fd = self.rx_zmq_sub.getsockopt(zmq.FD)
-
-
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
         self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
-
-
-        watch = GLib.io_add_watch(zmq_fd, GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP, self.zmq_callback)
 
         chrc = self.dash_service.get_characteristics()
         self.response[chrc.get_path()] = chrc.get_properties()
