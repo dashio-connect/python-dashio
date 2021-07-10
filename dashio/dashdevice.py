@@ -306,6 +306,7 @@ class DashDevice(threading.Thread):
                         continue
                     reply = self._on_message(msg[2])
                     if reply:
+                        logging.debug("DEVICE TX: %s", reply)
                         self.tx_zmq_pub.send_multipart([msg[0], msg[1], reply.encode('utf-8')])
 
         self.tx_zmq_pub.close()
