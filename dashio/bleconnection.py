@@ -322,9 +322,10 @@ class DashConCharacteristic(dbus.service.Object):
 
     @dbus.service.method(GATT_CHRC_IFACE, in_signature='aya{sv}')
     def WriteValue(self, value, options):
-        rx_str = ''.join([str(v) for v in value]).strip()
-        logging.debug("BLE RX: %s", rx_str)
-        self._ble_rx(rx_str)
+        rx_str = ''.join([str(v) for v in value])
+        s_rx_str = rx_str.strip()
+        logging.debug("BLE RX: %s", s_rx_str)
+        self._ble_rx(s_rx_str)
 
 class BLEConnection(threading.Thread):
 
