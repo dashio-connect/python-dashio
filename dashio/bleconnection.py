@@ -153,10 +153,10 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         self.tx_zmq_pub.send_multipart([self.b_connection_id, b'1', msg.encode('utf-8')])
 
     def __init__(self, context=None):
-        threading.Thread.__init__(self, daemon=True)
         dbus.mainloop.glib.threads_init()
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
         self.mainloop = GLib.MainLoop()
+        threading.Thread.__init__(self, daemon=True)
 
         self.bus = BleTools.get_bus()
         self.path = "/"
@@ -172,8 +172,11 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         self.response[self.dash_service.get_path()] = self.dash_service.get_properties()
 
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
-        zmq_fd = self.rx_zmq_sub.getsockopt(zmq.FD)
-        self.watch = GLib.io_add_watch(zmq_fd, GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP, self.zmq_callback)
+        self.watch = dbus.mainloop.glib.io_add_watch(
+            self.rx_zmq_sub.getsockopt(zmq.FD),
+            GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP,
+            self.zmq_callback
+        )
 
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
@@ -209,7 +212,6 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         service_manager.RegisterApplication(self.get_path(), {}, reply_handler=self.register_app_callback, error_handler=self.register_app_error_callback)
 
     def run(self):
-        
         logging.debug("BLE running")
         self.mainloop.run()
 
