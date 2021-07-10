@@ -133,7 +133,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         self.zmq_connect(device)
 
     def close(self):
-        self.ble.quit()
+        self.quit()
 
     def zmq_callback(self, queue, condition):
         logging.debug('zmq_callback')
