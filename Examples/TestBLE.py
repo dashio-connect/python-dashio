@@ -233,7 +233,7 @@ class TestControls:
             self.comp_control.direction_value = random.random() * 360
 
         self.device.send_popup_message("TestControls", "Shutting down", "Goodbye")
-        self.tcp_con.close()
+        self.ble_con.close()
         self.device.close()
 
 
