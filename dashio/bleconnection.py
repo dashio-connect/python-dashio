@@ -184,10 +184,10 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         chrc = self.dash_service.get_characteristics()
         self.response[chrc.get_path()] = chrc.get_properties()
 
-        self.mainloop = GLib.MainLoop()
 
         dbus.mainloop.glib.threads_init()
-        dbus.mainloop.glib.DBusGMainLoop(mainloop=self.mainloop )
+        dbus.mainloop.glib.DBusGMainLoop()
+        self.mainloop = GLib.MainLoop()
         dbus.service.Object.__init__(self, self.bus, self.path)
         self.register()
         self.adv = DashIOAdvertisement(0, "DashIO", DASHIO_SERVICE_UUID)
