@@ -130,7 +130,7 @@ class BLEServer(dbus.service.Object):
 
 
     def zmq_callback(self, queue, condition, sock):
-        print ('zmq_callback', queue, condition, sock)
+        logging.debug('zmq_callback')
 
         while sock.getsockopt(zmq.EVENTS) & zmq.POLLIN:
             [address, msg_id, data] = self.rx_zmq_sub.recv_multipart()
@@ -177,7 +177,7 @@ class BLEServer(dbus.service.Object):
         self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
 
 
-        GLib.io_add_watch(zmq_fd, GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP, self.zmq_callback, self.rx_zmq_sub)
+        self.mainloop.io_add_watch(zmq_fd, GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP, self.zmq_callback, self.rx_zmq_sub)
 
         chrc = self.dash_service.get_characteristics()
         self.response[chrc.get_path()] = chrc.get_properties()
