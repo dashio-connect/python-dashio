@@ -48,14 +48,12 @@ class TestControls:
                             0 = only warnings, 1 = info, 2 = debug.
                             No number means info. Default is no verbosity.""",
         )
-        parser.add_argument("-u", "--url", help="Host URL.", dest="url", default="tcp://*")
         parser.add_argument(
-            "-c", "--connection_name", dest="connection", default="TestTCP", help="IotDashboard Connection name"
+            "-c", "--connection_name", dest="connection", default="TestBLE", help="IotDashboard Connection name"
         )
         parser.add_argument("-d", "--device_id", dest="device_id", default="00001", help="IotDashboard Device ID.")
-        parser.add_argument("-p", "--port", dest="port", type=int, default=5650, help="Port number")
         parser.add_argument(
-            "-n", "--device_name", dest="device_name", default="TCPTest", help="Alias name for device."
+            "-n", "--device_name", dest="device_name", default="BLETest", help="Alias name for device."
         )
         parser.add_argument("-l", "--logfile", dest="logfilename", default="", help="logfile location", metavar="FILE")
         args = parser.parse_args()
@@ -101,7 +99,7 @@ class TestControls:
         args = self.parse_commandline_arguments()
         self.init_logging(args.logfilename, args.verbose)
 
-        logging.info("   Serving on: %s:%s", args.url, str(args.port))
+        logging.info("   Serving on: BLE")
         logging.info("Connection ID: %s", args.connection)
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
@@ -110,9 +108,9 @@ class TestControls:
         self.ble_con.add_device(self.device)
 
         self.connection = args.connection
-        self.page_name = "TestTCP: " + platform.node()
+        self.page_name = "TestBLE: " + platform.node()
 
-        self.page_test = dashio.DeviceView("TestTCP", self.page_name)
+        self.page_test = dashio.DeviceView("TestBLE", self.page_name)
         self.up_btn = dashio.Button("UP_BTN", control_position=dashio.ControlPosition(0.02, 0.01, 0.22, 0.12))
         self.up_btn.btn_state = dashio.ButtonState.OFF
         self.up_btn.icon_name = dashio.Icon.UP
