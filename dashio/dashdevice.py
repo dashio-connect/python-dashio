@@ -29,7 +29,7 @@ class DashDevice(threading.Thread):
     def _on_command(self, data):
         data_array = data.split("\t")
         rx_device_id = data_array[0]
-        # logging.debug('Device RX: %s', rx_device_id)
+        logging.debug('Device RX: %s', rx_device_id)
         if rx_device_id == "WHO":
             return self.device_id_str + f"\tWHO\t{self.device_type}\t{self.device_name}\n"
         if rx_device_id != self.device_id:
