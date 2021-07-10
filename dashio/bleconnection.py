@@ -136,7 +136,7 @@ class BLEServer(dbus.service.Object):
             [address, msg_id, data] = self.rx_zmq_sub.recv_multipart()
             if not data:
                 continue
-            self.dash_service.
+            self.dash_service.dash_characteristics.ble_send(data)
         return True
 
     def zmq_connect(self, device: DashDevice):
