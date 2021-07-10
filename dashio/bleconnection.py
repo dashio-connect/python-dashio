@@ -148,7 +148,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
             # delimiter = '\n'
             # date_lines =  [e+delimiter for e in data_str.split(delimiter) if e]
             # date_lines = data.decode('utf-8').split("\n")
-            logging.debug("BLE RX: %s", data_str.strip())
+            logging.debug("BLE TX: %s", data_str.strip())
             for data_line in date_lines:
                 self.dash_service.dash_characteristics.ble_send(data_line)
         return True
@@ -323,7 +323,6 @@ class DashConCharacteristic(dbus.service.Object):
 
     def ble_send(self, tx_data):
         if self.notifying:
-            logging.debug("BLE TX: %s", tx_data.strip())
             value = [dbus.Byte(c.encode()) for c in tx_data]
             self.PropertiesChanged(GATT_CHRC_IFACE, {"Value": value}, [])
         return self.notifying
