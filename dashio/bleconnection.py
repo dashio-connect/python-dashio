@@ -29,7 +29,7 @@ import dbus.service
 
 import shortuuid
 import zmq
-from gi.repository import GObject
+from gi.repository import GLib
 
 from dashio.dashdevice import DashDevice
 
@@ -158,22 +158,22 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         self.context = context or zmq.Context.instance()
 
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
-        GObject.io_add_watch(
+        GLib.io_add_watch(
             self.rx_zmq_sub.getsockopt(zmq.FD),
-            GObject.IO_IN|GObject.IO_ERR|GObject.IO_HUP|GObject.IO_PRI,
+            GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP|GLib.IO_PRI,
             self.zmq_callback
         )
-        # GLib.timeout_add(1000, self.zmq_callback, "q", "p")
+        GLib.timeout_add(10, self.zmq_callback, "q", "p")
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
 
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
         self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
         
-        GObject.threads_init()
+        GLib.threads_init()
         dbus.mainloop.glib.threads_init()
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-        self.mainloop = GObject.MainLoop()
+        self.mainloop = GLib.MainLoop()
         #GLib.MainLoop.threads_init()
 
         self.bus = BleTools.get_bus()
