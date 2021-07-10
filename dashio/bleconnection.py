@@ -141,13 +141,14 @@ class BLEConnection(dbus.service.Object, threading.Thread):
             if not data:
                 continue
             data_str = data.decode('utf-8')
-            # need to set this for the MTU
+            # TODO: need to set this for the negitiated MTU
+            # 184 seems to work with iPhone
             mtu = 184
             date_lines = [data_str[i:i+mtu] for i in range(0, len(data_str), mtu)]
             # delimiter = '\n'
             # date_lines =  [e+delimiter for e in data_str.split(delimiter) if e]
             # date_lines = data.decode('utf-8').split("\n")
-            logging.debug("BLE RX: %s", data_str)
+            logging.debug("BLE RX: %s", data_str.strip())
             for data_line in date_lines:
                 self.dash_service.dash_characteristics.ble_send(data_line)
         return True
