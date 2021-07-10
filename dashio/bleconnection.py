@@ -129,10 +129,10 @@ class NotPermittedException(dbus.exceptions.DBusException):
 class BLEServer(dbus.service.Object):
 
 
-    def zmq_callback(self, queue, condition, sock):
+    def zmq_callback(self, queue, condition):
         logging.debug('zmq_callback')
 
-        while sock.getsockopt(zmq.EVENTS) & zmq.POLLIN:
+        while self.rx_zmq_sub.getsockopt(zmq.EVENTS) & zmq.POLLIN:
             [address, msg_id, data] = self.rx_zmq_sub.recv_multipart()
             if not data:
                 continue
@@ -178,7 +178,7 @@ class BLEServer(dbus.service.Object):
         self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
 
 
-        watch = GLib.io_add_watch(zmq_fd, GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP, self.zmq_callback, self.rx_zmq_sub)
+        watch = GLib.io_add_watch(zmq_fd, GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP, self.zmq_callback)
 
         chrc = self.dash_service.get_characteristics()
         self.response[chrc.get_path()] = chrc.get_properties()
