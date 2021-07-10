@@ -243,6 +243,7 @@ class DashIOService(dbus.service.Object):
         return {
             GATT_SERVICE_IFACE: {
                 'UUID': self.uuid,
+                'mtu': 256,
                 'Primary': self.primary,
                 'Characteristics': dbus.Array(
                     self.get_characteristic_paths(),
