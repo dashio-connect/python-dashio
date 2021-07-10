@@ -141,7 +141,9 @@ class BLEConnection(dbus.service.Object, threading.Thread):
             [address, msg_id, data] = self.rx_zmq_sub.recv_multipart()
             if not data:
                 continue
-            self.dash_service.dash_characteristics.ble_send(data.decode('utf-8'))
+            date_lines = data.decode('utf-8').split("\n")
+            for data_line in date_lines:
+                self.dash_service.dash_characteristics.ble_send(data_line + "\n")
         return True
 
         
