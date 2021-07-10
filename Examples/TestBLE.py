@@ -7,7 +7,7 @@ import signal
 import dashio
 import logging
 import platform
-
+import zmq
 
 class TestControls:
     def signal_cntrl_c(self, os_signal, os_frame):
@@ -103,8 +103,9 @@ class TestControls:
         logging.info("Connection ID: %s", args.connection)
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
-        self.ble_con = dashio.BLEConnection()
-        self.device = dashio.DashDevice(args.connection, args.device_id, args.device_name)
+        self.context = zmq.Context.instance()
+        self.ble_con = dashio.BLEConnection(context=self.context)
+        self.device = dashio.DashDevice(args.connection, args.device_id, args.device_name, context=self.context)
         self.ble_con.add_device(self.device)
 
         self.connection = args.connection
