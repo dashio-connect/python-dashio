@@ -317,6 +317,9 @@ class BLEConnection(threading.Thread):
         self.ble = BLEServer()
         self.ble.run()
 
+        self.start()
+        time.sleep(1)
+        
 
 def init_logging(logfilename, level):
     log_level = logging.WARN
