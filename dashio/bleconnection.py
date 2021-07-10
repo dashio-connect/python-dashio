@@ -332,7 +332,7 @@ class BLEConnection(threading.Thread):
 
     def add_device(self, device):
         device.add_connection(self)
-        self.ble.connect(device)
+        self.ble.zmq_connect(device)
 
     def close(self):
         self.ble.quit()
