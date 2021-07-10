@@ -220,7 +220,6 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         service_manager.RegisterApplication(self.get_path(), {}, reply_handler=self.register_app_callback, error_handler=self.register_app_error_callback)
 
     def run(self):
-        logging.debug("BLE running")
         self.mainloop.run()
 
     def quit(self):
