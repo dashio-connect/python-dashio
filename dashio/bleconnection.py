@@ -154,10 +154,6 @@ class BLEConnection(dbus.service.Object, threading.Thread):
 
     def __init__(self, context=None):
         threading.Thread.__init__(self, daemon=True)
-        
-        self.connection_id = shortuuid.uuid()
-        self.b_connection_id = self.connection_id.encode('utf-8')
-
         dbus.mainloop.glib.threads_init()
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
         self.mainloop = GLib.MainLoop()
@@ -167,11 +163,20 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         self.dash_service = DashIOService(0, DASHIO_SERVICE_UUID, self.ble_rx)
         self.response = {}
 
-        self.response[self.dash_service.get_path()] = self.dash_service.get_properties()
 
-        # threading.Thread.__init__(self, daemon=True)
+        self.connection_id = shortuuid.uuid()
+        self.b_connection_id = self.connection_id.encode('utf-8')
 
         self.context = context or zmq.Context.instance()
+        
+        self.response[self.dash_service.get_path()] = self.dash_service.get_properties()
+
+        self.rx_zmq_sub = self.context.socket(zmq.SUB)
+        zmq_fd = self.rx_zmq_sub.getsockopt(zmq.FD)
+        self.watch = GLib.io_add_watch(zmq_fd, GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP, self.zmq_callback)
+
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
         
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
         self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
@@ -204,13 +209,8 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         service_manager.RegisterApplication(self.get_path(), {}, reply_handler=self.register_app_callback, error_handler=self.register_app_error_callback)
 
     def run(self):
-        self.rx_zmq_sub = self.context.socket(zmq.SUB)
-        zmq_fd = self.rx_zmq_sub.getsockopt(zmq.FD)
-        self.watch = GLib.io_add_watch(zmq_fd, GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP, self.zmq_callback)
-
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
-
+        
+        logging.debug("BLE running")
         self.mainloop.run()
 
     def quit(self):
