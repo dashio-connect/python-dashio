@@ -141,7 +141,8 @@ class BLEConnection(dbus.service.Object, threading.Thread):
             [address, msg_id, data] = self.rx_zmq_sub.recv_multipart()
             if not data:
                 continue
-            self.dash_service.dash_characteristics.ble_send(data)
+            logging.debug("BLE TX: %s", data.decode('utf-8').strip)
+            self.dash_service.dash_characteristics.ble_send(data.decode('utf-8'))
         return True
 
         
@@ -311,7 +312,7 @@ class DashConCharacteristic(dbus.service.Object):
 
     def ble_send(self, tx_data):
         if self.notifying:
-            #value = [dbus.Byte(c.encode()) for c in tx_data]
+            value = [dbus.Byte(c.encode()) for c in tx_data]
             self.PropertiesChanged(GATT_CHRC_IFACE, {"Value": tx_data}, [])
         return self.notifying
 
