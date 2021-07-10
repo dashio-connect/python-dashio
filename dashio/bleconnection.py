@@ -120,13 +120,13 @@ class NotSupportedException(dbus.exceptions.DBusException):
 class NotPermittedException(dbus.exceptions.DBusException):
     _dbus_error_name = "org.bluez.Error.NotPermitted"
 
-class bleconnection(dbus.service.Object):
+class BLEServer(dbus.service.Object):
 
     
     def zmq_socket(self, address):
         ctx = zmq.Context()
         sock = ctx.socket(zmq.SUB)
-        sock.setsockopt(zmq.SUBSCRIBE, b'')
+        sock.setsockopt(zmq.SUBSCRIBE, address)
         return sock
 
     def zmq_callback(self, queue, condition, sock):
@@ -153,7 +153,7 @@ class bleconnection(dbus.service.Object):
         # threading.Thread.__init__(self, daemon=True)
 
 
-        sock = self.zmq_socket(b'test_zmq')
+        sock = self.zmq_socket(b'')
         zmq_fd = sock.getsockopt(zmq.FD)
 
         GLib.io_add_watch(zmq_fd, GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP, self.zmq_callback, sock)
@@ -167,8 +167,6 @@ class bleconnection(dbus.service.Object):
         self.register()
         self.adv = DashIOAdvertisement(0, "DashIO", DASHIO_SERVICE_UUID)
         
-        self.start()
-        time.sleep(1)
 
     def get_path(self):
         return dbus.ObjectPath(self.path)
@@ -309,6 +307,17 @@ class DashConCharacteristic(dbus.service.Object):
         logging.debug("BLE RX: %s", rx_str)
 
 
+class BLEConnection(threading.Thread):
+
+    def close(self):
+        self.ble.quit()
+
+    def __init__(self):
+        threading.Thread.__init__(self, daemon=True)
+        self.ble = BLEServer()
+        self.ble.run()
+
+
 def init_logging(logfilename, level):
     log_level = logging.WARN
     if level == 1:
@@ -359,12 +368,12 @@ def main():
     init_logging(args.logfilename, args.verbose)
     config_file_parser = configparser.ConfigParser()
     config_file_parser.defaults()
-    app = bleconnection()
+    app = BLEConnection()
     while True:
         try:
             time.sleep(1)
         except KeyboardInterrupt:
-            app.quit()
+            app.close()
 
 
 if __name__ == "__main__":
