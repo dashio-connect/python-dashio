@@ -23,6 +23,9 @@ import threading
 import time
 
 import dbus
+import dbus.exceptions
+import dbus.mainloop.glib
+import dbus.service
 
 import shortuuid
 import zmq
