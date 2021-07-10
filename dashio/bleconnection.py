@@ -128,9 +128,10 @@ class NotPermittedException(dbus.exceptions.DBusException):
 
 class BLEConnection(dbus.service.Object, threading.Thread):
 
-    def add_device(self, device):
+    def add_device(self, device: DashDevice):
         device.add_connection(self)
-        self.zmq_connect(device)
+        self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
 
     def close(self):
         self.quit()
@@ -145,10 +146,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
             self.dash_service.dash_characteristics.ble_send(data)
         return True
 
-    def zmq_connect(self, device: DashDevice):
-        self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
-
+        
     def ble_rx(self, msg: str):
         self.tx_zmq_pub.send_multipart([self.b_connection_id, b'1', msg.encode('utf-8')])
 
