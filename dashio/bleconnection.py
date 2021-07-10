@@ -284,6 +284,7 @@ class DashConCharacteristic(dbus.service.Object):
         self.flags = ["notify", "write-without-response"]
         self.notifying = False
         self._ble_rx = ble_rx
+        self.read_buffer = ""
         dbus.service.Object.__init__(self, self.bus, self.path)
 
     def get_properties(self):
@@ -336,7 +337,10 @@ class DashConCharacteristic(dbus.service.Object):
 
     @dbus.service.method(GATT_CHRC_IFACE, in_signature='aya{sv}')
     def WriteValue(self, value, options):
-        rx_str = ''.join([str(v) for v in value]).strip()
-        logging.debug("BLE RX: %s", rx_str)
-        self._ble_rx(rx_str)
+        rx_str = ''.join([str(v) for v in value])
+        self.read_buffer += rx_str
+        if rx_str[-1] == '\n':
+            logging.debug("BLE RX: %s", rx_str)
+            self._ble_rx(self.read_buffer)
+            self.read_buffer = ''
 
