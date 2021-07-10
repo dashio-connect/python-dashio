@@ -276,7 +276,7 @@ class DashConCharacteristic(dbus.service.Object):
         self.uuid = chacteristic_uuid
         self.service = service
         self.flags = ["notify", "write-without-response"]
-        self.notifying = True
+        self.notifying = False
         self._ble_rx = ble_rx
         dbus.service.Object.__init__(self, self.bus, self.path)
 
