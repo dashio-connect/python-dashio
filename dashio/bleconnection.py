@@ -140,7 +140,6 @@ class BLEServer(dbus.service.Object):
         return True
 
     def zmq_connect(self, device: DashDevice):
-        logging.debug("ZMQ CONNECTED")
         self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
 
@@ -152,10 +151,8 @@ class BLEServer(dbus.service.Object):
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
         self.mainloop = GLib.MainLoop()
 
-
         self.connection_id = connection_id
         self.b_connection_id = self.connection_id.encode('utf-8')
-
 
         self.bus = BleTools.get_bus()
         self.path = "/"
@@ -169,7 +166,7 @@ class BLEServer(dbus.service.Object):
         self.context = context or zmq.Context.instance()
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         zmq_fd = self.rx_zmq_sub.getsockopt(zmq.FD)
-        watch = GLib.io_add_watch(zmq_fd, GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP, self.zmq_callback)
+        self.watch = GLib.io_add_watch(zmq_fd, GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP, self.zmq_callback)
 
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
