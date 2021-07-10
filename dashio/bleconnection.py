@@ -157,7 +157,6 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         dbus.mainloop.glib.threads_init()
         GLib.threads_init()
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-        self.mainloop = GLib.MainLoop()
 
         self.bus = BleTools.get_bus()
         self.path = "/"
@@ -179,6 +178,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
             self.zmq_callback
         )
 
+        self.mainloop = GLib.MainLoop()
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
 
