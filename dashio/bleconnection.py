@@ -18,24 +18,19 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-import argparse
-import configparser
-from dashio.dashdevice import DashDevice
 import logging
 import threading
 import time
-import shortuuid
+
 import dbus
-import dbus.exceptions
-import dbus.mainloop.glib
-import dbus.service
+
+import shortuuid
 import zmq
 from gi.repository import GLib
 
-try:
-    from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
-except ModuleNotFoundError:
-    from constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
+from dashio.dashdevice import DashDevice
+
+from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 
 GATT_CHRC_IFACE = "org.bluez.GattCharacteristic1"
 NOTIFY_TIMEOUT = 10
@@ -333,66 +328,4 @@ class DashConCharacteristic(dbus.service.Object):
         rx_str = ''.join([str(v) for v in value]).strip()
         logging.debug("BLE RX: %s", rx_str)
         self._ble_rx(rx_str)
-
-
-def init_logging(logfilename, level):
-    log_level = logging.WARN
-    if level == 1:
-        log_level = logging.INFO
-    elif level == 2:
-        log_level = logging.DEBUG
-    if not logfilename:
-        formatter = logging.Formatter("%(asctime)s, %(message)s")
-        handler = logging.StreamHandler()
-        handler.setFormatter(formatter)
-        logger = logging.getLogger()
-        logger.addHandler(handler)
-        logger.setLevel(log_level)
-    else:
-        logging.basicConfig(
-            filename=logfilename,
-            level=log_level,
-            format="%(asctime)s, %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
-    logging.info("==== Started ====")
-
-
-def parse_commandline_arguments():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-v",
-        "--verbose",
-        const=1,
-        default=1,
-        type=int,
-        nargs="?",
-        help="""increase verbosity:
-                        0 = only warnings, 1 = info, 2 = debug.
-                        No number means info. Default is no verbosity.""",
-    )
-    parser.add_argument("-u", "--username", help="Dashio Username", dest="username", default="")
-    parser.add_argument("-w", "--password", help="DashIO Password", dest="password", default="")
-    parser.add_argument("-l", "--logfile", dest="logfilename", default="", help="logfile location", metavar="FILE")
-    args = parser.parse_args()
-    return args
-
-
-def main():
-
-    # signal.signal(signal.SIGINT, signal_cntrl_c)
-    args = parse_commandline_arguments()
-    init_logging(args.logfilename, args.verbose)
-    config_file_parser = configparser.ConfigParser()
-    config_file_parser.defaults()
-    app = BLEConnection()
-    while True:
-        try:
-            time.sleep(1)
-        except KeyboardInterrupt:
-            app.close()
-
-
-if __name__ == "__main__":
-    main()
 
