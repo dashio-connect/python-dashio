@@ -18,27 +18,18 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-import zmq
-
-import signal
-import logging
 import argparse
 import configparser
+import logging
 import threading
-import platform
+import time
 
-if platform.system().lower().startswith('lin'):
-    # import linux specific modules
-    import dbus
-    import dbus.service
-    import dbus.mainloop.glib
-    import dbus.exceptions
-    from gi.repository import GLib
-else:
-    raise()
-
-
-
+import dbus
+import dbus.exceptions
+import dbus.mainloop.glib
+import dbus.service
+import zmq
+from gi.repository import GLib
 
 GATT_CHRC_IFACE = "org.bluez.GattCharacteristic1"
 NOTIFY_TIMEOUT = 10
@@ -129,8 +120,9 @@ class NotSupportedException(dbus.exceptions.DBusException):
 class NotPermittedException(dbus.exceptions.DBusException):
     _dbus_error_name = "org.bluez.Error.NotPermitted"
 
-class bleconnection(dbus.service.Object):
+class bleconnection(threading.Thread):
 
+    
     def zmq_socket(self, address):
         ctx = zmq.Context()
         sock = ctx.socket(zmq.SUB)
@@ -147,8 +139,10 @@ class bleconnection(dbus.service.Object):
 
 
     def __init__(self):
+        dbus.mainloop.glib.threads_init()
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
         self.mainloop = GLib.MainLoop()
+
         self.bus = BleTools.get_bus()
         self.path = "/"
         self.dash_service = DashIOService(0, DASHIO_SERVICE_UUID)
@@ -156,10 +150,13 @@ class bleconnection(dbus.service.Object):
 
         self.response[self.dash_service.get_path()] = self.dash_service.get_properties()
 
+        threading.Thread.__init__(self, daemon=True)
+
+
         sock = self.zmq_socket(b'test_zmq')
         zmq_fd = sock.getsockopt(zmq.FD)
-        GLib.io_add_watch(zmq_fd, GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP, self.zmq_callback, sock)
 
+        GLib.io_add_watch(zmq_fd, GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP, self.zmq_callback, sock)
 
 
         chrcs = self.dash_service.get_characteristics()
@@ -169,6 +166,9 @@ class bleconnection(dbus.service.Object):
         dbus.service.Object.__init__(self, self.bus, self.path)
         self.register()
         self.adv = DashIOAdvertisement(0, "DashIO", DASHIO_SERVICE_UUID)
+        
+        self.start()
+        time.sleep(1)
 
     def get_path(self):
         return dbus.ObjectPath(self.path)
@@ -194,6 +194,7 @@ class bleconnection(dbus.service.Object):
     def quit(self):
         logging.debug("\nGATT application terminated")
         self.mainloop.quit()
+
 
 class DashIOService(dbus.service.Object):
     PATH_BASE = "/org/bluez/example/service"
@@ -359,81 +360,13 @@ def main():
     config_file_parser = configparser.ConfigParser()
     config_file_parser.defaults()
     app = bleconnection()
-    try:
-        app.run()
-    except KeyboardInterrupt:
-        app.quit()
+    while True:
+        try:
+            time.sleep(1)
+        except KeyboardInterrupt:
+            app.quit()
 
 
 if __name__ == "__main__":
     main()
 
-
-"""
-import sys
-from gi.repository import Clutter, GObject
-import zmq
-
-def Stage():
-    "A Stage with a red spinning rectangle"
-    stage = Clutter.Stage()
-
-    stage.set_size(400, 400)
-    rect = Clutter.Rectangle()
-    color = Clutter.Color()
-    color.from_string('red')
-    rect.set_color(color)
-    rect.set_size(100, 100)
-    rect.set_position(150, 150)
-
-    timeline = Clutter.Timeline.new(3000)
-    timeline.set_loop(True)
-
-    alpha = Clutter.Alpha.new_full(timeline, Clutter.AnimationMode.EASE_IN_OUT_SINE)
-    rotate_behaviour = Clutter.BehaviourRotate.new(
-        alpha, 
-        Clutter.RotateAxis.Z_AXIS,
-        Clutter.RotateDirection.CW,
-        0.0, 359.0)
-    rotate_behaviour.apply(rect)
-    timeline.start()
-    stage.add_actor(rect)
-
-    stage.show_all()
-    stage.connect('destroy', lambda stage: Clutter.main_quit())
-    return stage, rotate_behaviour
-
-def Socket(address):
-    ctx = zmq.Context()
-    sock = ctx.socket(zmq.SUB)
-    sock.setsockopt(zmq.SUBSCRIBE, "")
-    sock.connect(address)
-    return sock
-
-def zmq_callback(queue, condition, sock):
-    print 'zmq_callback', queue, condition, sock
-
-    while sock.getsockopt(zmq.EVENTS) & zmq.POLLIN:
-        observed = sock.recv()
-        print observed
-
-    return True
-
-def main():
-    res, args = Clutter.init(sys.argv)
-    if res != Clutter.InitError.SUCCESS:
-        return 1
-
-    stage, rotate_behaviour = Stage()
-
-    sock = Socket(sys.argv[2])
-    zmq_fd = sock.getsockopt(zmq.FD)
-    GObject.io_add_watch(zmq_fd,
-                         GObject.IO_IN|GObject.IO_ERR|GObject.IO_HUP,
-                         zmq_callback, sock)
-
-    return Clutter.main()
-
-if __name__ == '__main__':
-    sys.exit(main())
-"""
