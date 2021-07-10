@@ -51,7 +51,7 @@ class TestControls:
         parser.add_argument(
             "-c", "--connection_name", dest="connection", default="TestBLE", help="IotDashboard Connection name"
         )
-        parser.add_argument("-d", "--device_id", dest="device_id", default="00001", help="IotDashboard Device ID.")
+        parser.add_argument("-d", "--device_id", dest="device_id", default="00001000", help="IotDashboard Device ID.")
         parser.add_argument(
             "-n", "--device_name", dest="device_name", default="BLETest", help="Alias name for device."
         )
