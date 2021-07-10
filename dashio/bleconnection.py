@@ -179,9 +179,8 @@ class BLEServer(dbus.service.Object):
 
         GLib.io_add_watch(zmq_fd, GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP, self.zmq_callback, self.rx_zmq_sub)
 
-        chrcs = self.dash_service.get_characteristics()
-        for chrc in chrcs:
-            self.response[chrc.get_path()] = chrc.get_properties()
+        chrc = self.dash_service.get_characteristics()
+        self.response[chrc.get_path()] = chrc.get_properties()
 
         dbus.service.Object.__init__(self, self.bus, self.path)
         self.register()
@@ -245,6 +244,9 @@ class DashIOService(dbus.service.Object):
         result = []
         result.append(self.dash_characteristics.get_path())
         return result
+
+    def get_characteristics(self):
+        return self.dash_characteristics
 
     def get_bus(self):
         return self.bus
