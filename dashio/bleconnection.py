@@ -243,7 +243,6 @@ class DashIOService(dbus.service.Object):
         return {
             GATT_SERVICE_IFACE: {
                 'UUID': self.uuid,
-                'mtu': 256,
                 'Primary': self.primary,
                 'Characteristics': dbus.Array(
                     self.get_characteristic_paths(),
@@ -336,6 +335,7 @@ class DashConCharacteristic(dbus.service.Object):
 
     @dbus.service.method(GATT_CHRC_IFACE, in_signature='aya{sv}')
     def WriteValue(self, value, options):
+        logging.debug("Options: %s", options)
         rx_str = ''.join([str(v) for v in value]).strip()
         logging.debug("BLE RX: %s", rx_str)
         self._ble_rx(rx_str)
