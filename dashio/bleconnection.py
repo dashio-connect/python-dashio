@@ -30,7 +30,7 @@ import dbus.exceptions
 import dbus.mainloop.glib
 import dbus.service
 import zmq
-from gi.repository import GLib
+from gi.repository import GLib, GObject
 
 try:
     from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
@@ -155,7 +155,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
     def __init__(self, context=None):
         dbus.mainloop.glib.threads_init()
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-        self.mainloop = GLib.MainLoop()
+        self.mainloop = GObject.MainLoop()
         threading.Thread.__init__(self, daemon=True)
 
         self.bus = BleTools.get_bus()
@@ -172,9 +172,9 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         self.response[self.dash_service.get_path()] = self.dash_service.get_properties()
 
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
-        self.watch = dbus.mainloop.glib.io_add_watch(
+        self.watch = GObject.io_add_watch(
             self.rx_zmq_sub.getsockopt(zmq.FD),
-            GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP,
+            GObject.IO_IN|GObject.IO_ERR|GObject.IO_HUP,
             self.zmq_callback
         )
 
