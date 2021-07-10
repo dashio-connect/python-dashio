@@ -142,9 +142,10 @@ class BLEConnection(dbus.service.Object, threading.Thread):
             if not data:
                 continue
             data_str = data.decode('utf-8')
-
-            delimiter = '\n'
-            date_lines =  [e+delimiter for e in data_str.split(delimiter) if e]
+            n = 150
+            date_lines = [data_str[i:i+n] for i in range(0, len(data_str), n)]
+            # delimiter = '\n'
+            # date_lines =  [e+delimiter for e in data_str.split(delimiter) if e]
             # date_lines = data.decode('utf-8').split("\n")
             for data_line in date_lines:
                 self.dash_service.dash_characteristics.ble_send(data_line)
@@ -320,7 +321,7 @@ class DashConCharacteristic(dbus.service.Object):
         if self.notifying:
             logging.debug("BLE TX: %s", tx_data.strip())
             value = [dbus.Byte(c.encode()) for c in tx_data]
-            self.PropertiesChanged(GATT_CHRC_IFACE, {"Value": value, "mtu": 512}, [])
+            self.PropertiesChanged(GATT_CHRC_IFACE, {"Value": value}, [])
         return self.notifying
 
     @dbus.service.method(GATT_CHRC_IFACE)
