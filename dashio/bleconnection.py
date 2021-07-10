@@ -160,10 +160,11 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         GLib.io_add_watch(
             self.rx_zmq_sub.getsockopt(zmq.FD),
+            GLib.PRIORITY_DEFAULT,
             GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP|GLib.IO_PRI,
             self.zmq_callback
         )
-        GLib.timeout_add(10, self.zmq_callback, "q", "p")
+        #GLib.timeout_add(10, self.zmq_callback, "q", "p")
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
 
