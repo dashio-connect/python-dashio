@@ -61,7 +61,6 @@ class BleTools(object):
         for o, props in objects.items():
             if LE_ADVERTISING_MANAGER_IFACE in props:
                 return o
-
         return None
 
     @classmethod
@@ -142,11 +141,13 @@ class BLEConnection(dbus.service.Object, threading.Thread):
             if not data:
                 continue
             data_str = data.decode('utf-8')
-            n = 184
-            date_lines = [data_str[i:i+n] for i in range(0, len(data_str), n)]
+            # need to set this for the MTU
+            mtu = 184
+            date_lines = [data_str[i:i+mtu] for i in range(0, len(data_str), mtu)]
             # delimiter = '\n'
             # date_lines =  [e+delimiter for e in data_str.split(delimiter) if e]
             # date_lines = data.decode('utf-8').split("\n")
+            logging.debug("BLE RX: %s", data_str)
             for data_line in date_lines:
                 self.dash_service.dash_characteristics.ble_send(data_line)
         return True
@@ -340,7 +341,6 @@ class DashConCharacteristic(dbus.service.Object):
         rx_str = ''.join([str(v) for v in value])
         self.read_buffer += rx_str
         if rx_str[-1] == '\n':
-            logging.debug("BLE RX: %s", rx_str)
             self._ble_rx(self.read_buffer)
             self.read_buffer = ''
 
