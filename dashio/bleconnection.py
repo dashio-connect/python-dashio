@@ -120,7 +120,7 @@ class NotSupportedException(dbus.exceptions.DBusException):
 class NotPermittedException(dbus.exceptions.DBusException):
     _dbus_error_name = "org.bluez.Error.NotPermitted"
 
-class bleconnection(threading.Thread):
+class bleconnection(dbus.service.Object):
 
     
     def zmq_socket(self, address):
@@ -150,7 +150,7 @@ class bleconnection(threading.Thread):
 
         self.response[self.dash_service.get_path()] = self.dash_service.get_properties()
 
-        threading.Thread.__init__(self, daemon=True)
+        # threading.Thread.__init__(self, daemon=True)
 
 
         sock = self.zmq_socket(b'test_zmq')
