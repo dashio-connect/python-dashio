@@ -164,13 +164,7 @@ class BLEServer(dbus.service.Object):
         # threading.Thread.__init__(self, daemon=True)
 
         self.context = context or zmq.Context.instance()
-        self.rx_zmq_sub = self.context.socket(zmq.SUB)
-        zmq_fd = self.rx_zmq_sub.getsockopt(zmq.FD)
-        self.watch = GLib.io_add_watch(zmq_fd, GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP, self.zmq_callback)
-
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
-
+        
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
         self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
 
@@ -201,6 +195,13 @@ class BLEServer(dbus.service.Object):
         service_manager.RegisterApplication(self.get_path(), {}, reply_handler=self.register_app_callback, error_handler=self.register_app_error_callback)
 
     def run(self):
+        self.rx_zmq_sub = self.context.socket(zmq.SUB)
+        zmq_fd = self.rx_zmq_sub.getsockopt(zmq.FD)
+        self.watch = GLib.io_add_watch(zmq_fd, GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP, self.zmq_callback)
+
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
+
         self.mainloop.run()
 
     def quit(self):
