@@ -312,7 +312,7 @@ class DashConCharacteristic(dbus.service.Object):
     def ble_send(self, tx_data):
         if self.notifying:
             value = [dbus.Byte(c.encode()) for c in tx_data]
-            self.PropertiesChanged(GATT_CHRC_IFACE, {"Value": value}, [])
+            self.PropertiesChanged(GATT_CHRC_IFACE, {"Value": tx_data}, [])
         return self.notifying
 
     @dbus.service.method(GATT_CHRC_IFACE)
@@ -320,7 +320,6 @@ class DashConCharacteristic(dbus.service.Object):
         if self.notifying:
             return
         self.notifying = True
-        self.ble_send("Hello")
 
     @dbus.service.method(GATT_CHRC_IFACE)
     def StopNotify(self):
