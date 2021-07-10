@@ -155,8 +155,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
     def __init__(self, context=None):
         threading.Thread.__init__(self, daemon=True)
         dbus.mainloop.glib.threads_init()
-        GLib.threads_init()
-        dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+        dbus.mainloop.glib.DBusGMainLoop()
 
         self.bus = BleTools.get_bus()
         self.path = "/"
@@ -178,7 +177,6 @@ class BLEConnection(dbus.service.Object, threading.Thread):
             self.zmq_callback
         )
 
-        self.mainloop = GLib.MainLoop()
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
 
@@ -187,6 +185,8 @@ class BLEConnection(dbus.service.Object, threading.Thread):
 
         chrc = self.dash_service.get_characteristics()
         self.response[chrc.get_path()] = chrc.get_properties()
+
+        self.mainloop = GLib.MainLoop()
 
         dbus.service.Object.__init__(self, self.bus, self.path)
         self.register()
