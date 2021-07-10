@@ -341,7 +341,7 @@ class DashConCharacteristic(dbus.service.Object):
         rx_str = ''.join([str(v) for v in value])
         self.read_buffer += rx_str
         if rx_str[-1] == '\n':
-            logging.debug("BLE RX: %s", self.read_buffer)
+            logging.debug("BLE RX: %s", self.read_buffer.strip())
             self._ble_rx(self.read_buffer)
             self.read_buffer = ''
 
