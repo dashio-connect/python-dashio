@@ -154,8 +154,6 @@ class BLEConnection(dbus.service.Object, threading.Thread):
 
     def __init__(self, context=None):
         threading.Thread.__init__(self, daemon=True)
-        dbus.mainloop.glib.threads_init()
-        dbus.mainloop.glib.DBusGMainLoop()
 
         self.bus = BleTools.get_bus()
         self.path = "/"
@@ -188,6 +186,8 @@ class BLEConnection(dbus.service.Object, threading.Thread):
 
         self.mainloop = GLib.MainLoop()
 
+        dbus.mainloop.glib.threads_init()
+        dbus.mainloop.glib.DBusGMainLoop(mainloop=self.mainloop )
         dbus.service.Object.__init__(self, self.bus, self.path)
         self.register()
         self.adv = DashIOAdvertisement(0, "DashIO", DASHIO_SERVICE_UUID)
