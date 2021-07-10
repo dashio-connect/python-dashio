@@ -144,6 +144,7 @@ class BLEServer(dbus.service.Object):
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
 
     def ble_rx(self, msg: str):
+        logging.debug("BLE_RX")
         self.tx_zmq_pub.send_multipart([self.b_connection_id, b'1', msg.encode('utf-8')])
 
     def __init__(self, connection_id, context=None):
@@ -210,6 +211,8 @@ class BLEServer(dbus.service.Object):
 
     def quit(self):
         logging.debug("\nGATT application terminated")
+        self.tx_zmq_pub.close()
+        self.rx_zmq_sub.close()
         self.mainloop.quit()
 
 
@@ -322,10 +325,9 @@ class DashConCharacteristic(dbus.service.Object):
 
     @dbus.service.method(GATT_CHRC_IFACE, in_signature='aya{sv}')
     def WriteValue(self, value, options):
-        rx_str = ''.join([str(v) for v in value])
-        s_rx_str = rx_str.strip()
-        logging.debug("BLE RX: %s", s_rx_str)
-        self._ble_rx(s_rx_str)
+        rx_str = ''.join([str(v) for v in value]).strip()
+        logging.debug("BLE RX: %s", rx_str)
+        self._ble_rx(rx_str)
 
 class BLEConnection(threading.Thread):
 
