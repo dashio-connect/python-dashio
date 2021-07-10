@@ -172,12 +172,13 @@ class BLEConnection(dbus.service.Object, threading.Thread):
 
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
         self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
-
-        dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-        dbus.mainloop.glib.threads_init()
-        self.mainloop = GLib.MainLoop()
-        GLib.MainLoop.threads_init()
         
+        GLib.threads_init()
+        dbus.mainloop.glib.threads_init()
+        self.mainloop = dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+        #self.mainloop = GLib.MainLoop()
+        #GLib.MainLoop.threads_init()
+
         self.bus = BleTools.get_bus()
         self.path = "/"
         self.dash_service = DashIOService(0, DASHIO_SERVICE_UUID, self.ble_rx)
