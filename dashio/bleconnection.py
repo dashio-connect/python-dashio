@@ -20,16 +20,19 @@ SOFTWARE.
 """
 import argparse
 import configparser
+from dashio.dashdevice import DashDevice
 import logging
 import threading
 import time
-
+import shortuuid
 import dbus
 import dbus.exceptions
 import dbus.mainloop.glib
 import dbus.service
 import zmq
 from gi.repository import GLib
+
+from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 
 GATT_CHRC_IFACE = "org.bluez.GattCharacteristic1"
 NOTIFY_TIMEOUT = 10
@@ -122,12 +125,6 @@ class NotPermittedException(dbus.exceptions.DBusException):
 
 class BLEServer(dbus.service.Object):
 
-    
-    def zmq_socket(self, address):
-        ctx = zmq.Context()
-        sock = ctx.socket(zmq.SUB)
-        sock.setsockopt(zmq.SUBSCRIBE, address)
-        return sock
 
     def zmq_callback(self, queue, condition, sock):
         print ('zmq_callback', queue, condition, sock)
@@ -137,27 +134,45 @@ class BLEServer(dbus.service.Object):
             print(observed)
         return True
 
+    def zmq_connect(self, device: DashDevice):
+        self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
 
-    def __init__(self):
+    def ble_rx(self, msg: str):
+        self.tx_zmq_pub.send_multipart([self.b_connection_id, b'1', msg.encode('utf-8')])
+
+    def __init__(self, connection_id, context=None):
         dbus.mainloop.glib.threads_init()
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
         self.mainloop = GLib.MainLoop()
 
+
+        self.connection_id = connection_id
+        self.b_connection_id = self.connection_id.encode('utf-8')
+
+
         self.bus = BleTools.get_bus()
         self.path = "/"
-        self.dash_service = DashIOService(0, DASHIO_SERVICE_UUID)
+        self.dash_service = DashIOService(0, DASHIO_SERVICE_UUID, self.ble_rx)
         self.response = {}
 
         self.response[self.dash_service.get_path()] = self.dash_service.get_properties()
 
         # threading.Thread.__init__(self, daemon=True)
 
+        self.context = context or zmq.Context.instance()
+        self.rx_zmq_sub = self.context.socket(zmq.SUB)
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
 
-        sock = self.zmq_socket(b'')
-        zmq_fd = sock.getsockopt(zmq.FD)
+        zmq_fd = self.rx_zmq_sub.getsockopt(zmq.FD)
 
-        GLib.io_add_watch(zmq_fd, GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP, self.zmq_callback, sock)
 
+        self.tx_zmq_pub = self.context.socket(zmq.PUB)
+        self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
+
+
+        GLib.io_add_watch(zmq_fd, GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP, self.zmq_callback, self.rx_zmq_sub)
 
         chrcs = self.dash_service.get_characteristics()
         for chrc in chrcs:
@@ -197,14 +212,14 @@ class BLEServer(dbus.service.Object):
 class DashIOService(dbus.service.Object):
     PATH_BASE = "/org/bluez/example/service"
 
-    def __init__(self, index, service_uuid):
+    def __init__(self, index, service_uuid, ble_rx):
         self.bus = BleTools.get_bus()
         self.path = self.PATH_BASE + str(index)
         self.uuid = service_uuid
         self.primary = True
 
         self.characteristics = []
-        self.characteristics.append(DashConCharacteristic(self, service_uuid))
+        self.characteristics.append(DashConCharacteristic(self, service_uuid, ble_rx))
         dbus.service.Object.__init__(self, self.bus, self.path)
 
     def get_properties(self):
@@ -243,7 +258,7 @@ class DashConCharacteristic(dbus.service.Object):
     """
     org.bluez.GattCharacteristic1 interface implementation
     """
-    def __init__(self, service, chacteristic_uuid):
+    def __init__(self, service, chacteristic_uuid, ble_rx):
         
         self.path = service.path + '/char' + str(1)
         self.bus = service.get_bus()
@@ -251,6 +266,7 @@ class DashConCharacteristic(dbus.service.Object):
         self.service = service
         self.flags = ["notify", "write-without-response"]
         self.notifying = False
+        self._ble_rx = ble_rx
         dbus.service.Object.__init__(self, self.bus, self.path)
 
     def get_properties(self):
@@ -305,21 +321,27 @@ class DashConCharacteristic(dbus.service.Object):
     def WriteValue(self, value, options):
         rx_str = ''.join([str(v) for v in value])
         logging.debug("BLE RX: %s", rx_str)
-
+        self._ble_rx(rx_str)
 
 class BLEConnection(threading.Thread):
+
+    def add_device(self, device):
+        device.add_connection(self)
+        self.ble.connect(device)
 
     def close(self):
         self.ble.quit()
 
-    def __init__(self):
+    def __init__(self, context=None):
         threading.Thread.__init__(self, daemon=True)
-        self.ble = BLEServer()
+        
+        self.connection_id = shortuuid.uuid()
+        self.ble = BLEServer(self.connection_id, context=context)
         self.ble.run()
 
         self.start()
         time.sleep(1)
-        
+
 
 def init_logging(logfilename, level):
     log_level = logging.WARN
