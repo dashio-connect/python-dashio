@@ -153,11 +153,11 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         self.tx_zmq_pub.send_multipart([self.b_connection_id, b'1', msg.encode('utf-8')])
 
     def __init__(self, context=None):
+        threading.Thread.__init__(self, daemon=True)
         dbus.mainloop.glib.threads_init()
+        GLib.threads_init()
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
         self.mainloop = GLib.MainLoop()
-        GLib.threads_init()
-        threading.Thread.__init__(self, daemon=True)
 
         self.bus = BleTools.get_bus()
         self.path = "/"
@@ -169,19 +169,19 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         self.b_connection_id = self.connection_id.encode('utf-8')
 
         self.context = context or zmq.Context.instance()
-        
+
         self.response[self.dash_service.get_path()] = self.dash_service.get_properties()
 
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         self.watch = GLib.io_add_watch(
             self.rx_zmq_sub.getsockopt(zmq.FD),
-            GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP,
+            GLib.IO_IN|GLib.IO_ERR|GLib.IO_HUP|GLib.IO_PRI,
             self.zmq_callback
         )
 
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
-        
+
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
         self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
 
@@ -336,27 +336,6 @@ class DashConCharacteristic(dbus.service.Object):
         logging.debug("BLE RX: %s", rx_str)
         self._ble_rx(rx_str)
 
-"""
-class BLEConnection(threading.Thread):
-
-    def add_device(self, device):
-        device.add_connection(self)
-        self.ble.zmq_connect(device)
-
-    def close(self):
-        self.ble.quit()
-
-    def __init__(self, context=None):
-        threading.Thread.__init__(self, daemon=True)
-        
-        self.connection_id = shortuuid.uuid()
-        self.ble = BLEServer(self.connection_id, context=context)
-        self.start()
-        time.sleep(1)
-    
-    def run(self):
-        self.ble.run()
-"""
 
 def init_logging(logfilename, level):
     log_level = logging.WARN
