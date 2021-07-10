@@ -29,7 +29,6 @@ class DashDevice(threading.Thread):
     def _on_command(self, data):
         data_array = data.split("\t")
         rx_device_id = data_array[0]
-        logging.debug('Device RX: %s', rx_device_id)
         if rx_device_id == "WHO":
             return self.device_id_str + f"\tWHO\t{self.device_type}\t{self.device_name}\n"
         if rx_device_id != self.device_id:
@@ -307,7 +306,6 @@ class DashDevice(threading.Thread):
                         continue
                     reply = self._on_message(msg[2])
                     if reply:
-                        logging.debug('Device TX: %s', reply)
                         self.tx_zmq_pub.send_multipart([msg[0], msg[1], reply.encode('utf-8')])
 
         self.tx_zmq_pub.close()
