@@ -144,7 +144,6 @@ class BLEServer(dbus.service.Object):
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
 
     def ble_rx(self, msg: str):
-        logging.debug("BLE_RX")
         self.tx_zmq_pub.send_multipart([self.b_connection_id, b'1', msg.encode('utf-8')])
 
     def __init__(self, connection_id, context=None):
@@ -343,10 +342,11 @@ class BLEConnection(threading.Thread):
         
         self.connection_id = shortuuid.uuid()
         self.ble = BLEServer(self.connection_id, context=context)
-        self.ble.run()
-
         self.start()
         time.sleep(1)
+    
+    def run(self):
+        self.ble.run()
 
 
 def init_logging(logfilename, level):
