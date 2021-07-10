@@ -186,7 +186,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
 
 
         dbus.mainloop.glib.threads_init()
-        dbus.mainloop.glib.DBusGMainLoop()
+        dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
         self.mainloop = GLib.MainLoop()
         dbus.service.Object.__init__(self, self.bus, self.path)
         self.register()
