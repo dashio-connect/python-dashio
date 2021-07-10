@@ -160,8 +160,6 @@ class BLEConnection(dbus.service.Object, threading.Thread):
 
         self.context = context or zmq.Context.instance()
 
-        self.response[self.dash_service.get_path()] = self.dash_service.get_properties()
-
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         self.watch = GLib.io_add_watch(
             self.rx_zmq_sub.getsockopt(zmq.FD),
@@ -186,6 +184,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
 
         chrc = self.dash_service.get_characteristics()
         self.response[chrc.get_path()] = chrc.get_properties()
+        self.response[self.dash_service.get_path()] = self.dash_service.get_properties()
 
         dbus.service.Object.__init__(self, self.bus, self.path)
         self.register()
