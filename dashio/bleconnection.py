@@ -311,7 +311,7 @@ class DashConCharacteristic(dbus.service.Object):
 
     def ble_send(self, tx_data):
         if self.notifying:
-            value = [dbus.Byte(c.encode()) for c in tx_data]
+            #value = [dbus.Byte(c.encode()) for c in tx_data]
             self.PropertiesChanged(GATT_CHRC_IFACE, {"Value": tx_data}, [])
         return self.notifying
 
