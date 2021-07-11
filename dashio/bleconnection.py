@@ -143,7 +143,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
             data_str = data.decode('utf-8')
             # TODO: need to set this for the negitiated MTU
             # 184 seems to work with iPhone
-            mtu = 184
+            mtu = 150
             date_lines = [data_str[i:i+mtu] for i in range(0, len(data_str), mtu)]
             # delimiter = '\n'
             # date_lines =  [e+delimiter for e in data_str.split(delimiter) if e]
