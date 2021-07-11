@@ -28,6 +28,7 @@ import dbus.mainloop.glib
 import dbus.service
 
 import shortuuid
+import uuid
 import zmq
 from gi.repository import GLib
 
@@ -142,8 +143,8 @@ class BLEConnection(dbus.service.Object, threading.Thread):
                 continue
             data_str = data.decode('utf-8')
             # TODO: need to set this for the negitiated MTU
-            # 184 seems to work with iPhone
-            mtu = 150
+            # 160 seems to work with iPhone
+            mtu = 160
             date_lines = [data_str[i:i+mtu] for i in range(0, len(data_str), mtu)]
             # delimiter = '\n'
             # date_lines =  [e+delimiter for e in data_str.split(delimiter) if e]
@@ -185,7 +186,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
         self.mainloop = GLib.MainLoop()
         #GLib.MainLoop.threads_init()
-
+         
         self.bus = BleTools.get_bus()
         self.path = "/"
         self.dash_service = DashIOService(0, DASHIO_SERVICE_UUID, self.ble_rx)
