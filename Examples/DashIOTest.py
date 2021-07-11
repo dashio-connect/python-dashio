@@ -3,7 +3,7 @@ import signal
 import logging
 import argparse
 import configparser
-import uuid
+import shortuuid
 import time
 
 SHUTDOWN = False
@@ -85,7 +85,7 @@ def main():
         ini_f.close()
     except FileNotFoundError:
         default = {
-            'DeviceID': uuid.uuid4(),
+            'DeviceID': shortuuid.uuid(),
             'DeviceName': 'DashIO Test',
             'DeviceType': 'DashIOTests',
             'username': args.username,
