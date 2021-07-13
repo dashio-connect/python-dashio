@@ -80,7 +80,7 @@ class DashIOAdvertisement(dbus.service.Object):
         self.service_uuids.append(service_uuid)
         self.properties = {}
         self.properties["Type"] = "peripheral"
-        self.properties["LocalName"] = dbus.String("DashIO_" + device_type)
+        self.properties["LocalName"] = dbus.String(device_type)
         self.properties["ServiceUUIDs"] = dbus.Array(self.service_uuids, signature='s')
         self.properties["IncludeTxPower"] = dbus.Boolean(True)
         dbus.service.Object.__init__(self, self.bus, self.path)
