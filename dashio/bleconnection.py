@@ -137,7 +137,10 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         #logging.debug('zmq_callback')
 
         while self.rx_zmq_sub.getsockopt(zmq.EVENTS) & zmq.POLLIN:
-            [address, msg_id, data] = self.rx_zmq_sub.recv_multipart()
+            try:
+                [address, msg_id, data] = self.rx_zmq_sub.recv_multipart()
+            except ValueError:
+                continue
             if not data:
                 continue
             data_str = data.decode('utf-8')
