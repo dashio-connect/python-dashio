@@ -46,7 +46,6 @@ LE_ADVERTISEMENT_IFACE = "org.bluez.LEAdvertisement1"
 GATT_MANAGER_IFACE = "org.bluez.GattManager1"
 GATT_SERVICE_IFACE = "org.bluez.GattService1"
 GATT_DESC_IFACE = "org.bluez.GattDescriptor1"
-DASHIO_SERVICE_UUID = "4FAFC201-1FB5-459E-8FCC-C5C9C331914B"
 
 class BleTools(object):
     @classmethod
@@ -80,7 +79,7 @@ class DashIOAdvertisement(dbus.service.Object):
         self.service_uuids.append(service_uuid)
         self.properties = {}
         self.properties["Type"] = "peripheral"
-        self.properties["LocalName"] = dbus.String(device_type)
+        self.properties["LocalName"] = dbus.String("DashIO")
         self.properties["ServiceUUIDs"] = dbus.Array(self.service_uuids, signature='s')
         self.properties["IncludeTxPower"] = dbus.Boolean(True)
         dbus.service.Object.__init__(self, self.bus, self.path)
@@ -180,7 +179,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
         self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
-        
+        DASHIO_SERVICE_UUID = str(uuid.uuid4())
         GLib.threads_init()
         dbus.mainloop.glib.threads_init()
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
@@ -198,7 +197,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
 
         dbus.service.Object.__init__(self, self.bus, self.path)
         self.register()
-        self.adv = DashIOAdvertisement(0, "DashIO", DASHIO_SERVICE_UUID)
+        self.adv = DashIOAdvertisement(0, self.connection_id, DASHIO_SERVICE_UUID)
         self.start()
         time.sleep(0.5)
 
