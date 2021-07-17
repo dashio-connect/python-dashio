@@ -97,20 +97,24 @@ class TestControls:
         print(self.selector_ctrl.selection_list[int(msg[3])])
 
     def name_handler(self, msg):
-        self.device.device_name = msg[2]
         print(msg)
+        return  msg[2]
 
     def wifi_handler(self, msg):
         print(msg)
+        return True
 
     def dashio_handler(self, msg):
         print(msg)
+        return True
 
     def tcp_handler(self, msg):
         print(msg)
+        return True
 
     def mqtt_handler(self, msg):
         print(msg)
+        return True
 
     def __init__(self):
 
@@ -125,20 +129,13 @@ class TestControls:
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
 
-        self.device = dashio.DashDevice(args.device_type,
-                                        args.device_id,
-                                        args.device_name,
-                                        name_setable=True,
-                                        wifi_setable=True,
-                                        dashio_setable=True,
-                                        tcp_setable=True,
-                                        mqtt_setable=True)
+        self.device = dashio.DashDevice(args.device_type, args.device_id, args.device_name)
 
-        self.device.dash_rx_event += self.dashio_handler
-        self.device.wifi_rx_event += self.wifi_handler
-        self.device.name_rx_event += self.name_handler
-        self.device.tcp_rx_event += self.tcp_handler
-        self.device.mqtt_rx_event += self.mqtt_handler
+        self.device.set_dashio_rx_callback(self.dashio_handler)
+        self.device.set_wifi_rx_callback(self.wifi_handler)
+        self.device.set_name_rx_callback(self.name_handler)
+        self.device.set_tcp_rx_callback(self.tcp_handler)
+        self.device.set_mqtt_rx_callback(self.mqtt_handler)
         self.tcp_con = dashio.TCPConnection()
         self.dash_con = dashio.DashConnection(args.username, args.password)
         self.tcp_con.add_device(self.device)
