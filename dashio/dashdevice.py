@@ -150,7 +150,7 @@ class DashDevice(threading.Thread):
 
     def _set_devicesetup(self, control_name: str, settable: bool):
         if settable:
-            self._device_commands_dict[control_name.upper()] = getattr(self, control_name + '_rx_event', None)
+            self._device_commands_dict[control_name.upper()] = getattr(self, '_' + control_name + '_rx_event', None)
             self._device_setup_list.append(control_name)
         else:
             try:
@@ -163,15 +163,128 @@ class DashDevice(threading.Thread):
                 pass
         self._cfg["deviceSetup"] = ','.join(self._device_setup_list)
 
+    def set_wifi_rx_callback(self, callback):
+        """
+        Specify a callback function to be called when IoTDashboard sets wifi parameters.
+
+        :param callback: The callback function. It will be invoked with one
+            argument, the msg from IoTDashboard.
+            The callback must return a Boolean indicating success.
+        """
+        self._set_devicesetup("wifi", True)
+        self._wifi_rx_callback = callback
+
+    def unset_wifi_rx_callback(self):
+        """
+        Unset the wifi_rx_callback.
+        """
+        self._set_devicesetup("wifi", False)
+        self._wifi_rx_callback = None
+
+    def _wifi_rx_event(self, msg):
+        if self._wifi_rx_callback(msg):
+            data = self.device_id_str + "\tWIFI\n"
+            self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
+
+    def set_dashio_rx_callback(self, callback):
+        """
+        Specify a callback function to be called when IoTDashboard sets dashio parameters.
+
+        :param callback: The callback function. It will be invoked with one
+            argument, the msg from IoTDashboard.
+            The callback must return a Boolean indicating success.
+        """
+        self._set_devicesetup("dashio", True)
+        self._dashio_rx_callback = callback
+
+    def unset_dashio_rx_callback(self):
+        """
+        Unset the dashio callback function.
+        """
+        self._set_devicesetup("dashio", False)
+        self._dashio_rx_callback = None
+
+    def _dashio_rx_event(self, msg):
+        if self._dashio_rx_callback(msg):
+            data = self.device_id_str + "\tDASHIO\n"
+            self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
+
+    def set_name_rx_callback(self, callback):
+        """
+        Specify a callback function to be called when IoTDashboard sets dashio parameters.
+
+        :param callback: The callback function. It will be invoked with one
+            argument, the msg from IoTDashboard.
+            The callback must return the new name.
+        """
+        self._set_devicesetup("name", True)
+        self._name_rx_callback = callback
+
+    def unset_name_rx_callback(self):
+        """
+        Unset the name callback function.
+        """
+        self._set_devicesetup("name", False)
+        self._name_rx_callback = None
+
+    def _name_rx_event(self, msg):
+        name = self._name_rx_callback(msg)
+        if name:
+            self._device_name = name
+            data = self.device_id_str + f"\tNAME\t{name}\n"
+            self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
+
+    def set_tcp_rx_callback(self, callback):
+        """
+        Specify a callback function to be called when IoTDashboard sets tcp parameters.
+
+        :param callback: The callback function. It will be invoked with one
+            argument, the msg from IoTDashboard.
+            The callback must return a Boolean indicating success.
+        """
+        self._set_devicesetup("tcp", True)
+        self._tcp_rx_callback = callback
+
+    def unset_tcp_rx_callback(self):
+        """
+        Unset the tcp callback function.
+        """
+        self._set_devicesetup("tcp", False)
+        self._tcp_rx_callback = None
+
+    def _tcp_rx_event(self, msg):
+        if self._tcp_rx_callback(msg):
+            data = self.device_id_str + "\tTCP\n"
+            self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
+
+    def set_mqtt_rx_callback(self, callback):
+        """
+        Specify a callback function to be called when IoTDashboard sets mqtt parameters.
+
+        :param callback: The callback function. It will be invoked with one
+            argument, the msg from IoTDashboard.
+            The callback must return a Boolean indicating success.
+        """
+        self._set_devicesetup("mqtt", True)
+        self._mqtt_rx_callback = callback
+
+    def unset_mqtt_rx_callback(self):
+        """
+        Unset the mqtt callback function.
+        """
+        self._set_devicesetup("mqtt", False)
+        self._mqtt_rx_callback = None
+
+    def _mqtt_rx_event(self, msg):
+        if self._mqtt_rx_callback(msg):
+            data = self.device_id_str + "\tMQTT\n"
+            self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
+
+
     def __init__(self,
                  device_type: str,
                  device_id: str,
                  device_name: str,
-                 name_setable=False,
-                 wifi_setable=False,
-                 dashio_setable=False,
-                 tcp_setable=False,
-                 mqtt_setable=False,
                  context=None) -> None:
         """DashDevice
 
@@ -179,11 +292,6 @@ class DashDevice(threading.Thread):
             device_type (str): A Short description of the device type.
             device_id (str): A unique identifier for this device
             device_name (str): The name for this device
-            name_setable (bool, optional): Allows IoT Dashboard to set the device name. Defaults to False.
-            wifi_setable (bool, optional): Allows IOT Dashboard to set the wifi parameters. Defaults to False.
-            dashio_setable (bool, optional): Allows IOT Dashboard to set the dash server connection parameters. Defaults to False.
-            tcp_setable (bool, optional): Allows IOT Dashboard to set the tcp connection parameters. Defaults to False.
-            mqtt_setable (bool, optional): Allows IOT Dashboard to set the mqtt connection parameters.. Defaults to False.
             context ([type], optional): [description]. Defaults to None.
         """
         threading.Thread.__init__(self, daemon=True)
@@ -191,11 +299,11 @@ class DashDevice(threading.Thread):
         self.zmq_pub_id = shortuuid.uuid()
         self._b_zmq_pub_id = self.zmq_pub_id.encode('utf-8')
         self.context = context or zmq.Context.instance()
-        self.wifi_rx_event = Event()
-        self.dash_rx_event = Event()
-        self.name_rx_event = Event()
-        self.tcp_rx_event = Event()
-        self.mqtt_rx_event = Event()
+        self._wifi_rx_callback = None
+        self._dashio_rx_callback = None
+        self._name_rx_callback = None
+        self._tcp_rx_callback = None
+        self._mqtt_rx_callback = None
         self.device_type = device_type.strip()
         self.device_id = device_id.strip()
         self._b_device_id = self.device_id.encode('utf-8')
@@ -207,12 +315,6 @@ class DashDevice(threading.Thread):
         self.device_id_str = f"\t{device_id}"
         self.connect = self.device_id_str + "\tCONNECT\n"
         self._cfg["numDeviceViews"] = 0
-
-        self.name_setable = name_setable
-        self.wifi_setable = wifi_setable
-        self.dashio_setable = dashio_setable
-        self.tcp_setable = tcp_setable
-        self.mqtt_setable = mqtt_setable
         self.running = True
         self.start()
 
@@ -223,51 +325,6 @@ class DashDevice(threading.Thread):
     @number_of_device_views.setter
     def number_of_device_views(self, val: int):
         self._cfg["numDeviceViews"] = val
-
-    @property
-    def name_setable(self) -> bool:
-        return self._name_setable
-
-    @name_setable.setter
-    def name_setable(self, val: bool):
-        self._name_setable = val
-        self._set_devicesetup("name", val)
-
-    @property
-    def wifi_setable(self) -> bool:
-        return self._wifi_setable
-
-    @wifi_setable.setter
-    def wifi_setable(self, val: bool):
-        self._wifi_setable = val
-        self._set_devicesetup("wifi", val)
-
-    @property
-    def dashio_setable(self) -> bool:
-        return self._dashio_setable
-
-    @dashio_setable.setter
-    def dashio_setable(self, val: bool):
-        self._dashio_setable = val
-        self._set_devicesetup("dashio", val)
-
-    @property
-    def tcp_setable(self) -> bool:
-        return self._tcp_setable
-
-    @tcp_setable.setter
-    def tcp_setable(self, val: bool):
-        self._tcp_setable = val
-        self._set_devicesetup("tcp", val)
-
-    @property
-    def mqtt_setable(self) -> bool:
-        return self._mqtt_setable
-
-    @mqtt_setable.setter
-    def mqtt_setable(self, val: bool):
-        self._mqtt_setable = val
-        self._set_devicesetup("mqtt", val)
 
     @property
     def device_name(self) -> str:
