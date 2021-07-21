@@ -72,7 +72,7 @@ class BleTools(object):
 class DashIOAdvertisement(dbus.service.Object):
     PATH_BASE = "/org/bluez/example/advertisement"
 
-    def __init__(self, index, device_type, service_uuid):
+    def __init__(self, index, service_uuid):
         self.path = self.PATH_BASE + str(index)
         self.bus = BleTools.get_bus()
         self.service_uuids = []
@@ -134,7 +134,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         self.quit()
 
     def zmq_callback(self, queue, condition):
-        #logging.debug('zmq_callback')
+        # logging.debug('zmq_callback')
 
         while self.rx_zmq_sub.getsockopt(zmq.EVENTS) & zmq.POLLIN:
             try:
@@ -156,7 +156,6 @@ class BLEConnection(dbus.service.Object, threading.Thread):
                 self.dash_service.dash_characteristics.ble_send(data_line)
         return True
 
-        
     def ble_rx(self, msg: str):
         self.tx_zmq_pub.send_multipart([self.b_connection_id, b'1', msg.encode('utf-8')])
 
@@ -170,16 +169,16 @@ class BLEConnection(dbus.service.Object, threading.Thread):
 
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         # TODO: Need to figure out why this doesn't work
-        #GLib.io_add_watch(
-        #    self.rx_zmq_sub.getsockopt(zmq.FD),
-        #    GLib.IO_IN | GLib.IO_ERR | GLib.IO_HUP | GLib.IO_PRI,
-        #    self.zmq_callback
-        #)
+        # GLib.io_add_watch(
+        #     self.rx_zmq_sub.getsockopt(zmq.FD),
+        #     GLib.IO_IN | GLib.IO_ERR | GLib.IO_HUP | GLib.IO_PRI,
+        #     self.zmq_callback
+        # )
         GLib.timeout_add(10, self.zmq_callback, "q", "p")
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_id)
-        
+
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
         self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
         DASHIO_SERVICE_UUID = str(uuid.uuid4())
@@ -187,8 +186,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         dbus.mainloop.glib.threads_init()
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
         self.mainloop = GLib.MainLoop()
-        #GLib.MainLoop.threads_init()
-         
+
         self.bus = BleTools.get_bus()
         self.path = "/"
         self.dash_service = DashIOService(0, DASHIO_SERVICE_UUID, self.ble_rx)
@@ -200,7 +198,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
 
         dbus.service.Object.__init__(self, self.bus, self.path)
         self.register()
-        self.adv = DashIOAdvertisement(0, self.connection_id, DASHIO_SERVICE_UUID)
+        self.adv = DashIOAdvertisement(0, DASHIO_SERVICE_UUID)
         self.start()
         time.sleep(0.5)
 
@@ -281,7 +279,6 @@ class DashConCharacteristic(dbus.service.Object):
     org.bluez.GattCharacteristic1 interface implementation
     """
     def __init__(self, service, chacteristic_uuid, ble_rx):
-        
         self.path = service.path + '/char' + str(1)
         self.bus = service.get_bus()
         self.uuid = chacteristic_uuid
@@ -347,4 +344,3 @@ class DashConCharacteristic(dbus.service.Object):
             logging.debug("BLE RX: %s", self.read_buffer.strip())
             self._ble_rx(self.read_buffer)
             self.read_buffer = ''
-
