@@ -83,7 +83,7 @@ def set_wifi_callback(msg):
     try:
         CreateWifiConfig(msg[2], msg[3], msg[4])
     except KeyError:
-        pass
+        return False
     return True
 
 def main():
@@ -126,6 +126,8 @@ def main():
 
     def set_name_callback(msg):
         device.setName(msg[2])
+        config_file_parser.set('DEFAULT', 'DeviceName', msg[2])
+        config_file_parser.write(configfile)
 
     device.set_wifi_rx_callback(set_wifi_callback)
     device.set_name_rx_callback(set_name_callback)
