@@ -59,8 +59,8 @@ def parse_commandline_arguments():
     parser.add_argument("-l", "--logfile", dest="logfilename", default="", help="logfile location", metavar="FILE")
     args = parser.parse_args()
     return args
-    
-   
+
+
 def CreateWifiConfig(country, SSID, password):
     config_lines = [
         'country={}'.format(country),
@@ -93,7 +93,6 @@ def main():
 
     args = parse_commandline_arguments()
     init_logging(args.logfilename, args.verbose)
-
 
     new_ini_file = False
     ini_file = args.ini_file
@@ -130,16 +129,16 @@ def main():
             config_file_parser.write(configfile)
         return msg[2]
 
-    device.set_wifi_rx_callback(set_wifi_callback)
-    device.set_name_rx_callback(set_name_callback)
+    device.set_wifi_callback(set_wifi_callback)
+    device.set_name_callback(set_name_callback)
 
     dash_conn = bleconnection.BLEConnection(ble_uuid=config_file_parser.get('DEFAULT', 'BLE_UUID'))
     dash_conn.add_device(device)
 
     while not shutdown:
         time.sleep(1)
+    dash_conn.close()
     device.close()
-
 
 if __name__ == "__main__":
     main()
