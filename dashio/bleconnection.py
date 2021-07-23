@@ -166,8 +166,11 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         self.b_connection_id = self.connection_id.encode('utf-8')
 
         self.context = context or zmq.Context.instance()
-
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_id)
+
         # TODO: Need to figure out why this doesn't work
         # GLib.io_add_watch(
         #     self.rx_zmq_sub.getsockopt(zmq.FD),
@@ -175,13 +178,10 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         #     self.zmq_callback
         # )
         GLib.timeout_add(10, self.zmq_callback, "q", "p")
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_id)
-
+        
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
         self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
-        DASHIO_SERVICE_UUID = str(uuid.uuid4())
+        dashio_service_uuid = str(uuid.uuid4())
         GLib.threads_init()
         dbus.mainloop.glib.threads_init()
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
@@ -189,7 +189,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
 
         self.bus = BleTools.get_bus()
         self.path = "/"
-        self.dash_service = DashIOService(0, DASHIO_SERVICE_UUID, self.ble_rx)
+        self.dash_service = DashIOService(0, dashio_service_uuid, self.ble_rx)
         self.response = {}
 
         chrc = self.dash_service.get_characteristics()
@@ -198,7 +198,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
 
         dbus.service.Object.__init__(self, self.bus, self.path)
         self.register()
-        self.adv = DashIOAdvertisement(0, DASHIO_SERVICE_UUID)
+        self.adv = DashIOAdvertisement(0, dashio_service_uuid)
         self.start()
         time.sleep(0.5)
 
