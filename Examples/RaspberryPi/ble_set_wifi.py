@@ -78,7 +78,6 @@ def CreateWifiConfig(country, SSID, password):
     with open("/etc/wpa_supplicant/wpa_supplicant.conf", "w") as wifi:
         wifi.write(config)
     os.system("systemctl restart networking.service")
-    return True
 
 
 def set_wifi_callback(msg):
@@ -86,6 +85,7 @@ def set_wifi_callback(msg):
         CreateWifiConfig(msg[2], msg[3], msg[4])
     except KeyError:
         pass
+    return True
 
 def main():
     # Catch CNTRL-C signel
