@@ -196,13 +196,13 @@ An alarm sends a notification throught the dashio mqtt server to registered phon
 The BLEConnection is only supported on Linux systems and requires bluez and dbus to be installed. It has been developed with the RaspberryPi Zero W in mind.
 The steps to get a Pi Zero to become a Device Server
 
-* Install bluez and bluetooth:
+Install bluez and bluetooth:
 
 ```bash
 sudo apt-get install bluetooth bluez
 ```
 
-* Edit:
+Edit:
 
 ```bash
 sudo nano /lib/systemd/system/bluetooth.service
@@ -221,7 +221,7 @@ With:
 ExecStart=/usr/lib/bluetooth/bluetoothd --noplugin=sap
 ```
 
-* Edit:
+Edit:
 
 ```bash
 sudo nano /lib/systemd/system/bthelper@.service
@@ -235,6 +235,18 @@ Type=simple
 ExecStartPre=/bin/sleep 2
 ExecStart=/usr/bin/bthelper %I
 ExecStartPost=sudo /etc/init.d/bluetooth restart
+```
+
+Edit:
+
+```bash
+sudo nano /etc/bluetooth/input.conf 
+```
+
+Set:
+
+```bash
+LEAutoSecurity=false
 ```
 
 To use the BLEConnection it has to be imported explicitly:
