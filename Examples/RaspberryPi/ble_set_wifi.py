@@ -126,7 +126,8 @@ def main():
 
     def set_name_callback(msg):
         config_file_parser.set('DEFAULT', 'DeviceName', msg[2])
-        config_file_parser.write(configfile)
+        with open(ini_file, 'w') as configfile:
+            config_file_parser.write(configfile)
         return msg[2]
 
     device.set_wifi_rx_callback(set_wifi_callback)
