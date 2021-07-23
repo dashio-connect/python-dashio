@@ -163,7 +163,7 @@ class DashDevice(threading.Thread):
                 pass
         self._cfg["deviceSetup"] = ','.join(self._device_setup_list)
 
-    def set_wifi_rx_callback(self, callback):
+    def set_wifi_callback(self, callback):
         """
         Specify a callback function to be called when IoTDashboard sets wifi parameters.
 
@@ -186,7 +186,7 @@ class DashDevice(threading.Thread):
             data = self.device_id_str + "\tWIFI\n"
             self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
 
-    def set_dashio_rx_callback(self, callback):
+    def set_dashio_callback(self, callback):
         """
         Specify a callback function to be called when IoTDashboard sets dashio parameters.
 
@@ -197,7 +197,7 @@ class DashDevice(threading.Thread):
         self._set_devicesetup("dashio", True)
         self._dashio_rx_callback = callback
 
-    def unset_dashio_rx_callback(self):
+    def unset_dashio_callback(self):
         """
         Unset the dashio callback function.
         """
@@ -209,7 +209,7 @@ class DashDevice(threading.Thread):
             data = self.device_id_str + "\tDASHIO\n"
             self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
 
-    def set_name_rx_callback(self, callback):
+    def set_name_callback(self, callback):
         """
         Specify a callback function to be called when IoTDashboard sets dashio parameters.
 
@@ -220,7 +220,7 @@ class DashDevice(threading.Thread):
         self._set_devicesetup("name", True)
         self._name_rx_callback = callback
 
-    def unset_name_rx_callback(self):
+    def unset_name_callback(self):
         """
         Unset the name callback function.
         """
@@ -234,7 +234,7 @@ class DashDevice(threading.Thread):
             data = self.device_id_str + f"\tNAME\t{name}\n"
             self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
 
-    def set_tcp_rx_callback(self, callback):
+    def set_tcp_callback(self, callback):
         """
         Specify a callback function to be called when IoTDashboard sets tcp parameters.
 
@@ -245,7 +245,7 @@ class DashDevice(threading.Thread):
         self._set_devicesetup("tcp", True)
         self._tcp_rx_callback = callback
 
-    def unset_tcp_rx_callback(self):
+    def unset_tcp_callback(self):
         """
         Unset the tcp callback function.
         """
@@ -257,7 +257,7 @@ class DashDevice(threading.Thread):
             data = self.device_id_str + "\tTCP\n"
             self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
 
-    def set_mqtt_rx_callback(self, callback):
+    def set_mqtt_callback(self, callback):
         """
         Specify a callback function to be called when IoTDashboard sets mqtt parameters.
 
@@ -268,7 +268,7 @@ class DashDevice(threading.Thread):
         self._set_devicesetup("mqtt", True)
         self._mqtt_rx_callback = callback
 
-    def unset_mqtt_rx_callback(self):
+    def unset_mqtt_callback(self):
         """
         Unset the mqtt callback function.
         """
