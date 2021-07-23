@@ -1,0 +1,10 @@
+[Unit]
+Description=Setup Wifi from Bluetooth BLE DashIO connection
+After=multi-user.target
+
+[Service]
+Type=idle
+ExecStart=/usr/bin/python3 /home/pi/git/python-dashio/Examples/RaspberryPi/ble_set_wifi.py -i /home/pi/git/python-dashio/Examples/RaspberryPi/set_wifi.ini
+
+[Install]
+WantedBy=multi-user.target
