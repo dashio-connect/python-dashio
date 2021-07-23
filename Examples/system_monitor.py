@@ -115,16 +115,6 @@ def main():
         config_file_parser.get('DEFAULT', 'username'),
         config_file_parser.get('DEFAULT', 'password')
     )
-
-    device = dashio.DashDevice(
-        config_file_parser.get('DEFAULT', 'DeviceType'),
-        config_file_parser.get('DEFAULT', 'DeviceID'),
-        config_file_parser.get('DEFAULT', 'DeviceName')
-    )
-    dash_conn = dashio.DashConnection(
-        config_file_parser.get('DEFAULT', 'username'),
-        config_file_parser.get('DEFAULT', 'password')
-    )
     dash_conn.add_device(device)
 
     device.dashio_setable = False
