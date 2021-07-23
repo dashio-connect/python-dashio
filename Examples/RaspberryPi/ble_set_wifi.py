@@ -55,7 +55,7 @@ def parse_commandline_arguments():
                         No number means info. Default is no verbosity.""",
     )
     parser.add_argument("-n", "--device_name", dest="device_name", default="SetWifiName", help="IotDashboard Device name alias.")
-    parser.add_argument("-f", "--inifile", help="ini filename", dest="ini_file", default="set_wifi.ini")
+    parser.add_argument("-i", "--inifile", help="ini filename", dest="ini_file", default="set_wifi.ini")
     parser.add_argument("-l", "--logfile", dest="logfilename", default="", help="logfile location", metavar="FILE")
     args = parser.parse_args()
     return args
@@ -73,7 +73,6 @@ def CreateWifiConfig(country, SSID, password):
         '}'
     ]
     config = '\n'.join(config_lines)
-    print(config)
 
     with open("/etc/wpa_supplicant/wpa_supplicant.conf", "w") as wifi:
         wifi.write(config)
