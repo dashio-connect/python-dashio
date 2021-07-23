@@ -21,7 +21,7 @@ SOFTWARE.
 import logging
 import threading
 import time
-
+import json
 import dbus
 import dbus.exceptions
 import dbus.mainloop.glib
@@ -35,6 +35,48 @@ from gi.repository import GLib
 from dashio.dashdevice import DashDevice
 
 from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
+
+
+class BLE():
+    def get_state(self) -> str:
+        return ""
+
+    def get_cfg(self, num_columns):
+        cfg_str = "\tCFG\t" + self.msg_type + "\t" + json.dumps(self._cfg) + "\n"
+        return cfg_str
+
+    def __init__(self, control_id, service_uuid="", read_uuid="", write_uuid=""):
+        self._cfg = {}
+        self.msg_type = "BLE"
+        self.control_id = control_id
+        self.service_uuid = service_uuid
+        self.read_uuid = read_uuid
+        self.write_uuid = write_uuid
+
+    @property
+    def service_uuid(self) -> str:
+        return self._cfg["serviceUUID"]
+
+    @service_uuid.setter
+    def service_uuid(self, val: str):
+        self._cfg["serviceUUID"] = val
+
+    @property
+    def read_uuid(self) -> str:
+        return self._cfg["readUUID"]
+
+    @read_uuid.setter
+    def read_uuid(self, val: str):
+        self._cfg["readUUID"] = val
+
+    @property
+    def write_uuid(self) -> str:
+        return self._cfg["writeUUID"]
+
+    @write_uuid.setter
+    def write_uuid(self, val: str):
+        self._cfg["writeUUID"] = val
+
 
 GATT_CHRC_IFACE = "org.bluez.GattCharacteristic1"
 NOTIFY_TIMEOUT = 10
@@ -127,6 +169,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
 
     def add_device(self, device: DashDevice):
         device.add_connection(self)
+        device.add_control(self.ble_control)
         self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
 
@@ -170,7 +213,6 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_id)
-
         # TODO: Need to figure out why this doesn't work
         # GLib.io_add_watch(
         #     self.rx_zmq_sub.getsockopt(zmq.FD),
@@ -182,6 +224,8 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
         self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
         dashio_service_uuid = ble_uuid or str(uuid.uuid4())
+
+        self.ble_control = BLE(self.connection_id, dashio_service_uuid, dashio_service_uuid, dashio_service_uuid)
         GLib.threads_init()
         dbus.mainloop.glib.threads_init()
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
