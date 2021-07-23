@@ -159,7 +159,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
     def ble_rx(self, msg: str):
         self.tx_zmq_pub.send_multipart([self.b_connection_id, b'1', msg.encode('utf-8')])
 
-    def __init__(self, context=None):
+    def __init__(self, ble_uuid=None, context=None):
         threading.Thread.__init__(self, daemon=True)
 
         self.connection_id = shortuuid.uuid()
@@ -181,7 +181,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
         self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
-        dashio_service_uuid = str(uuid.uuid4())
+        dashio_service_uuid = ble_uuid or str(uuid.uuid4())
         GLib.threads_init()
         dbus.mainloop.glib.threads_init()
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
