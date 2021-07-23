@@ -218,7 +218,7 @@ ExecStart=/usr/lib/bluetooth/bluetoothd
 With:
 
 ```bash
-ExecStart=/usr/lib/bluetooth/bluetoothd ----noplugin=sap
+ExecStart=/usr/lib/bluetooth/bluetoothd --noplugin=sap
 ```
 
 * Edit:
