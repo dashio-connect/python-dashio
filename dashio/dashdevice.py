@@ -174,7 +174,7 @@ class DashDevice(threading.Thread):
         self._set_devicesetup("wifi", True)
         self._wifi_rx_callback = callback
 
-    def unset_wifi_rx_callback(self):
+    def unset_wifi_callback(self):
         """
         Unset the wifi_rx_callback.
         """
