@@ -4,7 +4,7 @@ import configparser
 import logging
 import signal
 import time
-
+import os
 import shortuuid
 import dashio
 from dashio import bleconnection
@@ -58,12 +58,32 @@ def parse_commandline_arguments():
     parser.add_argument("-l", "--logfile", dest="logfilename", default="", help="logfile location", metavar="FILE")
     args = parser.parse_args()
     return args
+    
+   
+def CreateWifiConfig(country, SSID, password):
+    config_lines = [
+        'country={}\n'.format(country),
+        'ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev\n',
+        'update_config=1\n',
+        '\n',
+        'network={\n',
+        '    ssid="{}"\n'.format(SSID),
+        '    psk="{}"\n'.format(password),
+        '}\n'
+    ]
+    config = '\n'.join(config_lines)
+    print(config)
 
-def set_name_callback(msg):
-    print (msg)
+    with open("/etc/wpa_supplicant/wpa_supplicant.conf", "w") as wifi:
+        wifi.write(config)
+    os.system("systemctl restart networking.service")
+
 
 def set_wifi_callback(msg):
-    print (msg)
+    try:
+        CreateWifiConfig(msg[2], msg[3], msg[4])
+    except KeyError:
+        pass
 
 def main():
     # Catch CNTRL-C signel
@@ -101,6 +121,10 @@ def main():
         config_file_parser.get('DEFAULT', 'DeviceID'),
         config_file_parser.get('DEFAULT', 'DeviceName')
     )
+
+    def set_name_callback(msg):
+        device.setName(msg[2])
+
     device.set_wifi_rx_callback(set_wifi_callback)
     device.set_name_rx_callback(set_name_callback)
 
