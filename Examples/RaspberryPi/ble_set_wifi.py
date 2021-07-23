@@ -62,14 +62,14 @@ def parse_commandline_arguments():
    
 def CreateWifiConfig(country, SSID, password):
     config_lines = [
-        'country={}\n'.format(country),
-        'ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev\n',
-        'update_config=1\n',
+        'country={}'.format(country),
+        'ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev',
+        'update_config=1',
         '\n',
-        'network={\n',
-        '    ssid="{}"\n'.format(SSID),
-        '    psk="{}"\n'.format(password),
-        '}\n'
+        'network={',
+        '    ssid="{}"'.format(SSID),
+        '    psk="{}"'.format(password),
+        '}'
     ]
     config = '\n'.join(config_lines)
     print(config)
@@ -77,6 +77,7 @@ def CreateWifiConfig(country, SSID, password):
     with open("/etc/wpa_supplicant/wpa_supplicant.conf", "w") as wifi:
         wifi.write(config)
     os.system("systemctl restart networking.service")
+    return True
 
 
 def set_wifi_callback(msg):
