@@ -115,6 +115,7 @@ class DashIOAdvertisement(dbus.service.Object):
     PATH_BASE = "/org/bluez/example/advertisement"
 
     def __init__(self, index, service_uuid):
+        
         self.path = self.PATH_BASE + str(index)
         self.bus = BleTools.get_bus()
         self.service_uuids = []
@@ -203,6 +204,13 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         self.tx_zmq_pub.send_multipart([self.b_connection_id, b'1', msg.encode('utf-8')])
 
     def __init__(self, ble_uuid=None, context=None):
+        """
+        Arguments:
+        [Optional]
+            ble_uuid {str} -- The UUID used by BLE.
+            context {int} -- ZMQ context
+        """
+
         threading.Thread.__init__(self, daemon=True)
 
         self.connection_id = shortuuid.uuid()
