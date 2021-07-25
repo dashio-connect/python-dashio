@@ -131,11 +131,11 @@ class TestControls:
 
         self.device = dashio.DashDevice(args.device_type, args.device_id, args.device_name)
 
-        self.device.set_dashio_rx_callback(self.dashio_handler)
-        self.device.set_wifi_rx_callback(self.wifi_handler)
-        self.device.set_name_rx_callback(self.name_handler)
-        self.device.set_tcp_rx_callback(self.tcp_handler)
-        self.device.set_mqtt_rx_callback(self.mqtt_handler)
+        self.device.set_dashio_callback(self.dashio_handler)
+        self.device.set_wifi_callback(self.wifi_handler)
+        self.device.set_name_callback(self.name_handler)
+        self.device.set_tcp_callback(self.tcp_handler)
+        self.device.set_mqtt_callback(self.mqtt_handler)
         self.tcp_con = dashio.TCPConnection()
         self.dash_con = dashio.DashConnection(args.username, args.password)
         self.tcp_con.add_device(self.device)

@@ -234,6 +234,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         dashio_service_uuid = ble_uuid or str(uuid.uuid4())
 
         self.ble_control = BLE(self.connection_id, dashio_service_uuid, dashio_service_uuid, dashio_service_uuid)
+
         GLib.threads_init()
         dbus.mainloop.glib.threads_init()
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
@@ -242,6 +243,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         self.bus = BleTools.get_bus()
         self.path = "/"
         self.dash_service = DashIOService(0, dashio_service_uuid, self.ble_rx)
+        
         self.response = {}
 
         chrc = self.dash_service.get_characteristics()
