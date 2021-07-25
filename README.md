@@ -41,7 +41,7 @@ import dashio
 import random
 import time
 
-device = dashio.dashDevice("aDeviceType", "aDeviceID", "aDeviceName")
+device = dashio.Device("aDeviceType", "aDeviceID", "aDeviceName")
 tcp_con = dashio.tcpConnection()
 tcp_con.add_device(device)
 first_dial_control = dashio.Dial("FirstDial")
@@ -61,7 +61,7 @@ import dashio
 import random
 import time
 
-device = dashio.dashDevice("aDeviceType", "aDeviceID", "aDeviceName")
+device = dashio.Device("aDeviceType", "aDeviceID", "aDeviceName")
 tcp_con = dashio.tcpConnection()
 tcp_con.add_device(device)
 first_dial_control = dashio.Dial("FirstDial", control_position=dashio.ControlPosition(0.24, 0.36, 0.54, 0.26))
@@ -85,7 +85,7 @@ import dashio
 import random
 import time
 
-device = dashio.dashDevice("aDeviceType", "aDeviceID", "aDeviceName")
+device = dashio.Device("aDeviceType", "aDeviceID", "aDeviceName")
 tcp_con = dashio.tcpConnection()
 tcp_con.add_device(device)
 first_dial_control = dashio.Dial("FirstDial", control_position=dashio.ControlPosition(0.24, 0.36, 0.54, 0.26))

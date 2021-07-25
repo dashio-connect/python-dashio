@@ -59,7 +59,7 @@ def main():
     print("       Control topic: %s/%s/%s/control", args.username, args.connection, args.device_id)
     print("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
 
-    device = dashio.DashDevice(args.connection, args.device_id, args.device_name)
+    device = dashio.Device(args.connection, args.device_id, args.device_name)
     dash_conn = dashio.DashConnection(args.username, args.password)
     dash_conn.add_device(device)
 

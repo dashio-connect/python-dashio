@@ -106,7 +106,7 @@ class TestControls:
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
 
-        self.device = dashio.DashDevice(args.connection, args.device_id, args.device_name)
+        self.device = dashio.Device(args.connection, args.device_id, args.device_name)
         time.sleep(1)
         self.zmq_con = dashio.ZMQConnection(pub_port=args.pub_port, sub_port=args.sub_port)
         time.sleep(1)
