@@ -1,11 +1,12 @@
 #!/bin/python3
 
-from dashio.iotcontrol.enums import SoundName
-import time
 import argparse
-import signal
-import dashio
 import logging
+import signal
+import time
+
+import dashio
+from dashio.iotcontrol.enums import SoundName
 
 
 class TestControls:

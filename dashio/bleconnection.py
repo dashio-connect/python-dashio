@@ -18,17 +18,17 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+import json
 import logging
 import threading
 import time
-import json
+import uuid
+
 import dbus
 import dbus.exceptions
 import dbus.mainloop.glib
 import dbus.service
-
 import shortuuid
-import uuid
 import zmq
 from gi.repository import GLib
 

@@ -16,7 +16,7 @@ class TCP():
     def get_state(self) -> str:
         return ""
 
-    def get_cfg(self, num_columns):
+    def get_cfg(self, _):
         cfg_str = "\tCFG\t" + self.msg_type + "\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
 

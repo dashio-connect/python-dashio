@@ -1,7 +1,8 @@
 #!/bin/python3
-import time
 import argparse
 import signal
+import time
+
 import dashio
 
 SHUTDOWN = False

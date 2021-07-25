@@ -1,11 +1,11 @@
 #!/bin/python3
 
-from dashio.dashdevice import Device
-import time
 import argparse
-import signal
-import dashio
 import logging
+import signal
+import time
+
+import dashio
 
 
 class TestControls:
@@ -109,7 +109,6 @@ class TestControls:
         self.sldr_cntrl.title = "Slider"
         self.sldr_cntrl.bar_max = 10
         self.sldr_cntrl.slider_enabled = True
-        self.sldr_cntrl.red_value
         device.add_control(self.sldr_cntrl)
         self.test_menu.add_control(self.sldr_cntrl)
 

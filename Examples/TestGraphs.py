@@ -1,12 +1,13 @@
 #!/bin/python3
 
-import time
-import datetime
-import random
 import argparse
-import signal
-import dashio
+import datetime
 import logging
+import random
+import signal
+import time
+
+import dashio
 
 
 class TestControls:

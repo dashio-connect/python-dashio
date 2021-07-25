@@ -7,4 +7,3 @@ sudo cp ble_set_wifi.service /etc/systemd/system
 sudo systemctl enable ble_set_wifi.service
 sudo systemctl start ble_set_wifi.service
 ```
-

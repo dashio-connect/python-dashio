@@ -1,10 +1,11 @@
 #!/bin/python3
 
-import time
 import argparse
-import signal
-import dashio
 import logging
+import signal
+import time
+
+import dashio
 
 
 class TestEventLog:
