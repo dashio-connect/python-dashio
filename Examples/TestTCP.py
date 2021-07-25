@@ -1,12 +1,14 @@
 #!/bin/python3
-from dashio.iotcontrol.enums import DialNumberPosition, DialStyle, DirectionStyle, Precision
-import time
-import random
 import argparse
-import signal
-import dashio
 import logging
 import platform
+import random
+import signal
+import time
+
+import dashio
+from dashio.iotcontrol.enums import (DialNumberPosition, DialStyle,
+                                     DirectionStyle, Precision)
 
 
 class TestControls:

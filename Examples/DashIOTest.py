@@ -1,10 +1,11 @@
-import dashio
-import signal
-import logging
 import argparse
 import configparser
-import shortuuid
+import logging
+import signal
 import time
+
+import dashio
+import shortuuid
 
 SHUTDOWN = False
 COUNTER = 0

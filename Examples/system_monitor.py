@@ -1,12 +1,14 @@
 #!/bin/python3
-import time
 import argparse
+import configparser
+import logging
 import signal
+import time
+
 import dashio
 import psutil
 import shortuuid
-import logging
-import configparser
+
 
 def get_network_rx_tx():
     data = psutil.net_io_counters()
