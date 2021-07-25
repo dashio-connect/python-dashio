@@ -26,26 +26,6 @@ class TestDashDevice(unittest.TestCase):
         test_device = Device("DEVICETYPE", "DEVICEID", "DEVICENAME",)
         self.assertEqual(test_device._cfg['numDeviceViews'], 0, "editLock type should be 0")
 
-    def test_dash_device_cfg_name_setable(self):
-        test_device = Device("DEVICETYPE", "DEVICEID", "DEVICENAME", name_setable=True)
-        self.assertEqual(test_device._cfg['deviceSetup'], 'name', "editLock type should be name")
-
-    def test_dash_device_cfg_wifi_setable(self):
-        test_device = Device("DEVICETYPE", "DEVICEID", "DEVICENAME", wifi_setable=True)
-        self.assertEqual(test_device._cfg['deviceSetup'], 'wifi', "editLock type should be wifi")
-
-    def test_dash_device_cfg_dashio_setable(self):
-        test_device = Device("DEVICETYPE", "DEVICEID", "DEVICENAME", dashio_setable=True)
-        self.assertEqual(test_device._cfg['deviceSetup'], 'dashio', "editLock type should be dashio")
-
-    def test_dash_device_cfg_tcp_setable(self):
-        test_device = Device("DEVICETYPE", "DEVICEID", "DEVICENAME", tcp_setable=True)
-        self.assertEqual(test_device._cfg['deviceSetup'], 'tcp', "editLock type should be tcp")
-
-    def test_dash_device_cfg_mqtt_setable(self):
-        test_device = Device("DEVICETYPE", "DEVICEID", "DEVICENAME", mqtt_setable=True)
-        self.assertEqual(test_device._cfg['deviceSetup'], 'mqtt', "editLock type should be mqtt")
-
 
 if __name__ == '__main__':
     unittest.main()
