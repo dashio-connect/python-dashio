@@ -109,7 +109,6 @@ class TCPConnection(threading.Thread):
         self.running = False
 
     def run(self):
-
         tcpsocket = self.context.socket(zmq.STREAM)
 
         def _zmq_tcp_send(tcp_id, data):

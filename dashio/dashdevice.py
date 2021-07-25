@@ -37,22 +37,18 @@ class DashDevice(threading.Thread):
             cntrl_type = data_array[1]
         except KeyError:
             return ""
-        if cntrl_type == "CONNECT":
-            return self.connect
-        if cntrl_type == "STATUS":
-            return self._make_status()
-        if cntrl_type == "CFG":
-            return self._make_cfg(data_array)
         if cntrl_type in self._device_commands_dict:
-            self._device_commands_dict[cntrl_type](data_array)
-        else:
-            try:
-                self.control_dict[cntrl_type + "_" + data_array[2]].message_rx_event(data_array)
-            except (KeyError, IndexError):
-                pass
+            return self._device_commands_dict[cntrl_type](data_array)
+        try:
+            self.control_dict[cntrl_type + "_" + data_array[2]].message_rx_event(data_array)
+        except (KeyError, IndexError):
+            pass
         return ""
 
-    def _make_status(self):
+    def _make_connect(self, data):
+        return self.connect
+
+    def _make_status(self, data):
         reply = f"\t{self.device_id}\tNAME\t{self._device_name}\n"
         for key in self.control_dict:
             try:
@@ -185,6 +181,7 @@ class DashDevice(threading.Thread):
         if self._wifi_rx_callback(msg):
             data = self.device_id_str + "\tWIFI\n"
             self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
+        return ""
 
     def set_dashio_callback(self, callback):
         """
@@ -208,6 +205,7 @@ class DashDevice(threading.Thread):
         if self._dashio_rx_callback(msg):
             data = self.device_id_str + "\tDASHIO\n"
             self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
+        return ""
 
     def set_name_callback(self, callback):
         """
@@ -233,6 +231,7 @@ class DashDevice(threading.Thread):
             self._device_name = name
             data = self.device_id_str + f"\tNAME\t{name}\n"
             self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
+        return ""
 
     def set_tcp_callback(self, callback):
         """
@@ -256,6 +255,7 @@ class DashDevice(threading.Thread):
         if self._tcp_rx_callback(msg):
             data = self.device_id_str + "\tTCP\n"
             self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
+        return ""
 
     def set_mqtt_callback(self, callback):
         """
@@ -279,7 +279,7 @@ class DashDevice(threading.Thread):
         if self._mqtt_rx_callback(msg):
             data = self.device_id_str + "\tMQTT\n"
             self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
-
+        return ""
 
     def __init__(self,
                  device_type: str,
@@ -310,6 +310,9 @@ class DashDevice(threading.Thread):
         self._device_name = device_name.strip()
         self._device_setup_list = []
         self._device_commands_dict = {}
+        self._device_commands_dict['CONNECT'] = self._make_connect
+        self._device_commands_dict['STATUS'] = self._make_status
+        self._device_commands_dict['CFG'] = self._make_cfg
         self.control_dict = {}
         self._cfg = {}
         self.device_id_str = f"\t{device_id}"
