@@ -110,7 +110,7 @@ class TestControls:
         self.context = zmq.Context.instance()
         
         self.ble_con = BLEConnection(context=self.context)
-        self.device = dashio.DashDevice(args.connection, args.device_id, args.device_name, context=self.context)
+        self.device = dashio.Device(args.connection, args.device_id, args.device_name, context=self.context)
         self.ble_con.add_device(self.device)
 
         self.connection = args.connection

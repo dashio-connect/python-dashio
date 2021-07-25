@@ -1,4 +1,4 @@
-from .dashdevice import DashDevice
+from .device import Device
 from .tcpconnection import TCPConnection
 from .mqttconnection import MQTTConnection
 from .zmqconnection import ZMQConnection

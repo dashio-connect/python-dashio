@@ -32,7 +32,7 @@ import uuid
 import zmq
 from gi.repository import GLib
 
-from dashio.dashdevice import DashDevice
+from dashio.dashdevice import Device
 
 from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 
@@ -168,7 +168,7 @@ class NotPermittedException(dbus.exceptions.DBusException):
 
 class BLEConnection(dbus.service.Object, threading.Thread):
 
-    def add_device(self, device: DashDevice):
+    def add_device(self, device: Device):
         device.add_connection(self)
         device.add_control(self.ble_control)
         self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))

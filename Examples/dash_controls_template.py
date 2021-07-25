@@ -75,7 +75,7 @@ class TestControls:
         logging.info("       Control topic: %s/%s/control", args.username, args.device_id)
         logging.info("          Data topic: %s/%s/data", args.username, args.device_id)
 
-        device = dashio.DashDevice(args.device_type, args.device_id, args.device_name)
+        device = dashio.Device(args.device_type, args.device_id, args.device_name)
 
         while not self.shutdown:
             time.sleep(5)

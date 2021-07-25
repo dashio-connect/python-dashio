@@ -1,11 +1,12 @@
 #!/bin/python3
 
-import time
 import argparse
-import signal
-import dashio
 import logging
 import platform
+import signal
+import time
+
+import dashio
 
 
 class TestControls:
@@ -129,7 +130,7 @@ class TestControls:
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
 
-        self.device = dashio.DashDevice(args.device_type, args.device_id, args.device_name)
+        self.device = dashio.Device(args.device_type, args.device_id, args.device_name)
 
         self.device.set_dashio_callback(self.dashio_handler)
         self.device.set_wifi_callback(self.wifi_handler)
