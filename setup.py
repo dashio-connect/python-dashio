@@ -11,7 +11,7 @@ setup(
     long_description_content_type="text/markdown",
     author="James Boulton",
     author_email="james@dashio.com",
-    url="dashio.io",
+    url="https://dashio.io",
     download_url="https://github.com/dashio-connect/python-dashio",
     packages=find_packages(),
     license="MIT",
