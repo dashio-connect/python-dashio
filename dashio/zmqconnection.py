@@ -7,7 +7,7 @@ import zmq
 from zeroconf import IPVersion, ServiceInfo, Zeroconf
 
 from . import ip
-
+from .constants import CONNECTION_PUB_URL
 
 class ZMQConnection(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via ZMQ."""
@@ -27,7 +27,8 @@ class ZMQConnection(threading.Thread):
         self.zeroconf.register_service(zconf_info)
 
     def add_device(self, device):
-        device.add_connection(self.connection_id)
+        device.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.connection_id))
+        device.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
         sub_topic = "\t{}".format(device.device_id)
         self.ext_rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, sub_topic.encode('utf-8'))
 

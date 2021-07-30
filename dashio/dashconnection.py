@@ -80,12 +80,13 @@ class DashConnection(threading.Thread):
 
         Parameters
         ----------
-            device (Device): 
+            device (Device):
                 The Device to add.
         """
         if device.device_id not in self.device_id_list:
             self.device_id_list.append(device.device_id)
-            device.add_connection(self)
+            device.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.connection_id))
+            device.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
             device.add_control(self.dash_control)
 
             self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
