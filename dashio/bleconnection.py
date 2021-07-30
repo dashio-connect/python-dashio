@@ -205,7 +205,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
 
     def __init__(self, ble_uuid=None, context=None):
         """
-        Arguments:
+        Parameters
         [Optional]
             ble_uuid {str} -- The UUID used by BLE.
             context {int} -- ZMQ context

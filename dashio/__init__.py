@@ -1,3 +1,5 @@
+"""The DashIO module is for creating devices, controls and connections for the DashIO app.
+"""
 from .device import Device
 from .tcpconnection import TCPConnection
 from .mqttconnection import MQTTConnection

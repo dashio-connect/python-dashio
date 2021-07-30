@@ -10,7 +10,7 @@ from . import ip
 
 
 class ZMQConnection(threading.Thread):
-    """Setups and manages a connection thread to iotdashboard via TCP."""
+    """Setups and manages a connection thread to iotdashboard via ZMQ."""
 
     def __zconf_publish_zmq(self, sub_port, pub_port):
         zconf_desc = {'sub_port': str(sub_port),
@@ -32,13 +32,24 @@ class ZMQConnection(threading.Thread):
         self.ext_rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, sub_topic.encode('utf-8'))
 
     def close(self):
+        """Close the connection."""
+
         self.zeroconf.unregister_all_services()
         self.zeroconf.close()
         self.running = False
 
     def __init__(self, zmq_out_url="*", pub_port=5555, sub_port=5556, context=None):
-        """
-        Arguments: figure it out for yourself.
+        """ZMQConnection
+
+        Parameters
+        ---------
+            zmq_out_url (str, optional):
+                URL to use. Defaults to "*".
+            pub_port (int, optional):
+                Port to publish with. Defaults to 5555.
+            sub_port (int, optional):
+                Port to subscribe with. Defaults to 5556.
+            context (ZMQ Context, optional): Defaults to None.
         """
 
         threading.Thread.__init__(self, daemon=True)

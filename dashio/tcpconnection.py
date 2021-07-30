@@ -72,7 +72,17 @@ class TCPConnection(threading.Thread):
             return port_s.connect_ex(('localhost', port)) == 0
 
     def __init__(self, ip_address="*", port=5650, use_zero_conf=True, context=None):
-        """
+        """TCP Connection
+
+        Parameters
+        ---------
+            ip_address (str, optional): 
+                IP Address to use. Defaults to "*".
+            port (int, optional): 
+                Port to use. Defaults to 5650.
+            use_zero_conf (bool, optional): 
+                Use mDNS to advertise the connection. Defaults to True.
+            context (optional): ZMQ context. Defaults to None.
         """
 
         threading.Thread.__init__(self, daemon=True)
@@ -81,7 +91,7 @@ class TCPConnection(threading.Thread):
         self.b_connection_id = self.connection_id.encode('utf-8')
         self.use_zeroconf = use_zero_conf
         while self._is_port_in_use(port) and use_zero_conf:
-            # increment port until we find one that is free. 
+            # increment port until we find one that is free.
             port += 1
         self.ext_url = "tcp://" + ip_address + ":" + str(port)
 
@@ -103,6 +113,8 @@ class TCPConnection(threading.Thread):
         time.sleep(1)
 
     def close(self):
+        """Close the connection."""
+
         if self.use_zeroconf:
             self.zeroconf.unregister_all_services()
             self.zeroconf.close()

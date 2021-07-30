@@ -7,7 +7,7 @@ disable=
     too-few-public-methods,
     too-many-instance-attributes,  # <-- Ensure at least this entry.
     fixme,
-    too-many-arguments
+    too-many-Parameters
 
 [FORMAT]
 max-line-length=240

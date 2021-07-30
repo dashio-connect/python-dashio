@@ -67,7 +67,7 @@ class TimeGraphLine:
     def add_data_point(self, data_point):
         """Add and sends a single datapoint to the line. It automatically timestamps to the current time.
 
-        Arguments:
+        Parameters
             data_point -- A single data point
         """
         data_p = DataPoint(data_point)
