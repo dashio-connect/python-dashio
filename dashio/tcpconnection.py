@@ -60,7 +60,8 @@ class TCPConnection(threading.Thread):
         self.zeroconf.register_service(zconf_info)
 
     def add_device(self, device):
-        device.add_connection(self)
+        device.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.connection_id))
+        device.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
         device.add_control(self.tcp_control)
 
         self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))

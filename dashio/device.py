@@ -5,7 +5,7 @@ import threading
 import shortuuid
 import zmq
 
-from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
+from .constants import DEVICE_PUB_URL
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.device_view import DeviceView
 
@@ -103,7 +103,6 @@ class Device(threading.Thread):
         message_body : str
             The text body of the Alarm.
         """
-
         payload = self.device_id_str + f"\t{alarm_id}\t{message_header}\t{message_body}\n"
         logging.debug("ALARM: %s", payload)
         self.tx_zmq_pub.send_multipart([b"ALARM", b'0', payload.encode('utf-8')])
@@ -141,16 +140,6 @@ class Device(threading.Thread):
         key = iot_control.msg_type + "_" + iot_control.control_id
         self.control_dict[key] = iot_control
 
-    def add_connection(self, connection):
-        """Add a connection to the device
-
-        Parameters
-        ----------
-            connection: A connection type to connect with e.g. DASHConnection, MQTTConnection, TCPConnection, BLEConnection.
-        """
-        self.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=connection.connection_id))
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, connection.connection_id.encode('utf-8'))
-
     def _set_devicesetup(self, control_name: str, settable: bool):
         if settable:
             self._device_commands_dict[control_name.upper()] = getattr(self, '_' + control_name + '_rx_event', None)
@@ -172,7 +161,7 @@ class Device(threading.Thread):
 
         Parameters
         ----------
-            callback: 
+            callback:
                 The callback function. It will be invoked with one argument, the msg from IoTDashboard.
                 The callback must return a Boolean indicating success.
         """
@@ -198,7 +187,7 @@ class Device(threading.Thread):
 
         Parameters
         ----------
-            callback: 
+            callback:
                 The callback function. It will be invoked with one argument, the msg from IoTDashboard.
                 The callback must return a Boolean indicating success.
         """
@@ -224,7 +213,7 @@ class Device(threading.Thread):
 
         Parameters
         ----------
-            callback: 
+            callback:
                 The callback function. It will be invoked with one argument, the msg from IoTDashboard.
                 The callback must return the new name.
         """

@@ -2,7 +2,7 @@ import json
 import logging
 import ssl
 import threading
-import uuid
+import shortuuid
 
 import paho.mqtt.client as mqtt
 import zmq
@@ -90,7 +90,8 @@ class MQTTConnection(threading.Thread):
         """
         if device.device_id not in self.device_id_list:
             self.device_id_list.append(device.device_id)
-            device.add_connection(self)
+            device.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.connection_id))
+            device.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
             device.add_control(self.mqtt_control)
 
             self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
@@ -124,8 +125,8 @@ class MQTTConnection(threading.Thread):
         threading.Thread.__init__(self, daemon=True)
 
         self.context = context or zmq.Context.instance()
-        self.connection_id = uuid.uuid4()
-        self.b_connection_id = self.connection_id.bytes
+        self.connection_id = shortuuid.uuid()
+        self.b_connection_id = self.connection_id.encode('utf-8')
 
         self.mqtt_control = MQTT(self.connection_id, username, password, host, use_ssl)
         self.connected = False
