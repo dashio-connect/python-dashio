@@ -12,8 +12,7 @@ from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 # TODO: Add documentation
 
 class MQTT():
-
-    """A connection only control"""
+    """A CFG only control"""
     def get_state(self):
         return ""
 
@@ -52,7 +51,7 @@ class MQTT():
 
 
 class MQTTConnection(threading.Thread):
-    """Setups and manages a connection thread to the Dash Server."""
+    """Setups and manages a connection thread to the MQTT Server."""
 
     def _on_connect(self, client, userdata, flags, msg):
         if msg == 0:
@@ -82,6 +81,13 @@ class MQTTConnection(threading.Thread):
         logging.debug(string)
 
     def add_device(self, device):
+        """Add device to the connection
+
+        Parameters
+        ---------
+            device {Device}:
+                The device to add.
+        """
         if device.device_id not in self.device_id_list:
             self.device_id_list.append(device.device_id)
             device.add_connection(self)
@@ -96,14 +102,23 @@ class MQTTConnection(threading.Thread):
 
     def __init__(self, host, port, username="", password="", use_ssl=False, context=None):
         """
-        Arguments:
-            host {str} -- The server name of the mqtt host.
-            port {int} -- Port number to connect to.
-            username {str} -- username for the mqtt connection.
-            password {str} -- password for the mqtt connection.
+        Setups and manages a connection thread to the MQTT Server.
 
-        Keyword Arguments:
-            use_ssl {bool} -- Whether to use ssl for the connection or not. (default: {False})
+        Parameters
+        ---------
+            host {str}:
+                The server name of the mqtt host.
+            port {int}:
+                Port number to connect to.
+            username {str}:
+                username for the mqtt connection.
+            password {str}:
+                password for the mqtt connection.
+
+        Keyword Parameters
+        -----------------
+            use_ssl {bool}:
+                Whether to use ssl for the connection or not. (default: {False})
         """
 
         threading.Thread.__init__(self, daemon=True)

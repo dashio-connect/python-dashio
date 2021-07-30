@@ -109,13 +109,6 @@ class Device(threading.Thread):
         self.tx_zmq_pub.send_multipart([b"ALARM", b'0', payload.encode('utf-8')])
 
     def _send_data(self, data: str):
-        """Send data.
-
-        Parameters
-        ----------
-        data : str
-            Data to be sent
-        """
         if not data:
             return
         reply_send = data.format(device_id=self.device_id)
@@ -134,7 +127,7 @@ class Device(threading.Thread):
 
         Parameters
         ----------
-        iot_control : iotControl
+            iot_control : iotControl
         """
         if isinstance(iot_control, DeviceView):
             self._cfg["numDeviceViews"] += 1
@@ -151,8 +144,9 @@ class Device(threading.Thread):
     def add_connection(self, connection):
         """Add a connection to the device
 
-        Args:
-            connection ([type]): [description]
+        Parameters
+        ----------
+            connection: A connection type to connect with e.g. DASHConnection, MQTTConnection, TCPConnection, BLEConnection.
         """
         self.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=connection.connection_id))
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, connection.connection_id.encode('utf-8'))
@@ -176,9 +170,11 @@ class Device(threading.Thread):
         """
         Specify a callback function to be called when IoTDashboard sets wifi parameters.
 
-        :param callback: The callback function. It will be invoked with one
-            argument, the msg from IoTDashboard.
-            The callback must return a Boolean indicating success.
+        Parameters
+        ----------
+            callback: 
+                The callback function. It will be invoked with one argument, the msg from IoTDashboard.
+                The callback must return a Boolean indicating success.
         """
         self._set_devicesetup("wifi", True)
         self._wifi_rx_callback = callback
@@ -200,9 +196,11 @@ class Device(threading.Thread):
         """
         Specify a callback function to be called when IoTDashboard sets dashio parameters.
 
-        :param callback: The callback function. It will be invoked with one
-            argument, the msg from IoTDashboard.
-            The callback must return a Boolean indicating success.
+        Parameters
+        ----------
+            callback: 
+                The callback function. It will be invoked with one argument, the msg from IoTDashboard.
+                The callback must return a Boolean indicating success.
         """
         self._set_devicesetup("dashio", True)
         self._dashio_rx_callback = callback
@@ -224,9 +222,11 @@ class Device(threading.Thread):
         """
         Specify a callback function to be called when IoTDashboard sets dashio parameters.
 
-        :param callback: The callback function. It will be invoked with one
-            argument, the msg from IoTDashboard.
-            The callback must return the new name.
+        Parameters
+        ----------
+            callback: 
+                The callback function. It will be invoked with one argument, the msg from IoTDashboard.
+                The callback must return the new name.
         """
         self._set_devicesetup("name", True)
         self._name_rx_callback = callback
@@ -247,12 +247,13 @@ class Device(threading.Thread):
         return ""
 
     def set_tcp_callback(self, callback):
-        """
-        Specify a callback function to be called when IoTDashboard sets tcp parameters.
+        """Specify a callback function to be called when IoTDashboard sets tcp parameters.
 
-        :param callback: The callback function. It will be invoked with one
-            argument, the msg from IoTDashboard.
-            The callback must return a Boolean indicating success.
+        Parameters
+        ----------
+            callback:
+                The callback function. It will be invoked with one argument, the msg from IoTDashboard.
+                The callback must return a Boolean indicating success.
         """
         self._set_devicesetup("tcp", True)
         self._tcp_rx_callback = callback
@@ -274,9 +275,11 @@ class Device(threading.Thread):
         """
         Specify a callback function to be called when IoTDashboard sets mqtt parameters.
 
-        :param callback: The callback function. It will be invoked with one
-            argument, the msg from IoTDashboard.
-            The callback must return a Boolean indicating success.
+        Parameters
+        ----------
+            callback:
+                The callback function. It will be invoked with one argument, the msg from IoTDashboard.
+                The callback must return a Boolean indicating success.
         """
         self._set_devicesetup("mqtt", True)
         self._mqtt_rx_callback = callback
@@ -301,11 +304,16 @@ class Device(threading.Thread):
                  context=None) -> None:
         """DashDevice
 
-        Args:
-            device_type (str): A Short description of the device type.
-            device_id (str): A unique identifier for this device
-            device_name (str): The name for this device
-            context ([type], optional): [description]. Defaults to None.
+        Parameters
+        ----------
+            device_type (str):
+                A Short description of the device type.
+            device_id (str):
+                A unique identifier for this device
+            device_name (str):
+                The name for this device
+            context (optional):
+                ZMQ context. Defaults to None.
         """
         threading.Thread.__init__(self, daemon=True)
 
@@ -352,6 +360,7 @@ class Device(threading.Thread):
         self._send_data(f"\t{{device_id}}\tNAME\t{self._device_name}\t")
 
     def close(self):
+        """Close the connection"""
         self.running = False
 
     def run(self):

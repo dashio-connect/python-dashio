@@ -12,7 +12,7 @@ class SimpleMapLocation:
     def __init__(self, tag, latitude, longitude):
         """A map location used by a map_control
 
-        Arguments:
+        Parameters
             latitude {str} -- Latitude
             longitude {str} -- Longitude
             tag {str} -- A tag to display on the map.

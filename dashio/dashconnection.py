@@ -76,6 +76,13 @@ class DashConnection(threading.Thread):
         logging.debug(string)
 
     def add_device(self, device):
+        """Add a Device to the connextion
+
+        Parameters
+        ----------
+            device (Device): 
+                The Device to add.
+        """
         if device.device_id not in self.device_id_list:
             self.device_id_list.append(device.device_id)
             device.add_connection(self)
@@ -105,15 +112,23 @@ class DashConnection(threading.Thread):
         host='dash.dashio.io',
         port=8883,
         use_ssl=True,
-        set_by_iotdashboard=False,
         context=None
     ):
         """
-        Arguments:
-            host {str} -- The server name of the dash host.
-            port {int} -- Port number to connect to.
-            username {str} -- username for the dash connection.
-            password {str} -- password for the dash connection.
+        Setups and manages a connection thread to the Dash Server.
+
+        Parameters
+        ---------
+            host {str}:
+                The server name of the dash host.
+            port {int}:
+                Port number to connect to.
+            username {str}:
+                username for the dash connection.
+            password {str}:
+                password for the dash connection.
+            use_ssl {Boolean}:
+                Defaults to True.
         """
 
         threading.Thread.__init__(self, daemon=True)
@@ -130,7 +145,6 @@ class DashConnection(threading.Thread):
         self.dash_c = mqtt.Client()
         self.host = host
         self.port = port
-        self.set_by_iotdashboard = set_by_iotdashboard
         # Assign event callbacks
         self.dash_c.on_message = self._on_message
         self.dash_c.on_connect = self._on_connect
@@ -160,6 +174,7 @@ class DashConnection(threading.Thread):
         time.sleep(1)
 
     def close(self):
+        """Close the connection."""
         self.running = False
 
     def run(self):

@@ -4,6 +4,22 @@ from .enums import Icon, TitlePosition
 
 
 class ButtonGroup(Control):
+    """ButtonGroup control that shows a popup of buttons.
+
+    Attributes
+    ----------
+    control_id : str
+        a unique identity string. The identity string must be a unique string for each ButtonGroup per device
+    title: str
+        A short title for the button group
+    text : str
+        The text that appears on the ButtonGroup
+
+    Methods
+    -------
+    add_button(Button)
+        Add a button to the ButtonGroup
+    """
     def get_state(self):
         return ""
 
@@ -17,6 +33,25 @@ class ButtonGroup(Control):
         grid_view=True,
         control_position=None,
     ):
+        """ButtonGroup control that shows a popup of buttons.
+
+        Parameters
+        ----------
+            control_id : str
+                [description]
+            title : str, optional:
+                [description]. Defaults to "A Button Group".
+            text (str, optional):
+                [description]. Defaults to "A Button group with Text".
+            title_position ([type], optional):
+                [description]. Defaults to TitlePosition.BOTTOM.
+            icon ([type], optional):
+                [description]. Defaults to Icon.MENU.
+            grid_view (bool, optional):
+                [description]. Defaults to True.
+            control_position ([type], optional):
+                [description]. Defaults to None.
+        """
         super().__init__("BTGP", control_id, title=title, control_position=control_position, title_position=title_position)
         self.icon_name = icon
         self.text = text

@@ -2,6 +2,7 @@ import socket
 
 
 def get_local_ip_address():
+    """Find the external IP address."""
     test_s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         # doesn't even have to be reachable
