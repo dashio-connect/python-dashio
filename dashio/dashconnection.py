@@ -45,12 +45,26 @@ class Dash():
 
 
 class DashConnection(threading.Thread):
-    """Setups and manages a connection thread to the Dash Server."""
+    """Setups and manages a connection thread to the Dash Server.
 
+    Attributes
+    ----------
+    dash_control : Dash
+        A Dash control
+
+    Methods
+    -------
+    add_device(Device):
+        add a Deive to the connection
+    set_connection(username, password):
+        change the connection username and password
+    close():
+        close the connection
+    """
     def _on_connect(self, client, userdata, flags, msg):
         if msg == 0:
-            self.connected = True
-            self.disconnect = False
+            self._connected = True
+            self._disconnect = False
             for device_id in self._device_id_list:
                 control_topic = f"{self.username}/{device_id}/control"
                 self._dash_c.subscribe(control_topic, 0)
@@ -61,8 +75,8 @@ class DashConnection(threading.Thread):
 
     def _on_disconnect(self, client, userdata, msg):
         logging.debug("disconnecting reason  %s", msg)
-        self.connected = False
-        self.disconnect = True
+        self._connected = False
+        self._disconnect = True
 
     def _on_message(self, client, obj, msg):
         data = str(msg.payload, "utf-8").strip()
@@ -92,7 +106,7 @@ class DashConnection(threading.Thread):
             self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
             self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
 
-            if self.connected:
+            if self._connected:
                 control_topic = f"{self.username}/{device.device_id}/control"
                 self._dash_c.subscribe(control_topic, 0)
                 self._send_dash_announce()
@@ -135,17 +149,17 @@ class DashConnection(threading.Thread):
         threading.Thread.__init__(self, daemon=True)
 
         self.context = context or zmq.Context.instance()
-        self.connected = False
-        self.disconnect = True
+        self._connected = False
+        self._disconnect = True
         self._connection_id = shortuuid.uuid()
         self._b_connection_id = self._connection_id.encode('utf-8')
         self._device_id_list = []
         # self.LWD = "OFFLINE"
         self.running = True
         self.username = username
-        self._dash_c = mqtt.Client()
         self.host = host
         self.port = port
+        self._dash_c = mqtt.Client()
         # Assign event callbacks
         self._dash_c.on_message = self._on_message
         self._dash_c.on_connect = self._on_connect
@@ -215,7 +229,7 @@ class DashConnection(threading.Thread):
                     data_topic = f"{self.username}/{device_id}/announce"
                 else:
                     data_topic = f"{self.username}/{device_id}/data"
-                if self.connected:
+                if self._connected:
                     logging.debug("DASH TX:\n%s", data.decode('utf-8').rstrip())
                     self._dash_c.publish(data_topic, data.decode('utf-8'))
 

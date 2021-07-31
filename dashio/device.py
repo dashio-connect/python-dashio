@@ -25,7 +25,7 @@ class Device(threading.Thread):
     Methods
     -------
     send(header, body)
-        Send an alarm with a header and body.    
+        Send an alarm with a header and body.   
     """
 
     def _on_message(self, payload):
