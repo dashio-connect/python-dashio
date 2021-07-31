@@ -11,8 +11,9 @@ class EventData:
     def __init__(self, header, body, color=Color.WHITE):
         self.color = color
         self.timestamp = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
-        self.header = header
-        self.body = body
+        bad_chars = {ord(i): None for i in '\t\n'}
+        self.header = header.translate(bad_chars)
+        self.body = body.translate(bad_chars)
 
     def to_string(self):
         data_str = "{ts}\t{color}\t{header}\t{body}\n".format(

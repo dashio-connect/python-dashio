@@ -31,7 +31,7 @@ class TimeGraphLine:
     def __init__(
         self, name="", line_type=TimeGraphLineType.LINE, color=Color.BLACK, max_data_points=60, break_data=False
     ):
-        self.name = name
+        self.name = name.translate({ord(i): None for i in '\t\n'})
         self.line_type = line_type
         self.color = color
         self.break_data = break_data

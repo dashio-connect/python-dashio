@@ -33,13 +33,15 @@ class Control:
         # Dictionary to store CFG json
         self._cfg = {}
         self._title = None
+        # Remove incompatible characters
+        bad_chars = {ord(i): None for i in '\t\n'}
         if title is not None:
-            self.title = title
+            self.title = title.translate(bad_chars)
         self._title_position = None
         if title_position is not None:
             self.title_position = title_position
         self.msg_type = msg_type
-        self.control_id = control_id
+        self.control_id = control_id.translate(bad_chars)
         self.message_rx_event = Event()
         self.message_tx_event = Event()
         self._control_hdr_str = f"\t{{device_id}}\t{self.msg_type}\t{self.control_id}\t"
