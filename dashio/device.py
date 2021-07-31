@@ -53,7 +53,7 @@ class Device(threading.Thread):
         if cntrl_type in self._device_commands_dict:
             return self._device_commands_dict[cntrl_type](data_array)
         try:
-            self.control_dict[cntrl_type + "_" + data_array[2]].message_rx_event(data_array)
+            self._control_dict[cntrl_type + "_" + data_array[2]].message_rx_event(data_array)
         except (KeyError, IndexError):
             pass
         return ""
@@ -63,17 +63,17 @@ class Device(threading.Thread):
 
     def _make_status(self, data):
         reply = f"\t{self.device_id}\tNAME\t{self._device_name}\n"
-        for key in self.control_dict:
+        for key in self._control_dict:
             try:
-                reply += self.control_dict[key].get_state().format(device_id=self.device_id)
+                reply += self._control_dict[key].get_state().format(device_id=self.device_id)
             except (TypeError, KeyError):
                 pass
         return reply
 
     def _make_cfg(self, data):
         reply = self._device_id_str + '\tCFG\tDVCE\t' + json.dumps(self._cfg) + "\n"
-        for key in self.control_dict:
-            reply += self._device_id_str + self.control_dict[key].get_cfg(data[2])
+        for key in self._control_dict:
+            reply += self._device_id_str + self._control_dict[key].get_cfg(data[2])
         return reply
 
     def send_popup_message(self, title, header, message):
@@ -138,7 +138,7 @@ class Device(threading.Thread):
         except AttributeError:
             pass
         key = iot_control.msg_type + "_" + iot_control.control_id
-        self.control_dict[key] = iot_control
+        self._control_dict[key] = iot_control
 
     def _set_devicesetup(self, control_name: str, settable: bool):
         if settable:
@@ -306,8 +306,8 @@ class Device(threading.Thread):
         """
         threading.Thread.__init__(self, daemon=True)
 
-        self.zmq_pub_id = shortuuid.uuid()
-        self._b_zmq_pub_id = self.zmq_pub_id.encode('utf-8')
+        self._zmq_pub_id = shortuuid.uuid()
+        self._b_zmq_pub_id = self._zmq_pub_id.encode('utf-8')
         self.context = context or zmq.Context.instance()
         self._wifi_rx_callback = None
         self._dashio_rx_callback = None
@@ -324,7 +324,7 @@ class Device(threading.Thread):
         self._device_commands_dict['CONNECT'] = self._make_connect
         self._device_commands_dict['STATUS'] = self._make_status
         self._device_commands_dict['CFG'] = self._make_cfg
-        self.control_dict = {}
+        self._control_dict = {}
         self._cfg = {}
         self._device_id_str = f"\t{device_id}"
         self._cfg["numDeviceViews"] = 0
@@ -356,7 +356,7 @@ class Device(threading.Thread):
         # Continue the network loop, exit when an error occurs
 
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.tx_zmq_pub.bind(DEVICE_PUB_URL.format(id=self.zmq_pub_id))
+        self.tx_zmq_pub.bind(DEVICE_PUB_URL.format(id=self._zmq_pub_id))
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "COMMAND")
 
