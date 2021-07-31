@@ -1,3 +1,11 @@
+"""alarm module
+
+Classes
+-------
+    Alarm:
+        A class representing an Alarm control
+"""
+
 from .control import Control
 from .enums import SoundName
 
@@ -53,6 +61,13 @@ class Alarm(Control):
 
     @property
     def description(self) -> str:
+        """description
+
+        Returns
+        -------
+        str
+            description
+        """
         return self._cfg["description"]
 
     @description.setter
@@ -61,6 +76,13 @@ class Alarm(Control):
 
     @property
     def sound_name(self) -> SoundName:
+        """sound_name
+
+        Returns
+        -------
+        SoundName
+            sound_name
+        """
         return self._sound_name
 
     @sound_name.setter

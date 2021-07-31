@@ -1,3 +1,10 @@
+"""button_broup.py
+
+Classes
+-------
+ButtonGroup
+    A class representing a ButtonGroup
+"""
 from .button import Button
 from .control import Control
 from .enums import Icon, TitlePosition
@@ -65,6 +72,13 @@ class ButtonGroup(Control):
 
     @property
     def grid_view(self) -> bool:
+        """grid_view
+
+        Returns
+        -------
+        bool
+            Bool representing if to view the button group as a grid view
+        """
         return self._cfg["gridView"]
 
     @grid_view.setter
@@ -73,6 +87,13 @@ class ButtonGroup(Control):
 
     @property
     def icon_name(self) -> Icon:
+        """icon_name
+
+        Returns
+        -------
+        Icon
+            The icon used to represent the ButtonGroup
+        """
         return self._icon_name
 
     @icon_name.setter
