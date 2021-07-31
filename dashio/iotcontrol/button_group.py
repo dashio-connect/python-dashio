@@ -54,7 +54,7 @@ class ButtonGroup(Control):
         """
         super().__init__("BTGP", control_id, title=title, control_position=control_position, title_position=title_position)
         self.icon_name = icon
-        self.text = text
+        self.text = text.translate({ord(i): None for i in '\t\n'})
         self.grid_view = grid_view
 
     def add_button(self, control):

@@ -33,7 +33,7 @@ class Alarm(Control):
                 The sound name to use. Defaults to SoundName.DEFAULT
         """
         super().__init__("ALM", control_id)
-        self.description = description
+        self.description = description.translate({ord(i): None for i in '\t\n'})
         self.sound_name = sound_name
 
     def send(self, header: str, body:str):

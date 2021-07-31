@@ -61,7 +61,7 @@ class Button(Control):
         self.icon_name = icon_name
         self.on_color = on_color
         self.off_color = off_color
-        self.text = text
+        self.text = text.translate({ord(i): None for i in '\t\n'})
 
     def get_state(self):
         text = self._cfg["text"]

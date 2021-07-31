@@ -43,7 +43,7 @@ class Device(threading.Thread):
         data_array = data.split("\t")
         rx_device_id = data_array[0]
         if rx_device_id == "WHO":
-            return self.device_id_str + f"\tWHO\t{self.device_type}\t{self.device_name}\n"
+            return self._device_id_str + f"\tWHO\t{self.device_type}\t{self.device_name}\n"
         if rx_device_id != self.device_id:
             return ""
         try:
@@ -59,7 +59,7 @@ class Device(threading.Thread):
         return ""
 
     def _make_connect(self, data):
-        return self.connect
+        return self._device_id_str + "\tCONNECT\n"
 
     def _make_status(self, data):
         reply = f"\t{self.device_id}\tNAME\t{self._device_name}\n"
@@ -71,9 +71,9 @@ class Device(threading.Thread):
         return reply
 
     def _make_cfg(self, data):
-        reply = self.device_id_str + '\tCFG\tDVCE\t' + json.dumps(self._cfg) + "\n"
+        reply = self._device_id_str + '\tCFG\tDVCE\t' + json.dumps(self._cfg) + "\n"
         for key in self.control_dict:
-            reply += self.device_id_str + self.control_dict[key].get_cfg(data[2])
+            reply += self._device_id_str + self.control_dict[key].get_cfg(data[2])
         return reply
 
     def send_popup_message(self, title, header, message):
@@ -88,7 +88,7 @@ class Device(threading.Thread):
         message : str
             Message body.
         """
-        data = self.device_id_str + f"\tMSSG\t{title}\t{header}\t{message}\n"
+        data = self._device_id_str + f"\tMSSG\t{title}\t{header}\t{message}\n"
         self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
 
     def send_alarm(self, alarm_id, message_header, message_body):
@@ -103,7 +103,7 @@ class Device(threading.Thread):
         message_body : str
             The text body of the Alarm.
         """
-        payload = self.device_id_str + f"\t{alarm_id}\t{message_header}\t{message_body}\n"
+        payload = self._device_id_str + f"\t{alarm_id}\t{message_header}\t{message_body}\n"
         logging.debug("ALARM: %s", payload)
         self.tx_zmq_pub.send_multipart([b"ALARM", b'0', payload.encode('utf-8')])
 
@@ -117,7 +117,7 @@ class Device(threading.Thread):
             pass
 
     def _send_announce(self):
-        payload = self.device_id_str + f"\tWHO\t{self.device_type}\t{self.device_name}\n"
+        payload = self._device_id_str + f"\tWHO\t{self.device_type}\t{self.device_name}\n"
         logging.debug("ANNOUNCE: %s", payload)
         self.tx_zmq_pub.send_multipart([b"ANNOUNCE", b'0', payload.encode('utf-8')])
 
@@ -177,7 +177,7 @@ class Device(threading.Thread):
 
     def _wifi_rx_event(self, msg):
         if self._wifi_rx_callback(msg):
-            data = self.device_id_str + "\tWIFI\n"
+            data = self._device_id_str + "\tWIFI\n"
             self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
         return ""
 
@@ -203,7 +203,7 @@ class Device(threading.Thread):
 
     def _dashio_rx_event(self, msg):
         if self._dashio_rx_callback(msg):
-            data = self.device_id_str + "\tDASHIO\n"
+            data = self._device_id_str + "\tDASHIO\n"
             self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
         return ""
 
@@ -231,7 +231,7 @@ class Device(threading.Thread):
         name = self._name_rx_callback(msg)
         if name:
             self._device_name = name
-            data = self.device_id_str + f"\tNAME\t{name}\n"
+            data = self._device_id_str + f"\tNAME\t{name}\n"
             self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
         return ""
 
@@ -256,7 +256,7 @@ class Device(threading.Thread):
 
     def _tcp_rx_event(self, msg):
         if self._tcp_rx_callback(msg):
-            data = self.device_id_str + "\tTCP\n"
+            data = self._device_id_str + "\tTCP\n"
             self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
         return ""
 
@@ -282,7 +282,7 @@ class Device(threading.Thread):
 
     def _mqtt_rx_event(self, msg):
         if self._mqtt_rx_callback(msg):
-            data = self.device_id_str + "\tMQTT\n"
+            data = self._device_id_str + "\tMQTT\n"
             self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
         return ""
 
@@ -314,8 +314,9 @@ class Device(threading.Thread):
         self._name_rx_callback = None
         self._tcp_rx_callback = None
         self._mqtt_rx_callback = None
-        self.device_type = device_type.strip()
-        self.device_id = device_id.strip()
+        bad_chars = {ord(i): None for i in '\t\n'}
+        self.device_type = device_type.translate(bad_chars)
+        self.device_id = device_id.translate(bad_chars)
         self._b_device_id = self.device_id.encode('utf-8')
         self._device_name = device_name.strip()
         self._device_setup_list = []
@@ -325,8 +326,7 @@ class Device(threading.Thread):
         self._device_commands_dict['CFG'] = self._make_cfg
         self.control_dict = {}
         self._cfg = {}
-        self.device_id_str = f"\t{device_id}"
-        self.connect = self.device_id_str + "\tCONNECT\n"
+        self._device_id_str = f"\t{device_id}"
         self._cfg["numDeviceViews"] = 0
         self.running = True
         self.start()
