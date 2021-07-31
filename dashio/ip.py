@@ -1,3 +1,10 @@
+"""ip.py
+
+Returns
+-------
+get_local_ip_address:
+    function to return local machines IP address
+"""
 import socket
 
 
