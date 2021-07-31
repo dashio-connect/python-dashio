@@ -1,3 +1,10 @@
+"""tcpconnection
+
+Returns
+-------
+[type]
+    [description]
+"""
 import json
 import logging
 import socket
