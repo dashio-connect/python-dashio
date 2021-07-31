@@ -205,13 +205,15 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         self.tx_zmq_pub.send_multipart([self.b_connection_id, b'1', msg.encode('utf-8')])
 
     def __init__(self, ble_uuid=None, context=None):
-        """
-        Parameters
-        [Optional]
-            ble_uuid {str} -- The UUID used by BLE.
-            context {int} -- ZMQ context
-        """
+        """BLE Connection
 
+        Parameters
+        ----------
+        ble_uuid : str, optional
+            The UUID used by the BLE connection, if None a UUID is generated
+        context : ZMQ Context, optional
+            ZMQ Context, by default None
+        """
         threading.Thread.__init__(self, daemon=True)
 
         self.connection_id = shortuuid.uuid()
