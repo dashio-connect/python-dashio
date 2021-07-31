@@ -15,7 +15,7 @@ class EventData:
         self.header = header.translate(bad_chars)
         self.body = body.translate(bad_chars)
 
-    def to_string(self):
+    def __str__(self):
         data_str = "{ts}\t{color}\t{header}\t{body}\n".format(
             ts=self.timestamp.isoformat(), color=str(self.color.value), header=self.header, body=self.body
         )
@@ -41,14 +41,14 @@ class EventLog(Control):
         data_str = ""
         for log in self.log.get():
             if log.timestamp > log_date:
-                data_str += self._control_hdr_str + log.to_string()
+                data_str += self._control_hdr_str + str(log)
         self.state_str = data_str
 
     def add_event_data(self, data: EventData):
         if isinstance(data, EventData):
             self.log.append(data)
-            self.state_str = self._control_hdr_str + data.to_string()
+            self.state_str = self._control_hdr_str + str(data)
 
     def send_data(self):
         if self.log:
-            self.state_str = self._control_hdr_str + self.log.get_latest().to_string()
+            self.state_str = self._control_hdr_str + str(self.log.get_latest())

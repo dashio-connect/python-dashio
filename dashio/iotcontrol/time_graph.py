@@ -15,13 +15,14 @@ class DataPoint:
         """
         A time stamped data point for a time series graph.
 
-        Args:
+        Parameters
+        ----------
             data: A data point can be an int, float, or boolean, or string representing a number.
         """
         self.timestamp = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
         self.data_point = data
 
-    def to_string(self):
+    def __str__(self):
         data_str = "{ts},{data}".format(ts=self.timestamp.isoformat(), data=self.data_point)
         return data_str
 
@@ -42,7 +43,7 @@ class TimeGraphLine:
             return ""
         data_str = f"\t{self.name}\t{self.line_type.value}\t{self.color.value}"
         for data_p in self.data.get():
-            data_str += "\t" + data_p.to_string()
+            data_str += "\t" + str(data_p)
         data_str += "\n"
         return data_str
 
@@ -56,7 +57,7 @@ class TimeGraphLine:
             if data_p.timestamp > d_stamp:
                 if first and self.break_data:
                     data_str += "\t" + "{ts},{ldata}".format(ts=data_p.timestamp.isoformat(), ldata="b")
-                data_str += "\t" + data_p.to_string()
+                data_str += "\t" + str(data_p)
                 valid_data = True
             first = False
         data_str += "\n"
@@ -77,7 +78,7 @@ class TimeGraphLine:
         if self.data.empty():
             return ""
         data_str = f"\t{self.name}\t{self.line_type.value}\t{self.color.value}"
-        data_str += "\t" + self.data.get_latest().to_string()
+        data_str += "\t" + str(self.data.get_latest())
         data_str += "\n"
         return data_str
 
