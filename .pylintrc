@@ -8,6 +8,7 @@ disable=
     too-many-instance-attributes,  # <-- Ensure at least this entry.
     fixme,
     too-many-Parameters
+    too-many-arguments
 
 [FORMAT]
 max-line-length=240
