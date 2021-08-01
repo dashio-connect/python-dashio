@@ -1,10 +1,4 @@
-"""tcpconnection
-
-Returns
--------
-[type]
-    [description]
-"""
+"""tcpconnection.py"""
 import json
 import logging
 import socket
