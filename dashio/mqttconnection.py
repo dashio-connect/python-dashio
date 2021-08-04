@@ -1,8 +1,9 @@
+"""mqttcnection.py"""
 import json
 import logging
 import ssl
 import threading
-import uuid
+import shortuuid
 
 import paho.mqtt.client as mqtt
 import zmq
@@ -12,8 +13,7 @@ from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 # TODO: Add documentation
 
 class MQTT():
-
-    """A connection only control"""
+    """A CFG only control"""
     def get_state(self):
         return ""
 
@@ -52,7 +52,7 @@ class MQTT():
 
 
 class MQTTConnection(threading.Thread):
-    """Setups and manages a connection thread to the Dash Server."""
+    """Setups and manages a connection thread to the MQTT Server."""
 
     def _on_connect(self, client, userdata, flags, msg):
         if msg == 0:
@@ -82,9 +82,17 @@ class MQTTConnection(threading.Thread):
         logging.debug(string)
 
     def add_device(self, device):
+        """Add device to the connection
+
+        Parameters
+        ---------
+            device {Device}:
+                The device to add.
+        """
         if device.device_id not in self.device_id_list:
             self.device_id_list.append(device.device_id)
-            device.add_connection(self)
+            device.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.connection_id))
+            device.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
             device.add_control(self.mqtt_control)
 
             self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
@@ -96,21 +104,30 @@ class MQTTConnection(threading.Thread):
 
     def __init__(self, host, port, username="", password="", use_ssl=False, context=None):
         """
-        Arguments:
-            host {str} -- The server name of the mqtt host.
-            port {int} -- Port number to connect to.
-            username {str} -- username for the mqtt connection.
-            password {str} -- password for the mqtt connection.
+        Setups and manages a connection thread to the MQTT Server.
 
-        Keyword Arguments:
-            use_ssl {bool} -- Whether to use ssl for the connection or not. (default: {False})
+        Parameters
+        ---------
+            host {str}:
+                The server name of the mqtt host.
+            port {int}:
+                Port number to connect to.
+            username {str}:
+                username for the mqtt connection.
+            password {str}:
+                password for the mqtt connection.
+
+        Keyword Parameters
+        -----------------
+            use_ssl {bool}:
+                Whether to use ssl for the connection or not. (default: {False})
         """
 
         threading.Thread.__init__(self, daemon=True)
 
         self.context = context or zmq.Context.instance()
-        self.connection_id = uuid.uuid4()
-        self.b_connection_id = self.connection_id.bytes
+        self.connection_id = shortuuid.uuid()
+        self.b_connection_id = self.connection_id.encode('utf-8')
 
         self.mqtt_control = MQTT(self.connection_id, username, password, host, use_ssl)
         self.connected = False

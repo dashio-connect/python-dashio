@@ -19,7 +19,7 @@ class TextBox(Control):
         control_position=None,
     ):
         super().__init__("TEXT", control_id, title=title, control_position=control_position, title_position=title_position)
-        self.text = text
+        self.text = text.translate({ord(i): None for i in '\t\n'})
         self.text_align = text_align
         self.units = units
         self.precision = precision

@@ -1,9 +1,32 @@
+"""button_broup.py
+
+Classes
+-------
+ButtonGroup
+    A class representing a ButtonGroup
+"""
 from .button import Button
 from .control import Control
 from .enums import Icon, TitlePosition
 
 
 class ButtonGroup(Control):
+    """ButtonGroup control that shows a popup of buttons.
+
+    Attributes
+    ----------
+    control_id : str
+        a unique identity string. The identity string must be a unique string for each ButtonGroup per device
+    title: str
+        A short title for the button group
+    text : str
+        The text that appears on the ButtonGroup
+
+    Methods
+    -------
+    add_button(Button)
+        Add a button to the ButtonGroup
+    """
     def get_state(self):
         return ""
 
@@ -17,9 +40,28 @@ class ButtonGroup(Control):
         grid_view=True,
         control_position=None,
     ):
+        """ButtonGroup control that shows a popup of buttons.
+
+        Parameters
+        ----------
+            control_id : str
+                [description]
+            title : str, optional:
+                [description]. Defaults to "A Button Group".
+            text (str, optional):
+                [description]. Defaults to "A Button group with Text".
+            title_position ([type], optional):
+                [description]. Defaults to TitlePosition.BOTTOM.
+            icon ([type], optional):
+                [description]. Defaults to Icon.MENU.
+            grid_view (bool, optional):
+                [description]. Defaults to True.
+            control_position ([type], optional):
+                [description]. Defaults to None.
+        """
         super().__init__("BTGP", control_id, title=title, control_position=control_position, title_position=title_position)
         self.icon_name = icon
-        self.text = text
+        self.text = text.translate({ord(i): None for i in '\t\n'})
         self.grid_view = grid_view
 
     def add_button(self, control):
@@ -30,6 +72,13 @@ class ButtonGroup(Control):
 
     @property
     def grid_view(self) -> bool:
+        """grid_view
+
+        Returns
+        -------
+        bool
+            Bool representing if to view the button group as a grid view
+        """
         return self._cfg["gridView"]
 
     @grid_view.setter
@@ -38,6 +87,13 @@ class ButtonGroup(Control):
 
     @property
     def icon_name(self) -> Icon:
+        """icon_name
+
+        Returns
+        -------
+        Icon
+            The icon used to represent the ButtonGroup
+        """
         return self._icon_name
 
     @icon_name.setter

@@ -3,6 +3,38 @@ from .enums import ButtonState, Color, Icon, TitlePosition
 
 
 class Button(Control):
+    """A Button control.
+
+    
+    Attributes
+    ----------
+    control_id : str
+        a unique identity string. The identity string must be a unique string for each ButtonGroup per device
+    title: str
+        A short title for the button group
+    text : str
+        The text that appears on the ButtonGroup
+    title_position : TitlePosition
+        Can be TitlePosition.BOTTOM, TitlePosition.TOP, TitlePosition.OFF
+    button_enabled : boolean
+        True allows the app to send button events. False disables button pushes
+    icon_name : Icon
+        Set the icon for the button
+    off_color : Color
+        Set the off color
+    on_color : Color
+        Set the on color
+    control_position : ControlPosition
+        Set the size and position of the button on a DeviceView.
+
+    Methods
+    -------
+    toggle_btn :
+        Toggles the button state.
+
+    send_button(btn_state, btn_icon, text) :
+        Updates the button state, button icon and text.
+    """
     def toggle_btn(self):
         if self.btn_state == ButtonState.FLASH:
             return
@@ -29,7 +61,7 @@ class Button(Control):
         self.icon_name = icon_name
         self.on_color = on_color
         self.off_color = off_color
-        self.text = text
+        self.text = text.translate({ord(i): None for i in '\t\n'})
 
     def get_state(self):
         text = self._cfg["text"]

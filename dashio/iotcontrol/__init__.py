@@ -1,3 +1,5 @@
+"""The DashIO module is for creating devices, controls and connections for the DashIO app.
+"""
 from .enums import Color, Icon, Precision, Keyboard, TextAlignment, SliderBarType, DialNumberPosition, DialStyle,\
     SoundName, GraphLineType, TimeGraphLineType, TimeGraphPositionOfKey, ButtonState, LabelStyle, KnobStyle,\
     TitlePosition, GraphXAxisLabelsStyle, TextFormat, DirectionStyle

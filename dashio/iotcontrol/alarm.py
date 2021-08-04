@@ -1,47 +1,58 @@
-"""alarm.py
+"""alarm module
 
-    Exports Alarm
+Classes
+-------
+    Alarm:
+        A class representing an Alarm control
 """
+
 from .control import Control
 from .enums import SoundName
 
 
 class Alarm(Control):
-    """Alarm control for notifications
+    """Alarm control for sending notifications
 
-     Attributes
+    Attributes
     ----------
     control_id : str
-        a unique alarm identity string
+        a unique alarm identity string. The alarm identity string must be a unique string for each alarm per device
     description : str
         A short description of the alarm
     sound_name : str
-        the sound that the alarm makes.
+        the sound that the alarm makes
 
     Methods
     -------
     send(header, body)
-        Send an alarm with a header and body.
+        Send an alarm with a header and body
     """
 
     def __init__(self, control_id: str, description="Alarm Description", sound_name=SoundName.DEFAULT):
         """Alarm control for notifications
 
-        Args:
-            control_id (str): [description]
-            description (str, optional): [description]. Defaults to "Alarm Descritption".
-            sound_name ([soundName], optional): [description]. Defaults to SoundName.DEFAULT.
+        Parameters
+        ----------
+            control_id (str):
+                Set the control id string
+            description (str, optional):
+                Sets the alarm description. Defaults to "Alarm Description"
+            sound_name ([soundName], optional):
+                The sound name to use. Defaults to SoundName.DEFAULT
         """
         super().__init__("ALM", control_id)
-        self.description = description
+        self.description = description.translate({ord(i): None for i in '\t\n'})
         self.sound_name = sound_name
 
     def send(self, header: str, body:str):
-        """Sends the alarm.
+        """Sends the alarm
 
-        Args:
-            header (str): ALarm Header
-            body (str): Alarm body
+        Parameters
+        ----------
+            header (str):
+                ALarm Header
+            body (str):
+                Alarm body
         """
         self.message_tx_event(self.control_id, header, body)
 
@@ -50,6 +61,13 @@ class Alarm(Control):
 
     @property
     def description(self) -> str:
+        """description
+
+        Returns
+        -------
+        str
+            description
+        """
         return self._cfg["description"]
 
     @description.setter
@@ -58,6 +76,13 @@ class Alarm(Control):
 
     @property
     def sound_name(self) -> SoundName:
+        """sound_name
+
+        Returns
+        -------
+        SoundName
+            sound_name
+        """
         return self._sound_name
 
     @sound_name.setter
