@@ -181,13 +181,13 @@ class BLEConnection(dbus.service.Object, threading.Thread):
             # 160 seems to work with iPhone
             mtu = 160
             data_chunks = [data_str[i: i + mtu] for i in range(0, len(data_str), mtu)]
-            
+
             sent = False
             for data_chunk in data_chunks:
                 sent |= self.dash_service.dash_characteristics.ble_send(data_chunk)
             if sent:
                 logging.debug("BLE TX: %s", data_str.strip())
-                
+
         return True
 
     def ble_rx(self, msg: str):
