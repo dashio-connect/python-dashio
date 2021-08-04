@@ -14,7 +14,7 @@ class TestEventLog(unittest.TestCase):
 
     def test_event_data(self):
         test_data = EventData("HEADER", "BODY")
-        test_str_list = test_data.to_string().split('\t')
+        test_str_list = str(test_data).split('\t')
         self.assertIsInstance(dateutil.parser.isoparse(test_str_list[0]), datetime, "Should be datetime")
         self.assertEqual(Color(int(test_str_list[1])), Color.WHITE, "Color whould be WHITE")
         self.assertEqual(test_str_list[2], 'HEADER', "header should be 'HEADER'")

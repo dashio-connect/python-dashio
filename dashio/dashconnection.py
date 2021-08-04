@@ -1,3 +1,4 @@
+"""dashconnection.py"""
 import json
 import logging
 import ssl
@@ -45,15 +46,29 @@ class Dash():
 
 
 class DashConnection(threading.Thread):
-    """Setups and manages a connection thread to the Dash Server."""
+    """Setups and manages a connection thread to the Dash Server.
 
+    Attributes
+    ----------
+    dash_control : Dash
+        A Dash control
+
+    Methods
+    -------
+    add_device(Device):
+        add a Deive to the connection
+    set_connection(username, password):
+        change the connection username and password
+    close():
+        close the connection
+    """
     def _on_connect(self, client, userdata, flags, msg):
         if msg == 0:
-            self.connected = True
-            self.disconnect = False
-            for device_id in self.device_id_list:
+            self._connected = True
+            self._disconnect = False
+            for device_id in self._device_id_list:
                 control_topic = f"{self.username}/{device_id}/control"
-                self.dash_c.subscribe(control_topic, 0)
+                self._dash_c.subscribe(control_topic, 0)
             self._send_dash_announce()
             logging.debug("connected OK")
         else:
@@ -61,13 +76,13 @@ class DashConnection(threading.Thread):
 
     def _on_disconnect(self, client, userdata, msg):
         logging.debug("disconnecting reason  %s", msg)
-        self.connected = False
-        self.disconnect = True
+        self._connected = False
+        self._disconnect = True
 
     def _on_message(self, client, obj, msg):
         data = str(msg.payload, "utf-8").strip()
         logging.debug("DASH RX:\n%s", data)
-        self.tx_zmq_pub.send_multipart([self.b_connection_id, b'1', msg.payload])
+        self.tx_zmq_pub.send_multipart([self._b_connection_id, b'1', msg.payload])
 
     def _on_subscribe(self, client, obj, mid, granted_qos):
         logging.debug("Subscribed: %s %s", str(mid), str(granted_qos))
@@ -76,27 +91,35 @@ class DashConnection(threading.Thread):
         logging.debug(string)
 
     def add_device(self, device):
-        if device.device_id not in self.device_id_list:
-            self.device_id_list.append(device.device_id)
-            device.add_connection(self)
+        """Add a Device to the connextion
+
+        Parameters
+        ----------
+            device (Device):
+                The Device to add.
+        """
+        if device.device_id not in self._device_id_list:
+            self._device_id_list.append(device.device_id)
+            device.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self._connection_id))
+            device.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self._b_connection_id)
             device.add_control(self.dash_control)
 
             self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
             self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
 
-            if self.connected:
+            if self._connected:
                 control_topic = f"{self.username}/{device.device_id}/control"
-                self.dash_c.subscribe(control_topic, 0)
+                self._dash_c.subscribe(control_topic, 0)
                 self._send_dash_announce()
 
     def _send_dash_announce(self):
         self.tx_zmq_pub.send_multipart([b'COMMAND', b'1', b"send_announce"])
 
     def set_connection(self, username, password):
-        self.dash_c.disconnect()
+        self._dash_c.disconnect()
         self.username = username
-        self.dash_c.username_pw_set(username, password)
-        self.dash_c.connect(self.host, self.port)
+        self._dash_c.username_pw_set(username, password)
+        self._dash_c.connect(self.host, self.port)
 
     def __init__(
         self,
@@ -105,41 +128,48 @@ class DashConnection(threading.Thread):
         host='dash.dashio.io',
         port=8883,
         use_ssl=True,
-        set_by_iotdashboard=False,
         context=None
     ):
         """
-        Arguments:
-            host {str} -- The server name of the dash host.
-            port {int} -- Port number to connect to.
-            username {str} -- username for the dash connection.
-            password {str} -- password for the dash connection.
+        Setups and manages a connection thread to the Dash Server.
+
+        Parameters
+        ---------
+            host {str}:
+                The server name of the dash host.
+            port {int}:
+                Port number to connect to.
+            username {str}:
+                username for the dash connection.
+            password {str}:
+                password for the dash connection.
+            use_ssl {Boolean}:
+                Defaults to True.
         """
 
         threading.Thread.__init__(self, daemon=True)
 
         self.context = context or zmq.Context.instance()
-        self.connected = False
-        self.disconnect = True
-        self.connection_id = shortuuid.uuid()
-        self.b_connection_id = self.connection_id.encode('utf-8')
-        self.device_id_list = []
+        self._connected = False
+        self._disconnect = True
+        self._connection_id = shortuuid.uuid()
+        self._b_connection_id = self._connection_id.encode('utf-8')
+        self._device_id_list = []
         # self.LWD = "OFFLINE"
         self.running = True
         self.username = username
-        self.dash_c = mqtt.Client()
         self.host = host
         self.port = port
-        self.set_by_iotdashboard = set_by_iotdashboard
+        self._dash_c = mqtt.Client()
         # Assign event callbacks
-        self.dash_c.on_message = self._on_message
-        self.dash_c.on_connect = self._on_connect
-        self.dash_c.on_disconnect = self._on_disconnect
+        self._dash_c.on_message = self._on_message
+        self._dash_c.on_connect = self._on_connect
+        self._dash_c.on_disconnect = self._on_disconnect
         # self.dash_c.on_publish = self.__on_publish
-        self.dash_c.on_subscribe = self._on_subscribe
-        self.dash_control = Dash(self.connection_id, username, host)
+        self._dash_c.on_subscribe = self._on_subscribe
+        self.dash_control = Dash(self._connection_id, username, host)
         if use_ssl:
-            self.dash_c.tls_set(
+            self._dash_c.tls_set(
                 ca_certs=None,
                 certfile=None,
                 keyfile=None,
@@ -147,26 +177,27 @@ class DashConnection(threading.Thread):
                 tls_version=ssl.PROTOCOL_TLSv1_2,
                 ciphers=None,
             )
-            self.dash_c.tls_insecure_set(False)
+            self._dash_c.tls_insecure_set(False)
 
         # self.dash_c.on_log = self.__on_log
         # self.dash_c.will_set(self.data_topic, self.LWD, qos=1, retain=False)
         # Connect
         if username and password:
-            self.dash_c.username_pw_set(username, password)
-            self.dash_c.connect(host, port)
+            self._dash_c.username_pw_set(username, password)
+            self._dash_c.connect(host, port)
         # Start subscribe, with QoS level 0
         self.start()
         time.sleep(1)
 
     def close(self):
+        """Close the connection."""
         self.running = False
 
     def run(self):
-        self.dash_c.loop_start()
+        self._dash_c.loop_start()
 
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
+        self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self._connection_id))
 
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
 
@@ -174,7 +205,7 @@ class DashConnection(threading.Thread):
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ANNOUNCE")
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_id)
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self._connection_id)
         poller = zmq.Poller()
         poller.register(self.rx_zmq_sub, zmq.POLLIN)
 
@@ -199,13 +230,13 @@ class DashConnection(threading.Thread):
                     data_topic = f"{self.username}/{device_id}/announce"
                 else:
                     data_topic = f"{self.username}/{device_id}/data"
-                if self.connected:
+                if self._connected:
                     logging.debug("DASH TX:\n%s", data.decode('utf-8').rstrip())
-                    self.dash_c.publish(data_topic, data.decode('utf-8'))
+                    self._dash_c.publish(data_topic, data.decode('utf-8'))
 
         # if self.connected:
         #     self.dash_c.publish(self.announce_topic, "disconnect")
-        self.dash_c.loop_stop()
+        self._dash_c.loop_stop()
 
         self.tx_zmq_pub.close()
         self.rx_zmq_sub.close()

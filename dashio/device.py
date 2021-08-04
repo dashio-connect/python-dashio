@@ -1,3 +1,4 @@
+"""device.py"""
 import json
 import logging
 import threading
@@ -5,7 +6,7 @@ import threading
 import shortuuid
 import zmq
 
-from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
+from .constants import DEVICE_PUB_URL
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.device_view import DeviceView
 
@@ -25,7 +26,7 @@ class Device(threading.Thread):
     Methods
     -------
     send(header, body)
-        Send an alarm with a header and body.    
+        Send an alarm with a header and body.
     """
 
     def _on_message(self, payload):
@@ -43,7 +44,7 @@ class Device(threading.Thread):
         data_array = data.split("\t")
         rx_device_id = data_array[0]
         if rx_device_id == "WHO":
-            return self.device_id_str + f"\tWHO\t{self.device_type}\t{self.device_name}\n"
+            return self._device_id_str + f"\tWHO\t{self.device_type}\t{self.device_name}\n"
         if rx_device_id != self.device_id:
             return ""
         try:
@@ -53,27 +54,27 @@ class Device(threading.Thread):
         if cntrl_type in self._device_commands_dict:
             return self._device_commands_dict[cntrl_type](data_array)
         try:
-            self.control_dict[cntrl_type + "_" + data_array[2]].message_rx_event(data_array)
+            self._control_dict[cntrl_type + "_" + data_array[2]].message_rx_event(data_array)
         except (KeyError, IndexError):
             pass
         return ""
 
     def _make_connect(self, data):
-        return self.connect
+        return self._device_id_str + "\tCONNECT\n"
 
     def _make_status(self, data):
         reply = f"\t{self.device_id}\tNAME\t{self._device_name}\n"
-        for key in self.control_dict:
+        for key in self._control_dict:
             try:
-                reply += self.control_dict[key].get_state().format(device_id=self.device_id)
+                reply += self._control_dict[key].get_state().format(device_id=self.device_id)
             except (TypeError, KeyError):
                 pass
         return reply
 
     def _make_cfg(self, data):
-        reply = self.device_id_str + '\tCFG\tDVCE\t' + json.dumps(self._cfg) + "\n"
-        for key in self.control_dict:
-            reply += self.device_id_str + self.control_dict[key].get_cfg(data[2])
+        reply = self._device_id_str + '\tCFG\tDVCE\t' + json.dumps(self._cfg) + "\n"
+        for key in self._control_dict:
+            reply += self._device_id_str + self._control_dict[key].get_cfg(data[2])
         return reply
 
     def send_popup_message(self, title, header, message):
@@ -88,7 +89,7 @@ class Device(threading.Thread):
         message : str
             Message body.
         """
-        data = self.device_id_str + f"\tMSSG\t{title}\t{header}\t{message}\n"
+        data = self._device_id_str + f"\tMSSG\t{title}\t{header}\t{message}\n"
         self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
 
     def send_alarm(self, alarm_id, message_header, message_body):
@@ -103,19 +104,11 @@ class Device(threading.Thread):
         message_body : str
             The text body of the Alarm.
         """
-
-        payload = self.device_id_str + f"\t{alarm_id}\t{message_header}\t{message_body}\n"
+        payload = self._device_id_str + f"\t{alarm_id}\t{message_header}\t{message_body}\n"
         logging.debug("ALARM: %s", payload)
         self.tx_zmq_pub.send_multipart([b"ALARM", b'0', payload.encode('utf-8')])
 
     def _send_data(self, data: str):
-        """Send data.
-
-        Parameters
-        ----------
-        data : str
-            Data to be sent
-        """
         if not data:
             return
         reply_send = data.format(device_id=self.device_id)
@@ -125,7 +118,7 @@ class Device(threading.Thread):
             pass
 
     def _send_announce(self):
-        payload = self.device_id_str + f"\tWHO\t{self.device_type}\t{self.device_name}\n"
+        payload = self._device_id_str + f"\tWHO\t{self.device_type}\t{self.device_name}\n"
         logging.debug("ANNOUNCE: %s", payload)
         self.tx_zmq_pub.send_multipart([b"ANNOUNCE", b'0', payload.encode('utf-8')])
 
@@ -134,7 +127,7 @@ class Device(threading.Thread):
 
         Parameters
         ----------
-        iot_control : iotControl
+            iot_control : iotControl
         """
         if isinstance(iot_control, DeviceView):
             self._cfg["numDeviceViews"] += 1
@@ -146,16 +139,7 @@ class Device(threading.Thread):
         except AttributeError:
             pass
         key = iot_control.msg_type + "_" + iot_control.control_id
-        self.control_dict[key] = iot_control
-
-    def add_connection(self, connection):
-        """Add a connection to the device
-
-        Args:
-            connection ([type]): [description]
-        """
-        self.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=connection.connection_id))
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, connection.connection_id.encode('utf-8'))
+        self._control_dict[key] = iot_control
 
     def _set_devicesetup(self, control_name: str, settable: bool):
         if settable:
@@ -176,9 +160,11 @@ class Device(threading.Thread):
         """
         Specify a callback function to be called when IoTDashboard sets wifi parameters.
 
-        :param callback: The callback function. It will be invoked with one
-            argument, the msg from IoTDashboard.
-            The callback must return a Boolean indicating success.
+        Parameters
+        ----------
+            callback:
+                The callback function. It will be invoked with one argument, the msg from IoTDashboard.
+                The callback must return a Boolean indicating success.
         """
         self._set_devicesetup("wifi", True)
         self._wifi_rx_callback = callback
@@ -192,7 +178,7 @@ class Device(threading.Thread):
 
     def _wifi_rx_event(self, msg):
         if self._wifi_rx_callback(msg):
-            data = self.device_id_str + "\tWIFI\n"
+            data = self._device_id_str + "\tWIFI\n"
             self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
         return ""
 
@@ -200,9 +186,11 @@ class Device(threading.Thread):
         """
         Specify a callback function to be called when IoTDashboard sets dashio parameters.
 
-        :param callback: The callback function. It will be invoked with one
-            argument, the msg from IoTDashboard.
-            The callback must return a Boolean indicating success.
+        Parameters
+        ----------
+            callback:
+                The callback function. It will be invoked with one argument, the msg from IoTDashboard.
+                The callback must return a Boolean indicating success.
         """
         self._set_devicesetup("dashio", True)
         self._dashio_rx_callback = callback
@@ -216,7 +204,7 @@ class Device(threading.Thread):
 
     def _dashio_rx_event(self, msg):
         if self._dashio_rx_callback(msg):
-            data = self.device_id_str + "\tDASHIO\n"
+            data = self._device_id_str + "\tDASHIO\n"
             self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
         return ""
 
@@ -224,9 +212,11 @@ class Device(threading.Thread):
         """
         Specify a callback function to be called when IoTDashboard sets dashio parameters.
 
-        :param callback: The callback function. It will be invoked with one
-            argument, the msg from IoTDashboard.
-            The callback must return the new name.
+        Parameters
+        ----------
+            callback:
+                The callback function. It will be invoked with one argument, the msg from IoTDashboard.
+                The callback must return the new name.
         """
         self._set_devicesetup("name", True)
         self._name_rx_callback = callback
@@ -242,17 +232,18 @@ class Device(threading.Thread):
         name = self._name_rx_callback(msg)
         if name:
             self._device_name = name
-            data = self.device_id_str + f"\tNAME\t{name}\n"
+            data = self._device_id_str + f"\tNAME\t{name}\n"
             self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
         return ""
 
     def set_tcp_callback(self, callback):
-        """
-        Specify a callback function to be called when IoTDashboard sets tcp parameters.
+        """Specify a callback function to be called when IoTDashboard sets tcp parameters.
 
-        :param callback: The callback function. It will be invoked with one
-            argument, the msg from IoTDashboard.
-            The callback must return a Boolean indicating success.
+        Parameters
+        ----------
+            callback:
+                The callback function. It will be invoked with one argument, the msg from IoTDashboard.
+                The callback must return a Boolean indicating success.
         """
         self._set_devicesetup("tcp", True)
         self._tcp_rx_callback = callback
@@ -266,7 +257,7 @@ class Device(threading.Thread):
 
     def _tcp_rx_event(self, msg):
         if self._tcp_rx_callback(msg):
-            data = self.device_id_str + "\tTCP\n"
+            data = self._device_id_str + "\tTCP\n"
             self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
         return ""
 
@@ -274,9 +265,11 @@ class Device(threading.Thread):
         """
         Specify a callback function to be called when IoTDashboard sets mqtt parameters.
 
-        :param callback: The callback function. It will be invoked with one
-            argument, the msg from IoTDashboard.
-            The callback must return a Boolean indicating success.
+        Parameters
+        ----------
+            callback:
+                The callback function. It will be invoked with one argument, the msg from IoTDashboard.
+                The callback must return a Boolean indicating success.
         """
         self._set_devicesetup("mqtt", True)
         self._mqtt_rx_callback = callback
@@ -290,7 +283,7 @@ class Device(threading.Thread):
 
     def _mqtt_rx_event(self, msg):
         if self._mqtt_rx_callback(msg):
-            data = self.device_id_str + "\tMQTT\n"
+            data = self._device_id_str + "\tMQTT\n"
             self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
         return ""
 
@@ -301,24 +294,30 @@ class Device(threading.Thread):
                  context=None) -> None:
         """DashDevice
 
-        Args:
-            device_type (str): A Short description of the device type.
-            device_id (str): A unique identifier for this device
-            device_name (str): The name for this device
-            context ([type], optional): [description]. Defaults to None.
+        Parameters
+        ----------
+            device_type (str):
+                A Short description of the device type.
+            device_id (str):
+                A unique identifier for this device
+            device_name (str):
+                The name for this device
+            context (optional):
+                ZMQ context. Defaults to None.
         """
         threading.Thread.__init__(self, daemon=True)
 
-        self.zmq_pub_id = shortuuid.uuid()
-        self._b_zmq_pub_id = self.zmq_pub_id.encode('utf-8')
+        self._zmq_pub_id = shortuuid.uuid()
+        self._b_zmq_pub_id = self._zmq_pub_id.encode('utf-8')
         self.context = context or zmq.Context.instance()
         self._wifi_rx_callback = None
         self._dashio_rx_callback = None
         self._name_rx_callback = None
         self._tcp_rx_callback = None
         self._mqtt_rx_callback = None
-        self.device_type = device_type.strip()
-        self.device_id = device_id.strip()
+        bad_chars = {ord(i): None for i in '\t\n'}
+        self.device_type = device_type.translate(bad_chars)
+        self.device_id = device_id.translate(bad_chars)
         self._b_device_id = self.device_id.encode('utf-8')
         self._device_name = device_name.strip()
         self._device_setup_list = []
@@ -326,10 +325,9 @@ class Device(threading.Thread):
         self._device_commands_dict['CONNECT'] = self._make_connect
         self._device_commands_dict['STATUS'] = self._make_status
         self._device_commands_dict['CFG'] = self._make_cfg
-        self.control_dict = {}
+        self._control_dict = {}
         self._cfg = {}
-        self.device_id_str = f"\t{device_id}"
-        self.connect = self.device_id_str + "\tCONNECT\n"
+        self._device_id_str = f"\t{device_id}"
         self._cfg["numDeviceViews"] = 0
         self.running = True
         self.start()
@@ -352,13 +350,14 @@ class Device(threading.Thread):
         self._send_data(f"\t{{device_id}}\tNAME\t{self._device_name}\t")
 
     def close(self):
+        """Close the connection"""
         self.running = False
 
     def run(self):
         # Continue the network loop, exit when an error occurs
 
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.tx_zmq_pub.bind(DEVICE_PUB_URL.format(id=self.zmq_pub_id))
+        self.tx_zmq_pub.bind(DEVICE_PUB_URL.format(id=self._zmq_pub_id))
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "COMMAND")
 

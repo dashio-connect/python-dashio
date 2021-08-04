@@ -1,4 +1,6 @@
-"""Copyright (c) 2019, Douglas Otwell
+"""ble.connection.py
+
+Copyright (c) 2019, Douglas Otwell, DashIO
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -155,7 +157,8 @@ class NotPermittedException(dbus.exceptions.DBusException):
 class BLEConnection(dbus.service.Object, threading.Thread):
 
     def add_device(self, device: Device):
-        device.add_connection(self)
+        device.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.connection_id))
+        device.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
         device.add_control(self.ble_control)
         self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
@@ -191,13 +194,15 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         self.tx_zmq_pub.send_multipart([self.b_connection_id, b'1', msg.encode('utf-8')])
 
     def __init__(self, ble_uuid=None, context=None):
-        """
-        Arguments:
-        [Optional]
-            ble_uuid {str} -- The UUID used by BLE.
-            context {int} -- ZMQ context
-        """
+        """BLE Connection
 
+        Parameters
+        ----------
+        ble_uuid : str, optional
+            The UUID used by the BLE connection, if None a UUID is generated
+        context : ZMQ Context, optional
+            ZMQ Context, by default None
+        """
         threading.Thread.__init__(self, daemon=True)
 
         self.connection_id = shortuuid.uuid()

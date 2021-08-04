@@ -51,9 +51,6 @@ class TestControls:
                             No number means info. Default is no verbosity.""",
         )
         parser.add_argument("-u", "--url", help="Host URL.", dest="url", default="tcp://*")
-        parser.add_argument(
-            "-c", "--connection_name", dest="connection", default="TestTCP", help="IotDashboard Connection name"
-        )
         parser.add_argument("-d", "--device_id", dest="device_id", default="00001", help="IotDashboard Device ID.")
         parser.add_argument("-p", "--port", dest="port", type=int, default=5650, help="Port number")
         parser.add_argument(
@@ -104,14 +101,12 @@ class TestControls:
         self.init_logging(args.logfilename, args.verbose)
 
         logging.info("   Serving on: %s:%s", args.url, str(args.port))
-        logging.info("Connection ID: %s", args.connection)
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
         self.tcp_con = dashio.TCPConnection()
-        self.device = dashio.Device(args.connection, args.device_id, args.device_name)
+        self.device = dashio.Device("ControlTest", args.device_id, args.device_name)
         self.tcp_con.add_device(self.device)
 
-        self.connection = args.connection
         self.page_name = "TestTCP: " + platform.node()
 
         self.page_test = dashio.DeviceView("TestTCP", self.page_name)
