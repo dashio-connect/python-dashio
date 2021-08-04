@@ -23,16 +23,16 @@ import logging
 import threading
 import time
 import uuid
+import shortuuid
 
 import dbus
 import dbus.exceptions
 import dbus.mainloop.glib
 import dbus.service
-import shortuuid
 import zmq
 from gi.repository import GLib
 
-from dashio.dashdevice import Device
+from dashio.device import Device
 
 from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 
@@ -89,35 +89,12 @@ GATT_MANAGER_IFACE = "org.bluez.GattManager1"
 GATT_SERVICE_IFACE = "org.bluez.GattService1"
 GATT_DESC_IFACE = "org.bluez.GattDescriptor1"
 
-class BleTools(object):
-    @classmethod
-    def get_bus(self):
-        bus = dbus.SystemBus()
-        return bus
-
-    @classmethod
-    def find_adapter(self, bus):
-        remote_om = dbus.Interface(bus.get_object(BLUEZ_SERVICE_NAME, "/"), DBUS_OM_IFACE)
-        objects = remote_om.GetManagedObjects()
-
-        for o, props in objects.items():
-            if LE_ADVERTISING_MANAGER_IFACE in props:
-                return o
-        return None
-
-    @classmethod
-    def power_adapter(self):
-        adapter = self.get_adapter()
-        adapter_props = dbus.Interface(bus.get_object(BLUEZ_SERVICE_NAME, adapter), "org.freedesktop.DBus.Properties")
-        adapter_props.Set("org.bluez.Adapter1", "Powered", dbus.Boolean(1))
-
 class DashIOAdvertisement(dbus.service.Object):
     PATH_BASE = "/org/bluez/example/advertisement"
 
     def __init__(self, index, service_uuid):
-        
         self.path = self.PATH_BASE + str(index)
-        self.bus = BleTools.get_bus()
+        self.bus = dbus.SystemBus()
         self.service_uuids = []
         self.service_uuids.append(service_uuid)
         self.properties = {}
@@ -127,6 +104,15 @@ class DashIOAdvertisement(dbus.service.Object):
         self.properties["IncludeTxPower"] = dbus.Boolean(True)
         dbus.service.Object.__init__(self, self.bus, self.path)
         self.register()
+
+    def find_adapter(self, bus):
+        remote_om = dbus.Interface(bus.get_object(BLUEZ_SERVICE_NAME, "/"), DBUS_OM_IFACE)
+        objects = remote_om.GetManagedObjects()
+
+        for o, props in objects.items():
+            if LE_ADVERTISING_MANAGER_IFACE in props:
+                return o
+        return None
 
     def get_properties(self):
         return {LE_ADVERTISEMENT_IFACE: self.properties}
@@ -151,8 +137,8 @@ class DashIOAdvertisement(dbus.service.Object):
         logging.debug("Failed to register GATT advertisement")
 
     def register(self):
-        bus = BleTools.get_bus()
-        adapter = BleTools.find_adapter(bus)
+        bus = self.bus
+        adapter = self.find_adapter(bus)
         ad_manager = dbus.Interface(bus.get_object(BLUEZ_SERVICE_NAME, adapter), LE_ADVERTISING_MANAGER_IFACE)
         ad_manager.RegisterAdvertisement(self.get_path(), {}, reply_handler=self.register_ad_callback, error_handler=self.register_ad_error_callback)
 
@@ -191,13 +177,14 @@ class BLEConnection(dbus.service.Object, threading.Thread):
             # TODO: need to set this for the negitiated MTU
             # 160 seems to work with iPhone
             mtu = 160
-            date_lines = [data_str[i:i+mtu] for i in range(0, len(data_str), mtu)]
-            # delimiter = '\n'
-            # date_lines =  [e+delimiter for e in data_str.split(delimiter) if e]
-            # date_lines = data.decode('utf-8').split("\n")
-            logging.debug("BLE TX: %s", data_str.strip())
-            for data_line in date_lines:
-                self.dash_service.dash_characteristics.ble_send(data_line)
+            data_chunks = [data_str[i: i + mtu] for i in range(0, len(data_str), mtu)]
+            
+            sent = False
+            for data_chunk in data_chunks:
+                sent |= self.dash_service.dash_characteristics.ble_send(data_chunk)
+            if sent:
+                logging.debug("BLE TX: %s", data_str.strip())
+                
         return True
 
     def ble_rx(self, msg: str):
@@ -228,22 +215,20 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         #     self.zmq_callback
         # )
         GLib.timeout_add(10, self.zmq_callback, "q", "p")
-        
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
         self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
         dashio_service_uuid = ble_uuid or str(uuid.uuid4())
 
-        self.ble_control = BLE(self.connection_id, dashio_service_uuid, dashio_service_uuid, dashio_service_uuid)
+        self.ble_control = BLE(self.connection_id, dashio_service_uuid, str(uuid.uuid4()), str(uuid.uuid4()))
 
         GLib.threads_init()
         dbus.mainloop.glib.threads_init()
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
         self.mainloop = GLib.MainLoop()
 
-        self.bus = BleTools.get_bus()
+        self.bus = dbus.SystemBus()
         self.path = "/"
         self.dash_service = DashIOService(0, dashio_service_uuid, self.ble_rx)
-        
         self.response = {}
 
         chrc = self.dash_service.get_characteristics()
@@ -255,6 +240,15 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         self.adv = DashIOAdvertisement(0, dashio_service_uuid)
         self.start()
         time.sleep(0.5)
+
+    def find_adapter(self, bus):
+        remote_om = dbus.Interface(bus.get_object(BLUEZ_SERVICE_NAME, "/"), DBUS_OM_IFACE)
+        objects = remote_om.GetManagedObjects()
+
+        for o, props in objects.items():
+            if LE_ADVERTISING_MANAGER_IFACE in props:
+                return o
+        return None
 
     def get_path(self):
         return dbus.ObjectPath(self.path)
@@ -270,7 +264,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         logging.debug("Failed to register application: %s", str(error))
 
     def register(self):
-        adapter = BleTools.find_adapter(self.bus)
+        adapter = self.find_adapter(self.bus)
         service_manager = dbus.Interface(self.bus.get_object(BLUEZ_SERVICE_NAME, adapter), GATT_MANAGER_IFACE)
         service_manager.RegisterApplication(self.get_path(), {}, reply_handler=self.register_app_callback, error_handler=self.register_app_error_callback)
 
@@ -288,7 +282,7 @@ class DashIOService(dbus.service.Object):
     PATH_BASE = "/org/bluez/example/service"
 
     def __init__(self, index, service_uuid, ble_rx):
-        self.bus = BleTools.get_bus()
+        self.bus = dbus.SystemBus()
         self.path = self.PATH_BASE + str(index)
         self.uuid = service_uuid
         self.primary = True
