@@ -307,7 +307,7 @@ class Device(threading.Thread):
         """
         threading.Thread.__init__(self, daemon=True)
 
-        self._zmq_pub_id = shortuuid.uuid()
+        self.zmq_pub_id = shortuuid.uuid()
         self._b_zmq_pub_id = self._zmq_pub_id.encode('utf-8')
         self.context = context or zmq.Context.instance()
         self._wifi_rx_callback = None
