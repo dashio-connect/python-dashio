@@ -308,7 +308,7 @@ class Device(threading.Thread):
         threading.Thread.__init__(self, daemon=True)
 
         self.zmq_pub_id = shortuuid.uuid()
-        self._b_zmq_pub_id = self._zmq_pub_id.encode('utf-8')
+        self._b_zmq_pub_id = self.zmq_pub_id.encode('utf-8')
         self.context = context or zmq.Context.instance()
         self._wifi_rx_callback = None
         self._dashio_rx_callback = None
@@ -357,7 +357,7 @@ class Device(threading.Thread):
         # Continue the network loop, exit when an error occurs
 
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.tx_zmq_pub.bind(DEVICE_PUB_URL.format(id=self._zmq_pub_id))
+        self.tx_zmq_pub.bind(DEVICE_PUB_URL.format(id=self.zmq_pub_id))
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "COMMAND")
 
