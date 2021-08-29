@@ -1,6 +1,6 @@
 # dashio
 
-[DashIO](http://dashio.io) - a python library to connect and display widgets on the DashIO app.
+[**DashIO**](http://dashio.io) - a python library to connect and display widgets on the **DashIO** app.
 
 ## Getting Started
 
@@ -24,15 +24,15 @@ Will create a graph of network traffic with a connection_id of your hostname. Th
 
 ## Install
 
-pip3 install dashio
+`pip3 install dashio`
 
 ## Guide
 
-This guide covers the dashio python library. For information on the [DashIO](https://dashio.io/dashboard) phone app please visit the website.
+This guide covers the **DashIO** python library. For information on the [***DashIO***](https://dashio.io/dashboard) phone app please visit the website.
 
 ### Basics
 
-So what is dashio? It is a quick effortless way to connect your IoT device to your phone. It allows easy setup of controls such as dials, text boxes, maps, graphs, notifications..., from your device. You can define the look and layout of the controls on your phone from your IoT device. There are three methods to connect to your phone tcp, mqtt, dash, and BLE. What's Dash then? Dash is a mqtt server with extra bits added in to allow you to send notifications, share your devices, and save your settings from your phone via the DashIO app.
+So what is **DashIO**? It is a quick effortless way to connect your IoT device to your phone. It allows easy setup of controls such as Dials, Text Boxes, Maps, Graphs, Notifications..., from your Device. You can define the look and layout of the controls on your phone from your IoT device. There are three methods to connect to your phone tcp, mqtt, dash, and BLE. What's Dash then? Dash is a mqtt server with extra bits added in to allow you to send notifications, share your devices, and save your settings from your phone via the **DashIO** app.
 
 Show me some code!
 
@@ -52,7 +52,7 @@ while True:
     time.sleep(5)
 ```
 
-This is about the fewest lines of code to get talking to the app. There is a lot happening under the hood to make this work. After the import we create a device with three attributes. These attributes describe the device to the app and allow you to distinguish one of your devices from another. The next two lines create a TCP connection and then add the device to the connection. The connection will be created with the default setting of port 5000 and will also advertise the service using zeroconf, also known as bonjour. This allows the DashIO app to find your device. After that we create a dial add it to the device and then every five seconds send a randomly generated dial value to the DashIO app.
+This is about the fewest lines of code to get talking to the app. There is a lot happening under the hood to make this work. After the import we create a device with three attributes. These attributes describe the device to the app and allow you to distinguish one of your devices from another. The next two lines create a TCP connection and then add the device to the connection. The connection will be created with the default setting of port 5000 and will also advertise the service using zeroconf, also known as bonjour. This allows the **DashIO** app to find your device. After that we create a dial add it to the device and then every five seconds send a randomly generated dial value to the DashIO app.
 
 This device is discoverable by the app. It would be nice to have the DashIO app automagically setup a new DeviceView and place your control on the new DeviceView. To do that we need to add a few more lines of code:
 
@@ -121,7 +121,7 @@ alarm = dashio.Alarm("alarm1_ID", description="An alarming alarm", sound_name=So
 alarm.send("Alarm Header", "Alarm Body")
 ```
 
-An alarm sends a notification throught the dashio mqtt server to registered phones. The ability to send alarms to specific phones, and the notification sound can be configured through the DashIO app. Alarms are only available if you have an account registered on the dashio server and you send the the alarm through a dash connection.
+An alarm sends a notification throught the dashio mqtt server to registered phones. The ability to send alarms to specific phones, and the notification sound can be configured through the DashIO app. Alarms are only available if you have an account registered on the **DashIO** server and you send the the alarm through a dash connection.
 
 #### Button
 
