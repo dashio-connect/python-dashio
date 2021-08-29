@@ -16,17 +16,57 @@ class Device(threading.Thread):
 
     Attributes
     ----------
-    control_id : str
-        a unique alarm identity string
-    description : str
-        A short description of the alarm
-    sound_name : str
-        the sound that the alarm makes.
+    device_type (str) :
+        The type of device (e.g. TempSensor, GPS...).
+    device_id (str) :
+        A unique identifier for this device
+    device_name (str) :
+        The name for this device (E.g. GlassHouse, MothersZimmerFrame...)
 
     Methods
     -------
-    send(header, body)
+    send(header, body) :
         Send an alarm with a header and body.
+
+    send_popup_message(title, header, message) :
+        Send a pop up message to connected DashIO apps.
+
+    send_alarm(alarm_id, message_header, message_body) :
+        Sends and alarm notification to DashIO apps registered on the DashIO server.
+        Notifications are only sent if the device is connected to the DashIO server with a DashConnection.
+
+    add_control(iot_control) :
+        Add a control to the device.
+
+    set_wifi_callback(callback) :
+        Set a callback function that is called when the DashIO app provides wifi provisioning information.
+
+    unset_wifi_callback() :
+        Clears the wifi callback.
+
+    set_dashio_callback(callback) :
+        Set a callback function that is called when the DashIO app provides Dash server provisioning information.
+
+    unset_dashio_callback() :
+        Clears the set Dash callback.
+
+    set_name_callback(callback) :
+        Set a callback function that is called when the DashIO app provides Name provisioning information.
+
+    unset_name_callback() :
+        Clears the set Name callback.
+
+    set_tcp_callback(callback) :
+         Set a callback function that is called when the DashIO app provides TCP provisioning information.
+
+    unset_tcp_callback() :
+        Clears the set TCP callback.
+
+    set_mqtt_callback(callback)
+        Set a callback function that is called when the DashIO app provides MQTT provisioning information.
+
+    unset_mqtt_callback() :
+        Clears the set MQTT callback.
     """
 
     def _on_message(self, payload):

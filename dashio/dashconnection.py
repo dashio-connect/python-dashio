@@ -55,11 +55,11 @@ class DashConnection(threading.Thread):
 
     Methods
     -------
-    add_device(Device):
+    add_device(Device) :
         add a Deive to the connection
     set_connection(username, password):
         change the connection username and password
-    close():
+    close() :
         close the connection
     """
     def _on_connect(self, client, userdata, flags, msg):
