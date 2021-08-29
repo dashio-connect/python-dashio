@@ -5,7 +5,7 @@ from .enums import ButtonState, Color, Icon, TitlePosition
 class Button(Control):
     """A Button control.
 
-    
+
     Attributes
     ----------
     control_id : str
@@ -29,7 +29,7 @@ class Button(Control):
 
     Methods
     -------
-    toggle_btn :
+    toggle_btn () :
         Toggles the button state.
 
     send_button(btn_state, btn_icon, text) :

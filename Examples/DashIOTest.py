@@ -75,7 +75,7 @@ def main():
     signal.signal(signal.SIGINT, signal_cntrl_c)
     args = parse_commandline_arguments()
     init_logging(args.logfilename, args.verbose)
-    
+
     new_ini_file = False
     ini_file = "dash_test.ini"
     config_file_parser = configparser.ConfigParser()
