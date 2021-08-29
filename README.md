@@ -1,4 +1,4 @@
-# dashio
+# DashIO
 
 [**DashIO**](http://dashio.io) - a python library to connect and display widgets on the **DashIO** app.
 
