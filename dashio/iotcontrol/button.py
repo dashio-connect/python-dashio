@@ -1,10 +1,16 @@
+"""Button
+
+Returns
+-------
+Button
+    A Button control
+"""
 from .control import Control
 from .enums import ButtonState, Color, Icon, TitlePosition
 
 
 class Button(Control):
     """A Button control.
-
 
     Attributes
     ----------
@@ -35,7 +41,11 @@ class Button(Control):
     send_button(btn_state, btn_icon, text) :
         Updates the button state, button icon and text.
     """
+
     def toggle_btn(self):
+        """
+        Toggles the current ButtonState
+        """
         if self.btn_state == ButtonState.FLASH:
             return
         if self.btn_state == ButtonState.OFF:
@@ -73,6 +83,14 @@ class Button(Control):
 
     @property
     def button_enabled(self) -> bool:
+        """Returns the buttons enabled condition
+
+        Returns
+        -------
+        bool
+            If True the button can act as a button in the **DashIO** app.
+            If False the button can be setup as an indicator only.
+        """
         return self._cfg["buttonEnabled"]
 
     @button_enabled.setter
@@ -81,6 +99,13 @@ class Button(Control):
 
     @property
     def on_color(self) -> Color:
+        """Returns the Buttons ON color
+
+        Returns
+        -------
+        Color
+            ON color
+        """
         return self._on_color
 
     @on_color.setter
@@ -90,6 +115,13 @@ class Button(Control):
 
     @property
     def off_color(self) -> Color:
+        """Returns the Bottons OFF color
+
+        Returns
+        -------
+        Color
+            OFF color
+        """
         return self._off_color
 
     @off_color.setter
@@ -99,6 +131,13 @@ class Button(Control):
 
     @property
     def icon_name(self) -> Icon:
+        """Returns the Icon the Button is set too
+
+        Returns
+        -------
+        Icon
+            The Icon the button is currently set to
+        """
         return self._icon_name
 
     @icon_name.setter
@@ -109,6 +148,14 @@ class Button(Control):
 
     @property
     def text(self) -> str:
+        """Return the Buttons current text string
+
+        Returns
+        -------
+        str
+            The buttons text.
+        """
+
         return self._cfg["text"]
 
     @text.setter
@@ -118,6 +165,9 @@ class Button(Control):
 
     @property
     def btn_state(self) -> ButtonState:
+        """
+        Returns the state of the button.
+        """
         return self._btn_state
 
     @btn_state.setter
@@ -126,6 +176,17 @@ class Button(Control):
         self.state_str = self._control_hdr_str + f"{val.value}\n"
 
     def send_button(self, btn_state: ButtonState, btn_icon: Icon, text: str):
+        """Sends the button state to **DashIO** app.
+
+        Parameters
+        ----------
+        btn_state : ButtonState
+            State of the button
+        btn_icon : Icon
+            Icon to send
+        text : str
+            Text to send.
+        """
         self._btn_state = btn_state
         self._icon_name = btn_icon
         self._cfg["iconName"] = btn_icon.value
