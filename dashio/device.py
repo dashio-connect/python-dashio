@@ -28,9 +28,6 @@ class Device(threading.Thread):
     send(header, body) :
         Send an alarm with a header and body.
 
-    send_popup_message(title, header, message) :
-        Send a pop up message to connected DashIO apps.
-
     send_alarm(alarm_id, message_header, message_body) :
         Sends and alarm notification to DashIO apps registered on the DashIO server.
         Notifications are only sent if the device is connected to the DashIO server with a DashConnection.
@@ -116,21 +113,6 @@ class Device(threading.Thread):
         for key in self._control_dict:
             reply += self._device_id_str + self._control_dict[key].get_cfg(data[2])
         return reply
-
-    def send_popup_message(self, title, header, message):
-        """Send a popup message to the Dash server.
-
-        Parameters
-        ----------
-        title : str
-            Title of the message.
-        header : str
-            Header of the message.
-        message : str
-            Message body.
-        """
-        data = self._device_id_str + f"\tMSSG\t{title}\t{header}\t{message}\n"
-        self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
 
     def send_alarm(self, alarm_id, message_header, message_body):
         """Send an Alarm to the Dash server.
