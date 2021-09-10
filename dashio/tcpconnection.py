@@ -61,6 +61,13 @@ class TCPConnection(threading.Thread):
         self.zeroconf.register_service(zconf_info)
 
     def add_device(self, device):
+        """Add a device to the connection
+
+        Parameters
+        ----------
+        device : dashio.Device
+            Add a device to the connection.
+        """
         device.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.connection_id))
         device.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
         device.add_control(self.tcp_control)
@@ -78,11 +85,11 @@ class TCPConnection(threading.Thread):
 
         Parameters
         ---------
-            ip_address (str, optional): 
+            ip_address (str, optional):
                 IP Address to use. Defaults to "*".
-            port (int, optional): 
+            port (int, optional):
                 Port to use. Defaults to 5650.
-            use_zero_conf (bool, optional): 
+            use_zero_conf (bool, optional):
                 Use mDNS to advertise the connection. Defaults to True.
             context (optional): ZMQ context. Defaults to None.
         """
