@@ -87,7 +87,6 @@ class TestControls:
         self.sldr_dbl_cntrl.bar2_value = float(msg[3])
 
     def text_cntrl_message_handler(self, msg):
-        self.device.send_popup_message("TCPTest", "Text Box message", msg[3])
         self.text_cntrl.text = "Popup sent: " + msg[3]
         logging.info(msg)
 
@@ -222,7 +221,6 @@ class TestControls:
             time.sleep(5)
             self.comp_control.direction_value = random.random() * 360
 
-        self.device.send_popup_message("TestControls", "Shutting down", "Goodbye")
         time.sleep(1)
         self.device.close()
         self.zmq_con.close()
