@@ -2,6 +2,7 @@ import datetime
 
 import dateutil.parser
 
+from ..constants import BAD_CHARS
 from .control import Control
 from .enums import Color, TitlePosition
 from .ring_buffer import RingBuffer
@@ -11,9 +12,8 @@ class EventData:
     def __init__(self, header, body, color=Color.WHITE):
         self.color = color
         self.timestamp = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
-        bad_chars = {ord(i): None for i in '\t\n'}
-        self.header = header.translate(bad_chars)
-        self.body = body.translate(bad_chars)
+        self.header = header.translate(BAD_CHARS)
+        self.body = body.translate(BAD_CHARS)
 
     def __str__(self):
         data_str = "{ts}\t{color}\t{header}\t{body}\n".format(

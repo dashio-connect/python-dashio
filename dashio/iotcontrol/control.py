@@ -2,6 +2,7 @@ import copy
 import json
 import logging
 
+from ..constants import BAD_CHARS
 from .enums import TitlePosition
 from .event import Event
 
@@ -34,14 +35,13 @@ class Control:
         self._cfg = {}
         self._title = None
         # Remove incompatible characters
-        bad_chars = {ord(i): None for i in '\t\n'}
         if title is not None:
-            self.title = title.translate(bad_chars)
+            self.title = title.translate(BAD_CHARS)
         self._title_position = None
         if title_position is not None:
             self.title_position = title_position
         self.msg_type = msg_type
-        self.control_id = control_id.translate(bad_chars)
+        self.control_id = control_id.translate(BAD_CHARS)
         self.message_rx_event = Event()
         self.message_tx_event = Event()
         self._control_hdr_str = f"\t{{device_id}}\t{self.msg_type}\t{self.control_id}\t"
