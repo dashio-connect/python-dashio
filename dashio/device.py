@@ -6,7 +6,7 @@ import threading
 import shortuuid
 import zmq
 
-from .constants import DEVICE_PUB_URL
+from .constants import DEVICE_PUB_URL, BAD_CHARS
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.device_view import DeviceView
 
@@ -337,9 +337,8 @@ class Device(threading.Thread):
         self._name_rx_callback = None
         self._tcp_rx_callback = None
         self._mqtt_rx_callback = None
-        bad_chars = {ord(i): None for i in '\t\n'}
-        self.device_type = device_type.translate(bad_chars)
-        self.device_id = device_id.translate(bad_chars)
+        self.device_type = device_type.translate(BAD_CHARS)
+        self.device_id = device_id.translate(BAD_CHARS)
         self._b_device_id = self.device_id.encode('utf-8')
         self._device_name = device_name.strip()
         self._device_setup_list = []
