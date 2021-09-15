@@ -1,3 +1,13 @@
+"""control.py
+
+Returns
+-------
+ControlPosition
+    Class to describe a controls position
+
+Control
+    A base class for controls
+"""
 import copy
 import json
 import logging
@@ -8,6 +18,12 @@ from .event import Event
 
 
 class ControlPosition:
+    """
+    ControlPosition
+        Used to describe a controls position.
+        Inherit this class to overide the set_size() if you want 
+        to alter the device layout based on the iotdashboards number of columns.
+    """
     def __init__(self, x_position_ratio, y_position_ratio, width_ratio, height_ratio):
         self.x_position_ratio = x_position_ratio
         self.y_position_ratio = y_position_ratio
@@ -15,13 +31,23 @@ class ControlPosition:
         self.height_ratio = height_ratio
 
     def set_size(self, num_columns):
+        """Called by iotdashboard when a CFG is asked for
+
+        Parameters
+        ----------
+        num_columns : int
+            The number of columns available on the dashboard.
+        
+        """
         logging.debug("Number of Columns: %s", num_columns)
 
 
 class Control:
-
-    """Controls need to implement their own version."""
+    """Base class for controls.
+    """
+    
     def get_state(self) -> str:
+        """Controls need to implement their own version."""
         return ""
 
     def get_cfg(self, num_columns):
