@@ -9,7 +9,9 @@ disable=
     fixme,
     too-many-Parameters,
     too-many-arguments,
-    no-member
+    no-member,
+    unused-argument,
+    
 
 [FORMAT]
 max-line-length=240
