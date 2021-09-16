@@ -1,4 +1,9 @@
+"""ring_buffer.py
 
+Returns:
+    Class: RingBuffer
+        A simple ringbuffer. Uses magic
+"""
 class RingBuffer:
     """ class that implements a not-yet-full buffer """
     def __init__(self, size_max):
@@ -17,6 +22,8 @@ class RingBuffer:
             return self.data[self.cur:] + self.data[:self.cur]
 
         def get_latest(self):
+            """Get the last item in the buffer
+            """
             indx = self.cur - 1
             if indx < 0:
                 indx = self.max - 1
@@ -34,9 +41,14 @@ class RingBuffer:
             self.__class__ = self.__Full
 
     def get_latest(self):
+        """Get the last item in the buffer
+        """
         return self.data[-1]
 
-    def empty(self):
+    def empty(self) -> bool:
+        """
+        Returns if empty
+        """
         if not self.data:
             return True
         return False
