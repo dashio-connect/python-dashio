@@ -96,10 +96,10 @@ class Device(threading.Thread):
             pass
         return ""
 
-    def _make_connect(self, data):
+    def _make_connect(self, _):
         return self._device_id_str + "\tCONNECT\n"
 
-    def _make_status(self, data):
+    def _make_status(self, _):
         reply = f"\t{self.device_id}\tNAME\t{self._device_name}\n"
         for key in self._control_dict:
             try:

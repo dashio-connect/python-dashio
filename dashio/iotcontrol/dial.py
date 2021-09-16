@@ -21,6 +21,7 @@ class Dial(Control):
         units="",
         control_position=None,
     ):
+
         super().__init__("DIAL", control_id, title=title, control_position=control_position, title_position=title_position)
         self._dial_value = 0
         self.dial_min = dial_min

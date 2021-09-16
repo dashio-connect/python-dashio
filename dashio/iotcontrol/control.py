@@ -51,6 +51,18 @@ class Control:
         return ""
 
     def get_cfg(self, num_columns):
+        """Returns the CFG for the control called when the iotdashboard app asks for a CFG
+
+        Parameters
+        ----------
+        num_columns : str
+            The number of columns available on the dashboard
+
+        Returns
+        -------
+        str
+            The CFG for this control
+        """
         if self.control_position:
             self.control_position.set_size(num_columns)
         cfg_str = "\tCFG\t" + self.msg_type + "\t" + json.dumps(self._cfg) + "\n"
@@ -77,7 +89,14 @@ class Control:
             self.control_position = control_position
 
     @property
-    def state_str(self):
+    def state_str(self) -> str:
+        """The current state of the control
+
+        Returns
+        -------
+        str
+            The current state of the control
+        """
         return self._control_hdr_str
 
     @state_str.setter
@@ -88,6 +107,13 @@ class Control:
     # Use getter, setter properties to store the settings in the config dictionary
     @property
     def parent_id(self) -> str:
+        """The parent control or deviceview this control belongs to
+
+        Returns
+        -------
+        str
+            The parent_id
+        """
         return self._cfg["parentID"]
 
     @parent_id.setter
@@ -96,6 +122,13 @@ class Control:
 
     @property
     def control_id(self) -> str:
+        """The control id of the control
+
+        Returns
+        -------
+        str
+            The control id should be a unique string for all controls on a device
+        """
         return self._cfg["controlID"]
 
     @control_id.setter
@@ -104,6 +137,13 @@ class Control:
 
     @property
     def title(self) -> str:
+        """The title of the control
+
+        Returns
+        -------
+        str
+            The title of the control thats is displayed on the iotdashboard app
+        """
         return self._cfg["title"]
 
     @title.setter
@@ -112,6 +152,11 @@ class Control:
 
     @property
     def control_position(self) -> ControlPosition:
+        """Control Position
+
+        Returns:
+            ControlPosition: The position of the control on the DeviceView
+        """
         return self._control_position
 
     @control_position.setter
@@ -124,6 +169,11 @@ class Control:
 
     @property
     def title_position(self) -> TitlePosition:
+        """Title position
+
+        Returns:
+            TitlePosition: The position of the title
+        """
         return self._title_position
 
     @title_position.setter
