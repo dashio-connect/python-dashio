@@ -8,7 +8,6 @@ disable=
     too-many-instance-attributes,  # <-- Ensure at least this entry.
     fixme,
     too-many-Parameters,
-    too-many-arguments,
     no-member,
     unused-argument,
     attribute-defined-outside-init,
@@ -24,3 +23,7 @@ max-line-length=240
 # and thus existing member attributes cannot be deduced by static analysis. It
 # supports qualified module names, as well as Unix pattern matching.
 ignored-modules=zmq
+
+[DESIGN]
+max-locals=25
+max-args=15

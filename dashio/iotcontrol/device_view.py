@@ -5,7 +5,6 @@ Classes
     DeviceView:
         A DeviceView provides a control that descibes appearance and style of the group of controls
         that are displayed on this DeviceView by the iotdashboard app.
-     
 """
 from .control import Control
 from .enums import Color, Icon
@@ -34,7 +33,7 @@ class DeviceView(Control):
         Title box color for controls
     control_title_box_transparency : int
         Title box transparency for controls
-    
+
 
     Methods
     -------
