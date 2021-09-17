@@ -41,6 +41,7 @@ class Graph(Control):
         The control base class
     """
     def get_state(self):
+        """Called by iotdashboard"""
         state_str = ""
         for key in self.line_dict:
             state_str += self._control_hdr_str + key + self.line_dict[key].get_line_data()

@@ -56,9 +56,6 @@ class Alarm(Control):
         """
         self.message_tx_event(self.control_id, header, body)
 
-    def get_state(self):
-        return ""
-
     @property
     def description(self) -> str:
         """description
