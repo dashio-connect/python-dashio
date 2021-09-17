@@ -68,6 +68,7 @@ class Icon(Enum):
 
 
 class SoundName(Enum):
+    """Sound names"""
     DEFAULT = "Default"
     QUIET = "Quiet"
     BELL = "Bell"
@@ -90,17 +91,20 @@ class SoundName(Enum):
 
 
 class LabelStyle(Enum):
+    """Label styles"""
     BASIC = "BASIC"
     GROUP = "GROUP"
     BORDER = "BORDER"
 
 
 class KnobStyle(Enum):
+    """Knob styles"""
     NORMAL = "NORMAL"
     PAN = "PAN"
 
 
 class Precision(Enum):
+    """Precisions"""
     OFF = 0
     ONE = 1
     TWO = 2
@@ -111,18 +115,21 @@ class Precision(Enum):
 
 
 class TitlePosition(Enum):
+    """Title positions"""
     NONE = "None"
     TOP = "Top"
     BOTTOM = "Bottom"
 
 
 class ButtonState(Enum):
+    """Button states"""
     ON = "ON"
     OFF = "OFF"
     FLASH = "FLASH"
 
 
 class Keyboard(Enum):
+    """Keyboards"""
     NONE = "NONE"
     ALL_CHARS = "ALL"
     NUMERIC = "NUM"
@@ -135,6 +142,7 @@ class Keyboard(Enum):
 
 
 class TextFormat(Enum):
+    """Text formats"""
     NONE = "NONE"
     NUMBER = "NUM"
     DATETIME = "DATETIME"
@@ -143,17 +151,20 @@ class TextFormat(Enum):
 
 
 class TextAlignment(Enum):
+    """Text alignments"""
     LEFT = "left"
     CENTER = "center"
     RIGHT = "right"
 
 
 class SliderBarType(Enum):
+    """Slider bar types"""
     SEGMENTED = "seg"
     SOLID = "solid"
 
 
 class DialNumberPosition(Enum):
+    """Dial number positions"""
     OFF = "off"
     LEFT = "left"
     RIGHT = "right"
@@ -161,18 +172,21 @@ class DialNumberPosition(Enum):
 
 
 class DialStyle(Enum):
+    """Dial styles"""
     PIE = "pie"
     PIEINV = "pieinv"
     BAR = "bar"
 
 
 class DirectionStyle(Enum):
+    """Direction styles"""
     NSEW = "nsew"
     DEG = "deg"
     DEGPS = "degps"
 
 
 class GraphLineType(Enum):
+    """Graph line types"""
     LINE = "LINE"
     BAR = "BAR"
     SEGBAR = "SEGBAR"
@@ -181,11 +195,13 @@ class GraphLineType(Enum):
 
 
 class GraphXAxisLabelsStyle(Enum):
+    """Graph X axis label styles"""
     ON = "on"
     BETWEEN = "between"
 
 
 class TimeGraphLineType(Enum):
+    """Time grapgh line types"""
     LINE = "LINE"
     BAR = "BAR"
     BOOL = "BOOL"
@@ -193,11 +209,13 @@ class TimeGraphLineType(Enum):
 
 
 class TimeGraphPositionOfKey(Enum):
+    """Time grapgh positions of key"""
     TOPLEFT = "Top Left"
     TOPRIGHT = "Top Right"
 
 
 class Color(Enum):
+    """Colors"""
     BLACK = 0
     WHITE = 1
     MAROON = 2

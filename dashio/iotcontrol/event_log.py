@@ -41,16 +41,6 @@ class EventLog(Control):
     """EventLog control
     """
 
-    def get_state(self):
-        """get_state
-
-        Returns
-        -------
-        str
-            Called by iotdashboard app to get the controls state. Not used for this control.
-        """
-        return ""
-
     def __init__(self,
                  control_id: str,
                  title="An Event Log",
