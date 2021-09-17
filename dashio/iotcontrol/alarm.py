@@ -16,7 +16,7 @@ class Alarm(Control):
     Attributes
     ----------
     control_id : str
-        a unique alarm identity string. The alarm identity string must be a unique string for each alarm per device
+       An unique control identity string. The control identity string must be a unique string for each control per device
     description : str
         A short description of the alarm
     sound_name : str

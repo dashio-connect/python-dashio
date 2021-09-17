@@ -21,7 +21,7 @@ class ControlPosition:
     """
     ControlPosition
         Used to describe a controls position.
-        Inherit this class to overide the set_size() if you want 
+        Inherit this class to overide the set_size() if you want
         to alter the device layout based on the iotdashboards number of columns.
     """
     def __init__(self, x_position_ratio, y_position_ratio, width_ratio, height_ratio):
@@ -30,14 +30,13 @@ class ControlPosition:
         self.width_ratio = width_ratio
         self.height_ratio = height_ratio
 
-    def set_size(self, num_columns):
+    def set_size(self, num_columns: str):
         """Called by iotdashboard when a CFG is asked for
 
         Parameters
         ----------
-        num_columns : int
+        num_columns : str
             The number of columns available on the dashboard.
-        
         """
         logging.debug("Number of Columns: %s", num_columns)
 
@@ -45,7 +44,7 @@ class ControlPosition:
 class Control:
     """Base class for controls.
     """
-    
+
     def get_state(self) -> str:
         """Controls need to implement their own version."""
         return ""
@@ -65,10 +64,25 @@ class Control:
         """
         if self.control_position:
             self.control_position.set_size(num_columns)
-        cfg_str = "\tCFG\t" + self.msg_type + "\t" + json.dumps(self._cfg) + "\n"
+        cfg_str = "\tCFG\t" + self.cntrl_type + "\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
 
-    def __init__(self, msg_type, control_id, title=None, control_position=None, title_position=None):
+    def __init__(self, cntrl_type: str, control_id: str, title=None, control_position=None, title_position=None):
+        """Control base type - all controls have these charactoristics and methods.
+
+        Parameters
+        ----------
+        cntrl_type : str
+            The type of control to implement
+        control_id : str
+            An unique control identity string. The control identity string must be a unique string for each control per device
+        title : [type], optional
+            Title of the control, by default None
+        control_position : ControlPosition, optional
+            The position of the control on a DeviceView, by default None
+        title_position : TitlePosition, optional
+            Position of the title when displayed on the iotdashboard app, by default None
+        """
         # Dictionary to store CFG json
         self._cfg = {}
         self._title = None
@@ -78,11 +92,11 @@ class Control:
         self._title_position = None
         if title_position is not None:
             self.title_position = title_position
-        self.msg_type = msg_type
+        self.cntrl_type = cntrl_type
         self.control_id = control_id.translate(BAD_CHARS)
         self.message_rx_event = Event()
         self.message_tx_event = Event()
-        self._control_hdr_str = f"\t{{device_id}}\t{self.msg_type}\t{self.control_id}\t"
+        self._control_hdr_str = f"\t{{device_id}}\t{self.cntrl_type}\t{self.control_id}\t"
         self._tx_message = ""
         self._control_position = None
         if control_position is not None:

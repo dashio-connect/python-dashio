@@ -45,7 +45,7 @@ class ButtonGroup(Control):
         Parameters
         ----------
             control_id : str
-                [description]
+                An unique control identity string. The control identity string must be a unique string for each control per device
             title : str, optional:
                 [description]. Defaults to "A Button Group".
             text (str, optional):
@@ -65,6 +65,18 @@ class ButtonGroup(Control):
         self.grid_view = grid_view
 
     def add_button(self, control):
+        """[summary]
+
+        Parameters
+        ----------
+        control : [type]
+            [description]
+
+        Raises
+        ------
+        TypeError
+            [description]
+        """
         if isinstance(control, Button):
             control.parent_id = self.control_id
         else:

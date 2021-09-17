@@ -15,7 +15,7 @@ class Button(Control):
     Attributes
     ----------
     control_id : str
-        a unique identity string. The identity string must be a unique string for each ButtonGroup per device
+        An unique control identity string. The control identity string must be a unique string for each control per device
     title: str
         A short title for the button group
     text : str
