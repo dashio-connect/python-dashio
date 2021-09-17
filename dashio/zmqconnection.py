@@ -1,5 +1,6 @@
-import logging
+
 """zmqconnection.py"""
+import logging
 import socket
 import threading
 
