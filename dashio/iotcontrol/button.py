@@ -74,6 +74,13 @@ class Button(Control):
         self.text = text.translate({ord(i): None for i in '\t\n'})
 
     def get_state(self):
+        """get_state is called by iotdashboard
+
+        Returns
+        -------
+        str
+            The controls state
+        """
         text = self._cfg["text"]
         if (not text) and ( self.icon_name == Icon.NONE):
             return self._control_hdr_str + f"{self._btn_state.value}\n"
