@@ -37,7 +37,7 @@ class Dash():
         return cfg_str
 
     def __init__(self, control_id, username="", servername=""):
-        self.msg_type = "DASHIO"
+        self.cntrl_type = "DASHIO"
         self._cfg = {}
         self.control_id = control_id
         self.username = username

@@ -160,7 +160,7 @@ class Device(threading.Thread):
                 iot_control.message_tx_event += self._send_data
         except AttributeError:
             pass
-        key = iot_control.msg_type + "_" + iot_control.control_id
+        key = iot_control.cntrl_type + "_" + iot_control.control_id
         self._control_dict[key] = iot_control
 
     def _set_devicesetup(self, control_name: str, settable: bool):

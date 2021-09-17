@@ -49,7 +49,7 @@ class BLE():
 
     def __init__(self, control_id, service_uuid="", read_uuid="", write_uuid=""):
         self._cfg = {}
-        self.msg_type = "BLE"
+        self.cntrl_type = "BLE"
         self.control_id = control_id
         self.service_uuid = service_uuid
         self.read_uuid = read_uuid
