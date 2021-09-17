@@ -1,9 +1,46 @@
+"""device_view.py
+
+Classes
+-------
+    DeviceView:
+        A DeviceView provides a control that descibes appearance and style of the group of controls
+        that are displayed on this DeviceView by the iotdashboard app.
+     
+"""
 from .control import Control
 from .enums import Color, Icon
 
 
 class DeviceView(Control):
-    """A Config only control"""
+    """A DeviceView provides a control that descibes appearance and style of the group of controls
+        that are displayed on this DeviceView by the iotdashboard app.
+
+    Attributes
+    ----------
+    control_id : str
+       An unique control identity string. The control identity string must be a unique string for each control per device
+       Each control inherits the DeviceViews Control settings
+    title : str
+        The controls title
+    icon : Icon
+        The Icon representing the DeviceView
+    color : Color
+        The color of the DeviceView
+    share_column : Booloan
+        Something something
+    num_columns : int
+        Number of columns for DeviceView
+    control_title_box_color : Color
+        Title box color for controls
+    control_title_box_transparency : int
+        Title box transparency for controls
+    
+
+    Methods
+    -------
+    add_control(Control) :
+        Add a control to the device view
+    """
 
     def __init__(
         self,
@@ -40,6 +77,13 @@ class DeviceView(Control):
         self._state_str = ""
 
     def add_control(self, control):
+        """Add a control to the DeviceView
+
+        Parameters
+        ----------
+        control : Control
+            The control to add
+        """
         control.parent_id = self.control_id
 
     @property
@@ -53,6 +97,13 @@ class DeviceView(Control):
 
     @property
     def share_column(self) -> bool:
+        """[summary]
+
+        Returns
+        -------
+        bool
+            [description]
+        """
         return self._cfg["shareColumn"]
 
     @share_column.setter
@@ -61,6 +112,18 @@ class DeviceView(Control):
 
     @property
     def num_columns(self) -> int:
+        """[summary]
+
+        Returns
+        -------
+        int
+            Number of columns
+
+        Raises
+        ------
+        ValueError
+            The value must be 1 to 3
+        """
         return self._cfg["numColumns"]
 
     @num_columns.setter
@@ -72,6 +135,13 @@ class DeviceView(Control):
 
     @property
     def color(self) -> Color:
+        """Color
+
+        Returns
+        -------
+        Color
+            The device view color
+        """
         return self._color
 
     @color.setter
@@ -81,6 +151,13 @@ class DeviceView(Control):
 
     @property
     def control_title_box_color(self) -> Color:
+        """Control title box color
+
+        Returns
+        -------
+        Color
+            The control title box color
+        """
         return self._control_title_box_color
 
     @control_title_box_color.setter

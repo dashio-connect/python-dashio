@@ -49,9 +49,9 @@ class Alarm(Control):
 
         Parameters
         ----------
-            header (str):
+            header : str
                 ALarm Header
-            body (str):
+            body : str
                 Alarm body
         """
         self.message_tx_event(self.control_id, header, body)
