@@ -318,13 +318,13 @@ class Device(threading.Thread):
 
         Parameters
         ----------
-            device_type (str):
+            device_type : str
                 A Short description of the device type.
-            device_id (str):
+            device_id : str
                 A unique identifier for this device
-            device_name (str):
+            device_name : str
                 The name for this device
-            context (optional):
+            context : optional
                 ZMQ context. Defaults to None.
         """
         threading.Thread.__init__(self, daemon=True)
