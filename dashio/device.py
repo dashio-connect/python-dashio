@@ -355,6 +355,13 @@ class Device(threading.Thread):
 
     @property
     def number_of_device_views(self) -> int:
+        """Number of device views registered for the device
+
+        Returns
+        -------
+        int
+            Number of device views
+        """
         return self._cfg["numDeviceViews"]
 
     @number_of_device_views.setter
@@ -363,6 +370,13 @@ class Device(threading.Thread):
 
     @property
     def device_name(self) -> str:
+        """Device name
+
+        Returns
+        -------
+        str
+            The device name
+        """
         return self._device_name
 
     @device_name.setter
