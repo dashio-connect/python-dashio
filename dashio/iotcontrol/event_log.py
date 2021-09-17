@@ -31,10 +31,9 @@ class EventData:
         self.body = body.translate(BAD_CHARS)
 
     def __str__(self):
-        data_str = "{ts}\t{color}\t{header}\t{body}\n".format(
+        return "{ts}\t{color}\t{header}\t{body}\n".format(
             ts=self.timestamp.isoformat(), color=str(self.color.value), header=self.header, body=self.body
         )
-        return data_str
 
 
 class EventLog(Control):
@@ -45,7 +44,8 @@ class EventLog(Control):
                  control_id: str,
                  title="An Event Log",
                  title_position=TitlePosition.BOTTOM,
-                 control_position=None, max_log_entries=100):
+                 control_position=None,
+                 max_log_entries=100):
         """An EventLog control
 
         Parameters
