@@ -115,6 +115,13 @@ class ButtonGroup(Control):
 
     @property
     def text(self) -> str:
+        """text
+
+        Returns
+        -------
+        str
+            text
+        """
         return self._cfg["text"]
 
     @text.setter
