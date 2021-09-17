@@ -11,7 +11,8 @@ disable=
     too-many-arguments,
     no-member,
     unused-argument,
-    
+    attribute-defined-outside-init
+
 
 [FORMAT]
 max-line-length=240
