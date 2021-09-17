@@ -10,10 +10,12 @@ class RingBuffer:
         self.max = size_max
         self.data = []
 
+    # pylint: disable=invalid-name
     class __Full:
         """ class that implements a full buffer """
         def append(self, val):
             """ Append an element overwriting the oldest one. """
+            # pylint: disable=access-member-before-definition
             self.data[self.cur] = val
             self.cur = (self.cur + 1) % self.max
 
@@ -30,6 +32,8 @@ class RingBuffer:
             return self.data[indx]
 
         def empty(self):
+            """Returns if empty
+            """
             return False
 
     def append(self, val):
