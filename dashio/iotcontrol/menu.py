@@ -16,8 +16,6 @@ from .textbox import TextBox
 class Menu(Control):
     """A Menu Control
     """
-    def get_state(self):
-        return ""
 
     def __init__(self,
                  control_id,

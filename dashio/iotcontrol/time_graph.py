@@ -86,8 +86,6 @@ class TimeGraphLine:
 
 
 class TimeGraph(Control):
-    def get_state(self):
-        return ""
 
     def __init__(
         self,

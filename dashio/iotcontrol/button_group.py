@@ -27,8 +27,6 @@ class ButtonGroup(Control):
     add_button(Button)
         Add a button to the ButtonGroup
     """
-    def get_state(self):
-        return ""
 
     def __init__(
         self,

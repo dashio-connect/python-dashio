@@ -45,10 +45,6 @@ class Control:
     """Base class for controls.
     """
 
-    def get_state(self) -> str:
-        """Controls need to implement their own version."""
-        return ""
-
     def get_cfg(self, num_columns):
         """Returns the CFG for the control called when the iotdashboard app asks for a CFG
 
