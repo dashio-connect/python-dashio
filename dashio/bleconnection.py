@@ -122,12 +122,14 @@ class DashIOAdvertisement(dbus.service.Object):
     def get_path(self):
         return dbus.ObjectPath(self.path)
 
+    # pylint: disable=invalid-name
     @dbus.service.method(DBUS_PROP_IFACE, in_signature="s", out_signature="a{sv}")
     def GetAll(self, iface):
         if iface != LE_ADVERTISEMENT_IFACE:
             raise InvalidArgsException()
         return self.get_properties()[LE_ADVERTISEMENT_IFACE]
 
+    # pylint: disable=invalid-name
     @dbus.service.method(LE_ADVERTISEMENT_IFACE, in_signature='', out_signature='')
     def Release(self):
         logging.debug('%s: Released!', self.path)
@@ -258,6 +260,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
     def get_path(self):
         return dbus.ObjectPath(self.path)
 
+    # pylint: disable=invalid-name
     @dbus.service.method(DBUS_OM_IFACE, out_signature="a{oa{sa{sv}}}")
     def GetManagedObjects(self):
         return self.response
@@ -321,6 +324,7 @@ class DashIOService(dbus.service.Object):
     def get_bus(self):
         return self.bus
 
+    # pylint: disable=invalid-name
     @dbus.service.method(DBUS_PROP_IFACE, in_signature='s', out_signature='a{sv}')
     def GetAll(self, iface):
         if iface != GATT_SERVICE_IFACE:
@@ -354,12 +358,14 @@ class DashConCharacteristic(dbus.service.Object):
     def get_path(self):
         return dbus.ObjectPath(self.path)
 
+    # pylint: disable=invalid-name
     @dbus.service.method(DBUS_PROP_IFACE, in_signature='s', out_signature='a{sv}')
     def GetAll(self, iface):
         if iface != GATT_CHRC_IFACE:
             raise InvalidArgsException()
         return self.get_properties()[GATT_CHRC_IFACE]
 
+    # pylint: disable=invalid-name
     @dbus.service.method(GATT_CHRC_IFACE, in_signature='a{sv}', out_signature='ay')
     def ReadValue(self, _):
         logging.debug('Default ReadValue called, returning error')
@@ -379,16 +385,19 @@ class DashConCharacteristic(dbus.service.Object):
             self.PropertiesChanged(GATT_CHRC_IFACE, {"Value": value}, [])
         return self.notifying
 
+    # pylint: disable=invalid-name
     @dbus.service.method(GATT_CHRC_IFACE)
     def StartNotify(self):
         if self.notifying:
             return
         self.notifying = True
 
+    # pylint: disable=invalid-name
     @dbus.service.method(GATT_CHRC_IFACE)
     def StopNotify(self):
         self.notifying = False
 
+    # pylint: disable=invalid-name
     @dbus.service.method(GATT_CHRC_IFACE, in_signature='aya{sv}')
     def WriteValue(self, value, options):
         rx_str = ''.join([str(v) for v in value])
