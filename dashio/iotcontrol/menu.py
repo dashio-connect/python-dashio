@@ -1,3 +1,10 @@
+"""menu.py
+
+Returns
+-------
+Class
+    Menu
+"""
 from .button import Button
 from .control import Control
 from .enums import Icon, TitlePosition
@@ -7,6 +14,8 @@ from .textbox import TextBox
 
 
 class Menu(Control):
+    """A Menu Control
+    """
     def get_state(self):
         return ""
 
@@ -22,12 +31,7 @@ class Menu(Control):
         self.text = text
 
     def add_control(self, control):
-        if (
-            isinstance(control, TextBox)
-            or isinstance(control, Button)
-            or isinstance(control, SliderSingleBar)
-            or isinstance(control, Selector)
-        ):
+        if isinstance(control, TextBox, Button, SliderSingleBar, Selector):
             control.parent_id = self.control_id
         else:
             raise TypeError("Only TextBox, Button, or SliderSingleBar are allowed")
