@@ -111,9 +111,9 @@ class DashIOAdvertisement(dbus.service.Object):
         remote_om = dbus.Interface(bus.get_object(BLUEZ_SERVICE_NAME, "/"), DBUS_OM_IFACE)
         objects = remote_om.GetManagedObjects()
 
-        for o, props in objects.items():
+        for obj, props in objects.items():
             if LE_ADVERTISING_MANAGER_IFACE in props:
-                return o
+                return obj
         return None
 
     def get_properties(self):
@@ -123,8 +123,8 @@ class DashIOAdvertisement(dbus.service.Object):
         return dbus.ObjectPath(self.path)
 
     @dbus.service.method(DBUS_PROP_IFACE, in_signature="s", out_signature="a{sv}")
-    def GetAll(self, interface):
-        if interface != LE_ADVERTISEMENT_IFACE:
+    def GetAll(self, iface):
+        if iface != LE_ADVERTISEMENT_IFACE:
             raise InvalidArgsException()
         return self.get_properties()[LE_ADVERTISEMENT_IFACE]
 
@@ -250,9 +250,9 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         remote_om = dbus.Interface(bus.get_object(BLUEZ_SERVICE_NAME, "/"), DBUS_OM_IFACE)
         objects = remote_om.GetManagedObjects()
 
-        for o, props in objects.items():
+        for obj, props in objects.items():
             if LE_ADVERTISING_MANAGER_IFACE in props:
-                return o
+                return obj
         return None
 
     def get_path(self):
@@ -322,8 +322,8 @@ class DashIOService(dbus.service.Object):
         return self.bus
 
     @dbus.service.method(DBUS_PROP_IFACE, in_signature='s', out_signature='a{sv}')
-    def GetAll(self, interface):
-        if interface != GATT_SERVICE_IFACE:
+    def GetAll(self, iface):
+        if iface != GATT_SERVICE_IFACE:
             raise InvalidArgsException()
         return self.get_properties()[GATT_SERVICE_IFACE]
 
@@ -355,13 +355,13 @@ class DashConCharacteristic(dbus.service.Object):
         return dbus.ObjectPath(self.path)
 
     @dbus.service.method(DBUS_PROP_IFACE, in_signature='s', out_signature='a{sv}')
-    def GetAll(self, interface):
-        if interface != GATT_CHRC_IFACE:
+    def GetAll(self, iface):
+        if iface != GATT_CHRC_IFACE:
             raise InvalidArgsException()
         return self.get_properties()[GATT_CHRC_IFACE]
 
     @dbus.service.method(GATT_CHRC_IFACE, in_signature='a{sv}', out_signature='ay')
-    def ReadValue(self, options):
+    def ReadValue(self, _):
         logging.debug('Default ReadValue called, returning error')
         raise NotSupportedException()
 
