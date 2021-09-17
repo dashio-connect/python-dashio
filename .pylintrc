@@ -26,4 +26,4 @@ ignored-modules=zmq
 
 [DESIGN]
 max-locals=25
-max-args=15
+max-args=16
