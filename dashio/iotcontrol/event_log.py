@@ -1,7 +1,9 @@
 """event_log.py
 """
 import datetime
+
 import dateutil.parser
+
 from ..constants import BAD_CHARS
 from .control import Control
 from .enums import Color, TitlePosition
