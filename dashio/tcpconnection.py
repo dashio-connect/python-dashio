@@ -14,10 +14,27 @@ from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 
 
 class TCP():
+    """A CFG control class to store TCP connection information
+    """
+
     def get_state(self) -> str:
+        """Returns controls state. Not used for this control
+
+        Returns
+        -------
+        str
+            Not used in this control
+        """
         return ""
 
-    def get_cfg(self, _):
+    def get_cfg(self, _) -> str:
+        """Returns the CFG string for this TCP control
+
+        Returns
+        -------
+        str
+            The CFG string for this control
+        """
         cfg_str = "\tCFG\t" + self.msg_type + "\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
 
@@ -30,6 +47,13 @@ class TCP():
 
     @property
     def ip_address(self) -> str:
+        """IP address of current connection
+
+        Returns
+        -------
+        str
+            IP address
+        """
         return self._cfg["ipAddress"]
 
     @ip_address.setter
@@ -38,6 +62,13 @@ class TCP():
 
     @property
     def port(self) -> int:
+        """The port of the current connection
+
+        Returns
+        -------
+        int
+            The port number used by the current connection
+        """
         return self._cfg["port"]
 
     @port.setter
@@ -85,13 +116,14 @@ class TCPConnection(threading.Thread):
 
         Parameters
         ---------
-            ip_address (str, optional):
+            ip_address : str, optional
                 IP Address to use. Defaults to "*".
-            port (int, optional):
+            port : int, optional
                 Port to use. Defaults to 5650.
-            use_zero_conf (bool, optional):
+            use_zero_conf : bool, optional
                 Use mDNS to advertise the connection. Defaults to True.
-            context (optional): ZMQ context. Defaults to None.
+            context : optional
+                ZMQ context. Defaults to None.
         """
 
         threading.Thread.__init__(self, daemon=True)

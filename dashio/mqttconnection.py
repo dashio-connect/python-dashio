@@ -86,7 +86,7 @@ class MQTTConnection(threading.Thread):
 
         Parameters
         ---------
-            device {Device}:
+            device : Device
                 The device to add.
         """
         if device.device_id not in self.device_id_list:
@@ -108,18 +108,18 @@ class MQTTConnection(threading.Thread):
 
         Parameters
         ---------
-            host {str}:
+            host : str
                 The server name of the mqtt host.
             port {int}:
                 Port number to connect to.
-            username {str}:
+            username : str
                 username for the mqtt connection.
-            password {str}:
+            password : str
                 password for the mqtt connection.
 
         Keyword Parameters
         -----------------
-            use_ssl {bool}:
+            use_ssl : bool
                 Whether to use ssl for the connection or not. (default: {False})
         """
 

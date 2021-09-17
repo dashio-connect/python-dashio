@@ -13,11 +13,26 @@ from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 
 
 class Dash():
-
+    """Class to stare dash connection info
+    """
     def get_state(self) -> str:
+        """Not used by this class as its a CFG only control
+        """
         return ""
 
-    def get_cfg(self, num_columns):
+    def get_cfg(self, num_columns: str) -> str:
+        """Returns the CFG info for the Dash connection. Called by iotdashboard app
+
+        Parameters
+        ----------
+        num_columns (str):
+            Number of columns avaailable on the dashboard app.
+
+        Returns
+        -------
+        str
+            The CFG string
+        """
         cfg_str = "\tCFG\t" + self.msg_type + "\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
 
@@ -30,6 +45,13 @@ class Dash():
 
     @property
     def username(self) -> str:
+        """username
+
+        Returns
+        -------
+        str
+            The username for the current connection
+        """
         return self._cfg["userName"]
 
     @username.setter
@@ -38,6 +60,13 @@ class Dash():
 
     @property
     def servername(self) -> str:
+        """servername
+
+        Returns
+        -------
+        str
+            The servername for the current connection
+        """
         return self._cfg["hostURL"]
 
     @servername.setter
@@ -115,7 +144,16 @@ class DashConnection(threading.Thread):
     def _send_dash_announce(self):
         self.tx_zmq_pub.send_multipart([b'COMMAND', b'1', b"send_announce"])
 
-    def set_connection(self, username, password):
+    def set_connection(self, username: str, password: str):
+        """Changes the connection to the DashIO server
+
+        Parameters
+        ----------
+        username : str
+            username for the server
+        password : str
+            password for the server
+        """
         self._dash_c.disconnect()
         self.username = username
         self._dash_c.username_pw_set(username, password)
@@ -135,15 +173,15 @@ class DashConnection(threading.Thread):
 
         Parameters
         ---------
-            host {str}:
+            host : str
                 The server name of the dash host.
-            port {int}:
+            port : int
                 Port number to connect to.
-            username {str}:
+            username : str
                 username for the dash connection.
-            password {str}:
+            password : str
                 password for the dash connection.
-            use_ssl {Boolean}:
+            use_ssl : Boolean
                 Defaults to True.
         """
 
