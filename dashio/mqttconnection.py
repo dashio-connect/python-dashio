@@ -23,7 +23,7 @@ class MQTT():
 
     def __init__(self, control_id, username="", password="", servername="", use_ssl=False):
         self._cfg = {}
-        self.msg_type = "MQTT"
+        self.cntrl_type = "MQTT"
         self.control_id = control_id
         self.username = username
         self.servername = servername

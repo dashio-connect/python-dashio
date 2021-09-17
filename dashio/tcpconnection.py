@@ -40,7 +40,7 @@ class TCP():
 
     def __init__(self, control_id, ip_address="", port=5650):
         self._cfg = {}
-        self.msg_type = "TCP"
+        self.cntrl_type = "TCP"
         self.control_id = control_id
         self.ip_address = ip_address
         self.port = port
