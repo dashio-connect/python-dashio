@@ -18,7 +18,7 @@ class MQTT():
         return ""
 
     def get_cfg(self, num_columns):
-        cfg_str = "\tCFG\t" + self.msg_type + "\t" + json.dumps(self._cfg) + "\n"
+        cfg_str = "\tCFG\t" + self.cntrl_type + "\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
 
     def __init__(self, control_id, username="", password="", servername="", use_ssl=False):
