@@ -103,7 +103,7 @@ class Map(Control):
 
         Parameters
         ----------
-         control_id : str
+        control_id : str
             An unique control identity string. The control identity string must be a unique string for each control per device
         title : str, optional
             Title of the control, by default "A Map"
