@@ -87,6 +87,13 @@ class DeviceView(Control):
 
     @property
     def icon_name(self) -> Icon:
+        """Icon name
+
+        Returns
+        -------
+        Icon
+            Icon for the DeviceView
+        """
         return self._icon_name
 
     @icon_name.setter
@@ -166,6 +173,13 @@ class DeviceView(Control):
 
     @property
     def control_title_box_transparency(self) -> int:
+        """Control Box title transparency
+
+        Returns
+        -------
+        int
+            The percent transparency of the control box title
+        """
         return self._cfg["ctrlTitleBoxTransparency"]
 
     @control_title_box_transparency.setter
@@ -177,6 +191,13 @@ class DeviceView(Control):
 
     @property
     def control_color(self) -> Color:
+        """Controls color
+
+        Returns
+        -------
+        Color
+            The color of the control
+        """
         return self._control_color
 
     @control_color.setter
@@ -186,6 +207,13 @@ class DeviceView(Control):
 
     @property
     def control_border_color(self) -> Color:
+        """Control border color
+
+        Returns
+        -------
+        Color
+            The control border color
+        """
         return self._control_border_color
 
     @control_border_color.setter
@@ -195,6 +223,13 @@ class DeviceView(Control):
 
     @property
     def control_border_on(self) -> bool:
+        """Control border display
+
+        Returns
+        -------
+        bool
+            Set to true to display the contol borders
+        """
         return self._cfg["ctrlBorderOn"]
 
     @control_border_on.setter
@@ -203,6 +238,13 @@ class DeviceView(Control):
 
     @property
     def control_background_color(self) -> Color:
+        """Control background color
+
+        Returns
+        -------
+        Color
+            The control background color
+        """
         return self._control_background_color
 
     @control_background_color.setter
@@ -212,6 +254,13 @@ class DeviceView(Control):
 
     @property
     def control_title_font_size(self) -> int:
+        """Control title font size
+
+        Returns
+        -------
+        int
+            Control title font size
+        """
         return self._cfg["ctrlTitleFontSize"]
 
     @control_title_font_size.setter
@@ -220,6 +269,13 @@ class DeviceView(Control):
 
     @property
     def control_max_font_size(self) -> int:
+        """Control max font size
+
+        Returns
+        -------
+        int
+            Max font size for a control
+        """
         return self._cfg["ctrlMaxFontSize"]
 
     @control_max_font_size.setter
@@ -228,6 +284,13 @@ class DeviceView(Control):
 
     @property
     def control_background_transparency(self) -> int:
+        """Control background transparency
+
+        Returns
+        -------
+        int
+            the control background tranparency
+        """
         return self._cfg["ctrlBkgndTransparency"]
 
     @control_background_transparency.setter
