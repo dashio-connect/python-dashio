@@ -4,7 +4,6 @@ from datetime import datetime
 
 import dateutil
 from dashio import Map, MapLocation
-from dashio.iotcontrol.enums import Color
 
 
 def _get_cfg_dict(cfg_str):
