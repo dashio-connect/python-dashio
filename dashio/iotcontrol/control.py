@@ -24,7 +24,23 @@ class ControlPosition:
         Inherit this class to overide the set_size() if you want
         to alter the device layout based on the iotdashboards number of columns.
     """
-    def __init__(self, x_position_ratio, y_position_ratio, width_ratio, height_ratio):
+    def __init__(self, x_position_ratio: float, y_position_ratio: float, width_ratio: float, height_ratio: float):
+        """The ControlPosition class describes the location and size of a control on a DeviceView. The
+        x_postion and y_position ratio place the top left hand corner of the control. The width and height ratio
+        describe the controls size. The ratio is a number betwwen 0 and 1 representing the width and height of the
+        DeviceView.
+
+        Parameters
+        ----------
+        x_position_ratio : float
+            Left side position expressed as a ration between 0 and 1
+        y_position_ratio : float
+            Upper side position expressed as a ration between 0 and 1
+        width_ratio : float
+            Control width expressed as a ration between 0 and 1
+        height_ratio : float
+            Control height expressed as a ration between 0 and 1
+        """
         self.x_position_ratio = x_position_ratio
         self.y_position_ratio = y_position_ratio
         self.width_ratio = width_ratio
