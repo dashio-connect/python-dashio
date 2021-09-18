@@ -1,12 +1,21 @@
+"""dial.py
+
+Returns
+-------
+Dial
+    A Dial control
+"""
 from .control import Control
 from .enums import (Color, DialNumberPosition, DialStyle, Precision,
                     TitlePosition)
 
 
 class Dial(Control):
+    """Dial Control
+    """
     def __init__(
         self,
-        control_id,
+        control_id: str,
         title="A Dial",
         title_position=TitlePosition.BOTTOM,
         dial_min=0.0,
@@ -21,7 +30,39 @@ class Dial(Control):
         units="",
         control_position=None,
     ):
+        """Dial
 
+        Parameters
+        ----------
+        control_id : str
+            An unique control identity string. The control identity string must be a unique string for each control per device
+        title : [type], optional
+            Title of the control, by default None
+        control_position : ControlPosition, optional
+            The position of the control on a DeviceView, by default None
+        title_position : TitlePosition, optional
+            Position of the title when displayed on the iotdashboard app, by default None
+        dial_min : float, optional
+            Minimum dial position, by default 0.0
+        dial_max : float, optional
+            Maximum dial position, by default 100.0
+        red_value : float, optional
+            Position for red part of dial, by default 75.0
+        dial_fill_color : Color, optional
+            Dial fill color, by default Color.RED
+        pointer_color : Color, optional
+            Pointer color, by default Color.BLUE
+        number_position : DialNumberPosition, optional
+            Position of the number on the dial, by default DialNumberPosition.LEFT
+        show_min_max : bool, optional
+            True to show min max, by default False
+        style : DialStyle, optional
+            Dial style, by default DialStyle.PIE
+        precision : Precision, optional
+            Precision of the displayed number, by default Precision.OFF
+        units : str, optional
+            Units of the dial position, by default ""
+        """
         super().__init__("DIAL", control_id, title=title, control_position=control_position, title_position=title_position)
         self._dial_value = 0
         self.dial_min = dial_min
@@ -40,6 +81,13 @@ class Dial(Control):
 
     @property
     def dial_value(self) -> float:
+        """Dial value
+
+        Returns
+        -------
+        float
+            The position of the dial
+        """
         return self._dial_value
 
     @dial_value.setter
@@ -49,6 +97,13 @@ class Dial(Control):
 
     @property
     def dial_min(self) -> float:
+        """Dial min
+
+        Returns
+        -------
+        float
+            Minimum dial position
+        """
         return self._cfg["min"]
 
     @dial_min.setter
@@ -57,6 +112,13 @@ class Dial(Control):
 
     @property
     def dial_max(self) -> float:
+        """Dial Max
+
+        Returns
+        -------
+        float
+            Maximum position of the dial
+        """
         return self._cfg["max"]
 
     @dial_max.setter
@@ -65,6 +127,13 @@ class Dial(Control):
 
     @property
     def red_value(self) -> float:
+        """Red value
+
+        Returns
+        -------
+        float
+            The start of the red part of the dial
+        """
         return self._cfg["redValue"]
 
     @red_value.setter
@@ -73,6 +142,13 @@ class Dial(Control):
 
     @property
     def show_min_max(self) -> bool:
+        """Show min max
+
+        Returns
+        -------
+        bool
+            True to show min max values
+        """
         return self._cfg["showMinMax"]
 
     @show_min_max.setter
@@ -81,6 +157,13 @@ class Dial(Control):
 
     @property
     def dial_fill_color(self) -> Color:
+        """Dial fill color
+
+        Returns
+        -------
+        Color
+            The color of the dial
+        """
         return self._dial_fill_color
 
     @dial_fill_color.setter
@@ -90,6 +173,13 @@ class Dial(Control):
 
     @property
     def pointer_color(self) -> Color:
+        """Pointer color
+
+        Returns
+        -------
+        Color
+            The color of the pointer
+        """
         return self._pointer_color
 
     @pointer_color.setter
@@ -99,6 +189,13 @@ class Dial(Control):
 
     @property
     def number_position(self) -> DialNumberPosition:
+        """Number position
+
+        Returns
+        -------
+        DialNumberPosition
+            Position to display the number on the dial
+        """
         return self._number_position
 
     @number_position.setter
@@ -108,6 +205,13 @@ class Dial(Control):
 
     @property
     def style(self) -> DialStyle:
+        """The style of the dial
+
+        Returns
+        -------
+        DialStyle
+            Which style of Dial to display
+        """
         return self._style
 
     @style.setter
@@ -117,6 +221,13 @@ class Dial(Control):
 
     @property
     def precision(self) -> Precision:
+        """Precision
+
+        Returns
+        -------
+        Precision
+            The precision of the value that is displayed
+        """
         return self._cfg["precision"]
 
     @precision.setter
@@ -126,6 +237,13 @@ class Dial(Control):
 
     @property
     def units(self) -> str:
+        """units
+
+        Returns
+        -------
+        str
+            Include these units to be displayed with the value
+        """
         return self._cfg["units"]
 
     @units.setter
