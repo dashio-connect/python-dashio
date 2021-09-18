@@ -15,13 +15,22 @@ from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 class MQTT():
     """A CFG only control"""
     def get_state(self):
+        """Not used by this class as its a CFG only control
+        """
         return ""
 
     def get_cfg(self, num_columns):
+        """Returns the CFG string for this TCP control
+
+        Returns
+        -------
+        str
+            The CFG string for this control
+        """
         cfg_str = "\tCFG\t" + self.cntrl_type + "\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
 
-    def __init__(self, control_id, username="", password="", servername="", use_ssl=False):
+    def __init__(self, control_id: str, username="", password="", servername="", use_ssl=False):
         self._cfg = {}
         self.cntrl_type = "MQTT"
         self.control_id = control_id
@@ -30,12 +39,28 @@ class MQTT():
         self.password = password
         self.use_ssl = use_ssl
 
-    def set_mqtt(self, username, servername):
+    def set_mqtt(self, username: str, servername: str):
+        """Set the connection parameters for mqtt
+
+        Parameters
+        ----------
+        username : str
+            username
+        servername : [type]
+            servername
+        """
         self.username = username
         self.servername = servername
 
     @property
     def username(self) -> str:
+        """username
+
+        Returns
+        -------
+        str
+            username
+        """
         return self._cfg["userName"]
 
     @username.setter
@@ -44,6 +69,13 @@ class MQTT():
 
     @property
     def servername(self) -> str:
+        """servername
+
+        Returns
+        -------
+        str
+            servername
+        """
         return self._cfg["hostURL"]
 
     @servername.setter
