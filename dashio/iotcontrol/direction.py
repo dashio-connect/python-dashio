@@ -4,7 +4,7 @@
 Returns
 -------
 Class
-    Direction 
+    Direction
 """
 
 from .control import Control
@@ -26,11 +26,11 @@ class Direction(Control):
         calibration_angle=0,
         control_position=None
     ):
-        """[summary]
+        """Direction Control
 
         Parameters
         ----------
-        ontrol_id : str
+        control_id : str
             An unique control identity string. The control identity string must be a unique string for each control per device
         title : str, optional
             Title of the control, by default "A Control"
