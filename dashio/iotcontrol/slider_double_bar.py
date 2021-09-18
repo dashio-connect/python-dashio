@@ -1,10 +1,14 @@
+"""slyder_double_bar.py
+"""
 from .enums import Color, SliderBarType, TitlePosition
 from .slider_single_bar import SliderSingleBar
 
 
 class SliderDoubleBar(SliderSingleBar):
+    """A double bar slyder control
+    """
     def __init__(self,
-                 control_id,
+                 control_id: str,
                  title="A Single Slider",
                  title_position=TitlePosition.BOTTOM,
                  bar_min=0.0,
@@ -50,6 +54,13 @@ class SliderDoubleBar(SliderSingleBar):
 
     @property
     def bar2_value(self) -> float:
+        """bar2 value
+
+        Returns
+        -------
+        float
+            The value of bar2
+        """
         return self._bar2_value
 
     @bar2_value.setter
