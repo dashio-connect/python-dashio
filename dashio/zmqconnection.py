@@ -29,6 +29,13 @@ class ZMQConnection(threading.Thread):
         self.zeroconf.register_service(zconf_info)
 
     def add_device(self, device):
+        """Add a device to the connection
+
+        Parameters
+        ----------
+        device : Device
+            The device to add to the connection
+        """
         device.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.connection_id))
         device.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
         sub_topic = "\t{}".format(device.device_id)
