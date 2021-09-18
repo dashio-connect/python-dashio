@@ -1,11 +1,14 @@
+"""slider_single_bar.py"""
 from .control import Control
 from .enums import Color, SliderBarType, TitlePosition
 
 
 class SliderSingleBar(Control):
+    """Single slider bar control
+    """
     def __init__(
         self,
-        control_id,
+        control_id: str,
         title="A Single Slider",
         title_position=TitlePosition.BOTTOM,
         bar_min=0.0,
@@ -20,6 +23,39 @@ class SliderSingleBar(Control):
         bar_style=SliderBarType.SEGMENTED,
         control_position=None,
     ):
+        """[summary]
+
+        Parameters
+        ----------
+        control_id : str
+            An unique control identity string. The control identity string must be a unique string for each control per device
+        title : str, optional
+            Title of the control, by default "A Single SLider"
+        control_position : ControlPosition, optional
+            The position of the control on a DeviceView, by default None
+        title_position : TitlePosition, optional
+            Position of the title when displayed on the iotdashboard app, by default None
+        bar_min : float, optional
+            min bar value, by default 0.0
+        bar_max : float, optional
+            max bar vale, by default 1000.0
+        red_value : int, optional
+            red value, by default 750
+        show_min_max : bool, optional
+            show min max, by default False
+        slider_enabled : bool, optional
+            enable slider, by default True
+        send_only_on_release : bool, optional
+            send only on release, by default True
+        bar_follows_slider : bool, optional
+            bar follows slider, by default False
+        bar_color : Color, optional
+            bar color, by default Color.BLUE
+        knob_color : Color, optional
+            knob color, by default Color.RED
+        bar_style : SliderBarType, optional
+            bar style, by default SliderBarType.SEGMENTED
+        """
         super().__init__("SLDR", control_id, title=title, control_position=control_position, title_position=title_position)
         self._control_id_bar = f"\t{{device_id}}\tBAR\t{control_id}\t"
 
@@ -45,6 +81,13 @@ class SliderSingleBar(Control):
 
     @property
     def bar1_value(self) -> float:
+        """bar 1 value
+
+        Returns
+        -------
+        float
+            the bar value
+        """
         return self._bar1_value
 
     @bar1_value.setter
@@ -56,6 +99,13 @@ class SliderSingleBar(Control):
 
     @property
     def slider_value(self) -> float:
+        """the slider value
+
+        Returns
+        -------
+        float
+            Slider value
+        """
         return self._slider_value
 
     @slider_value.setter
@@ -67,6 +117,13 @@ class SliderSingleBar(Control):
 
     @property
     def bar_min(self) -> float:
+        """min bar value
+
+        Returns
+        -------
+        float
+            min bar value
+        """
         return self._cfg["min"]
 
     @bar_min.setter
@@ -75,6 +132,13 @@ class SliderSingleBar(Control):
 
     @property
     def bar_max(self) -> float:
+        """max bar value
+
+        Returns
+        -------
+        float
+            max bar value
+        """
         return self._cfg["max"]
 
     @bar_max.setter
@@ -83,6 +147,13 @@ class SliderSingleBar(Control):
 
     @property
     def red_value(self) -> float:
+        """Red value
+
+        Returns
+        -------
+        float
+            position of the red value
+        """
         return self._cfg["redValue"]
 
     @red_value.setter
@@ -91,6 +162,13 @@ class SliderSingleBar(Control):
 
     @property
     def show_min_max(self) -> bool:
+        """[summary]
+
+        Returns
+        -------
+        bool
+            [description]
+        """
         return self._cfg["showMinMax"]
 
     @show_min_max.setter
@@ -99,6 +177,13 @@ class SliderSingleBar(Control):
 
     @property
     def slider_enabled(self) -> bool:
+        """Slider enabled
+
+        Returns
+        -------
+        bool
+            slider enabled
+        """
         return self._cfg["sliderEnabled"]
 
     @slider_enabled.setter
@@ -107,6 +192,13 @@ class SliderSingleBar(Control):
 
     @property
     def send_only_on_release(self) -> bool:
+        """Send slider position on release
+
+        Returns
+        -------
+        bool
+            Set to false for data firehose
+        """
         return self._cfg["sendOnlyOnRelease"]
 
     @send_only_on_release.setter
@@ -115,6 +207,13 @@ class SliderSingleBar(Control):
 
     @property
     def bar_follows_slider(self) -> bool:
+        """Set bar follows slider
+
+        Returns
+        -------
+        bool
+            Set to True for bar follows slider
+        """
         return self._cfg["barFollowsSlider"]
 
     @bar_follows_slider.setter
@@ -123,6 +222,13 @@ class SliderSingleBar(Control):
 
     @property
     def bar_color(self) -> Color:
+        """bar color
+
+        Returns
+        -------
+        Color
+            The color of the bar
+        """
         return self._bar_color
 
     @bar_color.setter
@@ -132,6 +238,13 @@ class SliderSingleBar(Control):
 
     @property
     def bar_style(self) -> SliderBarType:
+        """Slider bar style
+
+        Returns
+        -------
+        SliderBarType
+            Type of slider to display
+        """
         return self._bar_style
 
     @bar_style.setter
@@ -141,6 +254,13 @@ class SliderSingleBar(Control):
 
     @property
     def knob_color(self) -> Color:
+        """Color of the slider Knob
+
+        Returns
+        -------
+        Color
+            slider knob color
+        """
         return self._knob_color
 
     @knob_color.setter
