@@ -1,12 +1,15 @@
+"""textbox.py"""
 from .control import Control
 from .enums import (Keyboard, Precision, TextAlignment, TextFormat,
                     TitlePosition)
 
 
 class TextBox(Control):
+    """A TextBox control
+    """
     def __init__(
         self,
-        control_id,
+        control_id: str,
         title="A Text Box",
         title_position=TitlePosition.BOTTOM,
         text="",
@@ -18,6 +21,33 @@ class TextBox(Control):
         close_keyboard_on_send=True,
         control_position=None,
     ):
+        """A TextBox control
+
+        Parameters
+        ----------
+        control_id : str
+            An unique control identity string. The control identity string must be a unique string for each control per device
+        title : str, optional
+            Title of the control, by default None
+        control_position : ControlPosition, optional
+            The position of the control on a DeviceView, by default None
+        title_position : TitlePosition, optional
+            Position of the title when displayed on the iotdashboard app, by default None
+        text : str, optional
+            Text for the textbox, by default ""
+        text_align : TextAlignment, optional
+            Text alaignment, by default TextAlignment.LEFT
+        text_format : TextFormat, optional
+            Format of the text, by default TextFormat.NONE
+        units : str, optional
+            Units, by default ""
+        precision : Precision, optional
+            precision, by default Precision.OFF
+        keyboard_type : Keyboard, optional
+            Keyboard type for the textbox, by default Keyboard.ALL_CHARS
+        close_keyboard_on_send : bool, optional
+            Set to True to close keyboard on close, by default True
+        """
         super().__init__("TEXT", control_id, title=title, control_position=control_position, title_position=title_position)
         self.text = text.translate({ord(i): None for i in '\t\n'})
         self.text_align = text_align
