@@ -1,11 +1,22 @@
+
+"""Direction control
+
+Returns
+-------
+Class
+    Direction 
+"""
+
 from .control import Control
 from .enums import Color, DirectionStyle, Precision, TitlePosition
 
 
 class Direction(Control):
+    """Direction control
+    """
     def __init__(
         self,
-        control_id,
+        control_id: str,
         title="A Control",
         style=DirectionStyle.DEG,
         title_position=TitlePosition.BOTTOM,
@@ -15,6 +26,29 @@ class Direction(Control):
         calibration_angle=0,
         control_position=None
     ):
+        """[summary]
+
+        Parameters
+        ----------
+        ontrol_id : str
+            An unique control identity string. The control identity string must be a unique string for each control per device
+        title : str, optional
+            Title of the control, by default "A Control"
+        control_position : ControlPosition, optional
+            The position of the control on a DeviceView, by default None
+        title_position : TitlePosition, optional
+            Position of the title when displayed on the iotdashboard app, by default None
+        style : DirectionStyle, optional
+            The Direction style to display, by default DirectionStyle.DEG
+        pointer_color : Color, optional
+            Color of the pointer, by default Color.GREEN
+        units : str, optional
+            Units to be displayed with the value, by default ""
+        precision : [type], optional
+            Precision of the value displayed, by default Precision.OFF
+        calibration_angle : int, optional
+            Calibration angle offset, by default 0
+        """
         super().__init__("DIR", control_id, title=title, title_position=title_position, control_position=control_position)
         self.pointer_color = pointer_color
         self.calibration_angle = calibration_angle
@@ -33,6 +67,13 @@ class Direction(Control):
 
     @property
     def direction_value(self) -> float:
+        """Direction value
+
+        Returns
+        -------
+        float
+            The direction
+        """
         return self._direction_value
 
     @direction_value.setter
@@ -46,6 +87,13 @@ class Direction(Control):
 
     @property
     def direction_text(self) -> str:
+        """Direction text
+
+        Returns
+        -------
+        str
+            Text to be displayed on the direction control
+        """
         return self._direction_text
 
     @direction_text.setter
@@ -59,6 +107,13 @@ class Direction(Control):
 
     @property
     def pointer_color(self) -> Color:
+        """Color of the pointer
+
+        Returns
+        -------
+        Color
+            Pointer color
+        """
         return self._pointer_color
 
     @pointer_color.setter
@@ -68,6 +123,13 @@ class Direction(Control):
 
     @property
     def calibration_angle(self) -> float:
+        """Calibration
+
+        Returns
+        -------
+        float
+            Calibration offset
+        """
         return self._cfg["calAngle"]
 
     @calibration_angle.setter
@@ -76,6 +138,13 @@ class Direction(Control):
 
     @property
     def style(self) -> DirectionStyle:
+        """Direction style
+
+        Returns
+        -------
+        DirectionStyle
+            Style of the direction control
+        """
         return self._style
 
     @style.setter
@@ -85,6 +154,13 @@ class Direction(Control):
 
     @property
     def units(self) -> str:
+        """Units displayed on the control
+
+        Returns
+        -------
+        str
+            Units string displayed with the value
+        """
         return self._cfg["units"]
 
     @units.setter
@@ -93,6 +169,13 @@ class Direction(Control):
 
     @property
     def precision(self) -> Precision:
+        """Precision
+
+        Returns
+        -------
+        Precision
+            The precision of the value displayed on the control
+        """
         return self._precision
 
     @precision.setter
