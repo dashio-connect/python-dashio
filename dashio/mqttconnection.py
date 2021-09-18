@@ -10,7 +10,6 @@ import zmq
 
 from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 
-# TODO: Add documentation
 
 class MQTT():
     """A CFG only control"""
