@@ -11,7 +11,8 @@ disable=
     no-member,
     unused-argument,
     attribute-defined-outside-init,
-    no-self-use
+    no-self-use,
+    duplicate-code
 
 
 [FORMAT]
