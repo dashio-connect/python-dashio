@@ -61,16 +61,30 @@ class TextBox(Control):
         return self._control_hdr_str + f"{self.text}\n"
 
     @property
-    def text(self):
+    def text(self) -> str:
+        """TextBox text
+
+        Returns
+        -------
+        str
+            Textbox text
+        """
         return self._text
 
     @text.setter
-    def text(self, val):
+    def text(self, val: str):
         self._text = val
         self.state_str = self._control_hdr_str + f"{self.text}\n"
 
     @property
     def text_align(self) -> TextAlignment:
+        """How to align the text
+
+        Returns
+        -------
+        TextAlignment
+            Text alignment
+        """
         return self._text_align
 
     @text_align.setter
@@ -80,6 +94,13 @@ class TextBox(Control):
 
     @property
     def text_format(self) -> TextFormat:
+        """[summary]
+
+        Returns
+        -------
+        TextFormat
+            [description]
+        """
         return self._text_format
 
     @text_format.setter
@@ -89,6 +110,13 @@ class TextBox(Control):
 
     @property
     def units(self) -> str:
+        """Add units to the text string
+
+        Returns
+        -------
+        str
+            the units
+        """
         return self._cfg["units"]
 
     @units.setter
@@ -97,6 +125,13 @@ class TextBox(Control):
 
     @property
     def precision(self) -> Precision:
+        """Apply a prescion to the text string if it is a number
+
+        Returns
+        -------
+        Precision
+            The prescion to use
+        """
         return self._precision
 
     @precision.setter
@@ -106,6 +141,7 @@ class TextBox(Control):
 
     @property
     def keyboard_type(self) -> Keyboard:
+        """Keyboard type to use when entering text"""
         return self._cfg["kbdType"]
 
     @keyboard_type.setter
@@ -115,6 +151,13 @@ class TextBox(Control):
 
     @property
     def close_keyboard_on_send(self) -> bool:
+        """Close the keyboard on send
+
+        Returns
+        -------
+        bool
+            Set to True for the keyboard to close on send
+        """
         return self._cfg["closeKbdOnSend"]
 
     @close_keyboard_on_send.setter
