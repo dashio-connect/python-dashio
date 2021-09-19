@@ -21,13 +21,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-"""alarm module
-
-Classes
--------
-    Alarm:
-        A class representing an Alarm control
-"""
 from ..constants import BAD_CHARS
 from .control import Control
 from .enums import SoundName

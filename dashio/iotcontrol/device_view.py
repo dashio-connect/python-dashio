@@ -21,14 +21,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-"""device_view.py
-
-Classes
--------
-    DeviceView:
-        A DeviceView provides a control that descibes appearance and style of the group of controls
-        that are displayed on this DeviceView by the iotdashboard app.
-"""
 from .control import Control
 from .enums import Color, Icon
 
