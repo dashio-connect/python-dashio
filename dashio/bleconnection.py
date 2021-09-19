@@ -415,7 +415,7 @@ class DashConCharacteristic(dbus.service.Object):
         logging.debug('Default ReadValue called, returning error')
         raise NotSupportedException()
 
-    # pylint: disable=invalid-name
+    # pylint: disable=invalid-name, unnecessary-pass
     @dbus.service.signal(DBUS_PROP_IFACE, signature='sa{sv}as')
     def PropertiesChanged(self, interface, changed, invalidated):
         """Called by DBUS"""

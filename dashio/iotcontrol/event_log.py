@@ -1,5 +1,4 @@
-"""event_log.py
-"""
+"""event_log.py"""
 # pylint: disable=duplicate-code
 import datetime
 
