@@ -1,4 +1,3 @@
-# pylint: disable=duplicate-code
 """event_log.py"""
 import datetime
 
