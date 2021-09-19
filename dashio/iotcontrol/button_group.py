@@ -21,13 +21,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-"""button_broup.py
-
-Classes
--------
-ButtonGroup
-    A class representing a ButtonGroup
-"""
 from ..constants import BAD_CHARS
 from .button import Button
 from .control import Control

@@ -21,14 +21,14 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-import zmq
-import threading
 import logging
-import time
-import socket
 import signal
+import socket
+import threading
+import time
 
-from zeroconf import IPVersion, ServiceInfo, Zeroconf, ServiceBrowser
+import zmq
+from zeroconf import IPVersion, ServiceBrowser, ServiceInfo, Zeroconf
 
 
 class ZeroConfListener:
