@@ -15,10 +15,11 @@ class EventData:
     """Event log data point
     """
     def __init__(self, header: str, body: str, color=Color.WHITE):
-        """EventLog
+        """EventLog data point
 
         Parameters
         ----------
+
         header : str
             Header or title of the data
         body : str
@@ -51,6 +52,7 @@ class EventLog(Control):
 
         Parameters
         ----------
+
         control_id : str
             A unique identifier for this control
         title : str, optional

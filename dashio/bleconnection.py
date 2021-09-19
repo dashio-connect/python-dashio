@@ -40,10 +40,15 @@ from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 
 
 class BLE():
+    """BLE connection control
+    """
     def get_state(self) -> str:
+        """A CFG only control"""
         return ""
 
-    def get_cfg(self, _):
+    def get_cfg(self, _) -> str:
+        """Called by iotdashboard app to get controls CFG
+        """
         cfg_str = "\tCFG\t" + self.cntrl_type + "\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
 
@@ -57,6 +62,7 @@ class BLE():
 
     @property
     def service_uuid(self) -> str:
+        """ServiceUUID"""
         return self._cfg["serviceUUID"]
 
     @service_uuid.setter
@@ -65,6 +71,7 @@ class BLE():
 
     @property
     def read_uuid(self) -> str:
+        """readUUID"""
         return self._cfg["readUUID"]
 
     @read_uuid.setter
@@ -73,6 +80,7 @@ class BLE():
 
     @property
     def write_uuid(self) -> str:
+        """writeUUID"""
         return self._cfg["writeUUID"]
 
     @write_uuid.setter
@@ -92,6 +100,8 @@ GATT_SERVICE_IFACE = "org.bluez.GattService1"
 GATT_DESC_IFACE = "org.bluez.GattDescriptor1"
 
 class DashIOAdvertisement(dbus.service.Object):
+    """BLE Advertisement
+    """
     PATH_BASE = "/org/bluez/example/advertisement"
 
     def __init__(self, index, service_uuid):
@@ -108,6 +118,7 @@ class DashIOAdvertisement(dbus.service.Object):
         self.register()
 
     def find_adapter(self, bus):
+        """Find BLE adapters"""
         remote_om = dbus.Interface(bus.get_object(BLUEZ_SERVICE_NAME, "/"), DBUS_OM_IFACE)
         objects = remote_om.GetManagedObjects()
 
@@ -117,14 +128,17 @@ class DashIOAdvertisement(dbus.service.Object):
         return None
 
     def get_properties(self):
+        """Return the properties dictionary"""
         return {LE_ADVERTISEMENT_IFACE: self.properties}
 
     def get_path(self):
+        """Get the DBUS Path to BLE advertisement"""
         return dbus.ObjectPath(self.path)
 
     # pylint: disable=invalid-name
     @dbus.service.method(DBUS_PROP_IFACE, in_signature="s", out_signature="a{sv}")
     def GetAll(self, iface):
+        """DBUS calls this to retrieve Advertisements"""
         if iface != LE_ADVERTISEMENT_IFACE:
             raise InvalidArgsException()
         return self.get_properties()[LE_ADVERTISEMENT_IFACE]
@@ -132,15 +146,19 @@ class DashIOAdvertisement(dbus.service.Object):
     # pylint: disable=invalid-name
     @dbus.service.method(LE_ADVERTISEMENT_IFACE, in_signature='', out_signature='')
     def Release(self):
+        """DBUS calls this on release"""
         logging.debug('%s: Released!', self.path)
 
     def register_ad_callback(self):
+        """DBUS calls this on release"""
         logging.debug("GATT advertisement registered")
 
     def register_ad_error_callback(self):
+        """DBUS calls this on error"""
         logging.debug("Failed to register GATT advertisement")
 
     def register(self):
+        """Register with DBUS"""
         bus = self.bus
         adapter = self.find_adapter(bus)
         ad_manager = dbus.Interface(bus.get_object(BLUEZ_SERVICE_NAME, adapter), LE_ADVERTISING_MANAGER_IFACE)
@@ -148,17 +166,29 @@ class DashIOAdvertisement(dbus.service.Object):
 
 
 class InvalidArgsException(dbus.exceptions.DBusException):
+    """DBUS errors"""
     _dbus_error_name = "org.freedesktop.DBus.Error.InvalidArgs"
 
 class NotSupportedException(dbus.exceptions.DBusException):
+    """DBUS errors"""
     _dbus_error_name = "org.bluez.Error.NotSupported"
 
 class NotPermittedException(dbus.exceptions.DBusException):
+    """DBUS errors"""
     _dbus_error_name = "org.bluez.Error.NotPermitted"
 
 class BLEConnection(dbus.service.Object, threading.Thread):
+    """BLEConnection
+    """
 
     def add_device(self, device: Device):
+        """Add a device to the connection
+
+        Parameters
+        ----------
+        device : Device
+            The device to add
+        """
         device.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.connection_id))
         device.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
         device.add_control(self.ble_control)
@@ -166,9 +196,14 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
 
     def close(self):
-        self.quit()
+        """Close the connection
+        """
+        logging.debug("\nGATT application terminated")
+        self.tx_zmq_pub.close()
+        self.rx_zmq_sub.close()
+        self.mainloop.quit()
 
-    def zmq_callback(self, queue, condition):
+    def _zmq_callback(self, queue, condition):
         # logging.debug('zmq_callback')
 
         while self.rx_zmq_sub.getsockopt(zmq.EVENTS) & zmq.POLLIN:
@@ -192,7 +227,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
 
         return True
 
-    def ble_rx(self, msg: str):
+    def _ble_rx(self, msg: str):
         self.tx_zmq_pub.send_multipart([self.b_connection_id, b'1', msg.encode('utf-8')])
 
     def __init__(self, ble_uuid=None, context=None):
@@ -221,7 +256,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         #     GLib.IO_IN | GLib.IO_ERR | GLib.IO_HUP | GLib.IO_PRI,
         #     self.zmq_callback
         # )
-        GLib.timeout_add(10, self.zmq_callback, "q", "p")
+        GLib.timeout_add(10, self._zmq_callback, "q", "p")
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
         self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
         dashio_service_uuid = ble_uuid or str(uuid.uuid4())
@@ -235,7 +270,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
 
         self.bus = dbus.SystemBus()
         self.path = "/"
-        self.dash_service = DashIOService(0, dashio_service_uuid, self.ble_rx)
+        self.dash_service = DashIOService(0, dashio_service_uuid, self._ble_rx)
         self.response = {}
 
         chrc = self.dash_service.get_characteristics()
@@ -243,12 +278,12 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         self.response[self.dash_service.get_path()] = self.dash_service.get_properties()
 
         dbus.service.Object.__init__(self, self.bus, self.path)
-        self.register()
+        self._register()
         self.adv = DashIOAdvertisement(0, dashio_service_uuid)
         self.start()
         time.sleep(0.5)
 
-    def find_adapter(self, bus):
+    def _find_adapter(self, bus):
         remote_om = dbus.Interface(bus.get_object(BLUEZ_SERVICE_NAME, "/"), DBUS_OM_IFACE)
         objects = remote_om.GetManagedObjects()
 
@@ -258,35 +293,34 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         return None
 
     def get_path(self):
+        """Get DBUS path"""
         return dbus.ObjectPath(self.path)
 
     # pylint: disable=invalid-name
     @dbus.service.method(DBUS_OM_IFACE, out_signature="a{oa{sa{sv}}}")
     def GetManagedObjects(self):
+        """Called by DBUS"""
         return self.response
 
-    def register_app_callback(self):
+    def _register_app_callback(self):
         logging.debug("GATT application registered")
 
-    def register_app_error_callback(self, error):
+    def _register_app_error_callback(self, error):
         logging.debug("Failed to register application: %s", str(error))
 
-    def register(self):
-        adapter = self.find_adapter(self.bus)
+    def _register(self):
+        adapter = self._find_adapter(self.bus)
         service_manager = dbus.Interface(self.bus.get_object(BLUEZ_SERVICE_NAME, adapter), GATT_MANAGER_IFACE)
-        service_manager.RegisterApplication(self.get_path(), {}, reply_handler=self.register_app_callback, error_handler=self.register_app_error_callback)
+        service_manager.RegisterApplication(self._get_path(), {}, reply_handler=self._register_app_callback, error_handler=self._register_app_error_callback)
 
     def run(self):
         self.mainloop.run()
 
-    def quit(self):
-        logging.debug("\nGATT application terminated")
-        self.tx_zmq_pub.close()
-        self.rx_zmq_sub.close()
-        self.mainloop.quit()
 
 
 class DashIOService(dbus.service.Object):
+    """DBUS DashIO BLE service
+    """
     PATH_BASE = "/org/bluez/example/service"
 
     def __init__(self, index, service_uuid, ble_rx):
@@ -300,6 +334,7 @@ class DashIOService(dbus.service.Object):
         dbus.service.Object.__init__(self, self.bus, self.path)
 
     def get_properties(self):
+        """Get DBUS properties"""
         return {
             GATT_SERVICE_IFACE: {
                 'UUID': self.uuid,
@@ -311,22 +346,27 @@ class DashIOService(dbus.service.Object):
         }
 
     def get_path(self):
+        """Get DBUS path"""
         return dbus.ObjectPath(self.path)
 
     def get_characteristic_paths(self):
+        """get DBUS properties"""
         result = []
         result.append(self.dash_characteristics.get_path())
         return result
 
     def get_characteristics(self):
+        """Get Dashio charactoristics"""
         return self.dash_characteristics
 
     def get_bus(self):
+        """Return the DBUS bus"""
         return self.bus
 
     # pylint: disable=invalid-name
     @dbus.service.method(DBUS_PROP_IFACE, in_signature='s', out_signature='a{sv}')
     def GetAll(self, iface):
+        """Called by DBUS"""
         if iface != GATT_SERVICE_IFACE:
             raise InvalidArgsException()
         return self.get_properties()[GATT_SERVICE_IFACE]
@@ -347,6 +387,7 @@ class DashConCharacteristic(dbus.service.Object):
         dbus.service.Object.__init__(self, self.bus, self.path)
 
     def get_properties(self):
+        """Get DBUS properties"""
         return {
             GATT_CHRC_IFACE: {
                 'Service': self.service.get_path(),
@@ -356,11 +397,13 @@ class DashConCharacteristic(dbus.service.Object):
         }
 
     def get_path(self):
+        """Get DBUS path"""
         return dbus.ObjectPath(self.path)
 
     # pylint: disable=invalid-name
     @dbus.service.method(DBUS_PROP_IFACE, in_signature='s', out_signature='a{sv}')
     def GetAll(self, iface):
+        """Called by DBUS"""
         if iface != GATT_CHRC_IFACE:
             raise InvalidArgsException()
         return self.get_properties()[GATT_CHRC_IFACE]
@@ -368,19 +411,23 @@ class DashConCharacteristic(dbus.service.Object):
     # pylint: disable=invalid-name
     @dbus.service.method(GATT_CHRC_IFACE, in_signature='a{sv}', out_signature='ay')
     def ReadValue(self, _):
+        """Called by DBUS"""
         logging.debug('Default ReadValue called, returning error')
         raise NotSupportedException()
 
     # pylint: disable=invalid-name
     @dbus.service.signal(DBUS_PROP_IFACE, signature='sa{sv}as')
     def PropertiesChanged(self, interface, changed, invalidated):
+        """Called by DBUS"""
         pass
 
     def get_bus(self):
+        """Return DBUS bus"""
         bus = self.bus
         return bus
 
     def ble_send(self, tx_data):
+        """Send data to BLE connection"""
         if self.notifying:
             value = [dbus.Byte(c.encode()) for c in tx_data]
             self.PropertiesChanged(GATT_CHRC_IFACE, {"Value": value}, [])
@@ -389,6 +436,7 @@ class DashConCharacteristic(dbus.service.Object):
     # pylint: disable=invalid-name
     @dbus.service.method(GATT_CHRC_IFACE)
     def StartNotify(self):
+        """Called by DBUS"""
         if self.notifying:
             return
         self.notifying = True
@@ -396,11 +444,13 @@ class DashConCharacteristic(dbus.service.Object):
     # pylint: disable=invalid-name
     @dbus.service.method(GATT_CHRC_IFACE)
     def StopNotify(self):
+        """Called by DBUS"""
         self.notifying = False
 
     # pylint: disable=invalid-name
     @dbus.service.method(GATT_CHRC_IFACE, in_signature='aya{sv}')
     def WriteValue(self, value, options):
+        """Called by DBUS"""
         rx_str = ''.join([str(v) for v in value])
         self.read_buffer += rx_str
         if rx_str[-1] == '\n':
