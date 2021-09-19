@@ -5,6 +5,7 @@ Classes
 ButtonGroup
     A class representing a ButtonGroup
 """
+from ..constants import BAD_CHARS
 from .button import Button
 from .control import Control
 from .enums import Icon, TitlePosition
@@ -59,7 +60,7 @@ class ButtonGroup(Control):
         """
         super().__init__("BTGP", control_id, title=title, control_position=control_position, title_position=title_position)
         self.icon_name = icon
-        self.text = text.translate({ord(i): None for i in '\t\n'})
+        self.text = text.translate(BAD_CHARS)
         self.grid_view = grid_view
 
     def add_button(self, control):
