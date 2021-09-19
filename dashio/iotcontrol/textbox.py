@@ -1,4 +1,5 @@
 """textbox.py"""
+from ..constants import BAD_CHARS
 from .control import Control
 from .enums import (Keyboard, Precision, TextAlignment, TextFormat,
                     TitlePosition)
@@ -49,7 +50,7 @@ class TextBox(Control):
             Set to True to close keyboard on close, by default True
         """
         super().__init__("TEXT", control_id, title=title, control_position=control_position, title_position=title_position)
-        self.text = text.translate({ord(i): None for i in '\t\n'})
+        self.text = text.translate(BAD_CHARS)
         self.text_align = text_align
         self.units = units
         self.precision = precision

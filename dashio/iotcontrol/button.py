@@ -5,6 +5,7 @@ Returns
 Button
     A Button control
 """
+from ..constants import BAD_CHARS
 from .control import Control
 from .enums import ButtonState, Color, Icon, TitlePosition
 
@@ -71,7 +72,7 @@ class Button(Control):
         self.icon_name = icon_name
         self.on_color = on_color
         self.off_color = off_color
-        self.text = text.translate({ord(i): None for i in '\t\n'})
+        self.text = text.translate(BAD_CHARS)
 
     def get_state(self):
         """get_state is called by iotdashboard

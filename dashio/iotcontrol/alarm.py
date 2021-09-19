@@ -5,7 +5,7 @@ Classes
     Alarm:
         A class representing an Alarm control
 """
-
+from ..constants import BAD_CHARS
 from .control import Control
 from .enums import SoundName
 
@@ -41,7 +41,7 @@ class Alarm(Control):
                 The sound name to use. Defaults to SoundName.DEFAULT
         """
         super().__init__("ALM", control_id)
-        self.description = description.translate({ord(i): None for i in '\t\n'})
+        self.description = description.translate(BAD_CHARS)
         self.sound_name = sound_name
 
     def send(self, header: str, body:str):
