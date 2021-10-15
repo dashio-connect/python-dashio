@@ -317,7 +317,6 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         self.mainloop.run()
 
 
-
 class DashIOService(dbus.service.Object):
     """DBUS DashIO BLE service
     """
