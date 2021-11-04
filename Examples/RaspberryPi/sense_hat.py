@@ -29,9 +29,9 @@ import signal
 import dashio
 import platform
 import logging
+import sys
 from sense_hat import SenseHat
 
-sense = SenseHat()
 
 
 class TestColorPicker:
@@ -86,7 +86,7 @@ class TestColorPicker:
 
     def color_picker_handler(self, msg):
         print(msg)
-        sense.clear(self.color_to_rgb(msg[3]))
+        self.sense.clear(self.color_to_rgb(msg[3]))
 
 
     def color_to_rgb(self, color_value):
@@ -109,6 +109,7 @@ class TestColorPicker:
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
         
+        self.sense = SenseHat()
         self.tcp_con = dashio.TCPConnection()
         self.device = dashio.Device(args.connection, args.device_id, args.device_name)
         self.tcp_con.add_device(self.device)
