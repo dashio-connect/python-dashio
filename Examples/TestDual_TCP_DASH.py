@@ -112,7 +112,8 @@ class TestControls:
         self.sldr_dbl_cntrl.bar2_value = float(msg[3])
 
     def text_cntrl_message_handler(self, msg):
-        self.text_cntrl.text = "Popup sent: " + msg[3]
+        self.alarm_ctrl.send("Text Box", msg[3])
+        self.text_cntrl.text = "Alarm sent: " + msg[3]
         logging.info(msg)
 
     def selector_ctrl_handler(self, msg):

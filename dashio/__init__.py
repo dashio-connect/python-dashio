@@ -46,7 +46,8 @@ from .iotcontrol.enums import (
     KnobStyle,
     GraphXAxisLabelsStyle,
     TextFormat,
-    DirectionStyle
+    DirectionStyle,
+    ColorPickerStyle
 )
 from .iotcontrol.graph import Graph, GraphLine
 from .iotcontrol.slider_single_bar import SliderSingleBar
@@ -66,3 +67,4 @@ from .iotcontrol.device_view import DeviceView
 from .iotcontrol.control import Control, ControlPosition
 from .iotcontrol.button_group import ButtonGroup
 from .iotcontrol.event_log import EventData, EventLog
+from .iotcontrol.color_picker import ColorPickerStyle

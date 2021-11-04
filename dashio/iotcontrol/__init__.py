@@ -2,7 +2,7 @@
 """
 from .enums import Color, Icon, Precision, Keyboard, TextAlignment, SliderBarType, DialNumberPosition, DialStyle,\
     SoundName, GraphLineType, TimeGraphLineType, TimeGraphPositionOfKey, ButtonState, LabelStyle, KnobStyle,\
-    TitlePosition, GraphXAxisLabelsStyle, TextFormat, DirectionStyle
+    TitlePosition, GraphXAxisLabelsStyle, TextFormat, DirectionStyle, ColorPickerStyle
 from .graph import Graph, GraphLine
 from .slider_single_bar import SliderSingleBar
 from .slider_double_bar import SliderDoubleBar
@@ -21,3 +21,4 @@ from .device_view import DeviceView
 from .control import Control, ControlPosition
 from .button_group import ButtonGroup
 from .event_log import EventLog, EventData
+from .color_picker import ColorPicker
