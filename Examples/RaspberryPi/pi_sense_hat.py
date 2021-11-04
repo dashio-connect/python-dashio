@@ -86,8 +86,10 @@ class TestColorPicker:
 
     def color_picker_handler(self, msg):
         print(msg)
-        self.sense.clear(self.color_to_rgb(msg[3]))
-
+        try:
+            self.sense.clear(self.color_to_rgb(msg[3]))
+        except ValueError:
+            pass
 
     def color_to_rgb(self, color_value):
         """Return (red, green, blue) for the color."""
