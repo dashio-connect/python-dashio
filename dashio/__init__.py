@@ -67,4 +67,4 @@ from .iotcontrol.device_view import DeviceView
 from .iotcontrol.control import Control, ControlPosition
 from .iotcontrol.button_group import ButtonGroup
 from .iotcontrol.event_log import EventData, EventLog
-from .iotcontrol.color_picker import ColorPickerStyle
+from .iotcontrol.color_picker import ColorPicker
