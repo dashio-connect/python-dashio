@@ -110,6 +110,12 @@ class SoundName(Enum):
     BOING = "Boing"
 
 
+class ColorPickerStyle(Enum):
+    """Picker styles"""
+    WHEEL = "Wheel"
+    SPECTRUM = "SPectrum"
+
+
 class LabelStyle(Enum):
     """Label styles"""
     BASIC = "BASIC"
