@@ -23,13 +23,11 @@ SOFTWARE.
 """
 #!/bin/python3
 import time
-import random
 import argparse
 import signal
 import dashio
 import platform
 import logging
-import sys
 from sense_hat import SenseHat
 
 
