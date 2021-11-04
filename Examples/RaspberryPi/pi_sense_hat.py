@@ -86,6 +86,7 @@ class TestColorPicker:
 
     def color_picker_handler(self, msg):
         print(msg)
+        self.c_picker.color_value=msg[3]
         try:
             self.sense.clear(self.color_to_rgb(msg[3]))
         except ValueError:
