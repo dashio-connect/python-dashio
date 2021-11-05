@@ -123,6 +123,8 @@ alarm.send("Alarm Header", "Alarm Body")
 
 An alarm sends a notification throught the dashio mqtt server to registered phones. The ability to send alarms to specific phones, and the notification sound can be configured through the **DashIO** app. Alarms are only available if you have an account registered on the **DashIO** server and you send the the alarm through a dash connection.
 
+### Audio Visual Display
+
 ### Button
 
 <img src="https://dashio.io/wp-content/uploads/2020/12/Buttons.jpeg" width="200" />
@@ -135,7 +137,6 @@ button1.send_button(ButtonState.ON, Icon.UP, "Going Up")
 button1.send_button(ButtonState.OFF, Icon.DOWN, "Going Down")
 ```
 
-A button can 
 
 <ins>Attributes</ins>
 
@@ -173,6 +174,8 @@ A button can
 ### Button Group
 
 <img src="https://dashio.io/wp-content/uploads/2020/12/ButtonGroup.jpeg" width="200" />
+
+### Color Picker
 
 ### Direction
 
