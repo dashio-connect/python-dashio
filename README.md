@@ -127,6 +127,12 @@ An alarm sends a notification throught the dashio mqtt server to registered phon
 
 ### Button
 
+A Button allow the user to send a simple action, informing the IoT device that the button has been pressed. The button state (on or off color) is not changed by tapping the button. After the IoT device receives a message containing the action, it sends a message back to the control in the dashboard to set the button state.
+
+A Button control behaves as both as a momentary push button for user input and as a status indicator to provide feedback from the IoT device.
+
+The IoT device may also change the button icon and text of the control.
+
 <img src="https://dashio.io/wp-content/uploads/2020/12/Buttons.jpeg" width="200" />
 
 
@@ -173,59 +179,105 @@ button1.send_button(ButtonState.OFF, Icon.DOWN, "Going Down")
 
 ### Button Group
 
+A Button Group control is used to present a popup grid or table of Button controls. The Button Group does not receive messages directly, but presents Button controls that send and receive messages.
+
 <img src="https://dashio.io/wp-content/uploads/2020/12/ButtonGroup.jpeg" width="200" />
 
 ### Color Picker
 
 ### Direction
 
+A Direction display is used to graphically present a decimal direction value from 0 to 360 degrees. The Direction display receives messages from the IoT device to set the direction indicator position.
+
 <img src="https://dashio.io/wp-content/uploads/2020/12/Direction.jpeg" width="200" />
 
 ### Dial
+
+A Dial display is used to present a numerical value in a graphical circular dial. The Dial display receives messages from the IoT device to set the dial position.
 
 <img src="https://dashio.io/wp-content/uploads/2020/12/Dial.jpeg" width="200" />
 
 ### Event Log
 
+An Event Log display is used to present time stamped events or alarms from  IoT devices. The most recent event is shown on the control and a scrollable list of events is presented when the Event Log is tapped by the user.
+
+Each event contains the time of the event, the color to display the event and the text to display.
+
+Multiple IoT devices can be shown on a single Event Log control.
+
 <img src="https://dashio.io/wp-content/uploads/2020/12/EventLog.jpeg" width="200" />
 
 ### Graph
+
+A Graph display is used to present graphical data on the DashIO Dashboard, where the data is a series of vertical (Y) axis data. The data is evenly spaced on the horizontal (X) axis. The IoT device sends a message for each line in the graph. The data may be shown as lines, bars or peak values.
+
+Each line can be independently added, deleted or changed by the IoT device. Multiple IoT devices can add lines to a single Graph control.
 
 <img src="https://dashio.io/wp-content/uploads/2020/12/Graph.jpeg" width="200" />
 
 ### Knob
 
+A Knob allow the user to send numerical values to the IoT device when the user drags the knob to a new position. A Knob control contains a user adjustable knob surrounded by a simple dial indicator. The dial can be controlled independently of the knob or can be used to provide feedback to the user from the IoT Device.
+
+The IoT device may send messages to update both the dial and knob positions.
+
 <img src="https://dashio.io/wp-content/uploads/2020/12/Knobs.jpeg" width="200" />
 
 ### Label
+
+A Label is a simple control to add structure to your layout on the dashboard. They do not transfer information with IoT devices.
 
 <img src="https://dashio.io/wp-content/uploads/2020/12/Label.jpeg" width="200" />
 
 ### Map
 
+A Map display is used to plot positions on a map. The Map display receives messages from the IoT Device that contain latitude and longitude to mark the position. Additional data, such as speed and altitude may also be included and shown on the Map display.
+
+Multiple IoT devices can be shown on a single Map.
+
 <img src="https://dashio.io/wp-content/uploads/2020/12/Mao.jpeg" width="200" />
 
 ### Menu
 
-<img src="https://dashio.io/wp-content/uploads/2020/12/Menu.jpeg" width="200" />
+A Menu control is used to present a popup table of user adjustable controls and is ideal for presenting a list of IoT device setup parameters. The Menu does not receive messages directly, but presents a list of other controls (sub-controls) that send and receive messages of their own.
 
-### Menu
+Controls that can be included in a Menu control are Text Boxes, Sliders, Selectors and Buttons.
 
 <img src="https://dashio.io/wp-content/uploads/2020/12/Menu.jpeg" width="200" />
 
 ### Selector
 
+A Selector control is used to present a popup list of options that the user can select from. When a Selector is tapped, the DashIO Dashboard presents the list of text options to the user to make their selection from. The user can tap on an option to select is and the index of the selected option will be sent to the IoT device.
+
+Feedback to the user of the dashboard is achieved when the IoT device responds to the  selection message. The dashboard updates the Selector control check box with this value.
+
 <img src="https://dashio.io/wp-content/uploads/2020/12/Selector.jpeg" width="200" />
 
 ### Slider
+
+A Sliders allow the user to send a numerical values to the IoT device when the user drags the slider to a new position. The slider also includes bar graph that can be set by the IoT device. The bar graphs can be controlled independently of the slider or can be used to provide feedback to the user from the IoT Device.
+
+The IoT device may send messages to update both the bar graph and the slider knob positions. The bar graph may set to have two bars.
+
+The knob of the slider may be disabled so that the slider becomes a simple bar graph indicator.
 
 <img src="https://dashio.io/wp-content/uploads/2020/12/Slider.jpeg" width="200" />
 
 ### Text Box
 
+A Text Box control receives simple line text messages from the IoT device to display on the DashIO Dashboard. The text may optionally be plain text, reformatted as a number or, when the text is ISO8601 date/time, it may be formatted to a date/time that is easy to read.
+
+The Text Box may also allow the user to input text. Touching the control will present the user with a keyboard where the user can enter text. When the Send button on the keyboard is pressed, the message will be sent to the IoT device.
+
 <img src="https://dashio.io/wp-content/uploads/2020/12/TextBox.jpeg" width="200" />
 
 ### Time Graph
+
+A Time Graph display is used to present time-series graphical data on the DashIO Dashboard, where the data is a series of points containing the time on the horizontal axis and other data on the vertical axis. The IoT device sends messages for each line in the graph. Each message contains one or more data points and the DashIO Dashboard appends the incoming data to create a data series that can be presented, panned and zoomed by the user. The data may be shown as lines, bars or blocked areas.
+
+Each line can be independently added, deleted or changed by the IoT device. Multiple IoT devices can add lines to a single Time Graph control.
+
+Graph data is stored in the dashboard.
 
 <img src="https://dashio.io/wp-content/uploads/2020/12/ToimeGraph.jpeg" width="200" />
 
