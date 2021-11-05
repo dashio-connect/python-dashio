@@ -36,6 +36,7 @@ class AudioVisualDisplay(Control):
         control_position=None
     ):
         """AudioVisualDisplay
+        Set the URL for IoTDashboard to play the media pointed to by the URL
 
         Parameters
         ----------
