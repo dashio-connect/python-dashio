@@ -71,11 +71,11 @@ class ColorPicker(Control):
         self.state_str = self._control_hdr_str + f"{self._color_value}\n"
 
 
-    def color_to_rgb(self):
-        """Return (red, green, blue) for the color."""
-        clr = self._color_value.lstrip('#')
-        lv = len(clr)
-        return tuple(int(clr[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
+    def color_to_rgb(self, color_value:str) -> tuple:
+        """Return (red, green, blue) for the color_value."""
+        clr = color_value.lstrip('#')
+        len_v = len(clr)
+        return tuple(int(clr[i:i + len_v // 3], 16) for i in range(0, len_v, len_v // 3))
 
 
     @property
