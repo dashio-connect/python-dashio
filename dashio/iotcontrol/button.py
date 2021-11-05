@@ -184,8 +184,9 @@ class Button(Control):
 
     @text.setter
     def text(self, val: str):
-        self._cfg["text"] = val
-        self.state_str = self._control_hdr_str + f"{self._btn_state.value}\t{self._icon_name.value}\t{val}\n"
+        _val = val.translate(BAD_CHARS)
+        self._cfg["text"] = _val
+        self.state_str = self._control_hdr_str + f"{self._btn_state.value}\t{self._icon_name.value}\t{_val}\n"
 
     @property
     def btn_state(self) -> ButtonState:

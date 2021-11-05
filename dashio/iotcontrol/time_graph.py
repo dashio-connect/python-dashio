@@ -44,6 +44,8 @@ class DataPoint:
             data: A data point can be an int, float, or boolean, or string representing a number.
         """
         self.timestamp = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
+        if isinstance(data, str):
+            data = data.translate(BAD_CHARS)
         self.data_point = data
 
     def __str__(self):

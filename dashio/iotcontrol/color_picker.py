@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+from ..constants import BAD_CHARS
 from .control import Control
 from .enums import (ColorPickerStyle, TitlePosition)
 
@@ -91,8 +92,9 @@ class ColorPicker(Control):
 
     @color_value.setter
     def color_value(self, val: str):
-        self._color_value = val
-        self.state_str = self._control_hdr_str + f"{val}\n"
+        _val = val.translate(BAD_CHARS)
+        self._color_value = _val
+        self.state_str = self._control_hdr_str + f"{_val}\n"
 
 
     @property
@@ -126,4 +128,3 @@ class ColorPicker(Control):
     @send_only_on_release.setter
     def send_only_on_release(self, val: bool):
         self._cfg["sendOnlyOnRelease"] = val
-

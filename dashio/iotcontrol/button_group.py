@@ -141,4 +141,4 @@ class ButtonGroup(Control):
 
     @text.setter
     def text(self, val: str):
-        self._cfg["text"] = val
+        self._cfg["text"] = val.translate(BAD_CHARS)

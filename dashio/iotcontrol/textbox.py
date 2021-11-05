@@ -96,8 +96,9 @@ class TextBox(Control):
 
     @text.setter
     def text(self, val: str):
-        self._text = val
-        self.state_str = self._control_hdr_str + f"{self.text}\n"
+        _val = val.translate(BAD_CHARS)
+        self._text = _val
+        self.state_str = self._control_hdr_str + f"{_val}\n"
 
     @property
     def text_align(self) -> TextAlignment:
@@ -144,7 +145,8 @@ class TextBox(Control):
 
     @units.setter
     def units(self, val: str):
-        self._cfg["units"] = val
+        _val = val.translate(BAD_CHARS)
+        self._cfg["units"] = _val
 
     @property
     def precision(self) -> Precision:

@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+from ..constants import BAD_CHARS
 from .button import Button
 from .control import Control
 from .enums import Icon, TitlePosition
@@ -108,4 +109,5 @@ class Menu(Control):
 
     @text.setter
     def text(self, val: str):
-        self._cfg["text"] = val
+        _val = val.translate(BAD_CHARS)
+        self._cfg["text"] = _val

@@ -121,7 +121,7 @@ class Control:
         self._title_position = None
         if title_position is not None:
             self.title_position = title_position
-        self.cntrl_type = cntrl_type
+        self.cntrl_type = cntrl_type.translate(BAD_CHARS)
         self.control_id = control_id.translate(BAD_CHARS)
         self.message_rx_event = Event()
         self.message_tx_event = Event()
@@ -161,7 +161,8 @@ class Control:
 
     @parent_id.setter
     def parent_id(self, val: str):
-        self._cfg["parentID"] = val
+        _val = val.translate(BAD_CHARS)
+        self._cfg["parentID"] = _val
 
     @property
     def control_id(self) -> str:
@@ -191,7 +192,8 @@ class Control:
 
     @title.setter
     def title(self, val: str):
-        self._cfg["title"] = val
+        _val = val.translate(BAD_CHARS)
+        self._cfg["title"] = _val
 
     @property
     def control_position(self) -> ControlPosition:

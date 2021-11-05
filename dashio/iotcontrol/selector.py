@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+from ..constants import BAD_CHARS
 from .control import Control
 from .enums import TitlePosition
 
@@ -61,7 +62,7 @@ class Selector(Control):
         text : str
             The text for the selection
         """
-        self.selection_list.append(text)
+        self.selection_list.append(text.translate(BAD_CHARS))
 
     def set_selected(self, selected_text: str):
         """Set the selector to the selected text
