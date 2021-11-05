@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+from ..constants import BAD_CHARS
 from .control import Control
 from .enums import Color, DirectionStyle, Precision, TitlePosition
 
@@ -69,7 +70,7 @@ class Direction(Control):
         self._direction_value = 0
         self._direction_text = ""
         self.style = style
-        self.units = units
+        self.units = units.translate(BAD_CHARS)
         self.precision = precision
 
     def get_state(self):
@@ -112,7 +113,7 @@ class Direction(Control):
 
     @direction_text.setter
     def direction_text(self, val: str):
-        self._direction_text = val
+        self._direction_text = val.translate(BAD_CHARS)
         if self._direction_text:
             s_str = self._control_hdr_str + f"{self._direction_value}\t{self._direction_text}\n"
         else:
@@ -179,7 +180,8 @@ class Direction(Control):
 
     @units.setter
     def units(self, val: str):
-        self._cfg["units"] = val
+        _val = val.translate(BAD_CHARS)
+        self._cfg["units"] = _val
 
     @property
     def precision(self) -> Precision:

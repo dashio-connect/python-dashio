@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+from ..constants import BAD_CHARS
 from .control import Control
 from .enums import (Color, DialNumberPosition, DialStyle, Precision,
                     TitlePosition)
@@ -264,4 +265,5 @@ class Dial(Control):
 
     @units.setter
     def units(self, val: str):
-        self._cfg["units"] = val
+        _val = val.translate(BAD_CHARS)
+        self._cfg["units"] = _val

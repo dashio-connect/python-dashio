@@ -138,14 +138,12 @@ The IoT device may also change the button icon and text of the control.
 
 <img src="https://dashio.io/wp-content/uploads/2020/12/Buttons.jpeg" width="200" />
 
-
 ```python
 button1 = Button("button1_id", "Button Title")
 button1.state = ButtonState.ON
 button1.send_button(ButtonState.ON, Icon.UP, "Going Up")
 button1.send_button(ButtonState.OFF, Icon.DOWN, "Going Down")
 ```
-
 
 <ins>Attributes</ins>
 
@@ -174,7 +172,6 @@ button1.send_button(ButtonState.OFF, Icon.DOWN, "Going Down")
     Toggles the button state
 * send_button(btn_state, btn_icon, text) :
     Updates the button state, button icon and text
-
 
 <ins>Callbacks</ins>
 

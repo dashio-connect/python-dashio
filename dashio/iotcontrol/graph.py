@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+from ..constants import BAD_CHARS
 from .control import Control
 from .enums import Color, GraphLineType, GraphXAxisLabelsStyle, TitlePosition
 
@@ -28,7 +29,7 @@ class GraphLine:
     """GraphLine class
     """
     def __init__(self, name="", line_type=GraphLineType.LINE, color=Color.BLACK):
-        self.name = name
+        self.name = name.translate(BAD_CHARS)
         self.line_type = line_type
         self.color = color
         self.data = []
@@ -101,7 +102,7 @@ class Graph(Control):
         gline : GraphLine
             The line to add
         """
-        self.line_dict[line_id] = gline
+        self.line_dict[line_id.translate(BAD_CHARS)] = gline
 
     def send_graph(self):
         """Sends the graph to any connected iotdashboard app.
@@ -124,7 +125,7 @@ class Graph(Control):
 
     @x_axis_label.setter
     def x_axis_label(self, val: str):
-        self._cfg["xAxisLabel"] = val
+        self._cfg["xAxisLabel"] = val.translate(BAD_CHARS)
 
     @property
     def x_axis_min(self) -> float:
@@ -200,7 +201,7 @@ class Graph(Control):
 
     @y_axis_label.setter
     def y_axis_label(self, val: str):
-        self._cfg["yAxisLabel"] = val
+        self._cfg["yAxisLabel"] = val.translate(BAD_CHARS)
 
     @property
     def y_axis_min(self) -> float:

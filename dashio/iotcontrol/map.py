@@ -24,6 +24,7 @@ SOFTWARE.
 import datetime
 import json
 
+from ..constants import BAD_CHARS
 from .control import Control
 from .enums import TitlePosition
 
@@ -43,9 +44,9 @@ class SimpleMapLocation:
             tag : str
                 A tag to display on the map.
         """
-        self.latitude = latitude
-        self.longitude = longitude
-        self.tag = tag
+        self.latitude = latitude.translate(BAD_CHARS)
+        self.longitude = longitude.translate(BAD_CHARS)
+        self.tag = tag.translate(BAD_CHARS)
 
     def __str__(self):
         return f"{self.latitude}\t{self.longitude}\t{self.tag}\n"
@@ -79,9 +80,9 @@ class MapLocation:
         self.timestamp = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
         self._map_loc = {}
         self._map_loc["time"] = self.timestamp.isoformat()
-        self._map_loc["message"] = tag
-        self._map_loc["latitude"] = latitude
-        self._map_loc["longitude"] = longitude
+        self._map_loc["message"] = tag.translate(BAD_CHARS)
+        self._map_loc["latitude"] = latitude.translate(BAD_CHARS)
+        self._map_loc["longitude"] = longitude.translate(BAD_CHARS)
         if average_speed:
             self._map_loc["avgeSpeed"] = average_speed
         if peak_speed:
