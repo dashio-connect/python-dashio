@@ -108,7 +108,7 @@ class TestControls:
         self.comp_control.direction_text = msg[3]
 
     def text_cntrl_message_handler(self, msg):
-        self.text_cntrl.text = "Popup sent: " + msg[3]
+        self.text_cntrl.text = msg[3]
         logging.info(msg)
 
     def selector_ctrl_handler(self, msg):
