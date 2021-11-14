@@ -166,8 +166,6 @@ class TestColorPicker:
             self.humidity_dial.dial_value = self.sense.get_humidity()
             self.temperature_dial.dial_value = self.sense.get_temperature()
             self.pressure_dial.dial_value = self.sense.get_pressure()
-            if time_now.second == 0:  # Send every minute
-                self.uptime_text.text = self.format_uptime()
             time_now = datetime.datetime.utcnow()
             seconds_left = time_now.second + time_now.microsecond / 1000000.0
             div, sleep_time = divmod(seconds_left, INTERVAL)
