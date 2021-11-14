@@ -28,6 +28,7 @@ import signal
 import dashio
 import platform
 import logging
+import datetime
 from sense_hat import SenseHat
 
 
@@ -90,6 +91,8 @@ class TestColorPicker:
         except ValueError:
             pass
 
+    
+
     def color_to_rgb(self, color_value):
         """Return (red, green, blue) for the color."""
         clr = color_value.lstrip('#')
@@ -109,7 +112,7 @@ class TestColorPicker:
         logging.info("Connection ID: %s", args.connection)
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
-        
+
         self.sense = SenseHat()
         self.tcp_con = dashio.TCPConnection()
         self.device = dashio.Device(args.connection, args.device_id, args.device_name)
@@ -119,18 +122,58 @@ class TestColorPicker:
         self.page_name = "Color Picker: " + platform.node()
 
         self.page_test = dashio.DeviceView("Color Picker", self.page_name)
-
         self.c_picker = dashio.ColorPicker("CPKR1",control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.45))
         self.c_picker.message_rx_event += self.color_picker_handler
-
         self.page_test.add_control(self.c_picker)
-
         self.device.add_control(self.c_picker)
         self.device.add_control(self.page_test)
 
+        self.page_thp = dashio.DeviceView("THPView", "Temperature Humidity Pressure")
+        self.temperature_dial = dashio.Dial(
+            "tempC",
+            "Temperature",
+            dial_max=50,
+            red_value=50,
+            units="C")
+        
+        self.humidity_dial = dashio.Dial(
+            "Hum",
+            "Humidity",
+            dial_max=100,
+            red_value=100,
+            units="%")
+        self.pressure_dial = dashio.Dial(
+            "pres",
+            "Pressure",
+            dial_max=1100,
+            red_value=1100,
+            units="mb")
+
+
+        self.page_thp.add_control(self.temperature_dial)
+        self.page_thp.add_control(self.humidity_dial)
+        self.page_thp.add_control(self.pressure_dial)
+        self.device.add_control(self.temperature_dial)
+        self.device.add_control(self.humidity_dial)
+        self.device.add_control(self.pressure_dial)
+        self.device.add_control(self.page_thp)
+
+
+        INTERVAL = 10
+        time_now = datetime.datetime.utcnow()
         while not self.shutdown:
             time.sleep(1)
-
+            self.humidity_dial.dial_value = self.sense.get_humidity()
+            self.temperature_dial.dial_value = self.sense.get_temperature()
+            self.pressure_dial.dial_value = self.sense.get_pressure()
+            if time_now.second == 0:  # Send every minute
+                self.uptime_text.text = self.format_uptime()
+            time_now = datetime.datetime.utcnow()
+            seconds_left = time_now.second + time_now.microsecond / 1000000.0
+            div, sleep_time = divmod(seconds_left, INTERVAL)
+            sleep_time = INTERVAL - sleep_time
+            # print ("Div: %.2f, sleep_time: %.2f" % (div, sleep_time))
+            time.sleep(sleep_time)
         self.tcp_con.close()
         self.device.close()
 
