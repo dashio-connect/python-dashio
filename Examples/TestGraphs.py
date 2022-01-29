@@ -138,7 +138,7 @@ class TestControls:
         self.gph_15_minutes.add_line("Bar", self.bar_15_minutes)
         self.gph_15_minutes.add_line("Bin", self.bin_15_minutes)
         self.gph_15_minutes.add_line("Hour", self.am_pm_15_minutes)
-        self.gph_15_minutes.message_rx_event += self.gph_15_minutes_event_handler
+        self.gph_15_minutes.message_rx_event = self.gph_15_minutes_event_handler
         device.add_control(self.gph_15_minutes)
 
         line_data = 0
