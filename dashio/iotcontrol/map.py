@@ -33,7 +33,7 @@ class SimpleMapLocation:
     """
     A non json map location.
     """
-    def __init__(self, tag: str, latitude: str, longitude: str):
+    def __init__(self, track_id: str, latitude: str, longitude: str):
         """A map location used by a map_control
 
         Parameters
@@ -41,27 +41,25 @@ class SimpleMapLocation:
                 Latitude
             longitude : str
                 Longitude
-            tag : str
-                A tag to display on the map.
+            track_id : str
+                A track_id for the track.
         """
         self.latitude = latitude.translate(BAD_CHARS)
         self.longitude = longitude.translate(BAD_CHARS)
-        self.tag = tag.translate(BAD_CHARS)
+        self.track_id = track_id.translate(BAD_CHARS)
 
     def __str__(self):
-        return f"{self.latitude}\t{self.longitude}\t{self.tag}\n"
+        return f"{self.track_id}\t{self.latitude},{self.longitude}\n"
 
 class MapLocation:
     """
     A json version of a map location.
     """
-    def __init__(self, tag: str, latitude: str, longitude: str, average_speed=None, peak_speed=None, course=None, altitude=None, distance=None):
+    def __init__(self, latitude: str, longitude: str, average_speed=None, peak_speed=None, course=None, altitude=None, distance=None, message=None):
         """MapLocation
 
         Parameters
         ----------
-        tag : str
-            Location tag
         latitude : str
             The latitude
         longitude : str
@@ -76,11 +74,12 @@ class MapLocation:
             altitude, by default None
         distance : str, optional
             distance, by default None
+        message : str, optional
+            Displayed with the pin on the map of the DashIO Dashboard
         """
         self.timestamp = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
         self._map_loc = {}
         self._map_loc["time"] = self.timestamp.isoformat()
-        self._map_loc["message"] = tag.translate(BAD_CHARS)
         self._map_loc["latitude"] = latitude.translate(BAD_CHARS)
         self._map_loc["longitude"] = longitude.translate(BAD_CHARS)
         if average_speed:
@@ -93,6 +92,8 @@ class MapLocation:
             self._map_loc["altitude"] = altitude
         if distance:
             self._map_loc["distance"] = distance
+        if message:
+            self._map_loc["message"] = message
 
     def __str__(self):
         return json.dumps(self._map_loc) + "\n"
