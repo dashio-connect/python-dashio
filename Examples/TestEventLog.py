@@ -26,8 +26,165 @@ import argparse
 import logging
 import signal
 import time
-
+import random
 import dashio
+
+class random_insults:
+    def __init__(self) -> None:
+        self.insult_c1 = [
+            "Artless",
+            "Bawdy",
+            "Beslubbering",
+            "Bootless",
+            "Churlish",
+            "Cockered",
+            "Clouted",
+            "Craven",
+            "Currish",
+            "Dankish",
+            "Dissembling",
+            "Droning",
+            "Errant",
+            "Fawning",
+            "Fobbing",
+            "Froward",
+            "Frothy",
+            "Gleeking",
+            "Goatish",
+            "Gorbellied",
+            "Impertinent",
+            "Infectious",
+            "Jarring",
+            "Loggerheaded",
+            "Lumpish",
+            "Mammering",
+            "Mangled",
+            "Mewling",
+            "Paunchy",
+            "Pribbling",
+            "Puking",
+            "Puny",
+            "Qualling",
+            "Rank",
+            "Reeky",
+            "Roguish",
+            "Ruttish",
+            "Saucy",
+            "Spleeny",
+            "Spongy",
+            "Surly",
+            "Tottering",
+            "Unmuzzled",
+            "Vain",
+            "Venomed",
+            "Villainous",
+            "Warped"
+        ]
+        self.insult_c2 = [
+            "base-court",
+            "bat-fowling",
+            "beef-witted",
+            "beetle-headed",
+            "boil-brained",
+            "common-kissing",
+            "crook-pated",
+            "dismal-dreaming",
+            "dizzy-eyed",
+            "dog-hearted",
+            "dread-bolted",
+            "earth-vexing",
+            "elf-skinned",
+            "fat-kidneyed",
+            "fen-sucked",
+            "flap-mouthed",
+            "fly-bitten",
+            "folly-fallen",
+            "fool-born",
+            "full-gorged",
+            "futs-griping",
+            "half-faced",
+            "hasty-witted",
+            "hedge-born",
+            "hell-hated",
+            "idle-headed",
+            "ill-nurtured",
+            "knotty-pated",
+            "milk-livered",
+            "motley-minded",
+            "onion-eyed",
+            "plume-plucked",
+            "pottle-deep",
+            "pox-marked",
+            "reeling-ripe",
+            "rough-hewn",
+            "rude-growing",
+            "rump-fed",
+            "shard-borne",
+            "sheep-biting",
+            "spur-galled",
+            "swag-bellied",
+            "tardy-gaited",
+            "tickle-brained",
+            "toad-spotted",
+            "unchin-snouted",
+            "weather-bitten"
+        ]
+        self.insult_c3= [
+            "apple-john",
+            "baggage",
+            "barnacle",
+            "bladder",
+            "boar-pig",
+            "bugbear",
+            "bum-bailey",
+            "canker-blossom",
+            "clack-dish",
+            "clotpole",
+            "coxcomb",
+            "death-token",
+            "dewberry",
+            "flap-dragon",
+            "flax-wench",
+            "flirt-gill",
+            "foot-licker",
+            "fustilarian",
+            "giglet",
+            "gudgeon",
+            "haggard",
+            "harpy",
+            "hedge-pig",
+            "horn-beast",
+            "hugger-mugger",
+            "jolthead",
+            "lewdster",
+            "lout",
+            "maggot-pie",
+            "malt-worm",
+            "mammet",
+            "measle",
+            "minnow",
+            "miscreant",
+            "moldwarp",
+            "mumble-news",
+            "nut-hook",
+            "pigeon-egg",
+            "pignut",
+            "puttock",
+            "pumpion",
+            "ratsbane",
+            "scut",
+            "skainsmate",
+            "strumpet",
+            "vartlot",
+            "vassal"
+        ]
+
+
+    def get_insult(self):
+        word1 = random.choice(self.insult_c1)
+        word2 = random.choice(self.insult_c2)
+        word3 = random.choice(self.insult_c3)
+        return f"{word1} {word2} {word3}"
 
 
 class TestEventLog:
@@ -69,10 +226,6 @@ class TestEventLog:
                             0 = only warnings, 1 = info, 2 = debug.
                             No number means info. Default is no verbosity.""",
         )
-        parser.add_argument("-s", "--server", help="Server URL.", dest="server", default="mqtt://localhost")
-        parser.add_argument(
-            "-p", "--port", type=int, help="Port number.", default=1883, dest="port",
-        )
         parser.add_argument(
             "-c", "--connection_name", dest="connection", default="TestEventLog", help="IotDashboard Connection name"
         )
@@ -86,14 +239,12 @@ class TestEventLog:
 
     def __init__(self):
         self.bttn1_value = False
-
+        ri = random_insults()
         # Catch CNTRL-C signel
         signal.signal(signal.SIGINT, self.signal_cntrl_c)
         self.shutdown = False
         args = self.parse_commandline_arguments()
         self.init_logging(args.logfilename, args.verbose)
-
-        logging.info("Connecting to server: %s", args.server)
         logging.info("       Connection ID: %s", args.connection)
         logging.info("       Control topic: %s/%s/%s/control", args.username, args.connection, args.device_id)
         logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
@@ -112,7 +263,8 @@ class TestEventLog:
         count = 1
         while not self.shutdown:
             time.sleep(5)
-            event_l.add_event_data("Hello:{}".format(count))
+            event_d = dashio.EventData([f"Count: {count}", ri.get_insult()], color=random.choice(list(dashio.Color)))
+            event_l.add_event_data(event_d)
             count += 1
         device.close()
 
