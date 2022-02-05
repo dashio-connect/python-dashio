@@ -227,12 +227,12 @@ class TestEventLog:
                             No number means info. Default is no verbosity.""",
         )
         parser.add_argument(
-            "-c", "--connection_name", dest="connection", default="TestEventLog", help="IotDashboard Connection name"
+            "-t", "--device_type", dest="device_type", default="TestEventLog", help="IotDashboard Device type"
         )
         parser.add_argument("-d", "--device_id", dest="device_id", default="00001", help="IotDashboard Device ID.")
-        parser.add_argument("-n", "--device_name", dest="device_name", default="SystemMon", help="IotDashboard Device name alias.")
-        parser.add_argument("-u", "--username", help="MQTT Username", dest="username", default="")
-        parser.add_argument("-w", "--password", help="MQTT Password", default="")
+        parser.add_argument("-n", "--device_name", dest="device_name", default="TestEventLog", help="IotDashboard Device name alias.")
+        parser.add_argument("-u", "--username", help="DashIO Username", dest="username", default="")
+        parser.add_argument("-w", "--password", help="DashIO Password", default="")
         parser.add_argument("-l", "--logfile", dest="logfilename", default="", help="logfile location", metavar="FILE")
         args = parser.parse_args()
         return args
@@ -245,11 +245,11 @@ class TestEventLog:
         self.shutdown = False
         args = self.parse_commandline_arguments()
         self.init_logging(args.logfilename, args.verbose)
-        logging.info("       Connection ID: %s", args.connection)
-        logging.info("       Control topic: %s/%s/%s/control", args.username, args.connection, args.device_id)
-        logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
+        logging.info("       Connection ID: %s", args.device_type)
+        logging.info("       Control topic: %s/%s/control", args.username,  args.device_id)
+        logging.info("          Data topic: %s/%s/data", args.username,  args.device_id)
 
-        device = dashio.Device(args.connection, args.device_id, args.device_name)
+        device = dashio.Device(args.device_type, args.device_id, args.device_name)
         dash_conn = dashio.DashConnection(args.username, args.password)
         dash_conn.add_device(device)
 
@@ -259,7 +259,6 @@ class TestEventLog:
         device.add_control(event_l)
         device.add_control(el_page)
 
-        self.connection = args.connection
         count = 1
         while not self.shutdown:
             time.sleep(5)
