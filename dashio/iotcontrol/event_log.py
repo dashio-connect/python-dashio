@@ -34,29 +34,30 @@ from .ring_buffer import RingBuffer
 class EventData:
     """Event log data point
     """
-    def __init__(self, lines: list, color=Color.WHITE):
+    def __init__(self, lines: str, color=Color.WHITE):
         """EventLog data point
 
         Parameters
         ----------
 
-        lines : list os str max 25 lines long
+        lines : str max 25 lines long. Each line is seperated by '\n'
         color : Color, optional
             The color to diplay this data point io iotdashboard app, by default Color.WHITE
         """
         self.color = color
         self.timestamp = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
-        self.lines = []
+        self.event_lines = []
         no_l = 0
-        for line in lines:
-            self.lines.append(line.translate(BAD_CHARS))
+
+        for s_line in lines.split("\n"):
+            self.event_lines.append(s_line.translate(BAD_CHARS))
             no_l += 1
             if no_l > 25:
                 break
 
     def __str__(self):
         header = "{ts}\t{color}".format(ts=self.timestamp.isoformat(), color=str(self.color.value))
-        for line in self.lines:
+        for line in self.event_lines:
             header += "\t" + line
         header += "\n"
         return header
