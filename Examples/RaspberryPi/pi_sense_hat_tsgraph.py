@@ -33,55 +33,8 @@ from sense_hat import SenseHat
 
 
 
-class TestColorPicker:
-    def signal_cntrl_c(self, os_signal, os_frame):
-        self.shutdown = True
+class SenseGraphTS:
 
-    def init_logging(self, logfilename, level):
-        log_level = logging.WARN
-        if level == 1:
-            log_level = logging.INFO
-        elif level == 2:
-            log_level = logging.DEBUG
-        if not logfilename:
-            formatter = logging.Formatter("%(asctime)s, %(message)s")
-            handler = logging.StreamHandler()
-            handler.setFormatter(formatter)
-            logger = logging.getLogger()
-            logger.addHandler(handler)
-            logger.setLevel(log_level)
-        else:
-            logging.basicConfig(
-                filename=logfilename,
-                level=log_level,
-                format="%(asctime)s, %(message)s",
-                datefmt="%Y-%m-%d %H:%M:%S",
-            )
-        logging.info("==== Started ====")
-
-    def parse_commandline_arguments(self):
-        parser = argparse.ArgumentParser()
-        parser.add_argument(
-            "-v",
-            "--verbose",
-            const=1,
-            default=1,
-            type=int,
-            nargs="?",
-            help="""increase verbosity:
-                            0 = only warnings, 1 = info, 2 = debug.
-                            No number means info. Default is no verbosity.""",
-        )
-        parser.add_argument(
-            "-c", "--connection_name", dest="connection", default="TestBLE", help="IotDashboard Connection name"
-        )
-        parser.add_argument("-d", "--device_id", dest="device_id", default="00011000", help="IotDashboard Device ID.")
-        parser.add_argument(
-            "-n", "--device_name", dest="device_name", default="ColorPicker", help="Alias name for device."
-        )
-        parser.add_argument("-l", "--logfile", dest="logfilename", default="", help="logfile location", metavar="FILE")
-        args = parser.parse_args()
-        return args
 
     def color_picker_handler(self, msg):
         print(msg)
@@ -91,7 +44,6 @@ class TestColorPicker:
         except ValueError:
             pass
 
-    
 
     def color_to_rgb(self, color_value):
         """Return (red, green, blue) for the color."""
@@ -103,16 +55,7 @@ class TestColorPicker:
     def __init__(self):
 
         # Catch CNTRL-C signel
-        signal.signal(signal.SIGINT, self.signal_cntrl_c)
         self.shutdown = False
-        args = self.parse_commandline_arguments()
-        self.init_logging(args.logfilename, args.verbose)
-
-        logging.info("   Serving on: TCP")
-        logging.info("Connection ID: %s", args.connection)
-        logging.info("    Device ID: %s", args.device_id)
-        logging.info("  Device Name: %s", args.device_name)
-
         self.sense = SenseHat()
         self.tcp_con = dashio.TCPConnection()
         self.device = dashio.Device(args.connection, args.device_id, args.device_name)
@@ -175,8 +118,58 @@ class TestColorPicker:
         self.device.close()
 
 
+shutdown = False
+
+def signal_cntrl_c(os_signal, os_frame):
+    global shutdown
+    shutdown = True
+
+
+def init_logging(logfilename, level):
+    log_level = logging.WARN
+    if level == 1:
+        log_level = logging.INFO
+    elif level == 2:
+        log_level = logging.DEBUG
+    if not logfilename:
+        formatter = logging.Formatter("%(asctime)s, %(message)s")
+        handler = logging.StreamHandler()
+        handler.setFormatter(formatter)
+        logger = logging.getLogger()
+        logger.addHandler(handler)
+        logger.setLevel(log_level)
+    else:
+        logging.basicConfig(
+            filename=logfilename,
+            level=log_level,
+            format="%(asctime)s, %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
+    logging.info("==== Started ====")
+
+
+def parse_commandline_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        const=1,
+        default=1,
+        type=int,
+        nargs="?",
+        help="""increase verbosity:
+                        0 = only warnings, 1 = info, 2 = debug.
+                        No number means info. Default is no verbosity.""",
+    )
+    parser.add_argument("-n", "--device_name", dest="device_name", default="SetWifiName", help="IotDashboard Device name alias.")
+    parser.add_argument("-i", "--inifile", help="ini filename", dest="ini_file", default="set_wifi.ini")
+    parser.add_argument("-l", "--logfile", dest="logfilename", default="", help="logfile location", metavar="FILE")
+    args = parser.parse_args()
+    return args
+
+
 def main():
-    tc = TestColorPicker()
+    tc = SenseGraphTS()
 
 
 if __name__ == "__main__":
