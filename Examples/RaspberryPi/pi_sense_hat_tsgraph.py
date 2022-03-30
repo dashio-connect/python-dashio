@@ -24,26 +24,27 @@ SOFTWARE.
 #!/bin/python3
 import time
 import argparse
+import configparser
 import signal
+from turtle import position
+import shortuuid
 import dashio
 import platform
 import logging
 import datetime
+import zmq
 from sense_hat import SenseHat
-
 
 
 class SenseGraphTS:
 
-
     def color_picker_handler(self, msg):
         print(msg)
-        self.c_picker.color_value=msg[3]
+        self.c_picker.color_value = msg[3]
         try:
             self.sense.clear(self.color_to_rgb(msg[3]))
         except ValueError:
             pass
-
 
     def color_to_rgb(self, color_value):
         """Return (red, green, blue) for the color."""
@@ -51,79 +52,111 @@ class SenseGraphTS:
         lv = len(clr)
         return tuple(int(clr[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
 
-
-    def __init__(self):
+    def __init__(self, config, context):
 
         # Catch CNTRL-C signel
         self.shutdown = False
-        self.sense = SenseHat()
         self.tcp_con = dashio.TCPConnection()
-        self.device = dashio.Device(args.connection, args.device_id, args.device_name)
+        #self.dash_con = dashio.DashConnection(username=config['DEFAULT']['DashUsername'], password=config['DEFAULT']['DashPassword'], context=context)
+        self.device = dashio.Device(config['DEFAULT']['DeviceType'], config['DEFAULT']['DeviceID'], config['DEFAULT']['DeviceName'], context=context)
         self.tcp_con.add_device(self.device)
+        #self.dash_con.add_device(self.device)
 
-        self.connection = args.connection
-        self.page_name = "Color Picker: " + platform.node()
-
-        self.page_test = dashio.DeviceView("Color Picker", self.page_name)
-        self.c_picker = dashio.ColorPicker("CPKR1",control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.45))
-        self.c_picker.message_rx_event += self.color_picker_handler
-        self.page_test.add_control(self.c_picker)
-        self.device.add_control(self.c_picker)
-        self.device.add_control(self.page_test)
-
-        self.page_thp = dashio.DeviceView("THPView", "Temperature Humidity Pressure")
+        self.page_name = "SenseHat: " + platform.node()
+        self.page1_thp = dashio.DeviceView("SHDials", "SenseHat Dials", icon=dashio.Icon.WEATHER)
+        self.page2_thp = dashio.DeviceView("SHTemperature", "SenseHat Temperature", icon=dashio.Icon.TEMPERATURE)
+        self.page3_thp = dashio.DeviceView("SHHumidity", "SenseHat Humidity", icon=dashio.Icon.CLOUD)
+        self.page4_thp = dashio.DeviceView("SHPressure", "SenseHat Pressure", icon=dashio.Icon.FAN)
         self.temperature_dial = dashio.Dial(
             "tempC",
             "Temperature",
             dial_max=50,
             red_value=50,
-            units="C")
-        
+            units="C",
+            control_position=dashio.ControlPosition(0, 1.93, 0.3, 0.2)
+        )
+
         self.humidity_dial = dashio.Dial(
             "Hum",
             "Humidity",
             dial_max=100,
             red_value=100,
-            units="%")
+            units="%",
+            control_position=dashio.ControlPosition(0.35, 1.93, 0.3, 0.2)
+        )
         self.pressure_dial = dashio.Dial(
             "pres",
             "Pressure",
             dial_max=1100,
             red_value=1100,
-            units="mb")
+            units="mb",
+            control_position=dashio.ControlPosition(0.7, 1.93, 0.3, 0.2)
+        )
 
+        self.page1_thp.add_control(self.temperature_dial)
+        self.page1_thp.add_control(self.humidity_dial)
+        self.page1_thp.add_control(self.pressure_dial)
+        self.g_line_temperature = dashio.TimeGraphLine(
+            "Temperature",
+            dashio.TimeGraphLineType.LINE,
+            color=dashio.Color.RED,
+            max_data_points=100
+        )
+        self.temp_graph = dashio.TimeGraph(
+            "shtemp_graph",
+            "SenseHat Temperature",
+            control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.4)
+        )
+        self.temp_graph.add_line("temp_line", self.g_line_temperature)
+        self.page2_thp.add_control(self.temp_graph)
 
-        self.page_thp.add_control(self.temperature_dial)
-        self.page_thp.add_control(self.humidity_dial)
-        self.page_thp.add_control(self.pressure_dial)
+        self.g_line_humidity = dashio.TimeGraphLine(
+            "Humidity",
+            dashio.TimeGraphLineType.LINE,
+            color=dashio.Color.RED,
+            max_data_points=100
+        )
+        self.humidity_graph = dashio.TimeGraph(
+            "shhum_graph",
+            "SenseHat Humidity",
+            control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.4)
+        )
+        self.humidity_graph.add_line("humidity_line", self.g_line_humidity)
+        self.page3_thp.add_control(self.humidity_graph)
+
+        self.g_line_pressure = dashio.TimeGraphLine(
+            "Pressure",
+            dashio.TimeGraphLineType.LINE,
+            color=dashio.Color.RED,
+            max_data_points=100
+        )
+        self.pressure_graph = dashio.TimeGraph(
+            "shpress_graph",
+            "SenseHat Pressure",
+            control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.4)
+        )
+        self.pressure_graph.add_line("pressure_line", self.g_line_pressure)
+        self.page4_thp.add_control(self.pressure_graph)
+        
         self.device.add_control(self.temperature_dial)
         self.device.add_control(self.humidity_dial)
         self.device.add_control(self.pressure_dial)
-        self.device.add_control(self.page_thp)
+
+        self.device.add_control(self.temp_graph)
+        self.device.add_control(self.humidity_graph)
+        self.device.add_control(self.pressure_graph)
+
+        self.device.add_control(self.page1_thp)
+        self.device.add_control(self.page2_thp)
+        self.device.add_control(self.page3_thp)
+        self.device.add_control(self.page4_thp)
 
 
-        INTERVAL = 10
-        time_now = datetime.datetime.utcnow()
-        while not self.shutdown:
-            self.humidity_dial.dial_value = self.sense.get_humidity()
-            self.temperature_dial.dial_value = self.sense.get_temperature()
-            self.pressure_dial.dial_value = self.sense.get_pressure()
-            time_now = datetime.datetime.utcnow()
-            seconds_left = time_now.second + time_now.microsecond / 1000000.0
-            div, sleep_time = divmod(seconds_left, INTERVAL)
-            sleep_time = INTERVAL - sleep_time
-            # print ("Div: %.2f, sleep_time: %.2f" % (div, sleep_time))
-            time.sleep(sleep_time)
-        self.tcp_con.close()
-        self.device.close()
-
-
-shutdown = False
+SHUTDOWN = False
 
 def signal_cntrl_c(os_signal, os_frame):
-    global shutdown
-    shutdown = True
-
+    global SHUTDOWN
+    SHUTDOWN = True
 
 def init_logging(logfilename, level):
     log_level = logging.WARN
@@ -161,16 +194,80 @@ def parse_commandline_arguments():
                         0 = only warnings, 1 = info, 2 = debug.
                         No number means info. Default is no verbosity.""",
     )
-    parser.add_argument("-n", "--device_name", dest="device_name", default="SetWifiName", help="IotDashboard Device name alias.")
-    parser.add_argument("-i", "--inifile", help="ini filename", dest="ini_file", default="set_wifi.ini")
+    parser.add_argument("-i", "--inifile", help="ini filename", dest="ini_file", default="sense_hat.ini")
     parser.add_argument("-l", "--logfile", dest="logfilename", default="", help="logfile location", metavar="FILE")
     args = parser.parse_args()
     return args
 
 
-def main():
-    tc = SenseGraphTS()
+def parse_config(filename: str) -> dict:
 
+    config_dict = {
+        'changed': False,
+        'filename': filename
+    }
+    new_ini_file = False
+
+    config_file_parser = configparser.ConfigParser()
+    config_file_parser.defaults()
+
+    try:
+        ini_f = open(filename)
+        ini_f.close()
+    except FileNotFoundError:
+        default = {
+            'DeviceID': shortuuid.uuid(),
+            'DeviceName': "TestSenseHatGraphs",
+            'DeviceType': "SenseHatGraphs",
+            'DashUserName': 'username',
+            'DashPassword': 'password'
+        }
+        config_file_parser['DEFAULT'] = default
+        with open(filename, 'w') as configfile:
+            config_file_parser.write(configfile)
+        new_ini_file = True
+
+    if not new_ini_file:
+        config_file_parser.read(filename)
+        default = {
+            'DeviceID': config_file_parser.get('DEFAULT', 'DeviceID'),
+            'DeviceName': config_file_parser.get('DEFAULT', 'DeviceName'),
+            'DeviceType': config_file_parser.get('DEFAULT', 'DeviceType'),
+            'DashUserName': config_file_parser.get('DEFAULT', 'DashUserName'),
+            'DashPassword': config_file_parser.get('DEFAULT', 'DashPassword')
+
+        }
+    config_dict['DEFAULT'] = default
+    return config_dict
+
+
+def main():
+
+    # Catch CNTRL-C signel
+    global SHUTDOWN
+    signal.signal(signal.SIGINT, signal_cntrl_c)
+
+    args = parse_commandline_arguments()
+    init_logging(args.logfilename, args.verbose)
+    config_dict = parse_config(args.ini_file)
+    context = zmq.Context.instance()
+    dash_sense_hat = SenseGraphTS(config_dict, context)
+
+    sense_hat = SenseHat()
+    interval = 10
+    time_now = datetime.datetime.utcnow()
+    while not SHUTDOWN:
+        dash_sense_hat.humidity_dial.dial_value = sense_hat.get_humidity()
+        dash_sense_hat.temperature_dial.dial_value = sense_hat.get_temperature()
+        dash_sense_hat.pressure_dial.dial_value = sense_hat.get_pressure()
+        time_now = datetime.datetime.utcnow()
+        seconds_left = time_now.second + time_now.microsecond / 1000000.0
+        div, sleep_time = divmod(seconds_left, interval)
+        sleep_time = interval - sleep_time
+        # print ("Div: %.2f, sleep_time: %.2f" % (div, sleep_time))
+        time.sleep(sleep_time)
+    dash_sense_hat.tcp_con.close()
+    dash_sense_hat.device.close()
 
 if __name__ == "__main__":
     main()
