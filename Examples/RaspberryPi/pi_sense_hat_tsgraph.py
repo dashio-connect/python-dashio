@@ -32,6 +32,7 @@ import platform
 import logging
 import datetime
 import zmq
+import schedule
 from dashio.iotcontrol.enums import Precision
 from sense_hat import SenseHat
 
@@ -140,7 +141,7 @@ class SenseGraphTS:
         )
         self.pressure_graph.add_line("pressure_line", self.g_line_pressure)
         self.page4_thp.add_control(self.pressure_graph)
-        
+
         self.device.add_control(self.temperature_dial)
         self.device.add_control(self.humidity_dial)
         self.device.add_control(self.pressure_dial)
@@ -246,6 +247,7 @@ def parse_config(filename: str) -> dict:
 
 def main():
 
+    
     # Catch CNTRL-C signel
     global SHUTDOWN
     signal.signal(signal.SIGINT, signal_cntrl_c)
@@ -257,18 +259,30 @@ def main():
     dash_sense_hat = SenseGraphTS(config_dict, context)
 
     sense_hat = SenseHat()
-    interval = 10
-    time_now = datetime.datetime.utcnow()
-    while not SHUTDOWN:
+
+    def get_graph_data():
+        humidity = sense_hat.get_humidity()
+        temperature = sense_hat.get_temperature()
+        pressure = sense_hat.get_pressure()
+        dash_sense_hat.g_line_humidity.add_data_point(humidity)
+        dash_sense_hat.g_line_pressure.add_data_point(pressure)
+        dash_sense_hat.g_line_temperature.add_data_point(temperature)
+
+    def get_dial_data():
         dash_sense_hat.humidity_dial.dial_value = sense_hat.get_humidity()
         dash_sense_hat.temperature_dial.dial_value = sense_hat.get_temperature()
         dash_sense_hat.pressure_dial.dial_value = sense_hat.get_pressure()
-        time_now = datetime.datetime.utcnow()
-        seconds_left = time_now.second + time_now.microsecond / 1000000.0
-        div, sleep_time = divmod(seconds_left, interval)
-        sleep_time = interval - sleep_time
-        # print ("Div: %.2f, sleep_time: %.2f" % (div, sleep_time))
-        time.sleep(sleep_time)
+
+    schedule.every().hour.at(":00").do(get_graph_data)
+    schedule.every().hour.at(":15").do(get_graph_data)
+    schedule.every().hour.at(":30").do(get_graph_data)
+    schedule.every().hour.at(":45").do(get_graph_data)
+    schedule.every().minute.at(":01").do(get_dial_data)
+
+    while not SHUTDOWN:
+        schedule.run_pending()
+        time.sleep(1)
+
     dash_sense_hat.tcp_con.close()
     dash_sense_hat.device.close()
 
