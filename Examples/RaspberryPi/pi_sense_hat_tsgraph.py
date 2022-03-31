@@ -26,13 +26,13 @@ import time
 import argparse
 import configparser
 import signal
-from turtle import position
 import shortuuid
 import dashio
 import platform
 import logging
 import datetime
 import zmq
+from dashio.iotcontrol.enums import Precision
 from sense_hat import SenseHat
 
 
@@ -73,6 +73,7 @@ class SenseGraphTS:
             dial_max=50,
             red_value=50,
             units="C",
+            precision=dashio.Precision.FOUR,
             control_position=dashio.ControlPosition(0, 1.93, 0.3, 0.2)
         )
 
@@ -82,6 +83,7 @@ class SenseGraphTS:
             dial_max=100,
             red_value=100,
             units="%",
+            precision=dashio.Precision.FOUR,
             control_position=dashio.ControlPosition(0.35, 1.93, 0.3, 0.2)
         )
         self.pressure_dial = dashio.Dial(
@@ -90,6 +92,7 @@ class SenseGraphTS:
             dial_max=1100,
             red_value=1100,
             units="mb",
+            precision=dashio.Precision.FOUR,
             control_position=dashio.ControlPosition(0.7, 1.93, 0.3, 0.2)
         )
 
