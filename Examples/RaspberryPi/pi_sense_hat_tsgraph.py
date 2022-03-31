@@ -58,10 +58,10 @@ class SenseGraphTS:
         # Catch CNTRL-C signel
         self.shutdown = False
         self.tcp_con = dashio.TCPConnection()
-        #self.dash_con = dashio.DashConnection(username=config['DEFAULT']['DashUsername'], password=config['DEFAULT']['DashPassword'], context=context)
+        self.dash_con = dashio.DashConnection(username=config['DEFAULT']['DashUsername'], password=config['DEFAULT']['DashPassword'], context=context)
         self.device = dashio.Device(config['DEFAULT']['DeviceType'], config['DEFAULT']['DeviceID'], config['DEFAULT']['DeviceName'], context=context)
         self.tcp_con.add_device(self.device)
-        #self.dash_con.add_device(self.device)
+        self.dash_con.add_device(self.device)
 
         self.page_name = "SenseHat: " + platform.node()
         self.page1_thp = dashio.DeviceView("SHDials", "SenseHat Dials", icon=dashio.Icon.WEATHER)
