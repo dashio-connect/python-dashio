@@ -277,7 +277,7 @@ def main():
     schedule.every().hour.at(":15").do(get_graph_data)
     schedule.every().hour.at(":30").do(get_graph_data)
     schedule.every().hour.at(":45").do(get_graph_data)
-    schedule.every().minute.at(":01").do(get_dial_data)
+    schedule.every().minute.at(":10").do(get_dial_data)
 
     while not SHUTDOWN:
         schedule.run_pending()
