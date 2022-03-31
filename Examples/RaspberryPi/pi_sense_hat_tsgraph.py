@@ -75,7 +75,7 @@ class SenseGraphTS:
             red_value=50,
             units="C",
             precision=dashio.Precision.FOUR,
-            control_position=dashio.ControlPosition(0, 1.93, 0.3, 0.2)
+            control_position=dashio.ControlPosition(0, 0, 0.3, 0.2)
         )
 
         self.humidity_dial = dashio.Dial(
@@ -85,7 +85,7 @@ class SenseGraphTS:
             red_value=100,
             units="%",
             precision=dashio.Precision.FOUR,
-            control_position=dashio.ControlPosition(0.35, 1.93, 0.3, 0.2)
+            control_position=dashio.ControlPosition(0.35, 0, 0.3, 0.2)
         )
         self.pressure_dial = dashio.Dial(
             "pres",
@@ -94,7 +94,7 @@ class SenseGraphTS:
             red_value=1100,
             units="mb",
             precision=dashio.Precision.FOUR,
-            control_position=dashio.ControlPosition(0.7, 1.93, 0.3, 0.2)
+            control_position=dashio.ControlPosition(0.7, 0, 0.3, 0.2)
         )
 
         self.page1_thp.add_control(self.temperature_dial)
