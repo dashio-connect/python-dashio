@@ -267,6 +267,9 @@ def main():
         dash_sense_hat.g_line_humidity.add_data_point(humidity)
         dash_sense_hat.g_line_pressure.add_data_point(pressure)
         dash_sense_hat.g_line_temperature.add_data_point(temperature)
+        dash_sense_hat.humidity_graph.send_data()
+        dash_sense_hat.pressure_graph.send_data()
+        dash_sense_hat.temp_graph.send_data()
 
     def get_dial_data():
         dash_sense_hat.humidity_dial.dial_value = sense_hat.get_humidity()
