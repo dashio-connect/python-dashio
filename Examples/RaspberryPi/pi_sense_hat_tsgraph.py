@@ -109,7 +109,9 @@ class SenseGraphTS:
         self.temp_graph = dashio.TimeGraph(
             "shtemp_graph",
             "SenseHat Temperature",
-            control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.4)
+            control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.4),
+            y_axis_min=0,
+            y_axis_max=60
         )
         self.temp_graph.add_line("temp_line", self.g_line_temperature)
         self.page2_thp.add_control(self.temp_graph)
@@ -123,7 +125,9 @@ class SenseGraphTS:
         self.humidity_graph = dashio.TimeGraph(
             "shhum_graph",
             "SenseHat Humidity",
-            control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.4)
+            control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.4),
+            y_axis_min=0,
+            y_axis_max=100
         )
         self.humidity_graph.add_line("humidity_line", self.g_line_humidity)
         self.page3_thp.add_control(self.humidity_graph)
@@ -137,7 +141,9 @@ class SenseGraphTS:
         self.pressure_graph = dashio.TimeGraph(
             "shpress_graph",
             "SenseHat Pressure",
-            control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.4)
+            control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.4),
+            y_axis_min=900,
+            y_axis_max=1100
         )
         self.pressure_graph.add_line("pressure_line", self.g_line_pressure)
         self.page4_thp.add_control(self.pressure_graph)
