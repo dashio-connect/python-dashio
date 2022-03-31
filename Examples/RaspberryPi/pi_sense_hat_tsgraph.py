@@ -223,7 +223,7 @@ def parse_config(filename: str) -> dict:
             'DeviceID': shortuuid.uuid(),
             'DeviceName': "TestSenseHatGraphs",
             'DeviceType': "SenseHatGraphs",
-            'DashUserName': 'username',
+            'DashUsername': 'username',
             'DashPassword': 'password'
         }
         config_file_parser['DEFAULT'] = default
@@ -237,7 +237,7 @@ def parse_config(filename: str) -> dict:
             'DeviceID': config_file_parser.get('DEFAULT', 'DeviceID'),
             'DeviceName': config_file_parser.get('DEFAULT', 'DeviceName'),
             'DeviceType': config_file_parser.get('DEFAULT', 'DeviceType'),
-            'DashUserName': config_file_parser.get('DEFAULT', 'DashUserName'),
+            'DashUsername': config_file_parser.get('DEFAULT', 'DashUsername'),
             'DashPassword': config_file_parser.get('DEFAULT', 'DashPassword')
 
         }
