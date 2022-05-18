@@ -21,18 +21,17 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-#!/bin/python3
-import time
 import argparse
 import configparser
-import signal
-import shortuuid
-import dashio
-import platform
 import logging
-import datetime
-import zmq
+import platform
+import signal
+import time
+
+import dashio
 import schedule
+import shortuuid
+import zmq
 from dashio.iotcontrol.enums import Precision
 from sense_hat import SenseHat
 
