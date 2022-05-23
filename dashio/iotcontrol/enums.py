@@ -106,7 +106,7 @@ class SoundName(Enum):
     PLOP = "Plop"
     PLOPPLIPPLIP = "Plop Plip Plip"
     SWITCH = "Switch"
-    WHOOSH = "Woosh"
+    WHOOSH = "Whoosh"
     BOING = "Boing"
 
 
