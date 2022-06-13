@@ -234,7 +234,11 @@ class TCPConnection(threading.Thread):
                         logging.debug("Removed Socket ID: %s", tcp_id.hex())
                         self.socket_ids.remove(tcp_id)
             if self.rx_zmq_sub in socks:
-                [address, msg_id, data] = self.rx_zmq_sub.recv_multipart()
+                try:
+                    [address, msg_id, data] = self.rx_zmq_sub.recv_multipart()
+                except ValueError:
+                    # If there aren't three parts continue.
+                    continue
                 if not data:
                     continue
                 if address == b'ALL':
