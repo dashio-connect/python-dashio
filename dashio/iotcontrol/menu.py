@@ -75,7 +75,7 @@ class Menu(Control):
         TypeError
             Must be either TextBox, Button, SliderSingleBar, Selector controls
         """
-        if isinstance(control, TextBox, Button, SliderSingleBar, Selector):
+        if isinstance(control, (TextBox, Button, SliderSingleBar, Selector)):
             control.parent_id = self.control_id
         else:
             raise TypeError("Only TextBox, Button, or SliderSingleBar are allowed")
