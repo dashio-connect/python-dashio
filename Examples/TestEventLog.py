@@ -229,7 +229,7 @@ class TestEventLog:
         parser.add_argument(
             "-t", "--device_type", dest="device_type", default="TestEventLog", help="IotDashboard Device type"
         )
-        parser.add_argument("-d", "--device_id", dest="device_id", default="00001", help="IotDashboard Device ID.")
+        parser.add_argument("-d", "--device_id", dest="device_id", default="1234321a", help="IotDashboard Device ID.")
         parser.add_argument("-n", "--device_name", dest="device_name", default="TestEventLog", help="IotDashboard Device name alias.")
         parser.add_argument("-u", "--username", help="DashIO Username", dest="username", default="")
         parser.add_argument("-w", "--password", help="DashIO Password", default="")
@@ -262,7 +262,8 @@ class TestEventLog:
         count = 1
         while not self.shutdown:
             time.sleep(5)
-            event_d = dashio.EventData([f"Count: {count}", ri.get_insult()], color=random.choice(list(dashio.Color)))
+            insult = ri.get_insult()
+            event_d = dashio.EventData(f"Count: {count}\n{insult}", color=random.choice(list(dashio.Color)))
             event_l.add_event_data(event_d)
             count += 1
         device.close()
