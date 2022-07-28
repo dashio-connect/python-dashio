@@ -184,7 +184,7 @@ class TimeGraph(Control):
         """
         super().__init__("TGRPH", control_id, title=title, control_position=control_position, title_position=title_position)
 
-        self.message_rx_event = self.__get_lines_from_timestamp
+        self.message_rx_event = self._get_lines_from_timestamp
         self.y_axis_label = y_axis_label
         self.y_axis_min = y_axis_min
         self.y_axis_max = y_axis_max
@@ -209,16 +209,16 @@ class TimeGraph(Control):
         """
         state_str = ""
         for key in self.line_dict:
-            state_str += self._control_hdr_str + key + self.line_dict[key].get_line_data()
+            state_str += self._control_hdr_str  + "BRDCST\t" + key + self.line_dict[key].get_line_data()
         self.state_str = state_str
 
-    def __get_lines_from_timestamp(self, msg):
+    def _get_lines_from_timestamp(self, msg):
         state_str = ""
         for key in self.line_dict:
             if self.line_dict[key].data:
-                line_data = self.line_dict[key].get_line_from_timestamp(msg[3])
+                line_data = self.line_dict[key].get_line_from_timestamp(msg[4])
                 if line_data:
-                    state_str += self._control_hdr_str + key + line_data
+                    state_str += self._control_hdr_str + msg[3] + "\t" + key + line_data
         self.state_str = state_str
 
     def send_data(self):
@@ -229,7 +229,7 @@ class TimeGraph(Control):
             if self.line_dict[key].data:
                 line_data = self.line_dict[key].get_latest_data()
                 if line_data:
-                    state_str += self._control_hdr_str + key + line_data
+                    state_str += self._control_hdr_str + "BRDCST\t" + key + line_data
         self.state_str = state_str
 
     @property
