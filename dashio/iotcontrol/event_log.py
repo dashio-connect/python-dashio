@@ -95,11 +95,11 @@ class EventLog(Control):
         self.log = RingBuffer(max_log_entries)
 
     def _get_log_from_timestamp(self, msg):
-        log_date = dateutil.parser.isoparse(msg[3])
+        log_date = dateutil.parser.isoparse(msg[4])
         data_str = ""
         for log in self.log.get():
             if log.timestamp > log_date:
-                data_str += self._control_hdr_str + str(log)
+                data_str += self._control_hdr_str + msg[3] + "\t" + str(log)
         self.state_str = data_str
 
     def add_event_data(self, data: EventData):
@@ -112,10 +112,10 @@ class EventLog(Control):
         """
         if isinstance(data, EventData):
             self.log.append(data)
-            self.state_str = self._control_hdr_str + str(data)
+            self.state_str = self._control_hdr_str + "BRDCST\t" + str(data)
 
     def send_data(self):
         """Send the latest log entry to any connected iotdashboard app.
         """
         if self.log:
-            self.state_str = self._control_hdr_str + str(self.log.get_latest())
+            self.state_str = self._control_hdr_str + "BRDCST\t" + str(self.log.get_latest())
