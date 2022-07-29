@@ -40,7 +40,7 @@ class MQTT():
         """
         return ""
 
-    def get_cfg(self, num_columns):
+    def get_cfg(self, data):
         """Returns the CFG string for this TCP control
 
         Returns
@@ -48,7 +48,12 @@ class MQTT():
         str
             The CFG string for this control
         """
-        cfg_str = "\tCFG\t" + self.cntrl_type + "\t" + json.dumps(self._cfg) + "\n"
+        try:
+            num_columns = data[3]
+            dashboard_id = data[2]
+        except IndexError:
+            return
+        cfg_str = f"\tCFG\t{dashboard_id}\t" + self.cntrl_type + "\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
 
     def __init__(self, control_id: str, username="", password="", servername="", use_ssl=False):

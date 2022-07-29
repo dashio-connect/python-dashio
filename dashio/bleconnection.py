@@ -46,10 +46,15 @@ class BLE():
         """A CFG only control"""
         return ""
 
-    def get_cfg(self, _) -> str:
+    def get_cfg(self, data) -> str:
         """Called by iotdashboard app to get controls CFG
         """
-        cfg_str = "\tCFG\t" + self.cntrl_type + "\t" + json.dumps(self._cfg) + "\n"
+        try:
+            num_columns = data[3]
+            dashboard_id = data[2]
+        except IndexError:
+            return
+        cfg_str = "\tCFG\t{dashboard_id}\t" + self.cntrl_type + "\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
 
     def __init__(self, control_id, service_uuid="", read_uuid="", write_uuid=""):

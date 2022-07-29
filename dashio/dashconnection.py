@@ -42,20 +42,25 @@ class Dash():
         """
         return ""
 
-    def get_cfg(self, num_columns: str) -> str:
+    def get_cfg(self, data) -> str:
         """Returns the CFG info for the Dash connection. Called by iotdashboard app
 
         Parameters
         ----------
-        num_columns (str):
-            Number of columns avaailable on the dashboard app.
+        data:
+            List sent by dashboard app.
 
         Returns
         -------
         str
             The CFG string
         """
-        cfg_str = "\tCFG\t" + self.cntrl_type + "\t" + json.dumps(self._cfg) + "\n"
+        try:
+            num_columns = data[3]
+            dashboard_id = data[2]
+        except IndexError:
+            return
+        cfg_str =f"\tCFG\t{dashboard_id}\t" + self.cntrl_type + "\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
 
     def __init__(self, control_id, username="", servername=""):
