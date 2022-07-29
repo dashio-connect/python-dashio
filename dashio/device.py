@@ -131,9 +131,10 @@ class Device(threading.Thread):
         return reply
 
     def _make_cfg(self, data):
-        reply = self._device_id_str + '\tCFG\tDVCE\t' + json.dumps(self._cfg) + "\n"
+        device_id = data[2]
+        reply = self._device_id_str + f"\tCFG\t{device_id}\tDVCE\t" + json.dumps(self._cfg) + "\n"
         for key in self._control_dict:
-            reply += self._device_id_str + self._control_dict[key].get_cfg(data[2])
+            reply += self._device_id_str + self._control_dict[key].get_cfg(device_id, data[3])
         return reply
 
     def send_alarm(self, alarm_id, message_header, message_body):
