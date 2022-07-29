@@ -131,10 +131,14 @@ class Device(threading.Thread):
         return reply
 
     def _make_cfg(self, data):
-        device_id = data[2]
-        reply = self._device_id_str + f"\tCFG\t{device_id}\tDVCE\t" + json.dumps(self._cfg) + "\n"
+        try:
+            dashboard_id = data[2]
+            no_views = data[3]
+        except (IndexError):
+            return
+        reply = self._device_id_str + f"\tCFG\t{dashboard_id}\tDVCE\t" + json.dumps(self._cfg) + "\n"
         for key in self._control_dict:
-            reply += self._device_id_str + self._control_dict[key].get_cfg(device_id, data[3])
+            reply += self._device_id_str + self._control_dict[key].get_cfg(data)
         return reply
 
     def send_alarm(self, alarm_id, message_header, message_body):
