@@ -78,7 +78,7 @@ class Control:
         """This is called by iotdashboard app. Controls need to implement their own version."""
         return ""
 
-    def get_cfg(self, num_columns):
+    def get_cfg(self, dashboard_id, num_columns):
         """Returns the CFG for the control called when the iotdashboard app asks for a CFG
 
         Parameters
@@ -93,7 +93,7 @@ class Control:
         """
         if self.control_position:
             self.control_position.set_size(num_columns)
-        cfg_str = "\tCFG\t" + self.cntrl_type + "\t" + json.dumps(self._cfg) + "\n"
+        cfg_str = f"\tCFG\t{dashboard_id}\t" + self.cntrl_type + "\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
 
     def __init__(self, cntrl_type: str, control_id: str, title=None, control_position=None, title_position=None):
