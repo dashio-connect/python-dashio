@@ -42,7 +42,7 @@ class EventData:
 
         lines : str max 25 lines long. Each line is seperated by '\n'
         color : Color, optional
-            The color to diplay this data point io iotdashboard app, by default Color.WHITE
+            The color to display this data point on the iotdashboard app, by default Color.WHITE
         """
         self.color = color
         self.timestamp = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
@@ -112,10 +112,10 @@ class EventLog(Control):
         """
         if isinstance(data, EventData):
             self.log.append(data)
-            self.state_str = self._control_hdr_str + "BRDCST\t" + str(data)
+            self.state_str = self._control_hdr_str + str(data)
 
     def send_data(self):
         """Send the latest log entry to any connected iotdashboard app.
         """
         if self.log:
-            self.state_str = self._control_hdr_str + "BRDCST\t" + str(self.log.get_latest())
+            self.state_str = self._control_hdr_str + str(self.log.get_latest())
