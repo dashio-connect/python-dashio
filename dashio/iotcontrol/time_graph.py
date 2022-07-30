@@ -209,17 +209,22 @@ class TimeGraph(Control):
         """
         state_str = ""
         for key in self.line_dict:
-            state_str += self._control_hdr_str  + "BRDCST\t" + key + self.line_dict[key].get_line_data()
+            state_str += self._control_hdr_str + key + self.line_dict[key].get_line_data()
         self.state_str = state_str
 
     def _get_lines_from_timestamp(self, msg):
         state_str = ""
+        try:
+            dashboard_id = msg[3]
+            from_timestamp = msg[4]
+        except IndexError:
+            return ""
         for key in self.line_dict:
             if self.line_dict[key].data:
-                line_data = self.line_dict[key].get_line_from_timestamp(msg[4])
+                line_data = self.line_dict[key].get_line_from_timestamp(from_timestamp)
                 if line_data:
-                    state_str += self._control_hdr_str + msg[3] + "\t" + key + line_data
-        self.state_str = state_str
+                    state_str += self._control_hdr_str + dashboard_id + "\t" + key + line_data
+        return state_str
 
     def send_data(self):
         """Sends the latest Data to the iotdashboard app.
@@ -229,7 +234,7 @@ class TimeGraph(Control):
             if self.line_dict[key].data:
                 line_data = self.line_dict[key].get_latest_data()
                 if line_data:
-                    state_str += self._control_hdr_str + "BRDCST\t" + key + line_data
+                    state_str += self._control_hdr_str + key + line_data
         self.state_str = state_str
 
     @property

@@ -113,7 +113,9 @@ class Device(threading.Thread):
         if cntrl_type in self._device_commands_dict:
             return self._device_commands_dict[cntrl_type](data_array)
         try:
-            self._control_dict[cntrl_type + "_" + data_array[2]].message_rx_event(data_array)
+            reply = self._control_dict[cntrl_type + "_" + data_array[2]].message_rx_event(data_array)
+            if reply:
+                return reply.replace("{device_id}", self.device_id)
         except (KeyError, IndexError):
             pass
         return ""
@@ -134,7 +136,7 @@ class Device(threading.Thread):
         try:
             dashboard_id = data[2]
             no_views = data[3]
-        except (IndexError):
+        except IndexError:
             return
         reply = self._device_id_str + f"\tCFG\t{dashboard_id}\tDVCE\t" + json.dumps(self._cfg) + "\n"
         for key in self._control_dict:

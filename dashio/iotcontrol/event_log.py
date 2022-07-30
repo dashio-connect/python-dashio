@@ -22,14 +22,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 import datetime
-
+import json
 import dateutil.parser
-
 from ..constants import BAD_CHARS
 from .control import Control
 from .enums import Color, TitlePosition
 from .ring_buffer import RingBuffer
-
 
 class EventData:
     """Event log data point
@@ -54,6 +52,21 @@ class EventData:
             no_l += 1
             if no_l > 25:
                 break
+
+    def to_json(self):
+        """Convert to JSON
+
+        Returns
+        -------
+        str
+            json representation
+        """
+        event_dict = {
+            'time': self.timestamp.isoformat(),
+            'color': str(self.color.value),
+            'lines': self.event_lines
+        }
+        return json.dumps(event_dict)
 
     def __str__(self):
         header = "{ts}\t{color}".format(ts=self.timestamp.isoformat(), color=str(self.color.value))
@@ -94,13 +107,24 @@ class EventLog(Control):
         self.message_rx_event = self._get_log_from_timestamp
         self.log = RingBuffer(max_log_entries)
 
+
     def _get_log_from_timestamp(self, msg):
-        log_date = dateutil.parser.isoparse(msg[4])
         data_str = ""
+        try:
+            dashboard_id = msg[3]
+            from_timestamp = msg[4]
+        except IndexError:
+            return ""
+        from_date = dateutil.parser.isoparse(from_timestamp)
+        data_str += self._control_hdr_str + dashboard_id
+        has_data = False
         for log in self.log.get():
-            if log.timestamp > log_date:
-                data_str += self._control_hdr_str + msg[3] + "\t" + str(log)
-        self.state_str = data_str
+            if log.timestamp > from_date:
+                data_str += "\t" + log.to_json()
+                has_data = True
+        if has_data:
+            return data_str
+
 
     def add_event_data(self, data: EventData):
         """Add a data point to the log and send it to any connected iotdashboard app

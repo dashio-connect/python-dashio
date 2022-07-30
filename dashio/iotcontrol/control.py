@@ -132,7 +132,6 @@ class Control:
         self.message_rx_event = Event()
         self.message_tx_event = Event()
         self._control_hdr_str = f"\t{{device_id}}\t{self.cntrl_type}\t{self.control_id}\t"
-        self._tx_message = ""
         self._control_position = None
         if control_position is not None:
             self.control_position = control_position
@@ -150,7 +149,6 @@ class Control:
 
     @state_str.setter
     def state_str(self, val):
-        self._tx_message = val
         self.message_tx_event(val)
 
     # Use getter, setter properties to store the settings in the config dictionary
