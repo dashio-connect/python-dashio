@@ -186,14 +186,6 @@ class TimeGraph(Control):
         """
         self.line_dict[line_id] = gline
 
-    def send_graph(self):
-        """Send the graph to the iotdashboard app
-        """
-        state_str = ""
-        for key in self.line_dict:
-            state_str += self._control_hdr_str + key + self.line_dict[key].get_line_data()
-        self.state_str = state_str
-
     def _get_lines_from_timestamp(self, msg):
         state_str = ""
         try:
