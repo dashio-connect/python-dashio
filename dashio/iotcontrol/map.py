@@ -26,7 +26,7 @@ import json
 
 from ..constants import BAD_CHARS
 from .control import Control
-from .enums import TitlePosition
+from .enums import TitlePosition, Color
 
 
 class SimpleMapLocation:
@@ -55,7 +55,7 @@ class MapLocation:
     """
     A json version of a map location.
     """
-    def __init__(self, latitude: str, longitude: str, average_speed=None, peak_speed=None, course=None, altitude=None, distance=None, message=None):
+    def __init__(self, latitude: str, longitude: str, average_speed=None, peak_speed=None, course=None, altitude=None, distance=None):
         """MapLocation
 
         Parameters
@@ -74,8 +74,6 @@ class MapLocation:
             altitude, by default None
         distance : str, optional
             distance, by default None
-        message : str, optional
-            Displayed with the pin on the map of the DashIO Dashboard
         """
         self.timestamp = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
         self._map_loc = {}
@@ -92,21 +90,62 @@ class MapLocation:
             self._map_loc["altitude"] = altitude
         if distance:
             self._map_loc["distance"] = distance
-        if message:
-            self._map_loc["message"] = message
 
-    def __str__(self):
-        return json.dumps(self._map_loc) + "\n"
+    def map_to_json(self):
+        """Make a json representation of a map point.
+
+        Returns
+        -------
+        str
+        """
+        return json.dumps(self._map_loc)
+
+  
+    def map_simple_format(self):
+        """Returns the simple format of the MAP Location
+
+        Returns
+        -------
+        _type_
+            _description_
+        """
+        return f"\t{self.latitude},{self.longitude}\n"
+
+class MapTrack:
+    """A Map track
+    """
+    def __init__(self, track_id: str, text="", color=Color.RED) -> None:
+        self.track_id = track_id.translate(BAD_CHARS)
+        self.text = text.translate(BAD_CHARS)
+        self.color = color
+        self.locations = []
+
+
+    def add_location(self, location: MapLocation) -> None:
+        """Add a location to the Track
+
+        Parameters
+        ----------
+        location : MapLocation
+            The Map location to add to the track.
+        """
+        if isinstance(location, MapLocation):
+            self.locations.append(location)
+
+
+    def get_track(self):
+        pass
+
+
+    def get_last_location(self):
+        pass
+
+
 
 
 class Map(Control):
     """A Map control
     """
-    def get_state(self):
-        state_str = ""
-        for locs in self.location_list:
-            state_str += self._control_hdr_str + str(locs)
-        return state_str
 
     def __init__(self,
                  control_id,
@@ -118,7 +157,7 @@ class Map(Control):
         Parameters
         ----------
         control_id : str
-            An unique control identity string. The control identity string must be a unique string for each control per device
+            An unique control identity string. The control identity string must be a unique string for each control per device.
         title : str, optional
             Title of the control, by default "A Map"
         control_position : ControlPosition, optional
@@ -127,22 +166,28 @@ class Map(Control):
             Position of the title when displayed on the iotdashboard app, by default None
         """
         super().__init__("MAP", control_id, title=title, control_position=control_position, title_position=title_position)
-        self.location_list = []
+        self.tracks = {}
+        self.tracks["DEFAULT"] = self.default_track
 
-    def add_location(self, location):
+    def add_location_to_track(self, location: MapLocation, track_id: str) -> None:
         """Add Location to the map
 
         Parameters
         ----------
-        location : MapLocation, SimpleMapLocation
+        location : MapLocation.
             The location to add to the map
+        track_id : Track ID for the location.
         """
-        self.location_list.append(location)
+        if track_id in self.tracks:
+            self.tracks[track_id].add_location(location)
+        else:
+            self.tracks[track_id] = MapTrack("track_id")
+            self.tracks[track_id].add_location(location)
+        self.send_location(location, track_id)
 
-    def send_locations(self):
+    def send_location(self, location, track_id=""):
         """Sends the locations to the map
         """
         state_str = ""
-        for locs in self.location_list:
-            state_str += self._control_hdr_str + str(locs)
+        state_str += self._control_hdr_str + track_id + location.simple_format()
         self.state_str = state_str
