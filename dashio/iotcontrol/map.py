@@ -100,7 +100,6 @@ class MapLocation:
         """
         return json.dumps(self._map_loc)
 
-  
     def map_simple_format(self):
         """Returns the simple format of the MAP Location
 
@@ -139,8 +138,6 @@ class MapTrack:
 
     def get_last_location(self):
         pass
-
-
 
 
 class Map(Control):
