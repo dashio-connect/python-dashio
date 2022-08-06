@@ -79,7 +79,7 @@ class TimeGraphLine:
         self.break_data = break_data
         self.data = RingBuffer(max_data_points)
 
-    def get_line_from_timestamp(self, timestamp) -> str:
+    def get_line_from_timestamp(self, timestamp: str) -> str:
         """Converts data from timestamp to a string formatted for the iotdashboard app
 
         Returns
