@@ -261,7 +261,7 @@ class TestEventLog:
 
         count = 1
         while not self.shutdown:
-            time.sleep(10)
+            time.sleep(60)
             insult = ri.get_insult()
             event_d = dashio.EventData(f"Count: {count}\n{insult}", color=random.choice(list(dashio.Color)))
             event_l.add_event_data(event_d)

@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 import datetime
+import dateutil
 import json
 
 from ..constants import BAD_CHARS
@@ -29,27 +30,6 @@ from .control import Control
 from .enums import TitlePosition, Color
 
 
-class SimpleMapLocation:
-    """
-    A non json map location.
-    """
-    def __init__(self, track_id: str, latitude: str, longitude: str):
-        """A map location used by a map_control
-
-        Parameters
-            latitude : str
-                Latitude
-            longitude : str
-                Longitude
-            track_id : str
-                A track_id for the track.
-        """
-        self.latitude = latitude.translate(BAD_CHARS)
-        self.longitude = longitude.translate(BAD_CHARS)
-        self.track_id = track_id.translate(BAD_CHARS)
-
-    def __str__(self):
-        return f"{self.track_id}\t{self.latitude},{self.longitude}\n"
 
 class MapLocation:
     """
@@ -91,7 +71,7 @@ class MapLocation:
         if distance:
             self._map_loc["distance"] = distance
 
-    def map_to_json(self):
+    def to_json(self):
         """Make a json representation of a map point.
 
         Returns
@@ -100,7 +80,7 @@ class MapLocation:
         """
         return json.dumps(self._map_loc)
 
-    def map_simple_format(self):
+    def get_simple_format(self):
         """Returns the simple format of the MAP Location
 
         Returns
@@ -117,6 +97,7 @@ class MapTrack:
         self.track_id = track_id.translate(BAD_CHARS)
         self.text = text.translate(BAD_CHARS)
         self.color = color
+        self.track_start_time = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
         self.locations = []
 
 
@@ -132,12 +113,29 @@ class MapTrack:
             self.locations.append(location)
 
 
-    def get_track(self):
-        pass
+    def get_track(self) -> str:
+        """Returns the track in DashIO long format
 
+        Returns
+        -------
+        str
+            track in DashIO long format
+        """
+        reply = f"\t{self.track_id}\t{self.text}\t{self.color.value}"
+        for loc in self.locations:
+            reply += f"\t{loc.map_to_json()}"
+        return reply
 
-    def get_last_location(self):
-        pass
+    def get_last_location(self) -> str:
+        """Returns the last track location in short format
+
+        Returns
+        -------
+        str
+            The last location in track in short format
+        """
+        reply = f"{self.track_id}" + self.locations[-1].get_simple_format()
+        return reply
 
 
 class Map(Control):
@@ -165,6 +163,20 @@ class Map(Control):
         super().__init__("MAP", control_id, title=title, control_position=control_position, title_position=title_position)
         self.tracks = {}
         self.tracks["DEFAULT"] = self.default_track
+        self.message_rx_event = self._get_tracks_from_timestamp
+
+    def _get_tracks_from_timestamp(self, msg):
+        reply = ""
+        try:
+            dashboard_id = msg[3]
+            from_timestamp =  dateutil.parser.isoparse(msg[4])
+        except IndexError:
+            return ""
+        if self.tracks:
+            for _, value in self.tracks:
+                if value.track_start_time > from_timestamp:
+                    reply =+ self._control_hdr_str + dashboard_id + value.get_track() + "\n"
+        return reply
 
     def add_location_to_track(self, location: MapLocation, track_id: str) -> None:
         """Add Location to the map
