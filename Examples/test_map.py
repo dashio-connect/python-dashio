@@ -77,19 +77,18 @@ def main():
     signal.signal(signal.SIGINT, signal_cntrl_c)
 
     args = parse_commandline_arguments()
-    print("Connecting to server: {}".format(args.server))
-    print("       Connection ID: {}".format(args.connection))
-    print("       Control topic: %s/%s/%s/control", args.username, args.connection, args.device_id)
-    print("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
+    print(f"Connecting to server: {args.server}")
+    print(f"       Control topic: {args.username}/{args.device_id}/control")
+    print(f"          Data topic: {args.username}/{args.device_id}/data")
 
-    device = dashio.Device(args.connection, args.device_id, args.device_name)
+    device = dashio.Device("Test Map", args.device_id, args.device_name)
     dash_conn = dashio.DashConnection(args.username, args.password)
     dash_conn.add_device(device)
 
     my_map = dashio.Map("MAP1")
     my_map.title = "A cool map"
     myloc = dashio.MapLocation("James Peak", -45.237101516008835, 168.84818243505748)
-    my_map.add_location(myloc)
+    my_map.send_location(myloc)
     device.add_control(my_map)
 
     while not SHUTDOWN:

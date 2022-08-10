@@ -12,7 +12,7 @@ from .time_graph import TimeGraph, TimeGraphLine, DataPoint
 from .knob import Knob
 from .dial import Dial
 from .direction import Direction
-from .map import Map, MapLocation, SimpleMapLocation
+from .map import Map, MapLocation
 from .alarm import Alarm
 from .menu import Menu
 from .selector import Selector
