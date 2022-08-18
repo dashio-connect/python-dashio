@@ -112,10 +112,9 @@ class EventLog(Control):
         data_str = ""
         try:
             dashboard_id = msg[3]
-            from_timestamp = msg[4]
-        except IndexError:
+            from_date = dateutil.parser.isoparse(msg[4])
+        except (IndexError, ValueError):
             return ""
-        from_date = dateutil.parser.isoparse(from_timestamp)
         data_str += self._control_hdr_str + dashboard_id
         has_data = False
         for log in self.log.get():

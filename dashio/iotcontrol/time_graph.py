@@ -88,7 +88,10 @@ class TimeGraphLine:
             Formatted line data
         """
         data_str = f"\t{self.name}\t{self.line_type.value}\t{self.color.value}"
-        d_stamp = dateutil.parser.isoparse(timestamp)
+        try:
+            d_stamp = dateutil.parser.isoparse(timestamp)
+        except ValueError:
+            return ""
         first = True
         valid_data = False
         data_list = self.data.get()
