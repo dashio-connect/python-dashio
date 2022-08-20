@@ -2,7 +2,7 @@ import json
 import unittest
 
 from dashio import ButtonGroup
-from dashio.iotcontrol.enums import Color, Icon
+from dashio.iotcontrol.enums import Icon
 
 
 def _get_cfg_dict(cfg_str):
@@ -24,17 +24,17 @@ class TestButtonGroup(unittest.TestCase):
 
     def test_time_graph_cfg_grid_view(self):
         test_control = ButtonGroup("BGROUPID", grid_view=True)
-        cfg_dict = _get_cfg_dict(test_control.get_cfg(1))
+        cfg_dict = _get_cfg_dict(test_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
         self.assertEqual(cfg_dict['gridView'], True, "CFG gridView should be True")
 
     def test_time_graph_cfg_icon_name(self):
         test_control = ButtonGroup("BGROUPID", icon=Icon.BEDROOM)
-        cfg_dict = _get_cfg_dict(test_control.get_cfg(1))
+        cfg_dict = _get_cfg_dict(test_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
         self.assertEqual(Icon(cfg_dict['iconName']), Icon.BEDROOM, "CFG icon_name should be BEDROOM")
 
     def test_time_graph_cfg_text(self):
         test_control = ButtonGroup("BGROUPID", text="TEXT")
-        cfg_dict = _get_cfg_dict(test_control.get_cfg(1))
+        cfg_dict = _get_cfg_dict(test_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
         self.assertEqual(cfg_dict['text'], "TEXT", "CFG text should be TEXT")
 
 

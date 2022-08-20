@@ -10,7 +10,7 @@ def _get_cfg_dict(cfg_str):
     json_str = cfg_str.rpartition('\t')[2]
     return json.loads(json_str)
 
-
+"""
 class TestMapLocation(unittest.TestCase):
 
     def test_map_location_timestamp(self):
@@ -59,7 +59,7 @@ class TestMapLocation(unittest.TestCase):
         self.assertEqual(test_loc['distance'], 10, "distance should be 10")
 
 
-class TestKnob(unittest.TestCase):
+class TestMap(unittest.TestCase):
 
     def test_knob_control_type(self):
         test_control = Map("MAPID")
@@ -71,6 +71,6 @@ class TestKnob(unittest.TestCase):
         test_str_list = test_control._control_hdr_str.split('\t')
         self.assertEqual(test_str_list[3], 'MAPID', "control type should be MAPID")
 
-
+"""
 if __name__ == '__main__':
     unittest.main()

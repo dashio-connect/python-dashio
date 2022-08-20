@@ -139,8 +139,8 @@ class Control:
 
         Parameters
         ----------
-        num_columns : str
-            The number of columns available on the dashboard
+        data : list from IoTDashboard
+            The command from IoTDashboard split on \t into a list
 
         Returns
         -------
