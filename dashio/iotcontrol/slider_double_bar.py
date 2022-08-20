@@ -21,7 +21,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-from .enums import Color, SliderBarType, TitlePosition
+from .enums import Color, SliderBarStyle, TitlePosition
+from .control import ControlPosition, _get_title_position, _get_color, _get_bar_style
 from .slider_single_bar import SliderSingleBar
 
 
@@ -30,7 +31,7 @@ class SliderDoubleBar(SliderSingleBar):
     """
     def __init__(self,
                  control_id: str,
-                 title="A Single Slider",
+                 title="A Double Slider",
                  title_position=TitlePosition.BOTTOM,
                  bar_min=0.0,
                  bar_max=1000.0,
@@ -41,7 +42,7 @@ class SliderDoubleBar(SliderSingleBar):
                  bar_follows_slider=False,
                  bar_color=Color.BLUE,
                  knob_color=Color.RED,
-                 bar_style=SliderBarType.SEGMENTED,
+                 bar_style=SliderBarStyle.SEGMENTED,
                  control_position=None,):
         super().__init__(control_id,
                          title,
@@ -61,6 +62,36 @@ class SliderDoubleBar(SliderSingleBar):
         self._bar2_value = 0.0
         self._bar_state_str = self._control_id_bar + "{:.2f}\t{:.2f}\n".format(self._bar1_value, self._bar2_value)
         self._bar_slider_state_str = self._slider_state_str + self._bar_state_str
+
+    @classmethod
+    def from_cfg_dict(cls, cfg_dict: dict):
+        """Instatiates SliderDoubleBar from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        SliderDoubleBar
+        """
+        return cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            _get_title_position(cfg_dict["titlePosition"]),
+            cfg_dict["min"],
+            cfg_dict["max"],
+            cfg_dict["redValue"],
+            cfg_dict["showMinMax"],
+            cfg_dict["sliderEnabled"],
+            cfg_dict["sendOnlyOnRelease"],
+            cfg_dict["barFollowsSlider"],
+            _get_color(cfg_dict["barColor"]),
+            _get_color(cfg_dict["knobColor"]),
+            _get_bar_style(["title"]),
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+        )
 
     @property
     def bar1_value(self) -> float:

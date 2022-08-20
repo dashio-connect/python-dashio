@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from ..constants import BAD_CHARS
-from .control import Control
+from .control import Control, ControlPosition, _get_title_position, _get_graph_x_axis_labels_style
 from .enums import Color, GraphLineType, GraphXAxisLabelsStyle, TitlePosition
 
 class GraphLine:
@@ -91,6 +91,35 @@ class Graph(Control):
         self.y_axis_num_bars = y_axis_num_bars
 
         self.line_dict = {}
+
+    @classmethod
+    def from_cfg_dict(cls, cfg_dict: dict):
+        """Instatiates Graph from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        Graph
+        """
+        return cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            _get_title_position(cfg_dict["titlePosition"]),
+            cfg_dict["xAxisLabel"],
+            cfg_dict["xAxisMin"],
+            cfg_dict["xAxisMax"],
+            cfg_dict["xAxisNumBars"],
+            _get_graph_x_axis_labels_style(cfg_dict["xAxisLabelsStyle"]),
+            cfg_dict["yAxisLabel"],
+            cfg_dict["yAxisMin"],
+            cfg_dict["yAxisMax"],
+            cfg_dict["yAxisNumBars"],
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+        )
 
     def add_line(self, line_id: str, gline: GraphLine):
         """Add a line to the graph

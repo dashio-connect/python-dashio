@@ -21,7 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-from .control import Control
+from .control import Control, ControlPosition, _get_color, _get_title_position, _get_label_style
 from .enums import Color, LabelStyle, TitlePosition
 
 
@@ -58,6 +58,28 @@ class Label(Control):
         self.color = color
         self.style = style
         self._state_str = ""
+
+    @classmethod
+    def from_cfg_dict(cls, cfg_dict: dict):
+        """Instatiates Knob from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        Knob
+        """
+        return cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            _get_title_position(cfg_dict["titlePosition"]),
+            _get_color(cfg_dict["color"]),
+            _get_label_style(cfg_dict["style"]),
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+        )
 
     @property
     def style(self) -> LabelStyle:

@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from ..constants import BAD_CHARS
-from .control import Control
+from .control import Control, ControlPosition, _get_title_position, _get_color_picker_style
 from .enums import (ColorPickerStyle, TitlePosition)
 
 
@@ -60,6 +60,29 @@ class ColorPicker(Control):
         self.picker_style = style
         self.send_only_on_release = send_only_on_release
         self._color_value = "#4F5GA2"
+
+
+    @classmethod
+    def from_cfg_dict(cls, cfg_dict: dict):
+        """Instatiates ColorPicker from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        Button
+        """
+        return cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            _get_title_position(cfg_dict["titlePosition"]),
+            _get_color_picker_style(cfg_dict["titlePosition"]),
+            cfg_dict["sendOnlyOnRelease"],
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+        )
 
 
     def get_state(self):

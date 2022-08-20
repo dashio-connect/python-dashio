@@ -21,9 +21,10 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+import json
 from ..constants import BAD_CHARS
 from .button import Button
-from .control import Control
+from .control import Control, ControlPosition, _get_icon, _get_title_position
 from .enums import Icon, TitlePosition
 
 
@@ -78,6 +79,29 @@ class ButtonGroup(Control):
         self.icon_name = icon
         self.text = text.translate(BAD_CHARS)
         self.grid_view = grid_view
+
+    @classmethod
+    def from_cfg_dict(cls, cfg_dict: dict):
+        """Instatiates ButtonGroup from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        ButtonGroup
+        """
+        return cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            cfg_dict["text"],
+            _get_title_position(cfg_dict["titlePosition"]),
+            _get_icon(cfg_dict["iconName"]),
+            cfg_dict["gridView"],
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+        )
 
     def add_button(self, control):
         """[summary]

@@ -26,7 +26,7 @@ import datetime
 import dateutil.parser
 
 from ..constants import BAD_CHARS
-from .control import Control
+from .control import Control, ControlPosition, _get_title_position, _get_text_align, _get_text_format, _get_precision, _get_keyboard_type
 from .enums import Color, TimeGraphLineType, TitlePosition
 from .ring_buffer import RingBuffer
 
@@ -176,6 +176,30 @@ class TimeGraph(Control):
         self.y_axis_num_bars = y_axis_num_bars
 
         self.line_dict = {}
+
+    @classmethod
+    def from_cfg_dict(cls, cfg_dict: dict):
+        """Instatiates TimeGraph from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        TimeGraph
+        """
+        return cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            _get_title_position(cfg_dict["titlePosition"]),
+            cfg_dict["yAxisLabel"],
+            cfg_dict["yAxisMin"],
+            cfg_dict["yAxisMax"],
+            cfg_dict["yAxisNumBars"],
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+        )
 
     def add_line(self, line_id: str, gline: TimeGraphLine):
         """Add a line to the TimeGraph

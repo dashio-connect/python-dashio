@@ -26,6 +26,7 @@ from .tcpconnection import TCPConnection
 from .mqttconnection import MQTTConnection
 from .zmqconnection import ZMQConnection
 from .dashconnection import DashConnection
+from .load_config import decode_cfg
 # from .bleconnection import BLEConnection
 from .iotcontrol.enums import (
     Color,
@@ -35,7 +36,7 @@ from .iotcontrol.enums import (
     Keyboard,
     TextAlignment,
     TitlePosition,
-    SliderBarType,
+    SliderBarStyle,
     DialNumberPosition,
     DialStyle,
     GraphLineType,

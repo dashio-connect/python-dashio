@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from ..constants import BAD_CHARS
-from .control import Control
+from .control import Control, ControlPosition, _get_color, _get_title_position, _get_dial_number_position
 from .enums import (Color, DialNumberPosition, DialStyle, Precision,
                     TitlePosition)
 
@@ -92,6 +92,36 @@ class Dial(Control):
         self.style = style
         self.precision = precision
         self.units = units
+
+    @classmethod
+    def from_cfg_dict(cls, cfg_dict: dict):
+        """Instatiates Dial from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        Dial
+        """
+        return cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            _get_title_position(cfg_dict["titlePosition"]),
+            cfg_dict["min"],
+            cfg_dict["max"],
+            _get_color(cfg_dict["dialFillColor"]),
+            _get_color(cfg_dict["pointerColor"]),
+            _get_dial_number_position(cfg_dict["numberPosition"]),
+            cfg_dict["showMinMax"],
+            cfg_dict["style"],
+            cfg_dict["showMinMax"],
+            cfg_dict["units"],
+            cfg_dict["precision"],
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+        )
 
     def get_state(self):
         return self._control_hdr_str + f"{self._dial_value}\n"

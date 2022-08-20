@@ -2,7 +2,7 @@ import json
 import unittest
 
 from dashio import SliderSingleBar
-from dashio.iotcontrol.enums import Color, Icon, SliderBarType
+from dashio.iotcontrol.enums import Color, Icon, SliderBarStyle
 
 
 def _get_cfg_dict(cfg_str):
@@ -63,9 +63,9 @@ class TestSliderSingleBar(unittest.TestCase):
         self.assertEqual(Color(int(cfg_dict['barColor'])), Color.CHARTREUSE, "CFG barColor should be True")
 
     def test_slider_single_bar_cfg_bar_style(self):
-        test_control = SliderSingleBar("SLIDERID", bar_style=SliderBarType.SEGMENTED)
+        test_control = SliderSingleBar("SLIDERID", bar_style=SliderBarStyle.SEGMENTED)
         cfg_dict = _get_cfg_dict(test_control.get_cfg(1))
-        self.assertEqual(SliderBarType(cfg_dict['barStyle']), SliderBarType.SEGMENTED, "CFG barStyle should be SEGMENTED")
+        self.assertEqual(SliderBarStyle(cfg_dict['barStyle']), SliderBarStyle.SEGMENTED, "CFG barStyle should be SEGMENTED")
 
     def test_slider_single_bar_cfg_knob_color(self):
         test_control = SliderSingleBar("SLIDERID", knob_color=Color.CORAL)

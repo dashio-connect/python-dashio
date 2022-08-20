@@ -26,8 +26,64 @@ import json
 import logging
 
 from ..constants import BAD_CHARS
-from .enums import TitlePosition
+from .enums import ColorPickerStyle, DialNumberPosition, DirectionStyle, GraphXAxisLabelsStyle, Keyboard, KnobStyle, Precision, TextAlignment, TitlePosition, Icon, Color, TextFormat, LabelStyle, SliderBarStyle
 from .event import Event
+
+
+def _get_icon(icon_str: str) -> Icon:
+    icon_name = icon_str.upper().replace(" ", "")
+    return Icon[icon_name]
+
+def _get_color(color_str: str) -> Color:
+    color_name = color_str.upper().replace(" ", "_")
+    return Color[color_name]
+
+def _get_title_position(position_str: str) -> TitlePosition:
+    t_pos_name = position_str.upper().replace(" ", "")
+    return TitlePosition[t_pos_name]
+
+def _get_text_align(text_align_str: str) -> TextAlignment:
+    t_align_name = text_align_str.upper().replace(" ", "")
+    return TextAlignment[t_align_name]
+
+def _get_text_format(text_format_str: str) -> TextFormat:
+    t_format_name = text_format_str.upper().replace(" ", "")
+    return TextFormat[t_format_name]
+
+def _get_precision(precision_int: int) -> Precision:
+    return Precision(precision_int)
+
+def _get_keyboard_type(keyboard_str: str) -> Keyboard:
+    t_keyboard = keyboard_str.upper().replace(" ", "")
+    return Keyboard[t_keyboard]
+
+def _get_color_picker_style(color_picker_style: str) -> ColorPickerStyle:
+    cps_name = color_picker_style.upper().replace(" ", "")
+    return ColorPickerStyle[cps_name]
+
+def _get_dial_number_position(dn_position_str: str) -> DialNumberPosition:
+    dnp_name = dn_position_str.upper().replace(" ", "")
+    return DialNumberPosition[dnp_name]
+
+def _get_direction_style(dir_style_str: str) -> DirectionStyle:
+    ds_name = dir_style_str.upper().replace(" ", "")
+    return DialNumberPosition[ds_name]
+
+def _get_graph_x_axis_labels_style(gxal_style_str: str) -> GraphXAxisLabelsStyle:
+    ds_name = gxal_style_str.upper().replace(" ", "")
+    return GraphXAxisLabelsStyle[ds_name]
+
+def _get_knob_style(knob_style_str: str) -> KnobStyle:
+    ks_name = knob_style_str.upper().replace(" ", "")
+    return KnobStyle[ks_name]
+
+def _get_label_style(label_style_str: str) -> LabelStyle:
+    ks_name = label_style_str.upper().replace(" ", "")
+    return LabelStyle[ks_name]
+
+def _get_bar_style(bar_style_str: str) -> SliderBarStyle:
+    bs_name = bar_style_str.upper().replace(" ", "")
+    return LabelStyle[bs_name]
 
 
 class ControlPosition:

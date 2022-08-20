@@ -21,7 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-from .control import Control
+from .control import Control, _get_color, _get_icon
 from .enums import Color, Icon
 
 
@@ -89,6 +89,37 @@ class DeviceView(Control):
         self.control_max_font_size = control_max_font_size
         self.control_background_transparency = control_background_transparency
         self._state_str = ""
+
+    @classmethod
+    def from_cfg_dict(cls, cfg_dict: dict):
+        """Instatiates DeviceView from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        DeviceView
+        """
+        return cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            _get_icon(cfg_dict["iconName"]),
+            _get_color(cfg_dict["color"]),
+            cfg_dict["shareColumn"],
+            cfg_dict["numColumns"],
+            _get_color(cfg_dict["ctrlTitleBoxColor"]),
+            cfg_dict["ctrlTitleBoxTransparency"],
+            _get_color(cfg_dict["ctrlBorderColor"]),
+            _get_color(cfg_dict["ctrlColor"]),
+            cfg_dict["ctrlBorderOn"],
+            _get_color(cfg_dict["ctrlBkgndColor"]),
+            cfg_dict["ctrlTitleFontSize"],
+            cfg_dict["ctrlMaxFontSize"],
+            cfg_dict["ctrlBkgndTransparency"]
+        )
 
     def add_control(self, control):
         """Add a control to the DeviceView

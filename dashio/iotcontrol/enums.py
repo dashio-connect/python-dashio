@@ -183,7 +183,7 @@ class TextAlignment(Enum):
     RIGHT = "right"
 
 
-class SliderBarType(Enum):
+class SliderBarStyle(Enum):
     """Slider bar types"""
     SEGMENTED = "seg"
     SOLID = "solid"
