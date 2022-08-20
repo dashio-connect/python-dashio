@@ -26,7 +26,7 @@ import datetime
 import dateutil.parser
 
 from ..constants import BAD_CHARS
-from .control import Control, ControlPosition, _get_title_position, _get_text_align, _get_text_format, _get_precision, _get_keyboard_type
+from .control import Control, ControlPosition, _get_title_position
 from .enums import Color, TimeGraphLineType, TitlePosition
 from .ring_buffer import RingBuffer
 
