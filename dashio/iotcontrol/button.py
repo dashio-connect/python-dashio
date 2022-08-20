@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from ..constants import BAD_CHARS
-from .control import Control
+from .control import Control, ControlPosition, _get_color, _get_icon, _get_title_position
 from .enums import ButtonState, Color, Icon, TitlePosition
 
 
@@ -89,6 +89,31 @@ class Button(Control):
         self.on_color = on_color
         self.off_color = off_color
         self.text = text.translate(BAD_CHARS)
+
+    @classmethod
+    def from_cfg_dict(cls, cfg_dict: dict):
+        """Instatiates Button from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        Button
+        """
+        return cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            _get_title_position(cfg_dict["titlePosition"]),
+            cfg_dict["buttonEnabled"],
+            _get_icon(cfg_dict["iconName"]),
+            _get_color(cfg_dict["onColor"]),
+            _get_color(cfg_dict["offColor"]),
+            "",
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+        )
 
     def get_state(self):
         """get_state is called by iotdashboard

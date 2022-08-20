@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from ..constants import BAD_CHARS
-from .control import Control
+from .control import Control, ControlPosition, _get_color, _get_title_position, _get_direction_style, _get_precision
 from .enums import Color, DirectionStyle, Precision, TitlePosition
 
 
@@ -72,6 +72,31 @@ class Direction(Control):
         self.style = style
         self.units = units.translate(BAD_CHARS)
         self.precision = precision
+
+    @classmethod
+    def from_cfg_dict(cls, cfg_dict: dict):
+        """Instatiates Direction from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        Direction
+        """
+        return cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            _get_direction_style(cfg_dict["style"]),
+            _get_title_position(cfg_dict["titlePosition"]),
+            _get_color(cfg_dict["pointerColor"]),
+            cfg_dict["units"],
+            _get_precision(cfg_dict["precision"]),
+            cfg_dict["calAngle"],
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+        )
 
     def get_state(self):
         if self._direction_text:

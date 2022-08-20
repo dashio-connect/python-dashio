@@ -21,7 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-from .control import Control
+from .control import Control, ControlPosition, _get_color, _get_title_position, _get_knob_style
 from .enums import Color, KnobStyle, TitlePosition
 
 
@@ -91,6 +91,36 @@ class Knob(Control):
         self._state_str_knob = self._control_hdr_str + f"{self._knob_value}\n"
         self._state_str_dial = self._control_id_dial + f"{self._knob_dial_value}\n"
         self._knob_dial_state_str = self._state_str_knob + self._state_str_dial
+
+
+    @classmethod
+    def from_cfg_dict(cls, cfg_dict: dict):
+        """Instatiates Knob from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        Knob
+        """
+        return cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            _get_title_position(cfg_dict["titlePosition"]),
+            _get_knob_style(cfg_dict["style"]),
+            cfg_dict["min"],
+            cfg_dict["max"],
+            cfg_dict["redValue"],
+            cfg_dict["showMinMax"],
+            cfg_dict["sendOnlyOnRelease"],
+            cfg_dict["dialFollowsKnob"],
+            _get_color(cfg_dict["dialColor"]),
+            _get_color(cfg_dict["knobColor"]),
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+        )
 
     def get_state(self):
         return self._knob_dial_state_str

@@ -23,7 +23,7 @@ SOFTWARE.
 """
 from ..constants import BAD_CHARS
 from .button import Button
-from .control import Control
+from .control import Control, ControlPosition, _get_icon, _get_title_position
 from .enums import Icon, TitlePosition
 from .selector import Selector
 from .slider_single_bar import SliderSingleBar
@@ -62,6 +62,27 @@ class Menu(Control):
         self.icon_name = icon
         self.text = text
 
+    @classmethod
+    def from_cfg_dict(cls, cfg_dict: dict):
+        """Instatiates Menu from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        Menu
+        """
+        return cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            _get_icon(cfg_dict["iconName"]),
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
+            _get_title_position(cfg_dict["titlePosition"])
+        )
+
     def add_control(self, control):
         """Add a control to the menu
 
@@ -78,7 +99,7 @@ class Menu(Control):
         if isinstance(control, (TextBox, Button, SliderSingleBar, Selector)):
             control.parent_id = self.control_id
         else:
-            raise TypeError("Only TextBox, Button, or SliderSingleBar are allowed")
+            raise TypeError("Only TextBox, Button, SliderSingleBar, or Selector are allowed")
 
     @property
     def icon_name(self) -> Icon:

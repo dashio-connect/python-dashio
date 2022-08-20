@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from ..constants import BAD_CHARS
-from .control import Control
+from .control import Control, ControlPosition, _get_title_position, _get_text_align, _get_text_format, _get_precision, _get_keyboard_type
 from .enums import (Keyboard, Precision, TextAlignment, TextFormat,
                     TitlePosition)
 
@@ -82,6 +82,34 @@ class TextBox(Control):
 
     def get_state(self):
         return self._control_hdr_str + f"{self.text}\n"
+
+
+    @classmethod
+    def from_cfg_dict(cls, cfg_dict: dict):
+        """Instatiates TextBox from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        TextBox
+        """
+        return cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            _get_title_position(cfg_dict["titlePosition"]),
+            "",
+            _get_text_align(cfg_dict["textAlign"]),
+            _get_text_format(cfg_dict["format"]),
+            cfg_dict["units"],
+            _get_precision(cfg_dict["precision"]),
+            _get_keyboard_type(cfg_dict["kbdType"]),
+            cfg_dict["closeKbdOnSend"],
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+        )
 
     @property
     def text(self) -> str:

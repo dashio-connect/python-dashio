@@ -25,7 +25,7 @@ import datetime
 import json
 import dateutil.parser
 from ..constants import BAD_CHARS
-from .control import Control
+from .control import Control, ControlPosition, _get_title_position
 from .enums import Color, TitlePosition
 from .ring_buffer import RingBuffer
 
@@ -107,6 +107,26 @@ class EventLog(Control):
         self.message_rx_event = self._get_log_from_timestamp
         self.log = RingBuffer(max_log_entries)
 
+
+    @classmethod
+    def from_cfg_dict(cls, cfg_dict: dict):
+        """Instatiates Menu from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        Menu
+        """
+        return cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            _get_title_position(cfg_dict["titlePosition"]),
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+        )
 
     def _get_log_from_timestamp(self, msg):
         data_str = ""

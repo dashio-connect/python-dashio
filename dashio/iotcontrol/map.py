@@ -26,7 +26,7 @@ import dateutil
 import json
 
 from ..constants import BAD_CHARS
-from .control import Control
+from .control import Control, ControlPosition, _get_title_position
 from .enums import TitlePosition, Color
 
 
@@ -164,6 +164,28 @@ class Map(Control):
         self.tracks = {}
         self.tracks["DEFAULT"] = self.default_track
         self.message_rx_event = self._get_tracks_from_timestamp
+
+
+    @classmethod
+    def from_cfg_dict(cls, cfg_dict: dict):
+        """Instatiates Map from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        Map
+        """
+        return cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            _get_title_position(cfg_dict["titlePosition"]),
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+        )
+
 
     def _get_tracks_from_timestamp(self, msg):
         reply = ""
