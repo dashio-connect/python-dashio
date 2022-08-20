@@ -12,7 +12,7 @@ class TestTCPConnection(unittest.TestCase):
 
     def test_TCP_connection_username(self):
         test_connection = TCPConnection()
-        test_cfg = self._get_cfg_dict(test_connection.tcp_control.get_cfg(1))
+        test_cfg = self._get_cfg_dict(test_connection.tcp_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
         self.assertEqual(test_cfg['ipAddress'], '', "ipAddress should be ''")
 
 

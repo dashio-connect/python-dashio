@@ -26,12 +26,12 @@ class TestMenu(unittest.TestCase):
 
     def test_menu_cfg_icon_name(self):
         test_control = Menu("MENUID", icon=Icon.ON_OFF)
-        cfg_dict = _get_cfg_dict(test_control.get_cfg(1))
+        cfg_dict = _get_cfg_dict(test_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
         self.assertEqual(Icon(cfg_dict['iconName']), Icon.ON_OFF, "CFG iconName should be iconName")
 
     def test_menu_cfg_text(self):
         test_control = Menu("MENUID", text="TEXT")
-        cfg_dict = _get_cfg_dict(test_control.get_cfg(1))
+        cfg_dict = _get_cfg_dict(test_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
         self.assertEqual(cfg_dict['text'], "TEXT", "CFG text should be TEXT")
 
 if __name__ == '__main__':

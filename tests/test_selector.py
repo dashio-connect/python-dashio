@@ -20,13 +20,6 @@ class TestSelector(unittest.TestCase):
         test_str_list = test_control._control_hdr_str.split('\t')
         self.assertEqual(test_str_list[3], 'SELECTORID', "control type should be SELECTORID")
 
-    def test_selector_set_selected(self):
-        test_control = Selector("SELECTORID")
-        test_control.add_selection("ASELECTION")
-        test_control.set_selected("ASELECTION")
-        test_str_list = test_control._tx_message.split('\t')
-        self.assertEqual(test_str_list[5], 'ASELECTION\n', "control type should be SELECTORID")
-
 
 if __name__ == '__main__':
     unittest.main()
