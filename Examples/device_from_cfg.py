@@ -31,24 +31,236 @@ import dashio
 import shortuuid
 import json
 
-cfg = "pVXfT9swEH7nr4jyTFhCm5LubW1ZhQYUQWFI2x4c59JYOHbnOLQM8b/PTto4vzo2rZYi1Z999919d+fXI8uyU2B5ZlsfrW9H6u+PY71HUQi0vSlhKyd8C7t9S/1ei6/CMGdScHox05i9nNjHe2SNBDC5A27mrmegnBFZGLPNniSSQrE341yY/QTIKpG3SBKuUffEC5p3bnhGFMhKAnxdM6l4f6JkVUJTxQZqhmMuUiQL6JozMMDL3mLNqT9UyzexCcAk2zl1q+2nMFq+rMsorvMUBMHG7IZEMqmZHFfItseha5xhyjP4EkYLdgcs0rAUORToW6VRitZt2cJcSs7mgucHoD49eRxPOVUC6BhuITL8m0o/XsweDVbaO2copFAwjBHNoII5Mza/JkTWkv2HKukoPwz06qmYxRrY9w9TnadWQR0ujj6V3YFe/68YUbm6RqkpZ0sztFuSrQRaJx1lKEw5Y4D3rEtlbAEour/f5SmE0B8GA3AGI/Cc4SgInPAs9h1A7tlg5IWnIxTsIrUzEM8EQ3V3GKMYn7qe48Wh7wz9MThBjLGDfTzGg4E39obh/u5GKK3+zau6+FYE8sR42A4u/Sllb3QJz+T97WXhJkJZcqI/hJ+o3O6o5CqOKqVYILIyriKCOjMLq4LLRXsXUSTSzngjKcz7tIhAZ04RjpU3Q5bl6axAHghsijueodIE2sNSCnqFtp9VJ92RX0UsAzM9skT1gmqUPC1So5u8wpTPEin9HWjKZv9ob5OnFYtM801oDq0DXEQgFl2PBjzYu/rIYbACrpDgSu2evp0jgVZgNQd+RXspEMuK+YBf9PHAbZxZajPqWTIMFuqCMtecWrWTbYN+j8G6Nt6ov6OL56JATDNnQFVV807FZZSoFHYqi4iyB9oAPKtpeMlXfdXTN7HOfLUMzcMT672nsvH6WueaRvZXU7pZgeeXdeydMdkZ8KdeK6sojwh/IFneaPCjt98="
+cfg = "tVfbbts4EP0VY561ruTEjq033xIE8SWwlXaBoigoibGJUKSXohqnQf59MRQpX6I08bb7JpEUOXPmnDnUMxBOVJZD+PWbB3GhtRRX"\
+"ShabgxF8ebazY0FiTlMItSqoB4kUWkl+PYIQRvMvs++DaAYerClbrfWCaCYh9JtB0Gt32h6wRIoZySgulo8CPJD390PJpYIQFjTF"\
+"AeHerxSluGRDFBXanBDRXEfDW/BAM833tjGvtzJnmkkBIQzmUTSfggePLNXrKo5W0Ds/P/dg65ZWM37Lg6dXo93Oi/eBxO9uP5z2"\
+"3eYPJG02+Z9S9oOXb1hWLgtlSZDSHyyhQynu2QrCZxBFNjJDnxl9zCEMXjwo19iBr89mAyzqgJPkAQ55sqtiohUfPKxE6mpeLXcT"\
+"kSIiNwxIniD0PTCfSJVS5b75smaaNpaZfKB4EH5p5ucCwnvCc2SpVvzt5VOyvZRCL9lPCmHLnhEhwQZy6z7bj8zN1QZnJnf7BZ0D"\
+"2i//KYjCOEWRDSUvMoEAepCviaLlgJOWo7iFK2xk8Sbo/HXW5DIhHLBMKSO8FOeBDq/7kwDK2UvGq8xLgR1Js+X3LrpnHmRkC2Hg"\
+"N30PMiZQtL4JMqbKyQJCGI5n0Xjxlig3kgm9K8yAF5jpRtGE5UaXLQ8UTT8TnAgv2nhEvpaPUyameLytVq6fjLYHfTzJwdBvjBjh"\
+"bmAvpkrrhWA6hxCyT/kr5bfPet2gXaf81nmd8jtnJb6KJthSLMiE98UKY0OS7HW+4Xx6i4gfY2vbXm0HOwKr6nYHaDkobqXSn5aa"\
+"qFgShW1yHxUbY8NG5GZ/BZHIfhuhsy4iRH9QoSdyZVvFSpHN2j4/CBm/JufNbGCpuVOWoQly+VJyLh/zGyHjig3HmFq+4u5uh5LY"\
+"tQyuhX7HwZLwORXpXPCnuVhQTklOnQR/Qc7ZfDHtTxzWEEK/YcK2pakD/9CLTmVkcI54cxLTSvKlb1qZ7fNxgquuR8eMDFBwtYg4"\
+"nl0t5nf79tpvmANdmu9lZQ6oMdc6hfmYTkZFYemSU04TLY3poH/s7hXYAJd29jglvxm0et1e8EZeO5nsbWAG30vFb55aoNI5c85S"\
+"apOISWVStkgxUZbjS7OuYnlM1NK2veX46sgwl5PR4vtogGw7UkPvokz+DTWYDrtr57Wl34mh7MenaMHkcHQjdJCXCTZGsog52sAH"\
+"UW/V9eiLbi2DAnM7+4Mgvwb4wrLrDYCPDfMdhP9Du3kf4hOwPfH6GxgT1MlmKIUojRDvf2zTT1NFc/TaoNdqBp1uM2gGLR/NXioN"\
+"YbvT9l880HSrB3JLrQtwmdObOJ2LJRW1PxDR3xG66L1UGdEQwmw+G78uifuZeIjT6GmDPwH9CUqjFvu9y4dfBtTnbIW/CJPxZeSg"\
+"M+0boz3FQ3/bQbumo2uW0avKNl/+BQ=="
 
-cfg_2 = "tZdtb+I4EMe/CvJrrkt4aCnvgLSoOloQod1Kt6uVSQz4cGzWcZZyVb/7jRMn5LGl96BIkDj2eObnmb+dV+QTHgZo8Mf3JmJ4RZi5"\
-"V+RFjcQL0Y+vyBVcScHubDRAyxFqoj2WhKvoeT5pWdAScqqgM4JbRRUjcGsLIeFxS+hmqxZYUYEGrQurb3rMRUChjWubYo/iOYeM"\
-"bnTLGMwTPXotpI8VtDwITuD5mAxLDfa6cPXAJ0lcGkQGW020W3nL41678RD6RFIXxh6op7bpuOsmeikZa4Ehl4mA/L7yZtwh3EMD"\
-"JUPy1ixQeF5aeQ5LEqjleF6NYtjQwTWMhQoo7TKUkVBK+AUuU7JWZ1Hpd+uJDBlrjLdYYhcYByUwvW4VmXa3hgxki4/3Jm9WITjN"\
-"J1KE+ZY4j8R6PRYMsmKAFsSDibNIn+/sZ5T0v+F4xaDLYI1ZQJpI8GTg1y1VpDIFC0y7fX2d1mC2J/zbl7EOAdWlYJljq6Ovs3OH"\
-"QkQP2E/Sv6EnRTp53g3dnn19+DFaPpTD14Sz0U8kAYM1iVeXVJEzB14RdZpjFQl0WQy63a6Mul2I+nBGwI/z/zfcx/3ngm1Z/yhY"\
-"mEan/0bi/dak+46Llbn1fyo1FpwTN3bgFW1FoB4XUxjp4WB7oX+ouADTIBoBkcbqn/AXAEPkUcziwslUMngQqGMU5QjLYiLdDae6"\
-"FHz8ggZWqwacJN4TZiGYuOplNcqG+cpc21bsyS1lLL+inwB8CSW0F1SLemJjpD1oIh76KyIzVlLpD7bicE/5vY7FyMC5QpVIsP/t"\
-"i9Y3n2oJ1EvlwuShNAuEGZa+uffIL+qSJ0oOZstTksHMtwDXoX8Bn05LewQ4wf/Q50mugvtxAwyz8othZElbGu023CsEHrUL6RE5"\
-"S62d2opyp9+U2szzPZZCpOWtywa0fUMaZgNOHVhKzIMoI9wjGvRb8aulHgR7fWJ9Br1gsCnaTIf88F52+AmTdZmrkGh/ijbPIs/2"\
-"p3meErgCKXZ3JaYmaWqgNhxf7CrRnt4UzCd8jSeDhr/aW5e/dS6YcKPSqUFdQzrrdTXksxg7P0PoHylRnMUgOmu60YIDNO1sYrff"\
-"dBA+mWQUKyAMFErIOO/P0UZdd/WnlVROHGO4Tr+La5vpX13VRcHv6JADRj1inI/vC7tJdhpnai9+2KOpVhc4wcw4O874AubFcCgw"\
-"/SPt7H0onRnldKJpodxCmLcsoNcVJ94UV4XIVS+B3ljy8rvC8lYwJg5B7EBqAF4UtKawt1UBvupHAx2ztzhk42sh9k7y2TwT8Idw"\
-"z9iYdJc83jLXq86/5Wp1/luutWeG98HqwqUyPiaYRDad7ZvJ3CmUynh2P//w24PnS9FOzGc+QUCxhnyjO7Te4Vg8DLSrOHb6pd09"\
-"PbnlTi7n7d8aCA49Kp5oEOLkk5T8gnCnYlOnU1c9uEqH1uvar83MV2rjRtsO8lCT7TuD/mYaNVUf/UvHprfvb38D"
+cfg_json = """
 
+{
+  "alarms": [],
+  "buttonGroups": [],
+  "buttons": [
+    {
+      "buttonEnabled": true,
+      "controlID": "DOWN_BTN",
+      "heightRatio": 0.119565,
+      "iconName": "Down",
+      "offColor": "Red",
+      "onColor": "Green",
+      "parentID": "TestTCP",
+      "title": "Down",
+      "titlePosition": "BOTTOM",
+      "widthRatio": 0.219444,
+      "xPositionRatio": 0.02,
+      "yPositionRatio": 0.86
+    },
+    {
+      "buttonEnabled": true,
+      "controlID": "UP_BTN",
+      "heightRatio": 0.119565,
+      "iconName": "Up",
+      "offColor": "Red",
+      "onColor": "Green",
+      "parentID": "TestTCP",
+      "title": "Up",
+      "titlePosition": "BOTTOM",
+      "widthRatio": 0.219444,
+      "xPositionRatio": 0.02,
+      "yPositionRatio": 0.01
+    }
+  ],
+  "colours": [],
+  "deviceConfig": {
+    "numDeviceViews": 1
+  },
+  "deviceViews": [
+    {
+      "color": "Black",
+      "controlID": "TestTCP",
+      "ctrlBkgndColor": "Black",
+      "ctrlBkgndTransparency": 0,
+      "ctrlBorderColor": "White Smoke",
+      "ctrlBorderOn": false,
+      "ctrlColor": "White Smoke",
+      "ctrlMaxFontSize": 20,
+      "ctrlTitleBoxColor": "Black",
+      "ctrlTitleBoxTransparency": 0,
+      "ctrlTitleFontSize": 16,
+      "iconName": "Square",
+      "numColumns": 1,
+      "shareColumn": true,
+      "title": "TestTCP: mbp16-3.local"
+    }
+  ],
+  "dials": [
+    {
+      "controlID": "DIAL1",
+      "dialFillColor": "Red",
+      "heightRatio": 0.209783,
+      "max": 10.0,
+      "min": 0.0,
+      "numberPosition": "CENTER",
+      "parentID": "TestTCP",
+      "pointerColor": "Blue",
+      "precision": 2,
+      "redValue": 75.0,
+      "showMinMax": false,
+      "style": "BAR",
+      "title": "A Dial",
+      "titlePosition": "BOTTOM",
+      "units": "m/s",
+      "widthRatio": 0.539815,
+      "xPositionRatio": 0.24,
+      "yPositionRatio": 0.63
+    }
+  ],
+  "directions": [
+    {
+      "calAngle": 0,
+      "controlID": "COMP1",
+      "heightRatio": 0.219565,
+      "parentID": "TestTCP",
+      "pointerColor": "Green",
+      "precision": 2,
+      "style": "DEGPS",
+      "title": "A Direction control",
+      "titlePosition": "BOTTOM",
+      "units": "nm",
+      "widthRatio": 0.539815,
+      "xPositionRatio": 0.24,
+      "yPositionRatio": 0.38
+    }
+  ],
+  "eventLogs": [],
+  "graphs": [],
+  "knobs": [
+    {
+      "controlID": "KNB",
+      "dialColor": "Blue",
+      "dialFollowsKnob": false,
+      "heightRatio": 0.209783,
+      "knobColor": "Red",
+      "max": 10.0,
+      "min": 0.0,
+      "parentID": "TestTCP",
+      "redValue": 10.0,
+      "sendOnlyOnRelease": true,
+      "showMinMax": false,
+      "style": "NORMAL",
+      "title": "A Knob",
+      "titlePosition": "BOTTOM",
+      "widthRatio": 0.539815,
+      "xPositionRatio": 0.24,
+      "yPositionRatio": 0.14
+    }
+  ],
+  "labels": [
+    {
+      "color": "Blue",
+      "controlID": "LabelID",
+      "heightRatio": 1.0,
+      "parentID": "TestTCP",
+      "style": "GROUP",
+      "title": "A label",
+      "titlePosition": "BOTTOM",
+      "widthRatio": 1.0,
+      "xPositionRatio": 0.0,
+      "yPositionRatio": 0.0
+    }
+  ],
+  "menus": [],
+  "selectors": [
+    {
+      "controlID": "TestSelector",
+      "heightRatio": 0.129891,
+      "parentID": "TestTCP",
+      "title": "A Selector",
+      "titlePosition": "BOTTOM",
+      "widthRatio": 0.539815,
+      "xPositionRatio": 0.24,
+      "yPositionRatio": 0.01
+    }
+  ],
+  "sliders": [
+    {
+      "barColor": "Blue",
+      "barFollowsSlider": false,
+      "barStyle": "SEG",
+      "controlID": "SLDR_DBL",
+      "heightRatio": 0.979891,
+      "knobColor": "Red",
+      "max": 5.0,
+      "min": 0.0,
+      "parentID": "TestTCP",
+      "redValue": 5.0,
+      "sendOnlyOnRelease": true,
+      "showMinMax": false,
+      "sliderEnabled": true,
+      "title": "Slider Double",
+      "titlePosition": "BOTTOM",
+      "widthRatio": 0.2,
+      "xPositionRatio": 0.78,
+      "yPositionRatio": 0.01
+    },
+    {
+      "barColor": "Blue",
+      "barFollowsSlider": false,
+      "barStyle": "SEG",
+      "controlID": "SLDR",
+      "heightRatio": 0.729891,
+      "knobColor": "Red",
+      "max": 10.0,
+      "min": 0.0,
+      "parentID": "TestTCP",
+      "redValue": 10.0,
+      "sendOnlyOnRelease": true,
+      "showMinMax": false,
+      "sliderEnabled": true,
+      "title": "Slider",
+      "titlePosition": "BOTTOM",
+      "widthRatio": 0.219444,
+      "xPositionRatio": 0.02,
+      "yPositionRatio": 0.13
+    }
+  ],
+  "tcpConnection": {
+    "ipAddress": "192.168.1.120",
+    "port": 5650
+  },
+  "textBoxes": [
+    {
+      "closeKbdOnSend": true,
+      "controlID": "TXT1",
+      "format": "NONE",
+      "heightRatio": 0.119565,
+      "kbdType": "ALL",
+      "parentID": "TestTCP",
+      "precision": 0,
+      "textAlign": "LEFT",
+      "title": "A text control",
+      "titlePosition": "BOTTOM",
+      "units": "",
+      "widthRatio": 0.539815,
+      "xPositionRatio": 0.24,
+      "yPositionRatio": 0.84
+    }
+  ],
+  "timeGraphs": []
+} 
+"""
 
 SHUTDOWN = False
 COUNTER = 0
@@ -145,8 +357,58 @@ def main():
     )
     dash_conn.add_device(device)
 
-    config_dict = dashio.decode_cfg(cfg_2)
-    controls = dashio.load_controls_from_config(device, config_dict)
+    #config_dict = dashio.decode_cfg(cfg)
+    config_dict = json.loads(cfg_json)
+    controls = {}
+
+    def up_btn_event_handler(msg):
+        if controls['SLDR'].bar1_value < controls['SLDR'].bar_max:
+            controls['SLDR'].bar1_value += 1
+            controls['SLDR_DBL'].bar1_value += 0.5
+
+    def down_btn_event_handler( msg):
+        if controls['SLDR'].bar1_value > controls['SLDR'].bar_min:
+            controls['SLDR'].bar1_value -= 1
+            controls['SLDR_DBL'].bar1_value -= 0.5
+
+    def slider_event_handler(msg):
+        controls['SLDR'].slider_value = float(msg[3])
+        controls['KNB'].knob_dial_value = float(msg[3])
+
+    def slider_dbl_event_handler( msg):
+        controls['SLDR_DBL'].slider_value = float(msg[3])
+        controls['TestSelector'].position = int(float(msg[3]))
+
+    def knob_event_handler(msg):
+        controls['KNB'].knob_value = float(msg[3])
+        controls['DIAL1'].dial_value = float(msg[3])
+        controls['SLDR_DBL'].bar2_value = float(msg[3])
+        controls['COMP1'].direction_text = msg[3]
+
+    def text_cntrl_message_handler(msg):
+        controls['TXT1'].text = msg[3]
+        logging.info(msg)
+
+    def selector_ctrl_handler(msg):
+        print(controls['TestSelector'].selection_list[int(msg[3])])
+
+    try:
+        controls = dashio.load_controls_from_config(device, config_dict)
+        controls['UP_BTN'].message_rx_event = up_btn_event_handler
+        controls['DOWN_BTN'].message_rx_event = down_btn_event_handler
+        controls['SLDR'].message_rx_event = slider_event_handler
+        controls['SLDR_DBL'].message_rx_event = slider_dbl_event_handler
+        controls['KNB'].message_rx_event = knob_event_handler
+        controls['TXT1'].message_rx_event = text_cntrl_message_handler
+        controls['TestSelector'].message_rx_event = selector_ctrl_handler
+    except KeyError:
+        logging.debug("%s",controls)
+
+    controls['TestSelector'].add_selection("First")
+    controls['TestSelector'].add_selection("Second")
+    controls['TestSelector'].add_selection("Third")
+    controls['TestSelector'].add_selection("Forth")
+    controls['TestSelector'].add_selection("Fifth")
 
     global SHUTDOWN
     while not SHUTDOWN:

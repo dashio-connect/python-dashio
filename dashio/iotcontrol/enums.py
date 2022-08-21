@@ -157,7 +157,7 @@ class ButtonState(Enum):
 class Keyboard(Enum):
     """Keyboards"""
     NONE = "NONE"
-    ALL_CHARACTERS = "ALL"
+    ALL = "ALL"
     NUMERIC = "NUM"
     DATE = "DATE"
     TIME = "TIME"
@@ -185,7 +185,7 @@ class TextAlignment(Enum):
 
 class SliderBarStyle(Enum):
     """Slider bar types"""
-    SEGMENTED = "seg"
+    SEG = "seg"
     SOLID = "solid"
 
 

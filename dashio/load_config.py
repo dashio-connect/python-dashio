@@ -1,7 +1,7 @@
 import json
 import base64
 import zlib
-from .iotcontrol import DeviceView, Menu, ButtonGroup, Button, TextBox, Graph, Dial, ColorPicker, TimeGraph, Selector, Slider, Direction, EventLog
+from .iotcontrol import DeviceView, Menu, ButtonGroup, Button, TextBox, Graph, Dial, ColorPicker, TimeGraph, Selector, Slider, Direction, EventLog, Knob
 
 def decode_cfg(cfg: str) -> dict:
     """decodes a CFG from iotdasboard app
@@ -76,9 +76,10 @@ def load_controls_from_config(device, cfg_dict) -> dict:
         controls_dict[color_p["controlID"]] = ColorPicker.from_cfg_dict(color_p)
         controls_dict[color_p["parentID"]].add_control(controls_dict[color_p["controlID"]])
         device.add_control(controls_dict[color_p["controlID"]])
-    for alarm in cfg_dict["alarms"]:
-        # TODO
-        pass
+    for knob in cfg_dict["knobs"]:
+        controls_dict[knob["controlID"]] = Knob.from_cfg_dict(knob)
+        controls_dict[knob["parentID"]].add_control(controls_dict[knob["controlID"]])
+        device.add_control(controls_dict[knob["controlID"]])
     for time_graph in cfg_dict["timeGraphs"]:
         controls_dict[time_graph["controlID"]] = TimeGraph.from_cfg_dict(time_graph)
         controls_dict[time_graph["parentID"]].add_control(controls_dict[time_graph["controlID"]])
@@ -99,11 +100,10 @@ def load_controls_from_config(device, cfg_dict) -> dict:
         controls_dict[even_log["controlID"]] = EventLog.from_cfg_dict(even_log)
         controls_dict[even_log["parentID"]].add_control(controls_dict[even_log["controlID"]])
         device.add_control(controls_dict[even_log["controlID"]])
-        pass
-    for audio_visual in cfg_dict["audioVisuals"]:
+    #for audio_visual in cfg_dict["audioVisuals"]:
         # TODO
-        pass
-    
+    #    pass
+    #
     return controls_dict
 
 
