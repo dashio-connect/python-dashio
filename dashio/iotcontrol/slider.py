@@ -96,8 +96,8 @@ class Slider(Control):
         self.bar_style = bar_style
         self.knob_color = knob_color
         self._slider_state_str = self._control_hdr_str + f"{self._slider_value}\n"
-        self._bar1_state_str = self._control_id_bar + f"{self._bar1_value}\n"
-        self._bar_slider_state_str = self._slider_state_str + self._bar1_state_str
+        self._bar_state_str = self._control_id_bar + f"{self._bar1_value}\n"
+        self._bar_slider_state_str = self._slider_state_str + self._bar_state_str
 
 
     @classmethod
@@ -149,11 +149,11 @@ class Slider(Control):
         self._bar1_value = val
 
         if self._bar2_value is None:
-            self._bar1_state_str = self._control_id_bar + f"{self._bar1_value}\n"
+            self._bar_state_str = self._control_id_bar + f"{self._bar1_value}\n"
         else:
-            self._bar_state_str = self._control_id_bar + "{:.2f}\t{:.2f}\n".format(val, self._bar2_value)
-        self.message_tx_event(self._bar1_state_str)
-        self._bar_slider_state_str = self._slider_state_str + self._bar1_state_str
+            self._bar_state_str = self._control_id_bar + "{:.2f}\t{:.2f}\n".format(self._bar1_value, self._bar2_value)
+        self.message_tx_event(self._bar_state_str)
+        self._bar_slider_state_str = self._slider_state_str + self._bar_state_str
 
 
     @property
@@ -171,12 +171,12 @@ class Slider(Control):
     def bar2_value(self, val: float):
         self._bar2_value = val
         if self._bar2_value is None:
-            self._bar1_state_str = self._control_id_bar + f"{self._bar1_value}\n"
+            self._bar_state_str = self._control_id_bar + f"{self._bar1_value}\n"
         else:
-            self._bar_state_str = self._control_id_bar + "{:.2f}\t{:.2f}\n".format(val, self._bar2_value)
+            self._bar_state_str = self._control_id_bar + "{:.2f}\t{:.2f}\n".format(self._bar1_value, self._bar2_value)
         self.message_tx_event(self._bar_state_str)
         self._bar_slider_state_str = self._slider_state_str + self._bar_state_str
-        
+
 
     @property
     def slider_value(self) -> float:
@@ -194,7 +194,7 @@ class Slider(Control):
         self._slider_value = val
         self._slider_state_str = self._control_hdr_str + f"{self._slider_value}\n"
         self.message_tx_event(self._slider_state_str)
-        self._bar_slider_state_str = self._slider_state_str + self._bar1_state_str
+        self._bar_slider_state_str = self._slider_state_str + self._bar_state_str
 
     @property
     def bar_min(self) -> float:

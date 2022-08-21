@@ -52,7 +52,6 @@ from .iotcontrol.enums import (
 )
 from .iotcontrol.graph import Graph, GraphLine
 from .iotcontrol.slider import Slider
-from .iotcontrol.slider_double_bar import Slider
 from .iotcontrol.textbox import TextBox
 from .iotcontrol.button import Button
 from .iotcontrol.time_graph import TimeGraph, TimeGraphLine, DataPoint
