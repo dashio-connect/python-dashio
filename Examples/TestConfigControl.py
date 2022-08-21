@@ -127,7 +127,7 @@ class TestControls:
         device.add_control(self.down_btn)
         self.test_menu.add_control(self.down_btn)
 
-        self.sldr_cntrl = dashio.SliderSingleBar("SLDR")
+        self.sldr_cntrl = dashio.Slider("SLDR")
         self.sldr_cntrl.title = "Slider"
         self.sldr_cntrl.bar_max = 10
         self.sldr_cntrl.slider_enabled = True

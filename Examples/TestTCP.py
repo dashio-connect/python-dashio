@@ -152,7 +152,7 @@ class TestControls:
         self.down_btn.message_rx_event = self.down_btn_event_handler
         self.page_test.add_control(self.down_btn)
 
-        self.sldr_cntrl = dashio.SliderSingleBar(
+        self.sldr_cntrl = dashio.Slider(
             "SLDR", control_position=dashio.ControlPosition(0.02, 0.13, 0.22, 0.73)
         )
         self.sldr_cntrl.title = "Slider"
@@ -162,13 +162,14 @@ class TestControls:
         self.sldr_cntrl.message_rx_event += self.slider_event_handler
         self.page_test.add_control(self.sldr_cntrl)
 
-        self.sldr_dbl_cntrl = dashio.SliderDoubleBar(
+        self.sldr_dbl_cntrl = dashio.Slider(
             "SLDR_DBL", control_position=dashio.ControlPosition(0.78, 0.01, 0.2, 0.98)
         )
         self.sldr_dbl_cntrl.title = "Slider Double"
         self.sldr_dbl_cntrl.bar_max = 5
         self.sldr_dbl_cntrl.slider_enabled = True
         self.sldr_dbl_cntrl.red_value = 5
+        self.sldr_dbl_cntrl.bar2_value = 0
         self.sldr_dbl_cntrl.message_rx_event += self.slider_dbl_event_handler
         self.page_test.add_control(self.sldr_dbl_cntrl)
 

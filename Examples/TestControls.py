@@ -154,7 +154,7 @@ class TestControls:
         device.add_control(self.down_btn)
         self.page_test.add_control(self.down_btn)
 
-        self.sldr_cntrl = dashio.SliderSingleBar("SLDR")
+        self.sldr_cntrl = dashio.Slider("SLDR")
         self.sldr_cntrl.title = "Slider"
         self.sldr_cntrl.bar_max = 10
         self.sldr_cntrl.slider_enabled = True
@@ -163,11 +163,12 @@ class TestControls:
         device.add_control(self.sldr_cntrl)
         self.page_test.add_control(self.sldr_cntrl)
 
-        self.sldr_dbl_cntrl = dashio.SliderDoubleBar("SLDR_DBL")
+        self.sldr_dbl_cntrl = dashio.Slider("SLDR_DBL")
         self.sldr_dbl_cntrl.title = "Slider Double"
         self.sldr_dbl_cntrl.bar_max = 5
         self.sldr_dbl_cntrl.slider_enabled = True
         self.sldr_dbl_cntrl.red_value = 5
+        self.sldr_dbl_cntrl.bar2_value = 0
         self.sldr_dbl_cntrl.message_rx_event += self.slider_dbl_event_handler
         device.add_control(self.sldr_dbl_cntrl)
         self.page_test.add_control(self.sldr_dbl_cntrl)

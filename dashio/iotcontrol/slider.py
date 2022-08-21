@@ -25,7 +25,7 @@ from .control import Control, ControlPosition, _get_title_position, _get_color, 
 from .enums import Color, SliderBarStyle, TitlePosition
 
 
-class SliderSingleBar(Control):
+class Slider(Control):
     """Single slider bar control
     """
     def __init__(
@@ -82,6 +82,7 @@ class SliderSingleBar(Control):
         self._control_id_bar = f"\t{{device_id}}\tBAR\t{control_id}\t"
 
         self._bar1_value = 0.0
+        self._bar2_value = None
         self._slider_value = 0.0
 
         self.bar_min = bar_min
@@ -101,7 +102,7 @@ class SliderSingleBar(Control):
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict):
-        """Instatiates SliderSingleBar from cfg dictionary
+        """Instatiates Slider from cfg dictionary
 
         Parameters
         ----------
@@ -110,7 +111,7 @@ class SliderSingleBar(Control):
 
         Returns
         -------
-        SliderSingleBar
+        Slider
         """
         return cls(
             cfg_dict["controlID"],
@@ -146,9 +147,36 @@ class SliderSingleBar(Control):
     @bar1_value.setter
     def bar1_value(self, val: float):
         self._bar1_value = val
-        self._bar1_state_str = self._control_id_bar + f"{self._bar1_value}\n"
+
+        if self._bar2_value is None:
+            self._bar1_state_str = self._control_id_bar + f"{self._bar1_value}\n"
+        else:
+            self._bar_state_str = self._control_id_bar + "{:.2f}\t{:.2f}\n".format(val, self._bar2_value)
         self.message_tx_event(self._bar1_state_str)
         self._bar_slider_state_str = self._slider_state_str + self._bar1_state_str
+
+
+    @property
+    def bar2_value(self) -> float:
+        """bar2 value
+
+        Returns
+        -------
+        float
+            The value of bar2
+        """
+        return self._bar2_value
+
+    @bar2_value.setter
+    def bar2_value(self, val: float):
+        self._bar2_value = val
+        if self._bar2_value is None:
+            self._bar1_state_str = self._control_id_bar + f"{self._bar1_value}\n"
+        else:
+            self._bar_state_str = self._control_id_bar + "{:.2f}\t{:.2f}\n".format(val, self._bar2_value)
+        self.message_tx_event(self._bar_state_str)
+        self._bar_slider_state_str = self._slider_state_str + self._bar_state_str
+        
 
     @property
     def slider_value(self) -> float:
