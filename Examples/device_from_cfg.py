@@ -29,9 +29,243 @@ import time
 
 import dashio
 import shortuuid
+import json
 
 cfg = "pVXfT9swEH7nr4jyTFhCm5LubW1ZhQYUQWFI2x4c59JYOHbnOLQM8b/PTto4vzo2rZYi1Z999919d+fXI8uyU2B5ZlsfrW9H6u+PY71HUQi0vSlhKyd8C7t9S/1ei6/CMGdScHox05i9nNjHe2SNBDC5A27mrmegnBFZGLPNniSSQrE341yY/QTIKpG3SBKuUffEC5p3bnhGFMhKAnxdM6l4f6JkVUJTxQZqhmMuUiQL6JozMMDL3mLNqT9UyzexCcAk2zl1q+2nMFq+rMsorvMUBMHG7IZEMqmZHFfItseha5xhyjP4EkYLdgcs0rAUORToW6VRitZt2cJcSs7mgucHoD49eRxPOVUC6BhuITL8m0o/XsweDVbaO2copFAwjBHNoII5Mza/JkTWkv2HKukoPwz06qmYxRrY9w9TnadWQR0ujj6V3YFe/68YUbm6RqkpZ0sztFuSrQRaJx1lKEw5Y4D3rEtlbAEour/f5SmE0B8GA3AGI/Cc4SgInPAs9h1A7tlg5IWnIxTsIrUzEM8EQ3V3GKMYn7qe48Wh7wz9MThBjLGDfTzGg4E39obh/u5GKK3+zau6+FYE8sR42A4u/Sllb3QJz+T97WXhJkJZcqI/hJ+o3O6o5CqOKqVYILIyriKCOjMLq4LLRXsXUSTSzngjKcz7tIhAZ04RjpU3Q5bl6axAHghsijueodIE2sNSCnqFtp9VJ92RX0UsAzM9skT1gmqUPC1So5u8wpTPEin9HWjKZv9ob5OnFYtM801oDq0DXEQgFl2PBjzYu/rIYbACrpDgSu2evp0jgVZgNQd+RXspEMuK+YBf9PHAbZxZajPqWTIMFuqCMtecWrWTbYN+j8G6Nt6ov6OL56JATDNnQFVV807FZZSoFHYqi4iyB9oAPKtpeMlXfdXTN7HOfLUMzcMT672nsvH6WueaRvZXU7pZgeeXdeydMdkZ8KdeK6sojwh/IFneaPCjt98="
 
+cfg_json = """
+{
+"menus" : [
+
+],
+"labels" : [
+{
+"yPositionRatio" : 0,
+"widthRatio" : 1,
+"titlePosition" : "Bottom",
+"style" : "Group",
+"title" : "A label",
+"parentID" : "TestTCP",
+"controlID" : "LabelID",
+"color" : "Blue",
+"xPositionRatio" : 0,
+"heightRatio" : 1
+}
+],
+"textBoxes" : [
+{
+"controlID" : "TXT1",
+"parentID" : "TestTCP",
+"units" : "",
+"title" : "A text control",
+"heightRatio" : 0.12,
+"titlePosition" : "Bottom",
+"textAlign" : "Left",
+"format" : "None",
+"yPositionRatio" : 0.84,
+"precision" : 0,
+"kbdType" : "All Characters",
+"widthRatio" : 0.54,
+"xPositionRatio" : 0.24,
+"closeKbdOnSend" : true
+}
+],
+"maps" : [
+
+],
+"buttonGroups" : [
+
+],
+"buttons" : [
+{
+"offColor" : "Red",
+"controlID" : "DOWN_BTN",
+"buttonEnabled" : true,
+"onColor" : "Green",
+"parentID" : "TestTCP",
+"heightRatio" : 0.12,
+"title" : "Down",
+"titlePosition" : "Bottom",
+"yPositionRatio" : 0.86,
+"widthRatio" : 0.22,
+"xPositionRatio" : 0.02,
+"iconName" : "Down"
+},
+{
+"offColor" : "Red",
+"controlID" : "UP_BTN",
+"buttonEnabled" : true,
+"onColor" : "Green",
+"parentID" : "TestTCP",
+"heightRatio" : 0.12,
+"title" : "Up",
+"titlePosition" : "Bottom",
+"yPositionRatio" : 0.01,
+"widthRatio" : 0.22,
+"xPositionRatio" : 0.02,
+"iconName" : "Up"
+}
+],
+"graphs" : [
+
+],
+"knobs" : [
+{
+"style" : "Normal",
+"controlID" : "KNB",
+"sendOnlyOnRelease" : true,
+"max" : 10,
+"parentID" : "TestTCP",
+"redValue" : 10,
+"title" : "A Knob",
+"heightRatio" : 0.21,
+"titlePosition" : "Bottom",
+"showMinMax" : false,
+"yPositionRatio" : 0.14,
+"knobColor" : "Red",
+"dialFollowsKnob" : false,
+"dialColor" : "Blue",
+"widthRatio" : 0.54,
+"xPositionRatio" : 0.24,
+"min" : 0
+}
+],
+"dials" : [
+{
+"precision" : 2,
+"style" : "Bar",
+"controlID" : "DIAL1",
+"max" : 10,
+"parentID" : "TestTCP",
+"redValue" : 75,
+"title" : "A Dial",
+"heightRatio" : 0.21,
+"dialFillColor" : "Red",
+"titlePosition" : "Bottom",
+"yPositionRatio" : 0.63,
+"pointerColor" : "Blue",
+"numberPosition" : "Center",
+"showMinMax" : false,
+"widthRatio" : 0.54,
+"xPositionRatio" : 0.24,
+"units" : "m\/s",
+"min" : 0
+}
+],
+"colours" : [
+
+],
+"tcpConnection" : {
+"port" : 5650,
+"ipAddress" : "192.168.1.120"
+},
+"alarms" : [
+
+],
+"deviceViews" : [
+{
+"ctrlMaxFontSize" : 20,
+"shareColumn" : true,
+"numColumns" : 1,
+"controlID" : "TestTCP",
+"ctrlBkgndColor" : "Black",
+"ctrlBorderOn" : false,
+"ctrlBorderColor" : "White Smoke",
+"ctrlColor" : "White Smoke",
+"color" : "Black",
+"title" : "TestTCP: mbp16-3.local",
+"ctrlBkgndTransparency" : 0,
+"ctrlTitleBoxColor" : "Black",
+"ctrlTitleBoxTransparency" : 0,
+"ctrlTitleFontSize" : 16,
+"iconName" : "Square"
+}
+],
+"deviceConfig" : {
+"numDeviceViews" : 1
+},
+"timeGraphs" : [
+
+],
+"selectors" : [
+{
+"yPositionRatio" : 0.01,
+"widthRatio" : 0.54,
+"titlePosition" : "Bottom",
+"title" : "A Selector",
+"parentID" : "TestTCP",
+"controlID" : "TestSelector",
+"xPositionRatio" : 0.24,
+"heightRatio" : 0.13
+}
+],
+"sliders" : [
+{
+"sliderEnabled" : true,
+"controlID" : "SLDR_DBL",
+"sendOnlyOnRelease" : true,
+"max" : 5,
+"parentID" : "TestTCP",
+"redValue" : 5,
+"title" : "Slider Double",
+"heightRatio" : 0.98,
+"titlePosition" : "Bottom",
+"showMinMax" : false,
+"yPositionRatio" : 0.01,
+"knobColor" : "Red",
+"barFollowsSlider" : false,
+"barColor" : "Blue",
+"widthRatio" : 0.2,
+"xPositionRatio" : 0.78,
+"barStyle" : "Segmented",
+"min" : 0
+},
+{
+"sliderEnabled" : true,
+"controlID" : "SLDR",
+"sendOnlyOnRelease" : true,
+"max" : 10,
+"parentID" : "TestTCP",
+"redValue" : 10,
+"title" : "Slider",
+"heightRatio" : 0.73,
+"titlePosition" : "Bottom",
+"showMinMax" : false,
+"yPositionRatio" : 0.13,
+"knobColor" : "Red",
+"barFollowsSlider" : false,
+"barColor" : "Blue",
+"widthRatio" : 0.22,
+"xPositionRatio" : 0.02,
+"barStyle" : "Segmented",
+"min" : 0
+}
+],
+"directions" : [
+{
+"style" : "DEGPS",
+"controlID" : "COMP1",
+"parentID" : "TestTCP",
+"units" : "nm",
+"title" : "A Direction control",
+"calAngle" : 0,
+"titlePosition" : "Bottom",
+"heightRatio" : 0.22,
+"yPositionRatio" : 0.38,
+"pointerColor" : "Green",
+"precision" : 2,
+"widthRatio" : 0.54,
+"xPositionRatio" : 0.24
+}
+],
+"audioVisuals" : [
+
+],
+"eventLogs" : [
+
+]
+}
+"""
 
 SHUTDOWN = False
 COUNTER = 0
@@ -193,8 +427,8 @@ def main():
     )
     dash_conn.add_device(device)
 
-    config_dict = dashio.decode_cfg(cfg)
-
+    #config_dict = dashio.decode_cfg(cfg)
+    config_dict = json.loads(cfg_json)
     controls = load_controls_from_config(device, config_dict)
 
     global SHUTDOWN

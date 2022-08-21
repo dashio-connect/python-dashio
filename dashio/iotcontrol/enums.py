@@ -157,7 +157,7 @@ class ButtonState(Enum):
 class Keyboard(Enum):
     """Keyboards"""
     NONE = "NONE"
-    ALL_CHARS = "ALL"
+    ALL_CHARACTERS = "ALL"
     NUMERIC = "NUM"
     DATE = "DATE"
     TIME = "TIME"

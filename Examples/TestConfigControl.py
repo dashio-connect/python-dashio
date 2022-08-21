@@ -137,14 +137,14 @@ class TestControls:
         self.text_cntrl1 = dashio.TextBox("TXT1")
         self.text_cntrl1.text = "Test box1"
         self.text_cntrl1.title = "TextBx1"
-        self.text_cntrl1.keyboard_type = dashio.Keyboard.ALL_CHARS
+        self.text_cntrl1.keyboard_type = dashio.Keyboard.ALL_CHARACTERS
         device.add_control(self.text_cntrl1)
         self.test_menu.add_control(self.text_cntrl1)
 
         self.text_cntrl2 = dashio.TextBox("TXT2")
         self.text_cntrl2.text = "Test box2"
         self.text_cntrl2.title = "TextBx2"
-        self.text_cntrl2.keyboard_type = dashio.Keyboard.ALL_CHARS
+        self.text_cntrl2.keyboard_type = dashio.Keyboard.ALL_CHARACTERS
         device.add_control(self.text_cntrl2)
         self.test_menu.add_control(self.text_cntrl2)
 

@@ -126,7 +126,7 @@ class Slider(Control):
             cfg_dict["barFollowsSlider"],
             _get_color(cfg_dict["barColor"]),
             _get_color(cfg_dict["knobColor"]),
-            _get_bar_style(["title"]),
+            _get_bar_style(cfg_dict["barStyle"]),
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
         )
 

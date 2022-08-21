@@ -40,7 +40,7 @@ class TextBox(Control):
         text_format=TextFormat.NONE,
         units="",
         precision=Precision.OFF,
-        keyboard_type=Keyboard.ALL_CHARS,
+        keyboard_type=Keyboard.ALL_CHARACTERS,
         close_keyboard_on_send=True,
         control_position=None,
     ):
@@ -67,7 +67,7 @@ class TextBox(Control):
         precision : Precision, optional
             precision, by default Precision.OFF
         keyboard_type : Keyboard, optional
-            Keyboard type for the textbox, by default Keyboard.ALL_CHARS
+            Keyboard type for the textbox, by default Keyboard.ALL_CHARACTERS
         close_keyboard_on_send : bool, optional
             Set to True to close keyboard on close, by default True
         """
