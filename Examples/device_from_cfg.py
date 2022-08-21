@@ -33,239 +33,22 @@ import json
 
 cfg = "pVXfT9swEH7nr4jyTFhCm5LubW1ZhQYUQWFI2x4c59JYOHbnOLQM8b/PTto4vzo2rZYi1Z999919d+fXI8uyU2B5ZlsfrW9H6u+PY71HUQi0vSlhKyd8C7t9S/1ei6/CMGdScHox05i9nNjHe2SNBDC5A27mrmegnBFZGLPNniSSQrE341yY/QTIKpG3SBKuUffEC5p3bnhGFMhKAnxdM6l4f6JkVUJTxQZqhmMuUiQL6JozMMDL3mLNqT9UyzexCcAk2zl1q+2nMFq+rMsorvMUBMHG7IZEMqmZHFfItseha5xhyjP4EkYLdgcs0rAUORToW6VRitZt2cJcSs7mgucHoD49eRxPOVUC6BhuITL8m0o/XsweDVbaO2copFAwjBHNoII5Mza/JkTWkv2HKukoPwz06qmYxRrY9w9TnadWQR0ujj6V3YFe/68YUbm6RqkpZ0sztFuSrQRaJx1lKEw5Y4D3rEtlbAEour/f5SmE0B8GA3AGI/Cc4SgInPAs9h1A7tlg5IWnIxTsIrUzEM8EQ3V3GKMYn7qe48Wh7wz9MThBjLGDfTzGg4E39obh/u5GKK3+zau6+FYE8sR42A4u/Sllb3QJz+T97WXhJkJZcqI/hJ+o3O6o5CqOKqVYILIyriKCOjMLq4LLRXsXUSTSzngjKcz7tIhAZ04RjpU3Q5bl6axAHghsijueodIE2sNSCnqFtp9VJ92RX0UsAzM9skT1gmqUPC1So5u8wpTPEin9HWjKZv9ob5OnFYtM801oDq0DXEQgFl2PBjzYu/rIYbACrpDgSu2evp0jgVZgNQd+RXspEMuK+YBf9PHAbZxZajPqWTIMFuqCMtecWrWTbYN+j8G6Nt6ov6OL56JATDNnQFVV807FZZSoFHYqi4iyB9oAPKtpeMlXfdXTN7HOfLUMzcMT672nsvH6WueaRvZXU7pZgeeXdeydMdkZ8KdeK6sojwh/IFneaPCjt98="
 
-cfg_json = """
-{
-"menus" : [
+cfg_2 = "tZdtb+I4EMe/CvJrrkt4aCnvgLSoOloQod1Kt6uVSQz4cGzWcZZyVb/7jRMn5LGl96BIkDj2eObnmb+dV+QTHgZo8Mf3JmJ4RZi5"\
+"V+RFjcQL0Y+vyBVcScHubDRAyxFqoj2WhKvoeT5pWdAScqqgM4JbRRUjcGsLIeFxS+hmqxZYUYEGrQurb3rMRUChjWubYo/iOYeM"\
+"bnTLGMwTPXotpI8VtDwITuD5mAxLDfa6cPXAJ0lcGkQGW020W3nL41678RD6RFIXxh6op7bpuOsmeikZa4Ehl4mA/L7yZtwh3EMD"\
+"JUPy1ixQeF5aeQ5LEqjleF6NYtjQwTWMhQoo7TKUkVBK+AUuU7JWZ1Hpd+uJDBlrjLdYYhcYByUwvW4VmXa3hgxki4/3Jm9WITjN"\
+"J1KE+ZY4j8R6PRYMsmKAFsSDibNIn+/sZ5T0v+F4xaDLYI1ZQJpI8GTg1y1VpDIFC0y7fX2d1mC2J/zbl7EOAdWlYJljq6Ovs3OH"\
+"QkQP2E/Sv6EnRTp53g3dnn19+DFaPpTD14Sz0U8kAYM1iVeXVJEzB14RdZpjFQl0WQy63a6Mul2I+nBGwI/z/zfcx/3ngm1Z/yhY"\
+"mEan/0bi/dak+46Llbn1fyo1FpwTN3bgFW1FoB4XUxjp4WB7oX+ouADTIBoBkcbqn/AXAEPkUcziwslUMngQqGMU5QjLYiLdDae6"\
+"FHz8ggZWqwacJN4TZiGYuOplNcqG+cpc21bsyS1lLL+inwB8CSW0F1SLemJjpD1oIh76KyIzVlLpD7bicE/5vY7FyMC5QpVIsP/t"\
+"i9Y3n2oJ1EvlwuShNAuEGZa+uffIL+qSJ0oOZstTksHMtwDXoX8Bn05LewQ4wf/Q50mugvtxAwyz8othZElbGu023CsEHrUL6RE5"\
+"S62d2opyp9+U2szzPZZCpOWtywa0fUMaZgNOHVhKzIMoI9wjGvRb8aulHgR7fWJ9Br1gsCnaTIf88F52+AmTdZmrkGh/ijbPIs/2"\
+"p3meErgCKXZ3JaYmaWqgNhxf7CrRnt4UzCd8jSeDhr/aW5e/dS6YcKPSqUFdQzrrdTXksxg7P0PoHylRnMUgOmu60YIDNO1sYrff"\
+"dBA+mWQUKyAMFErIOO/P0UZdd/WnlVROHGO4Tr+La5vpX13VRcHv6JADRj1inI/vC7tJdhpnai9+2KOpVhc4wcw4O874AubFcCgw"\
+"/SPt7H0onRnldKJpodxCmLcsoNcVJ94UV4XIVS+B3ljy8rvC8lYwJg5B7EBqAF4UtKawt1UBvupHAx2ztzhk42sh9k7y2TwT8Idw"\
+"z9iYdJc83jLXq86/5Wp1/luutWeG98HqwqUyPiaYRDad7ZvJ3CmUynh2P//w24PnS9FOzGc+QUCxhnyjO7Te4Vg8DLSrOHb6pd09"\
+"PbnlTi7n7d8aCA49Kp5oEOLkk5T8gnCnYlOnU1c9uEqH1uvar83MV2rjRtsO8lCT7TuD/mYaNVUf/UvHprfvb38D"
 
-],
-"labels" : [
-{
-"yPositionRatio" : 0,
-"widthRatio" : 1,
-"titlePosition" : "Bottom",
-"style" : "Group",
-"title" : "A label",
-"parentID" : "TestTCP",
-"controlID" : "LabelID",
-"color" : "Blue",
-"xPositionRatio" : 0,
-"heightRatio" : 1
-}
-],
-"textBoxes" : [
-{
-"controlID" : "TXT1",
-"parentID" : "TestTCP",
-"units" : "",
-"title" : "A text control",
-"heightRatio" : 0.12,
-"titlePosition" : "Bottom",
-"textAlign" : "Left",
-"format" : "None",
-"yPositionRatio" : 0.84,
-"precision" : 0,
-"kbdType" : "All Characters",
-"widthRatio" : 0.54,
-"xPositionRatio" : 0.24,
-"closeKbdOnSend" : true
-}
-],
-"maps" : [
-
-],
-"buttonGroups" : [
-
-],
-"buttons" : [
-{
-"offColor" : "Red",
-"controlID" : "DOWN_BTN",
-"buttonEnabled" : true,
-"onColor" : "Green",
-"parentID" : "TestTCP",
-"heightRatio" : 0.12,
-"title" : "Down",
-"titlePosition" : "Bottom",
-"yPositionRatio" : 0.86,
-"widthRatio" : 0.22,
-"xPositionRatio" : 0.02,
-"iconName" : "Down"
-},
-{
-"offColor" : "Red",
-"controlID" : "UP_BTN",
-"buttonEnabled" : true,
-"onColor" : "Green",
-"parentID" : "TestTCP",
-"heightRatio" : 0.12,
-"title" : "Up",
-"titlePosition" : "Bottom",
-"yPositionRatio" : 0.01,
-"widthRatio" : 0.22,
-"xPositionRatio" : 0.02,
-"iconName" : "Up"
-}
-],
-"graphs" : [
-
-],
-"knobs" : [
-{
-"style" : "Normal",
-"controlID" : "KNB",
-"sendOnlyOnRelease" : true,
-"max" : 10,
-"parentID" : "TestTCP",
-"redValue" : 10,
-"title" : "A Knob",
-"heightRatio" : 0.21,
-"titlePosition" : "Bottom",
-"showMinMax" : false,
-"yPositionRatio" : 0.14,
-"knobColor" : "Red",
-"dialFollowsKnob" : false,
-"dialColor" : "Blue",
-"widthRatio" : 0.54,
-"xPositionRatio" : 0.24,
-"min" : 0
-}
-],
-"dials" : [
-{
-"precision" : 2,
-"style" : "Bar",
-"controlID" : "DIAL1",
-"max" : 10,
-"parentID" : "TestTCP",
-"redValue" : 75,
-"title" : "A Dial",
-"heightRatio" : 0.21,
-"dialFillColor" : "Red",
-"titlePosition" : "Bottom",
-"yPositionRatio" : 0.63,
-"pointerColor" : "Blue",
-"numberPosition" : "Center",
-"showMinMax" : false,
-"widthRatio" : 0.54,
-"xPositionRatio" : 0.24,
-"units" : "m\/s",
-"min" : 0
-}
-],
-"colours" : [
-
-],
-"tcpConnection" : {
-"port" : 5650,
-"ipAddress" : "192.168.1.120"
-},
-"alarms" : [
-
-],
-"deviceViews" : [
-{
-"ctrlMaxFontSize" : 20,
-"shareColumn" : true,
-"numColumns" : 1,
-"controlID" : "TestTCP",
-"ctrlBkgndColor" : "Black",
-"ctrlBorderOn" : false,
-"ctrlBorderColor" : "White Smoke",
-"ctrlColor" : "White Smoke",
-"color" : "Black",
-"title" : "TestTCP: mbp16-3.local",
-"ctrlBkgndTransparency" : 0,
-"ctrlTitleBoxColor" : "Black",
-"ctrlTitleBoxTransparency" : 0,
-"ctrlTitleFontSize" : 16,
-"iconName" : "Square"
-}
-],
-"deviceConfig" : {
-"numDeviceViews" : 1
-},
-"timeGraphs" : [
-
-],
-"selectors" : [
-{
-"yPositionRatio" : 0.01,
-"widthRatio" : 0.54,
-"titlePosition" : "Bottom",
-"title" : "A Selector",
-"parentID" : "TestTCP",
-"controlID" : "TestSelector",
-"xPositionRatio" : 0.24,
-"heightRatio" : 0.13
-}
-],
-"sliders" : [
-{
-"sliderEnabled" : true,
-"controlID" : "SLDR_DBL",
-"sendOnlyOnRelease" : true,
-"max" : 5,
-"parentID" : "TestTCP",
-"redValue" : 5,
-"title" : "Slider Double",
-"heightRatio" : 0.98,
-"titlePosition" : "Bottom",
-"showMinMax" : false,
-"yPositionRatio" : 0.01,
-"knobColor" : "Red",
-"barFollowsSlider" : false,
-"barColor" : "Blue",
-"widthRatio" : 0.2,
-"xPositionRatio" : 0.78,
-"barStyle" : "Segmented",
-"min" : 0
-},
-{
-"sliderEnabled" : true,
-"controlID" : "SLDR",
-"sendOnlyOnRelease" : true,
-"max" : 10,
-"parentID" : "TestTCP",
-"redValue" : 10,
-"title" : "Slider",
-"heightRatio" : 0.73,
-"titlePosition" : "Bottom",
-"showMinMax" : false,
-"yPositionRatio" : 0.13,
-"knobColor" : "Red",
-"barFollowsSlider" : false,
-"barColor" : "Blue",
-"widthRatio" : 0.22,
-"xPositionRatio" : 0.02,
-"barStyle" : "Segmented",
-"min" : 0
-}
-],
-"directions" : [
-{
-"style" : "DEGPS",
-"controlID" : "COMP1",
-"parentID" : "TestTCP",
-"units" : "nm",
-"title" : "A Direction control",
-"calAngle" : 0,
-"titlePosition" : "Bottom",
-"heightRatio" : 0.22,
-"yPositionRatio" : 0.38,
-"pointerColor" : "Green",
-"precision" : 2,
-"widthRatio" : 0.54,
-"xPositionRatio" : 0.24
-}
-],
-"audioVisuals" : [
-
-],
-"eventLogs" : [
-
-]
-}
-"""
 
 SHUTDOWN = False
 COUNTER = 0
@@ -319,71 +102,6 @@ def parse_commandline_arguments():
     args = parser.parse_args()
     return args
 
-def load_controls_from_config(device, cfg_dict) -> dict:
-    controls_dict = {}
-    for device_view in cfg_dict["deviceViews"]:
-        controls_dict[device_view["controlID"]] = dashio.DeviceView.from_cfg_dict(device_view)
-        device.add_control(controls_dict[device_view["controlID"]])
-    for menu in cfg_dict["menus"]:
-        controls_dict[menu["controlID"]] = dashio.Menu.from_cfg_dict(menu)
-        controls_dict[menu["parentID"]].add_control(controls_dict[menu["controlID"]])
-        device.add_control(controls_dict[menu["controlID"]])
-    for button_g in cfg_dict["buttonGroups"]:
-        controls_dict[button_g["controlID"]] = dashio.ButtonGroup.from_cfg_dict(button_g)
-        controls_dict[button_g["parentID"]].add_control(controls_dict[button_g["controlID"]])
-        device.add_control(controls_dict[button_g["controlID"]])
-    for button in cfg_dict["buttons"]:
-        controls_dict[button["controlID"]] = dashio.Button.from_cfg_dict(button)
-        controls_dict[button["parentID"]].add_control(controls_dict[button["controlID"]])
-        device.add_control(controls_dict[button["controlID"]])
-    for text_box in cfg_dict["textBoxes"]:
-        controls_dict[text_box["controlID"]] = dashio.TextBox.from_cfg_dict(text_box)
-        controls_dict[text_box["parentID"]].add_control(controls_dict[text_box["controlID"]])
-        device.add_control(controls_dict[text_box["controlID"]])
-    for graph in cfg_dict["graphs"]:
-        controls_dict[graph["controlID"]] = dashio.Graph.from_cfg_dict(graph)
-        controls_dict[graph["parentID"]].add_control(controls_dict[graph["controlID"]])
-        device.add_control(controls_dict[graph["controlID"]])
-    for dial in cfg_dict["dials"]:
-        controls_dict[dial["controlID"]] = dashio.Dial.from_cfg_dict(dial)
-        controls_dict[dial["parentID"]].add_control(controls_dict[dial["controlID"]])
-        device.add_control(controls_dict[dial["controlID"]])
-    for color_p in cfg_dict["colours"]:
-        controls_dict[color_p["controlID"]] = dashio.ColorPicker.from_cfg_dict(color_p)
-        controls_dict[color_p["parentID"]].add_control(controls_dict[color_p["controlID"]])
-        device.add_control(controls_dict[color_p["controlID"]])
-    for alarm in cfg_dict["alarms"]:
-        # TODO
-        pass
-    for time_graph in cfg_dict["timeGraphs"]:
-        controls_dict[time_graph["controlID"]] = dashio.TimeGraph.from_cfg_dict(time_graph)
-        controls_dict[time_graph["parentID"]].add_control(controls_dict[time_graph["controlID"]])
-        device.add_control(controls_dict[time_graph["controlID"]])
-    for selector in cfg_dict["selectors"]:
-        controls_dict[selector["controlID"]] = dashio.Selector.from_cfg_dict(selector)
-        controls_dict[selector["parentID"]].add_control(controls_dict[selector["controlID"]])
-        device.add_control(controls_dict[selector["controlID"]])
-    for slider in cfg_dict["sliders"]:
-        controls_dict[slider["controlID"]] = dashio.Slider.from_cfg_dict(slider)
-        controls_dict[slider["parentID"]].add_control(controls_dict[slider["controlID"]])
-        device.add_control(controls_dict[slider["controlID"]])
-    for direction in cfg_dict["directions"]:
-        controls_dict[direction["controlID"]] = dashio.Direction.from_cfg_dict(direction)
-        controls_dict[direction["parentID"]].add_control(controls_dict[direction["controlID"]])
-        device.add_control(controls_dict[direction["controlID"]])
-    for even_log in cfg_dict["eventLogs"]:
-        controls_dict[even_log["controlID"]] = dashio.EventLog.from_cfg_dict(even_log)
-        controls_dict[even_log["parentID"]].add_control(controls_dict[even_log["controlID"]])
-        device.add_control(controls_dict[even_log["controlID"]])
-        pass
-    for audio_visual in cfg_dict["audioVisuals"]:
-        # TODO
-        pass
-    
-    return controls_dict
-
-
-
 
 def main():
 
@@ -427,8 +145,7 @@ def main():
     )
     dash_conn.add_device(device)
 
-    #config_dict = dashio.decode_cfg(cfg)
-    config_dict = json.loads(cfg_json)
+    config_dict = dashio.decode_cfg(cfg_2)
     controls = load_controls_from_config(device, config_dict)
 
     global SHUTDOWN
