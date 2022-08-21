@@ -113,7 +113,7 @@ class SoundName(Enum):
 class ColorPickerStyle(Enum):
     """Picker styles"""
     WHEEL = "Wheel"
-    SPECTRUM = "SPectrum"
+    SPECTRUM = "Spectrum"
 
 
 class LabelStyle(Enum):
