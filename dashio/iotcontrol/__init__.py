@@ -4,8 +4,7 @@ from .enums import Color, Icon, Precision, Keyboard, TextAlignment, SliderBarSty
     SoundName, GraphLineType, TimeGraphLineType, TimeGraphPositionOfKey, ButtonState, LabelStyle, KnobStyle,\
     TitlePosition, GraphXAxisLabelsStyle, TextFormat, DirectionStyle, ColorPickerStyle
 from .graph import Graph, GraphLine
-from .slider_single_bar import SliderSingleBar
-from .slider_double_bar import SliderDoubleBar
+from .slider import Slider
 from .textbox import TextBox
 from .button import Button
 from .time_graph import TimeGraph, TimeGraphLine, DataPoint

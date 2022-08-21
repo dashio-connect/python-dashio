@@ -26,7 +26,7 @@ from .button import Button
 from .control import Control, ControlPosition, _get_icon, _get_title_position
 from .enums import Icon, TitlePosition
 from .selector import Selector
-from .slider_single_bar import SliderSingleBar
+from .slider import Slider
 from .textbox import TextBox
 
 
@@ -94,12 +94,12 @@ class Menu(Control):
         Raises
         ------
         TypeError
-            Must be either TextBox, Button, SliderSingleBar, Selector controls
+            Must be either TextBox, Button, Slider, Selector controls
         """
-        if isinstance(control, (TextBox, Button, SliderSingleBar, Selector)):
+        if isinstance(control, (TextBox, Button, Slider, Selector)):
             control.parent_id = self.control_id
         else:
-            raise TypeError("Only TextBox, Button, SliderSingleBar, or Selector are allowed")
+            raise TypeError("Only TextBox, Button, Slider, or Selector are allowed")
 
     @property
     def icon_name(self) -> Icon:

@@ -51,8 +51,8 @@ from .iotcontrol.enums import (
     ColorPickerStyle
 )
 from .iotcontrol.graph import Graph, GraphLine
-from .iotcontrol.slider_single_bar import SliderSingleBar
-from .iotcontrol.slider_double_bar import SliderDoubleBar
+from .iotcontrol.slider import Slider
+from .iotcontrol.slider_double_bar import Slider
 from .iotcontrol.textbox import TextBox
 from .iotcontrol.button import Button
 from .iotcontrol.time_graph import TimeGraph, TimeGraphLine, DataPoint

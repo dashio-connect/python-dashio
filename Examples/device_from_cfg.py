@@ -130,7 +130,7 @@ def load_controls_from_config(device, cfg_dict) -> dict:
         controls_dict[selector["parentID"]].add_control(controls_dict[selector["controlID"]])
         device.add_control(controls_dict[selector["controlID"]])
     for slider in cfg_dict["sliders"]:
-        controls_dict[slider["controlID"]] = dashio.SliderSingleBar.from_cfg_dict(slider)
+        controls_dict[slider["controlID"]] = dashio.Slider.from_cfg_dict(slider)
         controls_dict[slider["parentID"]].add_control(controls_dict[slider["controlID"]])
         device.add_control(controls_dict[slider["controlID"]])
     for direction in cfg_dict["directions"]:
