@@ -42,7 +42,7 @@ class Slider(Control):
         bar_follows_slider=False,
         bar_color=Color.BLUE,
         knob_color=Color.RED,
-        bar_style=SliderBarStyle.SEGMENTED,
+        bar_style=SliderBarStyle.SEG,
         control_position=None,
     ):
         """[summary]

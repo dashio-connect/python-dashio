@@ -40,7 +40,7 @@ class TextBox(Control):
         text_format=TextFormat.NONE,
         units="",
         precision=Precision.OFF,
-        keyboard_type=Keyboard.ALL_CHARACTERS,
+        keyboard_type=Keyboard.ALL,
         close_keyboard_on_send=True,
         control_position=None,
     ):
