@@ -146,7 +146,7 @@ def main():
     dash_conn.add_device(device)
 
     config_dict = dashio.decode_cfg(cfg_2)
-    controls = load_controls_from_config(device, config_dict)
+    controls = dashio.load_controls_from_config(device, config_dict)
 
     global SHUTDOWN
     while not SHUTDOWN:
