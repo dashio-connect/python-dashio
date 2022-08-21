@@ -26,7 +26,7 @@ import json
 import logging
 
 from ..constants import BAD_CHARS
-from .enums import ColorPickerStyle, DialNumberPosition, DirectionStyle, GraphXAxisLabelsStyle, Keyboard, KnobStyle, Precision, TextAlignment, TitlePosition, Icon, Color, TextFormat, LabelStyle, SliderBarStyle
+from .enums import ColorPickerStyle, DialNumberPosition, DirectionStyle, GraphXAxisLabelsStyle, Keyboard, KnobStyle, Precision, TextAlignment, TitlePosition, Icon, Color, TextFormat, LabelStyle, SliderBarStyle, DialStyle
 from .event import Event
 
 
@@ -54,7 +54,7 @@ def _get_precision(precision_int: int) -> Precision:
     return Precision(precision_int)
 
 def _get_keyboard_type(keyboard_str: str) -> Keyboard:
-    t_keyboard = keyboard_str.upper().replace(" ", "")
+    t_keyboard = keyboard_str.upper().replace(" ", "_")
     return Keyboard[t_keyboard]
 
 def _get_color_picker_style(color_picker_style: str) -> ColorPickerStyle:
@@ -67,7 +67,7 @@ def _get_dial_number_position(dn_position_str: str) -> DialNumberPosition:
 
 def _get_direction_style(dir_style_str: str) -> DirectionStyle:
     ds_name = dir_style_str.upper().replace(" ", "")
-    return DialNumberPosition[ds_name]
+    return DirectionStyle[ds_name]
 
 def _get_graph_x_axis_labels_style(gxal_style_str: str) -> GraphXAxisLabelsStyle:
     ds_name = gxal_style_str.upper().replace(" ", "")
@@ -83,8 +83,11 @@ def _get_label_style(label_style_str: str) -> LabelStyle:
 
 def _get_bar_style(bar_style_str: str) -> SliderBarStyle:
     bs_name = bar_style_str.upper().replace(" ", "")
-    return LabelStyle[bs_name]
+    return SliderBarStyle[bs_name]
 
+def _get_dial_style(dial_style_str: str) -> DialStyle:
+    bs_name = dial_style_str.upper().replace(" ", "")
+    return DialStyle[bs_name]
 
 class ControlPosition:
     """
