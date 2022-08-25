@@ -3,7 +3,7 @@ import base64
 import zlib
 from .iotcontrol import DeviceView, Menu, ButtonGroup, Button, TextBox, Graph, Dial, ColorPicker, TimeGraph, Selector, Slider, Direction, EventLog, Knob
 
-def decode_cfg(cfg: str) -> dict:
+def decode_cfg64(cfg: str) -> dict:
     """decodes a CFG from iotdasboard app
 
     Parameters
