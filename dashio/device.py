@@ -125,9 +125,9 @@ class Device(threading.Thread):
 
     def _make_status(self, _):
         reply = f"\t{self.device_id}\tNAME\t{self._device_name}\n"
-        for key in self._control_dict:
+        for value in self._control_dict.values():
             try:
-                reply += self._control_dict[key].get_state().format(device_id=self.device_id)
+                reply += value.get_state().format(device_id=self.device_id)
             except (TypeError, KeyError):
                 pass
         return reply
@@ -135,12 +135,12 @@ class Device(threading.Thread):
     def _make_cfg(self, data):
         try:
             dashboard_id = data[2]
-            no_views = data[3]
+            #  no_views = data[3]
         except IndexError:
             return
         reply = self._device_id_str + f"\tCFG\t{dashboard_id}\tDVCE\t" + json.dumps(self._cfg) + "\n"
-        for key in self._control_dict:
-            reply += self._device_id_str + self._control_dict[key].get_cfg(data)
+        for value in self._control_dict.values():
+            reply += self._device_id_str + value.get_cfg(data)
         return reply
 
     def send_alarm(self, alarm_id, message_header, message_body):

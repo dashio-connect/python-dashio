@@ -99,7 +99,6 @@ class Slider(Control):
         self._bar_state_str = self._control_id_bar + f"{self._bar1_value}\n"
         self._bar_slider_state_str = self._slider_state_str + self._bar_state_str
 
-
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict):
         """Instatiates Slider from cfg dictionary
@@ -155,7 +154,6 @@ class Slider(Control):
         self.message_tx_event(self._bar_state_str)
         self._bar_slider_state_str = self._slider_state_str + self._bar_state_str
 
-
     @property
     def bar2_value(self) -> float:
         """bar2 value
@@ -176,7 +174,6 @@ class Slider(Control):
             self._bar_state_str = self._control_id_bar + "{:.2f}\t{:.2f}\n".format(self._bar1_value, self._bar2_value)
         self.message_tx_event(self._bar_state_str)
         self._bar_slider_state_str = self._slider_state_str + self._bar_state_str
-
 
     @property
     def slider_value(self) -> float:
