@@ -30,7 +30,6 @@ from .control import Control, ControlPosition, _get_title_position
 from .enums import TitlePosition, Color
 
 
-
 class MapLocation:
     """
     A json version of a map location.
@@ -100,7 +99,6 @@ class MapTrack:
         self.track_start_time = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
         self.locations = []
 
-
     def add_location(self, location: MapLocation) -> None:
         """Add a location to the Track
 
@@ -111,7 +109,6 @@ class MapTrack:
         """
         if isinstance(location, MapLocation):
             self.locations.append(location)
-
 
     def get_track(self) -> str:
         """Returns the track in DashIO long format
@@ -165,7 +162,6 @@ class Map(Control):
         self.tracks["DEFAULT"] = self.default_track
         self.message_rx_event = self._get_tracks_from_timestamp
 
-
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict):
         """Instatiates Map from cfg dictionary
@@ -186,12 +182,11 @@ class Map(Control):
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
         )
 
-
     def _get_tracks_from_timestamp(self, msg):
         reply = ""
         try:
             dashboard_id = msg[3]
-            from_timestamp =  dateutil.parser.isoparse(msg[4])
+            from_timestamp = dateutil.parser.isoparse(msg[4])
         except IndexError:
             return ""
         if self.tracks:

@@ -60,7 +60,7 @@ class Alarm(Control):
         self.description = description.translate(BAD_CHARS)
         self.sound_name = sound_name
 
-    def send(self, header: str, body:str):
+    def send(self, header: str, body: str):
         """Sends the alarm
 
         Parameters

@@ -92,7 +92,6 @@ class Knob(Control):
         self._state_str_dial = self._control_id_dial + f"{self._knob_dial_value}\n"
         self._knob_dial_state_str = self._state_str_knob + self._state_str_dial
 
-
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict):
         """Instatiates Knob from cfg dictionary
