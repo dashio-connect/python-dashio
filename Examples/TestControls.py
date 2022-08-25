@@ -190,7 +190,7 @@ class TestControls:
         self.text_cntrl = dashio.TextBox("TXT1")
         self.text_cntrl.text = "Hello"
         self.text_cntrl.title = "A text control"
-        self.text_cntrl.keyboard_type = dashio.Keyboard.ALL_CHARACTERS
+        self.text_cntrl.keyboard_type = dashio.Keyboard.ALL
         self.text_cntrl.close_keyboard_on_send = True
         self.text_cntrl.message_rx_event += self.text_cntrl_message_handler
         device.add_control(self.text_cntrl)

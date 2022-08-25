@@ -67,7 +67,7 @@ class TextBox(Control):
         precision : Precision, optional
             precision, by default Precision.OFF
         keyboard_type : Keyboard, optional
-            Keyboard type for the textbox, by default Keyboard.ALL_CHARACTERS
+            Keyboard type for the textbox, by default Keyboard.ALL
         close_keyboard_on_send : bool, optional
             Set to True to close keyboard on close, by default True
         """
