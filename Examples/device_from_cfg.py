@@ -23,13 +23,13 @@ SOFTWARE.
 """
 import argparse
 import configparser
+import json
 import logging
 import signal
 import time
 
 import dashio
 import shortuuid
-import json
 
 cfg = "tVfbbts4EP0VY561ruTEjq033xIE8SWwlXaBoigoibGJUKSXohqnQf59MRQpX6I08bb7JpEUOXPmnDnUMxBOVJZD+PWbB3GhtRRX"\
 "ShabgxF8ebazY0FiTlMItSqoB4kUWkl+PYIQRvMvs++DaAYerClbrfWCaCYh9JtB0Gt32h6wRIoZySgulo8CPJD390PJpYIQFjTF"\
@@ -195,7 +195,6 @@ def main():
     controls['TestSelector'].add_selection("Forth")
     controls['TestSelector'].add_selection("Fifth")
 
-    global SHUTDOWN
     while not SHUTDOWN:
         time.sleep(1)
 
