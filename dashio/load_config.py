@@ -45,22 +45,24 @@ def decode_cfg64(cfg: str) -> dict:
         A dictionary representing the cfg.
     """
 
-    ztmp_b = base64.b64decode(f"{cfg}{'=' * (len(cfg) % 4)}")  # Deal with missing padding
+    ztmp_b = base64.b64decode(cfg)
     try:
         tmp_b = zlib.decompress(ztmp_b)
     except zlib.error:
-        tmp_b = zlib.decompress(ztmp_b, wbits=-8)  # Deal with missing header
+        pass
+        # tmp_b = zlib.decompress(ztmp_b, wbits=-8)  # Deal with missing header
     try:
         cfg_dict = json.loads(tmp_b)
     except json.JSONDecodeError:
         return ""
     return cfg_dict
 
+
 def encode_cfg64(cfg: dict) -> str:
     """Encodes cfg dictionary into C64 string
 
     Args:
-        cfg (str): the config as sent to the IoTDashboard app
+        cfg (dict): the config as sent to the IoTDashboard app
 
     Returns:
         str: the cfg encoded as C64 format
