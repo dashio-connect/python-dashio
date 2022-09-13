@@ -103,7 +103,7 @@ class Device(threading.Thread):
         data_array = data.split("\t")
         rx_device_id = data_array[0]
         if rx_device_id == "WHO":
-            return self._device_id_str + f"\tWHO\t{self.device_type}\t{self.device_name}\n"
+            return self._device_id_str + f"\tWHO\t{self.device_type}\t{self.device_name}\t{self._cfg['cfgRev']}\n"
         if rx_device_id != self.device_id:
             return ""
         try:
@@ -379,6 +379,7 @@ class Device(threading.Thread):
         self._cfg = {}
         self._device_id_str = f"\t{device_id}"
         self._cfg["numDeviceViews"] = 0
+        self._cfg["cfgRev"] = 1
         self.running = True
         self.start()
 
@@ -396,6 +397,21 @@ class Device(threading.Thread):
     @number_of_device_views.setter
     def number_of_device_views(self, val: int):
         self._cfg["numDeviceViews"] = val
+
+    @property
+    def config_revision(self) -> int:
+        """Sets the cfgRev number used to indicate a new CFG
+
+        Returns
+        -------
+        int
+            The cfgRev number
+        """
+        return self._cfg["cfgRev"]
+
+    @config_revision.setter
+    def config_revision(self, val: int):
+        self._cfg["cfgRev"] = val
 
     @property
     def device_name(self) -> str:
