@@ -173,10 +173,9 @@ class TCPConnection(threading.Thread):
         self.local_ip = ip.get_local_ip_address()
         if self.use_zeroconf:
             self.zeroconf = Zeroconf(ip_version=IPVersion.V4Only)
-            self.tcp_control = TCP(self.connection_id, "", 0)
             self._zconf_publish_tcp(port)
-        else:
-            self.tcp_control = TCP(self.connection_id, self.local_ip, port)
+        
+        self.tcp_control = TCP(self.connection_id, self.local_ip, port)
         self.start()
         time.sleep(1)
 
