@@ -127,6 +127,7 @@ class TestControls:
         logging.info("  Device Name: %s", args.device_name)
         self.tcp_con = dashio.TCPConnection()
         self.device = dashio.Device("ControlTest", args.device_id, args.device_name)
+        # self.device.config_revision = 2
         self.tcp_con.add_device(self.device)
 
         self.page_name = "TestTCP: " + platform.node()
