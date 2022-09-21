@@ -139,15 +139,16 @@ class Device(threading.Thread):
             dashboard_id = data[2]
             #  no_views = data[3]
         except IndexError:
-            return
+            return ""
         reply = self._device_id_str + f"\tCFG\t{dashboard_id}\tDVCE\t" + json.dumps(self._cfg) + "\n"
-        dviews = ""
-        for key, value in self._control_dict:
-            if key == "DVVW": 
-                dviews += self._device_id_str + value.get_cfg(data)
+        dvvw_str = ""
+        for value in self._control_dict.values():
+            if value.cntrl_type == "DVVW":
+                dvvw_str += self._device_id_str + value.get_cfg(data)
             else:
                 reply += self._device_id_str + value.get_cfg(data)
-        return reply + dviews  # Put the DVVWs last
+        reply += dvvw_str
+        return reply
 
     def send_alarm(self, alarm_id, message_header, message_body):
         """Send an Alarm to the Dash server.
