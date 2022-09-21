@@ -277,11 +277,12 @@ class DeviceView(Control):
         -------
         DeviceViewStyle
         """
-        return self._cfg["style"]
+        return self._style
 
     @style.setter
     def style(self, val: DeviceViewStyle):
-        self._cfg["style"] = val
+        self._style = val
+        self._cfg["style"] = str(val.value)
 
     @property
     def control_background_color(self) -> Color:
