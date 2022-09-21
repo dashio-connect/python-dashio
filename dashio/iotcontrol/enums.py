@@ -110,6 +110,12 @@ class SoundName(Enum):
     BOING = "Boing"
 
 
+class DeviceViewStyle(Enum):
+    """DeciveView Styles"""
+    BASIC = "BASIC"
+    BORDERS = "BORDERS"
+
+
 class ColorPickerStyle(Enum):
     """Picker styles"""
     WHEEL = "Wheel"

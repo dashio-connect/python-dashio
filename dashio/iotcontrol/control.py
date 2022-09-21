@@ -26,8 +26,8 @@ import json
 import logging
 
 from ..constants import BAD_CHARS
-from .enums import ColorPickerStyle, DialNumberPosition, DirectionStyle, GraphXAxisLabelsStyle, Keyboard, KnobStyle, Precision,\
-     TextAlignment, TitlePosition, Icon, Color, TextFormat, LabelStyle, SliderBarStyle, DialStyle, TimeGraphPositionOfKey
+from .enums import ColorPickerStyle, DeviceViewStyle, DialNumberPosition, DirectionStyle, GraphXAxisLabelsStyle, Keyboard, KnobStyle, Precision,\
+    TextAlignment, TitlePosition, Icon, Color, TextFormat, LabelStyle, SliderBarStyle, DialStyle, TimeGraphPositionOfKey
 from .event import Event
 
 
@@ -57,6 +57,10 @@ def _get_precision(precision_int: int) -> Precision:
 def _get_keyboard_type(keyboard_str: str) -> Keyboard:
     t_keyboard = keyboard_str.upper().replace(" ", "")
     return Keyboard[t_keyboard]
+
+def _get_device_view_style(device_vuew_style: str) -> DeviceViewStyle:
+    dvs_name = device_vuew_style.upper().replace(" ", "")
+    return DeviceViewStyle[dvs_name]
 
 def _get_color_picker_style(color_picker_style: str) -> ColorPickerStyle:
     cps_name = color_picker_style.upper().replace(" ", "")

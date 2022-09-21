@@ -141,9 +141,13 @@ class Device(threading.Thread):
         except IndexError:
             return
         reply = self._device_id_str + f"\tCFG\t{dashboard_id}\tDVCE\t" + json.dumps(self._cfg) + "\n"
-        for value in self._control_dict.values():
-            reply += self._device_id_str + value.get_cfg(data)
-        return reply
+        dviews = ""
+        for key, value in self._control_dict:
+            if key == "DVVW": 
+                dviews += self._device_id_str + value.get_cfg(data)
+            else:
+                reply += self._device_id_str + value.get_cfg(data)
+        return reply + dviews  # Put the DVVWs last
 
     def send_alarm(self, alarm_id, message_header, message_body):
         """Send an Alarm to the Dash server.

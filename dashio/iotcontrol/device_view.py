@@ -21,8 +21,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-from .control import Control, _get_color, _get_icon
-from .enums import Color, Icon
+from .control import Control, _get_color, _get_icon, _get_device_view_style
+from .enums import Color, Icon, DeviceViewStyle
 
 
 class DeviceView(Control):
@@ -36,6 +36,8 @@ class DeviceView(Control):
        Each control inherits the DeviceViews Control settings
     title : str
         The controls title
+    style : DeviceViewStyle
+        The style of the DeviceView
     icon : Icon
         The Icon representing the DeviceView
     color : Color
@@ -60,6 +62,7 @@ class DeviceView(Control):
         self,
         control_id,
         title="A DeviceView",
+        style=DeviceViewStyle.BASIC,
         icon=Icon.SQUARE,
         color=Color.BLACK,
         share_column=True,
@@ -68,7 +71,6 @@ class DeviceView(Control):
         control_title_box_transparency=0,
         control_color=Color.WHITE_SMOKE,
         control_border_color=Color.WHITE_SMOKE,
-        control_border_on=False,
         control_background_color=Color.BLACK,
         control_title_font_size=16,
         control_max_font_size=20,
@@ -78,12 +80,12 @@ class DeviceView(Control):
         self.icon_name = icon
         self.color = color
         self.share_column = share_column
+        self.style = style
         self.num_columns = num_columns
         self.control_title_box_color = control_title_box_color
         self.control_title_box_transparency = control_title_box_transparency
         self.control_color = control_color
         self.control_border_color = control_border_color
-        self.control_border_on = control_border_on
         self.control_background_color = control_background_color
         self.control_title_font_size = control_title_font_size
         self.control_max_font_size = control_max_font_size
@@ -114,7 +116,7 @@ class DeviceView(Control):
             cfg_dict["ctrlTitleBoxTransparency"],
             _get_color(cfg_dict["ctrlBorderColor"]),
             _get_color(cfg_dict["ctrlColor"]),
-            cfg_dict["ctrlBorderOn"],
+            _get_device_view_style(cfg_dict["style"]),
             _get_color(cfg_dict["ctrlBkgndColor"]),
             cfg_dict["ctrlTitleFontSize"],
             cfg_dict["ctrlMaxFontSize"],
@@ -268,19 +270,18 @@ class DeviceView(Control):
         self._cfg["ctrlBorderColor"] = str(val.value)
 
     @property
-    def control_border_on(self) -> bool:
-        """Control border display
+    def style(self) -> DeviceViewStyle:
+        """Sets the style of the DeviceView
 
         Returns
         -------
-        bool
-            Set to true to display the contol borders
+        DeviceViewStyle
         """
-        return self._cfg["ctrlBorderOn"]
+        return self._cfg["style"]
 
-    @control_border_on.setter
-    def control_border_on(self, val: bool):
-        self._cfg["ctrlBorderOn"] = val
+    @style.setter
+    def style(self, val: DeviceViewStyle):
+        self._cfg["style"] = val
 
     @property
     def control_background_color(self) -> Color:
