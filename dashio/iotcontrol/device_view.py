@@ -50,6 +50,10 @@ class DeviceView(Control):
         Title box color for controls
     control_title_box_transparency : int
         Title box transparency for controls
+    num_grid_columns : int
+        The num of grid columns on the edit view
+    num_grid_rows : int
+        The num of grid rows on the edit view
 
 
     Methods
@@ -75,6 +79,8 @@ class DeviceView(Control):
         control_title_font_size=16,
         control_max_font_size=20,
         control_background_transparency=0,
+        num_grid_columns=22,
+        num_grid_rows=32,
     ):
         super().__init__("DVVW", control_id, title=title)
         self.icon_name = icon
@@ -90,6 +96,8 @@ class DeviceView(Control):
         self.control_title_font_size = control_title_font_size
         self.control_max_font_size = control_max_font_size
         self.control_background_transparency = control_background_transparency
+        self.num_grid_columns = num_grid_columns
+        self.num_grid_rows = num_grid_rows
         self._state_str = ""
 
     @classmethod
@@ -120,7 +128,9 @@ class DeviceView(Control):
             _get_color(cfg_dict["ctrlBkgndColor"]),
             cfg_dict["ctrlTitleFontSize"],
             cfg_dict["ctrlMaxFontSize"],
-            cfg_dict["ctrlBkgndTransparency"]
+            cfg_dict["ctrlBkgndTransparency"],
+            cfg_dict["gridColumns"],
+            cfg_dict["gridRows"]
         )
 
     def add_control(self, control):
@@ -347,3 +357,36 @@ class DeviceView(Control):
             self._cfg["ctrlBkgndTransparency"] = val
         else:
             raise ValueError("Value must be in the range 0 to 100")
+
+
+    @property
+    def num_grid_columns(self) -> int:
+        """Number of grid Columns
+
+        Returns
+        -------
+        int
+            the Number of grid Columns
+        """
+        return self._cfg["gridColumns"]
+
+    @num_grid_columns.setter
+    def num_grid_columns(self, val: int):
+        self._cfg["gridRows"] = val
+
+
+    @property
+    def num_grid_rows(self) -> int:
+        """The number of grid rows
+
+        Returns
+        -------
+        int
+            the number of grid rows
+        """
+        return self._cfg["gridRows"]
+
+    @num_grid_rows.setter
+    def num_grid_rows(self, val: int):
+        self._cfg["gridRows"] = val
+        
