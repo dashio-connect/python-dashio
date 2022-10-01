@@ -144,12 +144,9 @@ class Device(threading.Thread):
         cfg = {}
         cfg["CFG"] = self._cfg
         for value in self._control_dict.values():
-            logging.debug(value.cntrl_type)
             if value.cntrl_type not in cfg:
-
                 cfg[value.cntrl_type] = []
             cfg[value.cntrl_type].append(value._cfg)
-        logging.debug("CFG: %s", json.dumps(cfg, indent=4))
         c64_json = encode_cfg64(cfg)
         reply += c64_json + "\n"
         return reply
