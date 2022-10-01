@@ -401,13 +401,23 @@ class Device(threading.Thread):
         self._device_commands_dict = {}
         self._device_commands_dict['CONNECT'] = self._make_connect
         self._device_commands_dict['STATUS'] = self._make_status
-        self._device_commands_dict['CFG'] = self._make_cfg64
+        self._device_commands_dict['CFG'] = self._make_cfg
         self._control_dict = {}
         self._cfg = {}
         self._device_id_str = f"\t{device_id}"
         self._cfg["numDeviceViews"] = 0
         self.running = True
         self.start()
+
+    def use_cfg64(self):
+        """Generate CFG64 formated CFG messages
+        """
+        self._device_commands_dict['CFG'] = self._make_cfg64
+
+    def use_cfg(self):
+        """Generate JSON formated CFG messages
+        """
+        self._device_commands_dict['CFG'] = self._make_cfg
 
     @property
     def number_of_device_views(self) -> int:
