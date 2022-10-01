@@ -31,22 +31,22 @@ import time
 import dashio
 import shortuuid
 
-cfg = "tVfbbts4EP0VY561ruTEjq033xIE8SWwlXaBoigoibGJUKSXohqnQf59MRQpX6I08bb7JpEUOXPmnDnUMxBOVJZD+PWbB3GhtRRX"\
-"ShabgxF8ebazY0FiTlMItSqoB4kUWkl+PYIQRvMvs++DaAYerClbrfWCaCYh9JtB0Gt32h6wRIoZySgulo8CPJD390PJpYIQFjTF"\
-"AeHerxSluGRDFBXanBDRXEfDW/BAM833tjGvtzJnmkkBIQzmUTSfggePLNXrKo5W0Ds/P/dg65ZWM37Lg6dXo93Oi/eBxO9uP5z2"\
-"3eYPJG02+Z9S9oOXb1hWLgtlSZDSHyyhQynu2QrCZxBFNjJDnxl9zCEMXjwo19iBr89mAyzqgJPkAQ55sqtiohUfPKxE6mpeLXcT"\
-"kSIiNwxIniD0PTCfSJVS5b75smaaNpaZfKB4EH5p5ucCwnvCc2SpVvzt5VOyvZRCL9lPCmHLnhEhwQZy6z7bj8zN1QZnJnf7BZ0D"\
-"2i//KYjCOEWRDSUvMoEAepCviaLlgJOWo7iFK2xk8Sbo/HXW5DIhHLBMKSO8FOeBDq/7kwDK2UvGq8xLgR1Js+X3LrpnHmRkC2Hg"\
-"N30PMiZQtL4JMqbKyQJCGI5n0Xjxlig3kgm9K8yAF5jpRtGE5UaXLQ8UTT8TnAgv2nhEvpaPUyameLytVq6fjLYHfTzJwdBvjBjh"\
-"bmAvpkrrhWA6hxCyT/kr5bfPet2gXaf81nmd8jtnJb6KJthSLMiE98UKY0OS7HW+4Xx6i4gfY2vbXm0HOwKr6nYHaDkobqXSn5aa"\
-"qFgShW1yHxUbY8NG5GZ/BZHIfhuhsy4iRH9QoSdyZVvFSpHN2j4/CBm/JufNbGCpuVOWoQly+VJyLh/zGyHjig3HmFq+4u5uh5LY"\
-"tQyuhX7HwZLwORXpXPCnuVhQTklOnQR/Qc7ZfDHtTxzWEEK/YcK2pakD/9CLTmVkcI54cxLTSvKlb1qZ7fNxgquuR8eMDFBwtYg4"\
-"nl0t5nf79tpvmANdmu9lZQ6oMdc6hfmYTkZFYemSU04TLY3poH/s7hXYAJd29jglvxm0et1e8EZeO5nsbWAG30vFb55aoNI5c85S"\
-"apOISWVStkgxUZbjS7OuYnlM1NK2veX46sgwl5PR4vtogGw7UkPvokz+DTWYDrtr57Wl34mh7MenaMHkcHQjdJCXCTZGsog52sAH"\
-"UW/V9eiLbi2DAnM7+4Mgvwb4wrLrDYCPDfMdhP9Du3kf4hOwPfH6GxgT1MlmKIUojRDvf2zTT1NFc/TaoNdqBp1uM2gGLR/NXioN"\
-"YbvT9l880HSrB3JLrQtwmdObOJ2LJRW1PxDR3xG66L1UGdEQwmw+G78uifuZeIjT6GmDPwH9CUqjFvu9y4dfBtTnbIW/CJPxZeSg"\
-"M+0boz3FQ3/bQbumo2uW0avKNl/+BQ=="
+cfg = "tVdbc+o2EP4rjJ7dFEMhHN4wJjQTYzO2Q85M2zljbAEaZIna8gGayX/vyhewMbdM2jch7fXbb9fLO3JH313U/+Md+ZyJiNNnHfWR"\
+"+91VkYI2XoSZyG5wLNzhFC4TRkQMN3AURFAMx0FD4J1o5BbgYYXJciVsTxCO+s0HtZXLTnlM4I6Bjma5rjWRRkB1QMlSXhqjJxeu"\
+"FjwKPQG/Tcscwe99oXew2PsNoouwT+LUWlNB63ng7jdpNIYBOlsSiNVBvgPyu5qVFtz6lMf4ZR5YzMEsQH0RJfjjLwXps9lbikss"\
+"9mmS2sB5HoJhX0R04u2eIFmH/AMvLfC+jEgw5DQJGUDTgnTjFWCX3WQ2FcSS8CCiKlW8D+hK6xqPAhyBLI/g7W1FBG44IV/j4n29"\
+"ZEHxrFHPX+cPN1TcyGNxWlN/n2Lmn9go6pmH02+E843a/aX9QLnv0dyUK4U0vjsXQPFW8yTxsfkWMm+3S6JHENWugghAYnqhjMD5"\
+"OwFtJAuhua6ZFoIvFoVPGweoiqBuvZk/NJBU0DwRgrMR8+YUBwX4nBW64whjdoncl4grPfAtQ1d4fIak3YzdWbNUCSk5Uidks1VB"\
+"IXX5odxI/XX6/yb+uvlc2k31i2mDQ1n4F9PSKh1oWvZkYJxk/2JqcBND71qM7i1mY4q9GBfph94OyNW8kHWEg5lHE5yJHMfZC+Pz"\
+"Oigt9QoO8YpvJ4RNpL+FR2N8DhoVBs4abFeLGRCPPnFKoT9Sx4W+vD92WYI/MdVCIqeiRNHQjBTEWjBVY1dTy/Ef29brFJVxot4c"\
+"00uUKlfJkIJwKs+cNKFa+CeoqzKHyWAKOcDBMXQ7owQlMCJPqF52KCV/6Jpxkxudm9ToHDN2UrcNnSfgt06Qb72vEkT2Tp0gcy/K"\
+"+ZEFcDAAD1cJcrbbHnupopNX1RmN0YEwyp3Q3oT1ky2X51VD9LH9VUTV9n+L6MUBdglSoO3Ynv6eEXhgTLKD/jzI+rK0xbSU0rJh"\
+"n3SQVJA72b3oPnbKjaoT78xeJgdaOnwIpVV8PjHuuwDwhhMm8ClysPDMcVSyMhyZ7sg+X7l7J1uxfoZ//hpXQHaMoWufH3VpW9Ud"\
+"XF5JD7g5QG1f8OieGSdvS/Lnwz/9zrbTGW2Nc3rM9OygueN85A0NOzu4RxZNRuZr/voEmu8owD+Jjx0skg0EwuAzqmzJgijC32R1"\
+"0FOBGcHbfPlcLG38M+14YJZd+czqo/HUOcltaE2mN/8RsBBVOQfUlgCU/hjAGjlgSynQvIL/KU1b53jX7tV4d9hwKj11H7NkHWQ6"\
+"gOaGR7C8dLodiJFsBkEQ4Vjmp35rPajd3oMK61ETfXz8Cw=="
 
+cfg_new = "eAHNV11z2joQ/SuMn9s0hjTJ7RvGoc2EYMZ20s50Oh1/CKxGlqgkN3Az+e/dlcExIFro9KEvibVa7a7Ont0VT85g+N5513lyeFX65AfNyD0ljwpE7quOk01nIfmBi2dY+f3ow3UAq89PTqWIHCclgZXzDf4rBxQKofRdOEJZnqjiBP9QcUKF8/wFz9/ff6xPa6qZORoTpePB5F2nTOfu+eveCRNZwtBWJriWgl37aG2lhnIKG2vH0fcqkaTWZkKi5imuVAHigWBVyUGmZUVQqJe1T68fXQ9QDa5cKzXX1ZLFGJonFrDTspi1dmKZcDUHDzxbgvlTsITbzYGzMxMRiDwhcyJtGw8znjdyE3PjYQgXj+j/CI97vrJ9myxa4u7apYdmLOHMJM1DYbLY6xnovTgeg0FIXAO9Lx45BmoEE6GopgLhcjyhtSjNHdo58IOP468emIEzi7V+mMApBOHktAvy5a78Eu/wSHNdvOh2UbcgdFboF6GLwrQC3/yKJykjOdhd5a6d9HXcgjcAugZBMZ02EpMCTRYaL4QRm3zpTTYBp1t43M2PQeNu8gdYnGJN/U0s6pj/AhJYnvHVpxjganOk30EMO6taPAaf+FPs7mFK9wyc2ZiC8i103qLMyhQMrM/ozFCWkalGbxWnGou5TrkkGVU1qbFipkKWiSHEOBhfofpDmsfLuWlE/dEIJRkTitykecAjwlsEtNLH9LTrPva7TdB8Wvewg0sLjByL1nkPwj0ErS6SrqSIE6JQJgv4cvFTkvw+YRXe/+ItrHMIe0hZq5MhJHNBuW51MfcSpdA7UyLX5Q4WnIygGu6pQjzeUg5NC+TThKmN9psmRmneyg5WfpO68o2ZJXsRvxkHHtjdRPyGixRdH4r4zdhDdUsf28dO91B2GrybYTMOwltgCPj6XQpMSuzQARUDzpYBDwkjicKErRqjSZlgDJq9geAFb9xp2mGdswcAqRGZDrkX5Gg0iMMdlCNwn2kYi0cgjaO7fe4IyG3t0t4QsBaUCa4u98/OkEplWkJEoHvlGHFcUGk+hkLqAiVDOoUPLONfAOFv4xAxClO944sKhtQxUEQjP/zqe4YNFhguLiEQS1+0wWAboP/h+W2WYV236hyXdo6ZS+0MXrWfelDHw5p5NSCtWoethmc19UASrd9fiswQtQPZuDGjV57g9KGFjpijNwve+14srqWzWl8sF6i4Dfh2Z/1FWf+rkNdzbZv2/Y5PoWfjK/FPHgSD4HZy7IzrIaMPmnFYDzuDqn5XJ6zPZ+bljzOvacw5mc3NoGkGDzdv3u25tLczjKCQt8cQS1Jifr0cSs8RHoBXKUS2y1AQ7rYDEG4ggtN984Fkfritf73U5dfc+n0Y3E3Qm/1azz8BwFtGrA=="
 
 SHUTDOWN = False
 COUNTER = 0
@@ -144,6 +144,7 @@ def main():
     dash_conn.add_device(device)
 
     config_dict = dashio.decode_cfg64(cfg)
+    logging.debug("CFG: %s", json.dumps(config_dict, indent=4))
     controls = {}
 
     def up_btn_event_handler(msg):
@@ -187,8 +188,8 @@ def main():
         controls['TXT1'].message_rx_event = text_cntrl_message_handler
         controls['TestSelector'].message_rx_event = selector_ctrl_handler
     except KeyError:
-        logging.debug("%s",controls)
-
+        logging.debug("%s", controls)
+    device.config_revision = 1
     controls['TestSelector'].add_selection("First")
     controls['TestSelector'].add_selection("Second")
     controls['TestSelector'].add_selection("Third")

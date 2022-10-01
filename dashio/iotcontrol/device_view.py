@@ -116,6 +116,7 @@ class DeviceView(Control):
         return cls(
             cfg_dict["controlID"],
             cfg_dict["title"],
+            _get_device_view_style(cfg_dict["style"]),
             _get_icon(cfg_dict["iconName"]),
             _get_color(cfg_dict["color"]),
             cfg_dict["shareColumn"],
@@ -124,7 +125,6 @@ class DeviceView(Control):
             cfg_dict["ctrlTitleBoxTransparency"],
             _get_color(cfg_dict["ctrlBorderColor"]),
             _get_color(cfg_dict["ctrlColor"]),
-            _get_device_view_style(cfg_dict["style"]),
             _get_color(cfg_dict["ctrlBkgndColor"]),
             cfg_dict["ctrlTitleFontSize"],
             cfg_dict["ctrlMaxFontSize"],
