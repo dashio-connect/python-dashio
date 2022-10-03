@@ -75,13 +75,16 @@ class Menu(Control):
         -------
         Menu
         """
-        return cls(
+        tmp_cls = cls(
             cfg_dict["controlID"],
             cfg_dict["title"],
+            cfg_dict["text"],
             _get_icon(cfg_dict["iconName"]),
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
             _get_title_position(cfg_dict["titlePosition"])
         )
+        tmp_cls.parent_id = cfg_dict["parentID"]
+        return tmp_cls
 
     def add_control(self, control):
         """Add a control to the menu

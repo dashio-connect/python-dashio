@@ -92,7 +92,7 @@ class ButtonGroup(Control):
         -------
         ButtonGroup
         """
-        return cls(
+        tmp_cls = cls(
             cfg_dict["controlID"],
             cfg_dict["title"],
             cfg_dict["text"],
@@ -101,6 +101,8 @@ class ButtonGroup(Control):
             cfg_dict["gridView"],
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
         )
+        tmp_cls.parent_id = cfg_dict["parentID"]
+        return tmp_cls
 
     def add_button(self, control):
         """[summary]

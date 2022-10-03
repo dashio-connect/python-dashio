@@ -107,7 +107,7 @@ class Dial(Control):
         Dial
         """
         
-        return cls(
+        tmp_cls = cls(
             cfg_dict["controlID"],
             cfg_dict["title"],
             _get_title_position(cfg_dict["titlePosition"]),
@@ -123,6 +123,8 @@ class Dial(Control):
             cfg_dict["units"],
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
         )
+        tmp_cls.parent_id = cfg_dict["parentID"]
+        return tmp_cls
 
     def get_state(self):
         return self._control_hdr_str + f"{self._dial_value}\n"

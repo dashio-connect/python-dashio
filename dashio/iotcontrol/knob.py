@@ -105,7 +105,7 @@ class Knob(Control):
         -------
         Knob
         """
-        return cls(
+        tmp_cls = cls(
             cfg_dict["controlID"],
             cfg_dict["title"],
             _get_title_position(cfg_dict["titlePosition"]),
@@ -120,6 +120,8 @@ class Knob(Control):
             _get_color(cfg_dict["knobColor"]),
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
         )
+        tmp_cls.parent_id = cfg_dict["parentID"]
+        return tmp_cls
 
     def get_state(self):
         return self._knob_dial_state_str

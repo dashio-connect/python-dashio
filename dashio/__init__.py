@@ -26,7 +26,7 @@ from .tcpconnection import TCPConnection
 from .mqttconnection import MQTTConnection
 from .zmqconnection import ZMQConnection
 from .dashconnection import DashConnection
-from .load_config import decode_cfg64, encode_cfg64, load_controls_from_config
+from .load_config import decode_cfg64, encode_cfg64, load_all_controls_from_config, load_control_from_config
 # from .bleconnection import BLEConnection
 from .iotcontrol.enums import (
     Color,
