@@ -86,7 +86,7 @@ class Direction(Control):
         -------
         Direction
         """
-        return cls(
+        tmp_cls = cls(
             cfg_dict["controlID"],
             cfg_dict["title"],
             _get_direction_style(cfg_dict["style"]),
@@ -97,6 +97,8 @@ class Direction(Control):
             cfg_dict["calAngle"],
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
         )
+        tmp_cls.parent_id = cfg_dict["parentID"]
+        return tmp_cls
 
     def get_state(self):
         if self._direction_text:

@@ -46,8 +46,6 @@ cfg = "tVdbc+o2EP4rjJ7dFEMhHN4wJjQTYzO2Q85M2zljbAEaZIna8gGayX/vyhewMbdM2jch7fXbb
 "0FOBGcHbfPlcLG38M+14YJZd+czqo/HUOcltaE2mN/8RsBBVOQfUlgCU/hjAGjlgSynQvIL/KU1b53jX7tV4d9hwKj11H7NkHWQ6"\
 "gOaGR7C8dLodiJFsBkEQ4Vjmp35rPajd3oMK61ETfXz8Cw=="
 
-cfg_new = "eAHNV11z2joQ/SuMn9s0hjTJ7RvGoc2EYMZ20s50Oh1/CKxGlqgkN3Az+e/dlcExIFro9KEvibVa7a7Ont0VT85g+N5513lyeFX65AfNyD0ljwpE7quOk01nIfmBi2dY+f3ow3UAq89PTqWIHCclgZXzDf4rBxQKofRdOEJZnqjiBP9QcUKF8/wFz9/ff6xPa6qZORoTpePB5F2nTOfu+eveCRNZwtBWJriWgl37aG2lhnIKG2vH0fcqkaTWZkKi5imuVAHigWBVyUGmZUVQqJe1T68fXQ9QDa5cKzXX1ZLFGJonFrDTspi1dmKZcDUHDzxbgvlTsITbzYGzMxMRiDwhcyJtGw8znjdyE3PjYQgXj+j/CI97vrJ9myxa4u7apYdmLOHMJM1DYbLY6xnovTgeg0FIXAO9Lx45BmoEE6GopgLhcjyhtSjNHdo58IOP468emIEzi7V+mMApBOHktAvy5a78Eu/wSHNdvOh2UbcgdFboF6GLwrQC3/yKJykjOdhd5a6d9HXcgjcAugZBMZ02EpMCTRYaL4QRm3zpTTYBp1t43M2PQeNu8gdYnGJN/U0s6pj/AhJYnvHVpxjganOk30EMO6taPAaf+FPs7mFK9wyc2ZiC8i103qLMyhQMrM/ozFCWkalGbxWnGou5TrkkGVU1qbFipkKWiSHEOBhfofpDmsfLuWlE/dEIJRkTitykecAjwlsEtNLH9LTrPva7TdB8Wvewg0sLjByL1nkPwj0ErS6SrqSIE6JQJgv4cvFTkvw+YRXe/+ItrHMIe0hZq5MhJHNBuW51MfcSpdA7UyLX5Q4WnIygGu6pQjzeUg5NC+TThKmN9psmRmneyg5WfpO68o2ZJXsRvxkHHtjdRPyGixRdH4r4zdhDdUsf28dO91B2GrybYTMOwltgCPj6XQpMSuzQARUDzpYBDwkjicKErRqjSZlgDJq9geAFb9xp2mGdswcAqRGZDrkX5Gg0iMMdlCNwn2kYi0cgjaO7fe4IyG3t0t4QsBaUCa4u98/OkEplWkJEoHvlGHFcUGk+hkLqAiVDOoUPLONfAOFv4xAxClO944sKhtQxUEQjP/zqe4YNFhguLiEQS1+0wWAboP/h+W2WYV236hyXdo6ZS+0MXrWfelDHw5p5NSCtWoethmc19UASrd9fiswQtQPZuDGjV57g9KGFjpijNwve+14srqWzWl8sF6i4Dfh2Z/1FWf+rkNdzbZv2/Y5PoWfjK/FPHgSD4HZy7IzrIaMPmnFYDzuDqn5XJ6zPZ+bljzOvacw5mc3NoGkGDzdv3u25tLczjKCQt8cQS1Jifr0cSs8RHoBXKUS2y1AQ7rYDEG4ggtN984Fkfritf73U5dfc+n0Y3E3Qm/1azz8BwFtGrA=="
-
 SHUTDOWN = False
 COUNTER = 0
 
@@ -142,7 +140,7 @@ def main():
         config_file_parser.get('DEFAULT', 'password')
     )
     dash_conn.add_device(device)
-
+    device.use_cfg64()
     config_dict = dashio.decode_cfg64(cfg)
     logging.debug("CFG: %s", json.dumps(config_dict, indent=4))
     controls = {}

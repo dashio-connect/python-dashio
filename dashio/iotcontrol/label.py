@@ -61,7 +61,7 @@ class Label(Control):
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict):
-        """Instatiates Knob from cfg dictionary
+        """Instatiates a label from cfg dictionary
 
         Parameters
         ----------
@@ -72,7 +72,7 @@ class Label(Control):
         -------
         Knob
         """
-        return cls(
+        tmp_cls = cls(
             cfg_dict["controlID"],
             cfg_dict["title"],
             _get_title_position(cfg_dict["titlePosition"]),
@@ -80,6 +80,8 @@ class Label(Control):
             _get_label_style(cfg_dict["style"]),
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
         )
+        tmp_cls.parent_id = cfg_dict["parentID"]
+        return tmp_cls
 
     @property
     def style(self) -> LabelStyle:

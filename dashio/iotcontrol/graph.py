@@ -105,7 +105,7 @@ class Graph(Control):
         -------
         Graph
         """
-        return cls(
+        tmp_cls = cls(
             cfg_dict["controlID"],
             cfg_dict["title"],
             _get_title_position(cfg_dict["titlePosition"]),
@@ -120,6 +120,8 @@ class Graph(Control):
             cfg_dict["yAxisNumBars"],
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
         )
+        tmp_cls.parent_id = cfg_dict["parentID"]
+        return tmp_cls
 
     def add_line(self, line_id: str, gline: GraphLine):
         """Add a line to the graph

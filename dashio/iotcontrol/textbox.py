@@ -97,7 +97,7 @@ class TextBox(Control):
         -------
         TextBox
         """
-        return cls(
+        tmp_cls = cls(
             cfg_dict["controlID"],
             cfg_dict["title"],
             _get_title_position(cfg_dict["titlePosition"]),
@@ -110,6 +110,8 @@ class TextBox(Control):
             cfg_dict["closeKbdOnSend"],
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
         )
+        tmp_cls.parent_id = cfg_dict["parentID"]
+        return tmp_cls
 
     @property
     def text(self) -> str:
