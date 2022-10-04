@@ -101,7 +101,6 @@ def parse_commandline_arguments():
 
 def main():
 
-
     signal.signal(signal.SIGINT, signal_cntrl_c)
     args = parse_commandline_arguments()
     init_logging(args.logfilename, args.verbose)
@@ -177,7 +176,7 @@ def main():
         print(controls['TestSelector'].selection_list[int(msg[3])])
 
     try:
-        controls = dashio.load_controls_from_config(device, config_dict)
+        controls = dashio.load_all_controls_from_config(device, config_dict)
         controls['UP_BTN'].message_rx_event = up_btn_event_handler
         controls['DOWN_BTN'].message_rx_event = down_btn_event_handler
         controls['SLDR'].message_rx_event = slider_event_handler

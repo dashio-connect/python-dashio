@@ -101,54 +101,9 @@ def load_all_controls_from_config(device, cfg_dict) -> dict:
         Dictionary of the control objects
     """
     controls_dict = {}
-    for device_view in cfg_dict["DVVW"]:
-        controls_dict[device_view["controlID"]] = DeviceView.from_cfg_dict(device_view)
-    for menu in cfg_dict["MENU"]:
-        controls_dict[menu["controlID"]] = Menu.from_cfg_dict(menu)
-        device.add_control(controls_dict[menu["controlID"]])
-    for button_g in cfg_dict["BTGP"]:
-        controls_dict[button_g["controlID"]] = ButtonGroup.from_cfg_dict(button_g)
-        device.add_control(controls_dict[button_g["controlID"]])
-    for button in cfg_dict["BTTN"]:
-        controls_dict[button["controlID"]] = Button.from_cfg_dict(button)
-        device.add_control(controls_dict[button["controlID"]])
-    for text_box in cfg_dict["TEXT"]:
-        controls_dict[text_box["controlID"]] = TextBox.from_cfg_dict(text_box)
-        device.add_control(controls_dict[text_box["controlID"]])
-    for graph in cfg_dict["GRPH"]:
-        controls_dict[graph["controlID"]] = Graph.from_cfg_dict(graph)
-        device.add_control(controls_dict[graph["controlID"]])
-    for dial in cfg_dict["DIAL"]:
-        controls_dict[dial["controlID"]] = Dial.from_cfg_dict(dial)
-        device.add_control(controls_dict[dial["controlID"]])
-    for color_p in cfg_dict["CLR"]:
-        controls_dict[color_p["controlID"]] = ColorPicker.from_cfg_dict(color_p)
-        device.add_control(controls_dict[color_p["controlID"]])
-    for knob in cfg_dict["KNOB"]:
-        controls_dict[knob["controlID"]] = Knob.from_cfg_dict(knob)
-        device.add_control(controls_dict[knob["controlID"]])
-    for time_graph in cfg_dict["TGRPH"]:
-        controls_dict[time_graph["controlID"]] = TimeGraph.from_cfg_dict(time_graph)
-        device.add_control(controls_dict[time_graph["controlID"]])
-    for selector in cfg_dict["SLCTR"]:
-        controls_dict[selector["controlID"]] = Selector.from_cfg_dict(selector)
-        device.add_control(controls_dict[selector["controlID"]])
-    for slider in cfg_dict["SLDR"]:
-        controls_dict[slider["controlID"]] = Slider.from_cfg_dict(slider)
-        device.add_control(controls_dict[slider["controlID"]])
-    for direction in cfg_dict["DIR"]:
-        controls_dict[direction["controlID"]] = Direction.from_cfg_dict(direction)
-        device.add_control(controls_dict[direction["controlID"]])
-    for event_log in cfg_dict["LOG"]:
-        controls_dict[event_log["controlID"]] = EventLog.from_cfg_dict(event_log)
-        device.add_control(controls_dict[event_log["controlID"]])
-    for label in cfg_dict["LBL"]:
-        controls_dict[label["controlID"]] = Label.from_cfg_dict(label)
-        device.add_control(controls_dict[label["controlID"]])
-
-    #  for audio_visual in cfg_dict["audioVisuals"]:
-        # TODO
-    #    pass
-    #
+    for control_type, control_list in cfg_dict.items():
+        if isinstance(control_list, list):
+            for control in control_list:
+                controls_dict[control["controlID"]] = CONTROL_INSTANCE_DICT[control_type].from_cfg_dict(control)
+                device.add_control(controls_dict[control["controlID"]])
     return controls_dict
-
