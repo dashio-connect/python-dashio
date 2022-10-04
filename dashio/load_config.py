@@ -1,10 +1,12 @@
 import json
 import base64
 import zlib
-from .iotcontrol import Label, DeviceView, Menu, ButtonGroup, Button, TextBox, Graph, Dial, ColorPicker, TimeGraph, Selector, Slider, Direction, EventLog, Knob
+
+from .iotcontrol import Label, DeviceView, Menu, ButtonGroup, Button, TextBox, Graph, Dial, ColorPicker, TimeGraph, Selector, Slider, Direction, EventLog, Knob, AudioVisualDisplay
 
 
 CONTROL_INSTANCE_DICT = {
+    "AVD": AudioVisualDisplay,
     "DVVW": DeviceView,
     "MENU": Menu,
     "BTGP": ButtonGroup,

@@ -50,6 +50,7 @@ from .iotcontrol.enums import (
     DirectionStyle,
     ColorPickerStyle
 )
+from .iotcontrol.audio_visual_display import AudioVisualDisplay
 from .iotcontrol.graph import Graph, GraphLine
 from .iotcontrol.slider import Slider
 from .iotcontrol.textbox import TextBox
