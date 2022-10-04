@@ -21,9 +21,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-from .control import Control
+from .control import Control, ControlPosition, _get_title_position
 from .enums import (TitlePosition)
-
 
 class AudioVisualDisplay(Control):
     """AudioVisualDisplay Control
@@ -50,8 +49,43 @@ class AudioVisualDisplay(Control):
             Position of the title when displayed on the iotdashboard app, by default None
         """
         super().__init__("AVD", control_id, title=title, control_position=control_position, title_position=title_position)
-        self._url = ""
+        self.url = ""
 
+    @classmethod
+    def from_cfg_dict(cls, cfg_dict: dict):
+        """Instatiates Button from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        Button
+        """
+        tmp_cls = cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            _get_title_position(cfg_dict["titlePosition"]),
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+        )
+        tmp_cls.parent_id = cfg_dict["parentID"]
+        return tmp_cls
+
+
+    def get_state(self):
+        """get_state is called by iotdashboard
+
+        Returns
+        -------
+        str
+            The controls state
+        """
+        if self.url:
+            return self._control_hdr_str + f"{self.url}\n"
+        return ""
+        
     @property
     def url(self) -> str:
         """URL
@@ -61,7 +95,7 @@ class AudioVisualDisplay(Control):
         str
             The url of the media to play
         """
-        return self._dial_value
+        return self._url
 
     @url.setter
     def url(self, val: str):
