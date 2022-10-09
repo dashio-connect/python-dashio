@@ -128,17 +128,6 @@ class ControlPosition:
         self.width_ratio = width_ratio
         self.height_ratio = height_ratio
 
-    def set_size(self, num_columns: str):
-        """Called by iotdashboard when a CFG is asked for
-
-        Parameters
-        ----------
-        num_columns : str
-            The number of columns available on the dashboard.
-        """
-        logging.debug("Number of Columns: %s", num_columns)
-
-
 class Control:
     """Base class for controls.
     """
@@ -166,10 +155,25 @@ class Control:
             dashboard_id = data[2]
         except IndexError:
             return
-        if self.control_position:
-            self.control_position.set_size(num_columns)
+        if self._control_position_column_1 and num_columns == 1:
+            self._cfg["xPositionRatio"] = self._control_position_column_1.x_position_ratio
+            self._cfg["yPositionRatio"] = self._control_position_column_1.y_position_ratio
+            self._cfg["widthRatio"] = self._control_position_column_1.width_ratio
+            self._cfg["heightRatio"] = self._control_position_column_1.height_ratio
+        if self._control_position_column_2 and num_columns == 2:
+            self._cfg["xPositionRatio"] = self._control_position_column_2.x_position_ratio
+            self._cfg["yPositionRatio"] = self._control_position_column_2.y_position_ratio
+            self._cfg["widthRatio"] = self._control_position_column_2.width_ratio
+            self._cfg["heightRatio"] = self._control_position_column_2.height_ratio
+        if self._control_position_column_3 and num_columns == 3:
+            self._cfg["xPositionRatio"] = self._control_position_column_3.x_position_ratio
+            self._cfg["yPositionRatio"] = self._control_position_column_3.y_position_ratio
+            self._cfg["widthRatio"] = self._control_position_column_3.width_ratio
+            self._cfg["heightRatio"] = self._control_position_column_3.height_ratio
+
         cfg_str = f"\tCFG\t{dashboard_id}\t" + self.cntrl_type + "\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
+
 
     def __init__(self, cntrl_type: str, control_id: str, title=None, control_position=None, title_position=None):
         """Control base type - all controls have these charactoristics and methods.
@@ -183,7 +187,7 @@ class Control:
         title : [type], optional
             Title of the control, by default None
         control_position : ControlPosition, optional
-            The position of the control on a DeviceView, by default None
+            The position of the control on a DeviceView this sets for number of columns = 1, by default None
         title_position : TitlePosition, optional
             Position of the title when displayed on the iotdashboard app, by default None
         """
@@ -201,9 +205,11 @@ class Control:
         self.message_rx_event = Event()
         self.message_tx_event = Event()
         self._control_hdr_str = f"\t{{device_id}}\t{self.cntrl_type}\t{self.control_id}\t"
-        self._control_position = None
+        self._control_position_column_1 = None
+        self._control_position_column_2 = None
+        self._control_position_column_3 = None
         if control_position is not None:
-            self.control_position = control_position
+            self.control_position_column_1 = control_position
 
     @property
     def state_str(self) -> str:
@@ -269,25 +275,47 @@ class Control:
         self._cfg["title"] = _val
 
     @property
-    def control_position(self) -> ControlPosition:
+    def control_position_column_1(self) -> ControlPosition:
+        """Control Position for 1 column device
+
+        Returns:
+            ControlPosition: The position of the control on the DeviceView
+        """
+        return self._control_position_column_1
+
+    @control_position_column_1.setter
+    def control_position_column_1(self, val: ControlPosition):
+        self._control_position_column_1 = copy.copy(val)
+
+    @property
+    def control_position_column_2(self) -> ControlPosition:
+        """Control Position for 2 column device
+
+        Returns:
+            ControlPosition: The position of the control on the DeviceView
+        """
+        return self._control_position_column_2
+
+    @control_position_column_2.setter
+    def control_position_column_2(self, val: ControlPosition):
+        self._control_position_column_2 = copy.copy(val)
+
+    @property
+    def control_position_column_3(self) -> ControlPosition:
         """Control Position
 
         Returns:
             ControlPosition: The position of the control on the DeviceView
         """
-        return self._control_position
+        return self._control_position_column_3
 
-    @control_position.setter
-    def control_position(self, val: ControlPosition):
-        self._control_position = copy.copy(val)
-        self._cfg["xPositionRatio"] = val.x_position_ratio
-        self._cfg["yPositionRatio"] = val.y_position_ratio
-        self._cfg["widthRatio"] = val.width_ratio
-        self._cfg["heightRatio"] = val.height_ratio
+    @control_position_column_3.setter
+    def control_position_column_3(self, val: ControlPosition):
+        self._control_position_column_3 = copy.copy(val)
 
     @property
     def title_position(self) -> TitlePosition:
-        """Title position
+        """Title position for 3 column device
 
         Returns:
             TitlePosition: The position of the title
