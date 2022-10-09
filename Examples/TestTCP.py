@@ -248,6 +248,7 @@ class TestControls:
         self.device.add_control(self.sldr_cntrl)
         self.device.add_control(self.down_btn)
         self.device.add_control(self.up_btn)
+        self.device.config_revision = 1
 
         while not self.shutdown:
             time.sleep(5)
