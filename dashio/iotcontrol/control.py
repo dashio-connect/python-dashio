@@ -147,11 +147,10 @@ class Control:
         str
             The CFG for this control
         """
-        logging.debug("CFG: %s", data)
         try:
             num_columns = int(data[3])
             dashboard_id = data[2]
-        except IndexError:
+        except (IndexError, ValueError):
             return
         if self._control_position_column_3 and num_columns == 3:
             self._cfg["xPositionRatio"] = self._control_position_column_3.x_position_ratio
