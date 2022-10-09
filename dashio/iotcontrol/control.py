@@ -103,8 +103,6 @@ class ControlPosition:
     """
     ControlPosition
         Used to describe a controls position.
-        Inherit this class to overide the set_size() if you want
-        to alter the device layout based on the iotdashboards number of columns.
     """
     def __init__(self, x_position_ratio: float, y_position_ratio: float, width_ratio: float, height_ratio: float):
         """The ControlPosition class describes the location and size of a control on a DeviceView. The
@@ -151,25 +149,25 @@ class Control:
         """
         logging.debug("CFG: %s", data)
         try:
-            num_columns = data[3]
+            num_columns = int(data[3])
             dashboard_id = data[2]
         except IndexError:
             return
-        if self._control_position_column_1 and num_columns == 1:
-            self._cfg["xPositionRatio"] = self._control_position_column_1.x_position_ratio
-            self._cfg["yPositionRatio"] = self._control_position_column_1.y_position_ratio
-            self._cfg["widthRatio"] = self._control_position_column_1.width_ratio
-            self._cfg["heightRatio"] = self._control_position_column_1.height_ratio
-        if self._control_position_column_2 and num_columns == 2:
-            self._cfg["xPositionRatio"] = self._control_position_column_2.x_position_ratio
-            self._cfg["yPositionRatio"] = self._control_position_column_2.y_position_ratio
-            self._cfg["widthRatio"] = self._control_position_column_2.width_ratio
-            self._cfg["heightRatio"] = self._control_position_column_2.height_ratio
         if self._control_position_column_3 and num_columns == 3:
             self._cfg["xPositionRatio"] = self._control_position_column_3.x_position_ratio
             self._cfg["yPositionRatio"] = self._control_position_column_3.y_position_ratio
             self._cfg["widthRatio"] = self._control_position_column_3.width_ratio
             self._cfg["heightRatio"] = self._control_position_column_3.height_ratio
+        elif self._control_position_column_2 and num_columns == 2 or num_columns == 3:
+            self._cfg["xPositionRatio"] = self._control_position_column_2.x_position_ratio
+            self._cfg["yPositionRatio"] = self._control_position_column_2.y_position_ratio
+            self._cfg["widthRatio"] = self._control_position_column_2.width_ratio
+            self._cfg["heightRatio"] = self._control_position_column_2.height_ratio
+        elif self._control_position_column_1:
+            self._cfg["xPositionRatio"] = self._control_position_column_1.x_position_ratio
+            self._cfg["yPositionRatio"] = self._control_position_column_1.y_position_ratio
+            self._cfg["widthRatio"] = self._control_position_column_1.width_ratio
+            self._cfg["heightRatio"] = self._control_position_column_1.height_ratio
 
         cfg_str = f"\tCFG\t{dashboard_id}\t" + self.cntrl_type + "\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
