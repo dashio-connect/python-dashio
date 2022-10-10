@@ -63,7 +63,7 @@ def encode_cfg64(cfg: dict) -> str:
     tmp_z += compress.flush()
     return base64.b64encode(tmp_z).decode()
 
-def load_control_from_config(control_id: str, cfg_dict: dict):
+def get_control_from_config(control_id: str, cfg_dict: dict):
     """Returns a control object instantiated from cfg_dict
 
     Parameters
@@ -82,6 +82,28 @@ def load_control_from_config(control_id: str, cfg_dict: dict):
             for control in control_list:
                 if control["controlID"] == control_id:
                     return CONTROL_INSTANCE_DICT[control_type].from_cfg_dict(control)
+    raise Exception(f"Control with control_id: {control_id} not found")
+
+
+def get_control_dict_from_config(control_id: str, cfg_dict: dict) -> dict:
+    """Returns a control config dictionary from cfg_dict
+
+    Parameters
+    ----------
+    control_id : str
+        The control_id of the control within the dict to return
+    cfg_dict : dict
+        dictionary of the CFG loaded by decode_cfg from a CFG64 or json
+
+    Returns
+    -------
+        A dictionary for a control.
+    """
+    for _, control_list in cfg_dict.items():
+        if isinstance(control_list, list):
+            for control in control_list:
+                if control["controlID"] == control_id:
+                    return control
     raise Exception(f"Control with control_id: {control_id} not found")
 
 
