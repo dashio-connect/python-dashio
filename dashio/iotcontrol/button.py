@@ -111,7 +111,7 @@ class Button(Control):
             _get_icon(cfg_dict["iconName"]),
             _get_color(cfg_dict["onColor"]),
             _get_color(cfg_dict["offColor"]),
-            "",
+            cfg_dict["text"],
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
