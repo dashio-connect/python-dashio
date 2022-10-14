@@ -25,9 +25,10 @@ import json
 import logging
 import ssl
 import threading
-import shortuuid
 import time
+
 import paho.mqtt.client as mqtt
+import shortuuid
 import zmq
 
 from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
@@ -49,10 +50,10 @@ class MQTT():
             The CFG string for this control
         """
         try:
-            num_columns = data[3]
+            # num_columns = data[3]
             dashboard_id = data[2]
         except IndexError:
-            return
+            return ""
         cfg_str = f"\tCFG\t{dashboard_id}\t{self.cntrl_type}\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
 
@@ -259,7 +260,7 @@ class MQTTConnection(threading.Thread):
                     logging.debug("%s TX: %s", self.b_connection_id.decode('utf-8'), data.decode('utf-8').rstrip())
                     data_topic = f"{self.username}/{device_id}/data"
                     self.mqttc.publish(data_topic, data)
-            
+
             if self._disconnected:
                 self.disconnect_timeout = min(self.disconnect_timeout, 900)
                 time.sleep(self.disconnect_timeout)
@@ -268,9 +269,6 @@ class MQTTConnection(threading.Thread):
                 except mqtt.socket.gaierror as error:
                     logging.debug("No connection to internet: %s", str(error))
                 self.disconnect_timeout = self.disconnect_timeout * 2
-
-
-
 
         self.mqttc.loop_stop()
         self.tx_zmq_pub.close()
