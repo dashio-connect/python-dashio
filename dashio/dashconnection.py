@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+import datetime
 import json
 import logging
 import ssl
@@ -121,7 +122,7 @@ class DashConnection(threading.Thread):
     def _on_connect(self, client, userdata, flags, msg):
         if msg == 0:
             self._connected = True
-            self._disconnect = False
+            self._disconnected = False
             for device_id in self._device_id_list:
                 control_topic = f"{self.username}/{device_id}/control"
                 self._dash_c.subscribe(control_topic, 0)
@@ -133,7 +134,8 @@ class DashConnection(threading.Thread):
     def _on_disconnect(self, client, userdata, msg):
         logging.debug("disconnecting reason  %s", msg)
         self._connected = False
-        self._disconnect = True
+        self._disconnected = True
+        self.disconnect_timeout = 1.0
 
     def _on_message(self, client, obj, msg):
         data = str(msg.payload, "utf-8").strip()
@@ -216,7 +218,7 @@ class DashConnection(threading.Thread):
 
         self.context = context or zmq.Context.instance()
         self._connected = False
-        self._disconnect = True
+        self._disconnected = True
         self._connection_id = shortuuid.uuid()
         self._b_connection_id = self._connection_id.encode('utf-8')
         self._device_id_list = []
@@ -251,6 +253,7 @@ class DashConnection(threading.Thread):
             self._dash_c.username_pw_set(username, password)
             self._dash_c.connect(host, port)
         # Start subscribe, with QoS level 0
+        self.disconnect_timeout = 30.0
         self.start()
         time.sleep(1)
 
@@ -273,6 +276,7 @@ class DashConnection(threading.Thread):
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self._connection_id)
         poller = zmq.Poller()
         poller.register(self.rx_zmq_sub, zmq.POLLIN)
+        
 
         while self.running:
             try:
@@ -298,6 +302,14 @@ class DashConnection(threading.Thread):
                 if self._connected:
                     logging.debug("DASH TX:\n%s", data.decode('utf-8').rstrip())
                     self._dash_c.publish(data_topic, data.decode('utf-8'))
+            
+            if self._disconnected:
+                self.disconnect_timeout = min(self.disconnect_timeout, 900)
+                time.sleep(self.disconnect_timeout)
+                self._dash_c.connect(self.host, self.port)
+                self.disconnect_timeout = self.disconnect_timeout * 2
+
+
 
         # if self.connected:
         #     self.dash_c.publish(self.announce_topic, "disconnect")

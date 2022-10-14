@@ -49,7 +49,7 @@ class DataPoint:
         self.data_point = data
 
     def __str__(self):
-        return "{ts},{data}".format(ts=self.timestamp.isoformat(), data=self.data_point)
+        return f"{self.timestamp.isoformat()},{self.data_point}"
 
 
 class TimeGraphLine:
@@ -98,7 +98,7 @@ class TimeGraphLine:
         for data_p in data_list:
             if data_p.timestamp > d_stamp:
                 if first and self.break_data:
-                    data_str += "\t" + "{ts},{ldata}".format(ts=data_p.timestamp.isoformat(), ldata="b")
+                    data_str += "\t" + f"{data_p.timestamp.isoformat()},b"
                 data_str += "\t" + str(data_p)
                 valid_data = True
             first = False
