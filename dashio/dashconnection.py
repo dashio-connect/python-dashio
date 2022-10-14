@@ -21,7 +21,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-import datetime
 import json
 import logging
 import ssl
@@ -57,10 +56,10 @@ class Dash():
             The CFG string
         """
         try:
-            num_columns = data[3]
+            # num_columns = data[3]
             dashboard_id = data[2]
         except IndexError:
-            return
+            return ""
         cfg_str =f"\tCFG\t{dashboard_id}\t" + self.cntrl_type + "\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
 
@@ -314,11 +313,6 @@ class DashConnection(threading.Thread):
                     logging.debug("No connection to internet: %s", str(error))
                 self.disconnect_timeout = self.disconnect_timeout * 2
 
-
-
-        # if self.connected:
-        #     self.dash_c.publish(self.announce_topic, "disconnect")
         self._dash_c.loop_stop()
-
         self.tx_zmq_pub.close()
         self.rx_zmq_sub.close()
