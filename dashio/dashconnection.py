@@ -251,9 +251,12 @@ class DashConnection(threading.Thread):
         # Connect
         if username and password:
             self._dash_c.username_pw_set(username, password)
-            self._dash_c.connect(host, port)
+            try:
+                self._dash_c.connect(host, port)
+            except mqtt.socket.gaierror as error:
+                logging.debug("No connection to internet: %s", str(error))
         # Start subscribe, with QoS level 0
-        self.disconnect_timeout = 30.0
+        self.disconnect_timeout = 15.0
         self.start()
         time.sleep(1)
 
@@ -276,7 +279,6 @@ class DashConnection(threading.Thread):
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self._connection_id)
         poller = zmq.Poller()
         poller.register(self.rx_zmq_sub, zmq.POLLIN)
-        
 
         while self.running:
             try:
@@ -302,11 +304,14 @@ class DashConnection(threading.Thread):
                 if self._connected:
                     logging.debug("DASH TX:\n%s", data.decode('utf-8').rstrip())
                     self._dash_c.publish(data_topic, data.decode('utf-8'))
-            
+
             if self._disconnected:
                 self.disconnect_timeout = min(self.disconnect_timeout, 900)
                 time.sleep(self.disconnect_timeout)
-                self._dash_c.connect(self.host, self.port)
+                try:
+                    self._dash_c.connect(self.host, self.port)
+                except mqtt.socket.gaierror as error:
+                    logging.debug("No connection to internet: %s", str(error))
                 self.disconnect_timeout = self.disconnect_timeout * 2
 
 
