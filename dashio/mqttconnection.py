@@ -26,7 +26,7 @@ import logging
 import ssl
 import threading
 import shortuuid
-
+import time
 import paho.mqtt.client as mqtt
 import zmq
 
@@ -53,7 +53,7 @@ class MQTT():
             dashboard_id = data[2]
         except IndexError:
             return
-        cfg_str = f"\tCFG\t{dashboard_id}\t" + self.cntrl_type + "\t" + json.dumps(self._cfg) + "\n"
+        cfg_str = f"\tCFG\t{dashboard_id}\t{self.cntrl_type}\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
 
     def __init__(self, control_id: str, username="", password="", servername="", use_ssl=False):
@@ -114,10 +114,10 @@ class MQTTConnection(threading.Thread):
 
     def _on_connect(self, client, userdata, flags, msg):
         if msg == 0:
-            self.connected = True
-            self.disconnect = False
+            self._connected = True
+            self._disconnected = False
             for device_id in self.device_id_list:
-                control_topic = "{}/{}/control".format(self.username, device_id)
+                control_topic = f"{self.username}/{device_id}/control"
                 self.mqttc.subscribe(control_topic, 0)
             logging.debug("connected OK")
         else:
@@ -125,8 +125,8 @@ class MQTTConnection(threading.Thread):
 
     def _on_disconnect(self, client, userdata, msg):
         logging.debug("disconnecting reason  %s", msg)
-        self.connected = False
-        self.disconnect = True
+        self._connected = False
+        self._disconnected = True
 
     def _on_message(self, client, obj, msg):
         data = str(msg.payload, "utf-8").strip()
@@ -156,8 +156,8 @@ class MQTTConnection(threading.Thread):
             self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
             self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
 
-            if self.connected:
-                control_topic = "{}/{}/control".format(self.username, device.device_id)
+            if self._connected:
+                control_topic = f"{self.username}/{device.device_id}/control"
                 self.mqttc.subscribe(control_topic, 0)
 
     def __init__(self, host, port, username="", password="", use_ssl=False, context=None):
@@ -188,16 +188,17 @@ class MQTTConnection(threading.Thread):
         self.b_connection_id = self.connection_id.encode('utf-8')
 
         self.mqtt_control = MQTT(self.connection_id, username, password, host, use_ssl)
-        self.connected = False
-        self.disconnect = True
+        self._connected = False
+        self._disconnected = True
         self.connection_topic_list = []
         self.device_id_list = []
-
+        self.host = host
+        self.port = port
         # self.last_will = "OFFLINE"
         self.running = True
         self.username = username
         self.mqttc = mqtt.Client()
-
+        self.disconnect_timeout = 15.0
         # Assign event callbacks
         self.mqttc.on_message = self._on_message
         self.mqttc.on_connect = self._on_connect
@@ -220,7 +221,10 @@ class MQTTConnection(threading.Thread):
         # Connect
         if username and password:
             self.mqttc.username_pw_set(username, password)
-        self.mqttc.connect(host, port)
+        try:
+            self.mqttc.connect(self.host, self.port)
+        except mqtt.socket.gaierror as error:
+            logging.debug("No connection to internet: %s", str(error))
         # Start subscribe, with QoS level 0
         self.start()
 
@@ -251,10 +255,22 @@ class MQTTConnection(threading.Thread):
                 [_, _, data] = self.rx_zmq_sub.recv_multipart()
                 msg_l = data.split(b'\t')
                 device_id = msg_l[1].decode('utf-8').strip()
-                if self.connected:
+                if self._connected:
                     logging.debug("%s TX: %s", self.b_connection_id.decode('utf-8'), data.decode('utf-8').rstrip())
                     data_topic = f"{self.username}/{device_id}/data"
                     self.mqttc.publish(data_topic, data)
+            
+            if self._disconnected:
+                self.disconnect_timeout = min(self.disconnect_timeout, 900)
+                time.sleep(self.disconnect_timeout)
+                try:
+                    self.mqttc.connect(self.host, self.port)
+                except mqtt.socket.gaierror as error:
+                    logging.debug("No connection to internet: %s", str(error))
+                self.disconnect_timeout = self.disconnect_timeout * 2
+
+
+
 
         self.mqttc.loop_stop()
         self.tx_zmq_pub.close()
