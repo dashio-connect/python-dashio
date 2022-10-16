@@ -262,7 +262,7 @@ class MQTTConnection(threading.Thread):
                     self.mqttc.publish(data_topic, data)
 
             if self._disconnected:
-                self.disconnect_timeout = min(self.disconnect_timeout, 900)
+                self.disconnect_timeout = min(self.disconnect_timeout, 900.0)
                 time.sleep(self.disconnect_timeout)
                 try:
                     self.mqttc.connect(self.host, self.port)
