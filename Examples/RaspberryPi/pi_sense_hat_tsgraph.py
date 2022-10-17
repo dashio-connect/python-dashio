@@ -252,7 +252,6 @@ def parse_config(filename: str) -> dict:
 
 def main():
 
-    
     # Catch CNTRL-C signel
     global SHUTDOWN
     signal.signal(signal.SIGINT, signal_cntrl_c)
@@ -264,31 +263,53 @@ def main():
     dash_sense_hat = SenseGraphTS(config_dict, context)
 
     sense_hat = SenseHat()
+    _graph = False
+    _dial = False
 
-    def get_graph_data():
+    def _do_graph():
+        _graph = True
+
+    def _do_dial():
+        _dial = True
+
+    def _get_data():
         humidity = sense_hat.get_humidity()
         temperature = sense_hat.get_temperature()
         pressure = sense_hat.get_pressure()
-        dash_sense_hat.g_line_humidity.add_data_point(humidity)
-        dash_sense_hat.g_line_pressure.add_data_point(pressure)
-        dash_sense_hat.g_line_temperature.add_data_point(temperature)
+        return humidity, temperature, pressure
+
+    def _send_graph_data():
         dash_sense_hat.humidity_graph.send_data()
         dash_sense_hat.pressure_graph.send_data()
         dash_sense_hat.temp_graph.send_data()
 
-    def get_dial_data():
-        dash_sense_hat.humidity_dial.dial_value = sense_hat.get_humidity()
-        dash_sense_hat.temperature_dial.dial_value = sense_hat.get_temperature()
-        dash_sense_hat.pressure_dial.dial_value = sense_hat.get_pressure()
+    def get_graph_data(humidity, temperature, pressure):
+        dash_sense_hat.g_line_humidity.add_data_point(humidity)
+        dash_sense_hat.g_line_pressure.add_data_point(pressure)
+        dash_sense_hat.g_line_temperature.add_data_point(temperature)
 
-    schedule.every().hour.at(":00").do(get_graph_data)
-    schedule.every().hour.at(":15").do(get_graph_data)
-    schedule.every().hour.at(":30").do(get_graph_data)
-    schedule.every().hour.at(":45").do(get_graph_data)
-    schedule.every().minute.at(":10").do(get_dial_data)
+    def send_dial_data(humidity, temperature, pressure):
+        dash_sense_hat.humidity_dial.dial_value = humidity
+        dash_sense_hat.temperature_dial.dial_value = temperature
+        dash_sense_hat.pressure_dial.dial_value = pressure
+
+    
+
+    schedule.every().hour.at(":00").do(_do_graph)
+    schedule.every().hour.at(":15").do(_do_graph)
+    schedule.every().hour.at(":30").do(_do_graph)
+    schedule.every().hour.at(":45").do(_do_graph)
+    schedule.every().minute.at(":10").do(_do_dial)
 
     while not SHUTDOWN:
         schedule.run_pending()
+        if _graph:
+            _graph = False
+            get_graph_data(_get_data())
+            _send_graph_data()
+        if _dial:
+            _dial = False
+            send_dial_data(_get_data())
         time.sleep(1)
 
     dash_sense_hat.tcp_con.close()
