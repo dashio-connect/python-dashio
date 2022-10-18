@@ -282,6 +282,8 @@ def main():
 
     # Catch CNTRL-C signel
     global SHUTDOWN
+    global _graph
+    global _dial
     signal.signal(signal.SIGINT, signal_cntrl_c)
 
     args = parse_commandline_arguments()
@@ -292,11 +294,9 @@ def main():
 
     sense_hat = SenseHat()
     def _do_graph():
-        global _graph
         _graph = True
 
     def _do_dial():
-        global _dial
         _dial = True
 
     def _get_data():
@@ -332,13 +332,11 @@ def main():
 
     while not SHUTDOWN:
         if _graph:
-            global _graph
             _graph = False
             h,t,p =_get_data()
             get_graph_data(h,t,p)
             _send_graph_data()
         if _dial:
-            global _dial
             _dial = False
             h,t,p =_get_data()
             send_dial_data(h,t,p)
