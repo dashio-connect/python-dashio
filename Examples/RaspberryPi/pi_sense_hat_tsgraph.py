@@ -307,7 +307,7 @@ def main():
                 get_graph_data(h,t,p)
                 _send_graph_data()
 
-        tstamp = datetime.datetime.now()
+        tstamp = datetime.now()
         seconds_left = tstamp.second + tstamp.microsecond / 1000000.0
         _, sleep_time = divmod(seconds_left, 1)
         sleep_time = 1 - sleep_time
