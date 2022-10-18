@@ -164,6 +164,9 @@ class SenseGraphTS:
 
 SHUTDOWN = False
 
+_graph = False
+_dial = False
+
 def signal_cntrl_c(os_signal, os_frame):
     global SHUTDOWN
     SHUTDOWN = True
@@ -288,13 +291,12 @@ def main():
     dash_sense_hat = SenseGraphTS(config_dict, context)
 
     sense_hat = SenseHat()
-    _graph = False
-    _dial = False
-
     def _do_graph():
+        global _graph
         _graph = True
 
     def _do_dial():
+        global _dial
         _dial = True
 
     def _get_data():
@@ -318,7 +320,6 @@ def main():
         dash_sense_hat.temperature_dial.dial_value = temperature
         dash_sense_hat.pressure_dial.dial_value = pressure
 
-    
 
     schedule.every().hour.at(":00").do(_do_graph)
     schedule.every().hour.at(":15").do(_do_graph)
@@ -331,11 +332,13 @@ def main():
 
     while not SHUTDOWN:
         if _graph:
+            global _graph
             _graph = False
             h,t,p =_get_data()
             get_graph_data(h,t,p)
             _send_graph_data()
         if _dial:
+            global _dial
             _dial = False
             h,t,p =_get_data()
             send_dial_data(h,t,p)
