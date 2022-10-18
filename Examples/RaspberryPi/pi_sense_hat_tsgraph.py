@@ -287,19 +287,21 @@ def main():
         dash_sense_hat.temperature_dial.dial_value = temperature
         dash_sense_hat.pressure_dial.dial_value = pressure
 
-
+    minute_counter = 0
     # Start the background thread
     now = datetime.now()
     while not SHUTDOWN:
         delta = datetime.now()-now
         _, minute_remainder = divmod(delta.seconds, 60)
         if minute_remainder == 0:
+            minute_counter += 1
             logging.debug("Sending Dial data")
             _graph = False
             h,t,p =_get_data()
             send_dial_data(h,t,p)
-            _, minutes_remainder = divmod(delta.minutes, 15)
-            if minutes_remainder == 0:
+
+            if minute_counter == 15:
+                minute_counter = 0
                 logging.debug("Sending Graph data")
                 _dial = False
                 get_graph_data(h,t,p)
