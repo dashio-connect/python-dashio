@@ -332,11 +332,13 @@ def main():
     while not SHUTDOWN:
         if _graph:
             _graph = False
-            get_graph_data(_get_data())
+            h,t,p =_get_data()
+            get_graph_data(h,t,p)
             _send_graph_data()
         if _dial:
             _dial = False
-            send_dial_data(_get_data())
+            h,t,p =_get_data()
+            send_dial_data(h,t,p)
         time.sleep(1)
 
     # Stop the background thread
