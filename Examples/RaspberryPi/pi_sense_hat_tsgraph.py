@@ -26,11 +26,10 @@ import configparser
 import logging
 import platform
 import signal
-import threading
+from datetime import datetime
 import time
 
 import dashio
-import schedule
 import shortuuid
 import zmq
 from dashio.iotcontrol.enums import Precision
@@ -253,37 +252,10 @@ def parse_config(filename: str) -> dict:
     config_dict['DEFAULT'] = default
     return config_dict
 
-def run_continuously(interval=1):
-    """Continuously run, while executing pending jobs at each
-    elapsed time interval.
-    @return cease_continuous_run: threading. Event which can
-    be set to cease continuous run. Please note that it is
-    *intended behavior that run_continuously() does not run
-    missed jobs*. For example, if you've registered a job that
-    should run every minute and you set a continuous run
-    interval of one hour then your job won't be run 60 times
-    at each interval but only once.
-    """
-    cease_continuous_run = threading.Event()
-
-    class ScheduleThread(threading.Thread):
-        @classmethod
-        def run(cls):
-            while not cease_continuous_run.is_set():
-                schedule.run_pending()
-                time.sleep(interval)
-
-    continuous_thread = ScheduleThread()
-    continuous_thread.start()
-    return cease_continuous_run
-
-
 def main():
 
     # Catch CNTRL-C signel
     global SHUTDOWN
-    global _graph
-    global _dial
     signal.signal(signal.SIGINT, signal_cntrl_c)
 
     args = parse_commandline_arguments()
@@ -293,11 +265,6 @@ def main():
     dash_sense_hat = SenseGraphTS(config_dict, context)
 
     sense_hat = SenseHat()
-    def _do_graph():
-        _graph = True
-
-    def _do_dial():
-        _dial = True
 
     def _get_data():
         humidity = sense_hat.get_humidity()
@@ -321,29 +288,30 @@ def main():
         dash_sense_hat.pressure_dial.dial_value = pressure
 
 
-    schedule.every().hour.at(":00").do(_do_graph)
-    schedule.every().hour.at(":15").do(_do_graph)
-    schedule.every().hour.at(":30").do(_do_graph)
-    schedule.every().hour.at(":45").do(_do_graph)
-    schedule.every().minute.at(":10").do(_do_dial)
-
     # Start the background thread
-    stop_run_continuously = run_continuously()
-
+    now = datetime.now()
     while not SHUTDOWN:
-        if _graph:
+        delta = datetime.now()-now
+        _, minute_remainder = divmod(delta.seconds, 60)
+        if minute_remainder == 0:
+            logging.debug("Sending Dial data")
             _graph = False
             h,t,p =_get_data()
-            get_graph_data(h,t,p)
-            _send_graph_data()
-        if _dial:
-            _dial = False
-            h,t,p =_get_data()
             send_dial_data(h,t,p)
-        time.sleep(1)
+            _, minutes_remainder = divmod(delta.minutes, 15)
+            if minutes_remainder == 0:
+                logging.debug("Sending Graph data")
+                _dial = False
+                get_graph_data(h,t,p)
+                _send_graph_data()
+
+        tstamp = datetime.datetime.now()
+        seconds_left = tstamp.second + tstamp.microsecond / 1000000.0
+        _, sleep_time = divmod(seconds_left, 1)
+        sleep_time = 1 - sleep_time
+        time.sleep(sleep_time)
 
     # Stop the background thread
-    stop_run_continuously.set()
     dash_sense_hat.tcp_con.close()
     dash_sense_hat.device.close()
 
