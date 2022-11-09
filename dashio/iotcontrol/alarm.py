@@ -21,9 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-from ..constants import BAD_CHARS
 from .control import Control
-from .enums import SoundName
 
 
 class Alarm(Control):
@@ -44,7 +42,12 @@ class Alarm(Control):
         Send an alarm with a header and body
     """
 
-    def __init__(self, control_id: str, description="Alarm Description", sound_name=SoundName.DEFAULT):
+    def get_cfg(self, data):
+        """Alarms do not appear in the CFG
+        """
+        return ""
+
+    def __init__(self, control_id: str):
         """Alarm control for notifications
 
         Parameters
@@ -57,8 +60,6 @@ class Alarm(Control):
                 The sound name to use. Defaults to SoundName.DEFAULT
         """
         super().__init__("ALM", control_id)
-        self.description = description.translate(BAD_CHARS)
-        self.sound_name = sound_name
 
     def send(self, header: str, body: str):
         """Sends the alarm
@@ -71,34 +72,3 @@ class Alarm(Control):
                 Alarm body
         """
         self.message_tx_event(self.control_id, header, body)
-
-    @property
-    def description(self) -> str:
-        """description
-
-        Returns
-        -------
-        str
-            description
-        """
-        return self._cfg["description"]
-
-    @description.setter
-    def description(self, val: str):
-        self._cfg["description"] = val
-
-    @property
-    def sound_name(self) -> SoundName:
-        """sound_name
-
-        Returns
-        -------
-        SoundName
-            sound_name
-        """
-        return self._sound_name
-
-    @sound_name.setter
-    def sound_name(self, val: SoundName):
-        self._sound_name = val
-        self._cfg["soundName"] = val.value
