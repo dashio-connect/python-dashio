@@ -114,7 +114,7 @@ First we added a function that sets the dial value. Next we added a Knob control
 
 ### Device
 
-A Device is a collection of [Controls](###Controls) and [DeviceViews](####DeviceView) that represent an IoT device.
+A Device is a collection of [Controls](#controls) and [DeviceViews](#deviceview) that represent an IoT device.
 
 #### Attributes
 
