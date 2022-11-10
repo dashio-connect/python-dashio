@@ -44,7 +44,7 @@ class ColorPicker(Control):
         ----------
         control_id : str
             An unique control identity string. The control identity string must be a unique string for each control per device
-        title : [type], optional
+        title : str, optional
             Title of the control, by default None
         control_position : ControlPosition, optional
             The position of the control on a DeviceView, by default None
@@ -91,7 +91,7 @@ class ColorPicker(Control):
         return self._control_hdr_str + f"{self._color_value}\n"
 
 
-    def send_color_rgb(self, red, green, blue):
+    def send_color_rgb(self, red: int, green: int, blue: int):
         """Send color as #rrggbb for the given color values."""
         self._color_value = '#%02x%02x%02x' % (red, green, blue)
         self.state_str = self._control_hdr_str + f"{self._color_value}\n"
@@ -106,14 +106,14 @@ class ColorPicker(Control):
 
     @property
     def color_value(self) -> str:
-        """Dial value
+        """Color value
 
         Returns
         -------
-        float
-            The position of the dial
+        str
+            The color value as #rrggbb
         """
-        return self._dial_value
+        return self._color_value
 
     @color_value.setter
     def color_value(self, val: str):

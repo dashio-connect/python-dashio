@@ -174,7 +174,6 @@ All of these attributes are config attributes.
 * *num_grid_columns : int.* The num of grid columns on the edit view.
 * *num_grid_rows : int.* The num of grid rows on the edit view.
 
-
 ##### DeviceView Methods
 
 * *add_control(Control) :* Add a control to the device view
@@ -189,19 +188,29 @@ alarm.send("Alarm Header", "Alarm Body")
 
 An alarm sends a notification throught the dashio mqtt server to registered phones. The ability to send alarms to specific phones, and the notification sound can be configured through the **DashIO** app. Alarms are only available if you have an account registered on the **DashIO** server and you send the the alarm through a dash connection.
 
+##### Alarm Config Attributes
+
+* *control_id : str.* An unique control identity string. The control identity string must be a unique string for each control per device
+
+##### Alarm Methods
+
+* *send(self, header: str, body: str).* Sends an alarm with *header* and *body*.
+
 #### Audio Visual Display
 
 An Audio Visual display allows the IoT Device to send a URL to the DashIO app to play or display
 the contents of the URL. The URL may be a video or audio stream or an image.
 
-#### Audio Visual Display Attributes
+##### Audio Visual Display Config Attributes
 
 * *control_id : str.* An unique control identity string. The control identity string must be a unique string for each control per device
 * *title : str, optional.* Title of the control, by default None
 * *control_position : ControlPosition, optional.* The position of the control on a DeviceView, by default None
 * *title_position : TitlePosition, optional.* Position of the title when displayed on the iotdashboard app, by default None
 
-#### Audio Visual Display Attributes
+##### Audio Visual Display Message Attributes
+
+* *url : str.* The url of the media to play.
 
 #### Button
 
@@ -254,15 +263,15 @@ When these attributes are set the button control will transmit the new value to 
 
 ##### Button Callbacks
 
-* *message_rx_event(msg):* Call callback with msg from **DashIO** app.
+* *message_rx_event(msg: list):* Call callback with msg from **DashIO** app. The msg is a list formed by splitting the message from the **DashIO** app on the tab character.
 
 #### Button Group
 
-A Button Group control is used to present a popup grid or table of Button controls. The Button Group does not receive messages directly, but presents Button controls that send and receive messages.
+A ButtonGroup control is used to present a popup grid or table of Button controls. The Button Group does not receive or send messages directly, but presents Button controls that send and receive messages.
 
 <img src="https://dashio.io/wp-content/uploads/2020/12/ButtonGroup.jpeg" width="200" />
 
-##### Button Group Attributes
+##### Button Group Config Attributes
 
 * *control_id : str.*
     a unique identity string. The identity string must be a unique string for each ButtonGroup per device
@@ -279,8 +288,26 @@ A Button Group control is used to present a popup grid or table of Button contro
 
 #### Color Picker
 
-A Color Picker control is used to select a colour to send to the IoT device. The Colour Picker may
+A ColorPicker control is used to select a colour to send to the IoT device. The Colour Picker may
 be shown as either a spectrum or as a colour wheel and brightness slider.
+
+##### Color Picker Config Attributes
+
+* *control_id : str.* An unique control identity string. The control identity string must be a unique string for each control per device.
+* *title : str, optional*. Title of the control, by default None.
+* *control_position : ControlPosition, optional.* The position of the control on a DeviceView, by default None.
+* *title_position : TitlePosition, optional.* Position of the title when displayed on the iotdashboard app, by default None
+* *picker_style: ColorPickerStyle, optional.* The style of color picker to use.
+* *send_only_on_release: Boolean.* Send only on release, by default True
+
+##### Color Picker Message Attributes
+
+* *color_value : str.* Send the color. The color_value must be in #rrggbb format.
+
+##### Color Picker Methods
+
+* *send_color_rgb(red: int, green: int, blue: int).* Format the red, green, blue values as #RRGGBB and send to any connected **DashIO** apps.
+* *color_to_rgb(color_value: str).* Return a tuple of RED, GREEN, BLUE integers from the given string in #RRGGBB format.
 
 #### Direction
 
