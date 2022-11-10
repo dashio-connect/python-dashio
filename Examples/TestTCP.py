@@ -203,7 +203,7 @@ class TestControls:
         self.text_cntrl.message_rx_event += self.text_cntrl_message_handler
         self.page_test.add_control(self.text_cntrl)
 
-        self.alarm_ctrl = dashio.Alarm("TestingAlarms", "Test Alarms")
+        self.alarm_ctrl = dashio.Alarm("TestingAlarms")
         self.device.add_control(self.alarm_ctrl)
         self.comp_control = dashio.Direction(
             "COMP1",

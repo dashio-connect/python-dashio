@@ -196,7 +196,7 @@ class TestControls:
         device.add_control(self.text_cntrl)
         self.page_test.add_control(self.text_cntrl)
 
-        self.alarm_ctrl = dashio.Alarm("TestingAlarms", "Test Alarms")
+        self.alarm_ctrl = dashio.Alarm("TestingAlarms")
         device.add_control(self.alarm_ctrl)
         self.comp_control = dashio.Direction("COMP1")
         self.comp_control.title = "A direction control"
