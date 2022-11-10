@@ -114,13 +114,13 @@ First we added a function that sets the dial value. Next we added a Knob control
 
 ### Device
 
-A Device is a collection of [Controls](#controls) and [DeviceViews](#deviceview) that represent an IoT device.
+A Device is a collection of [Controls](#controls) and [DeviceViews](#deviceview) that represent an IoT device. The Device provides attributes and methods to communicate to a **DashIO** app.  
 
 #### Attributes
 
-* *device_type (str):* The type of device (e.g. TempSensor, GPS...).
-* *device_id (str):* A unique identifier for this device
-* *device_name (str):* The name for this device (E.g. GlassHouse, MothersZimmerFrame...)
+* *device_type (str):* The type of device (e.g. TempSensor, GPS...). If you have lots of devices that do the same thing keep this constant across your devices.
+* *device_id (str):* A unique identifier for this particular device.
+* *device_name (str):* The name for this device (E.g. GlassHouse, MothersZimmerFrame...).
 
 #### Methods
 
