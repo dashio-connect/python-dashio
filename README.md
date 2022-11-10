@@ -241,7 +241,7 @@ button1.send_button(ButtonState.OFF, Icon.DOWN, "Going Down")
 When these attributes are set the button control will transmit the new value to connected **DashIO** apps.
 
 * *text : str*.
-    The text that appears on the ButtonGroup. 
+    The text that appears on the ButtonGroup.
 * *icon_name : Icon*.
     Set the icon for the button.
 * *btn_state : ButtonState.* Set the state of the button.
