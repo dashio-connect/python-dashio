@@ -19,7 +19,7 @@ Will create a graph of network traffic with a connection_id of your hostname. Th
 
 ## Requirements
 
-* python3
+* python3.6 and above
 * paho-mqtt
 * pyzmq
 * python-dateutil
@@ -29,6 +29,14 @@ Will create a graph of network traffic with a connection_id of your hostname. Th
 ## Install
 
 `pip3 install dashio`
+
+Or
+
+```sh
+git clone git@github.com/dashio-connect/python-dashio
+cd python-dashio
+pip3 install .
+```
 
 ## Guide
 
@@ -138,13 +146,21 @@ A Device is a collection of [Controls](#controls) and [DeviceViews](#deviceview)
 
 ### Controls
 
-Controls are objects that represent actions and widgets in the DashIO application. All controls have a ControlID, Title, and TitlePosition. The ControlID should be a string that can uniquely identifiy that control per device. The control Title is text that is displayed on **DashIO** with the Contol. The TitlePosition can be either `TitlePosition.TOP`, `TitlePosition.BOTTOM`, or `TitlePosition.NONE`. Controls that are displayed have a `dashio.ControlPosition` that is composed of four size and position variables: x_position_ratio, y_position_ratio, width_ratio, height_ratio. The first two are position ratios that place the top left corner of the widget on the DeviceView. The last two are ratios that govern the size of the widget. The ratios are propertional to the size of the screen with the full size of the screen representing 1.0. All controls have a `message_rx_event` callback that is used to return messages from the **DashIO** app.
+Controls are objects that represent actions and widgets in the DashIO application. All controls have a ControlID, Title, and TitlePosition. The ControlID should be a string that can uniquely identifiy that control per device. The control Title is text that is displayed on **DashIO** with the Contol. The TitlePosition can be either `TitlePosition.TOP`, `TitlePosition.BOTTOM`, or `TitlePosition.NONE`. Controls that are displayed have a `dashio.ControlPosition` that is composed of four size and position variables: x_position_ratio, y_position_ratio, width_ratio, height_ratio. The first two are position ratios that place the top left corner of the widget on the DeviceView. The last two are ratios that govern the size of the widget. The ratios are propertional to the size of the screen with the full size of the screen representing 1.0. All controls have a `message_rx_event` callback that is used to return messages from the **DashIO** app. 
+
+Controls have two main types of attributes.
+
+1) *Config Attributes*. These attributes define the look and placement of the control. They are used to generate the config information sent to the **DashIO** app when it issues a CFG command to the device. 
+
+2) *Messaging Atttributes*. Setting these attributes send messages to the **DashIO** app controlling the visable appearance of the control.
 
 #### DeviceView
 
 A DeviceView provides a control that descibes appearance and style of the group of controls that are displayed on this DeviceView by the iotdashboard app.
 
 ##### DeviceView Attributes
+
+All of these attributes are config attributes.
 
 * *control_id : str.* An unique control identity string. The control identity string must be a unique string for each control per device. Each control inherits the DeviceViews Control settings.
 * *title : str.* The controls title.
@@ -157,6 +173,7 @@ A DeviceView provides a control that descibes appearance and style of the group 
 * *control_title_box_transparency : int.* Title box transparency for controls.
 * *num_grid_columns : int.* The num of grid columns on the edit view.
 * *num_grid_rows : int.* The num of grid rows on the edit view.
+
 
 ##### DeviceView Methods
 
@@ -175,7 +192,16 @@ An alarm sends a notification throught the dashio mqtt server to registered phon
 #### Audio Visual Display
 
 An Audio Visual display allows the IoT Device to send a URL to the DashIO app to play or display
-the contents of the URL. The URL may be a video or audio stream or an image
+the contents of the URL. The URL may be a video or audio stream or an image.
+
+#### Audio Visual Display Attributes
+
+* *control_id : str.* An unique control identity string. The control identity string must be a unique string for each control per device
+* *title : str, optional.* Title of the control, by default None
+* *control_position : ControlPosition, optional.* The position of the control on a DeviceView, by default None
+* *title_position : TitlePosition, optional.* Position of the title when displayed on the iotdashboard app, by default None
+
+#### Audio Visual Display Attributes
 
 #### Button
 
@@ -194,26 +220,29 @@ button1.send_button(ButtonState.ON, Icon.UP, "Going Up")
 button1.send_button(ButtonState.OFF, Icon.DOWN, "Going Down")
 ```
 
-##### Button Attributes
+##### Button Config Attributes
 
 * *control_id : str*.
     a unique identity string. The identity string must be a unique string for each ButtonGroup per device.
 * *title : str*.
     A short title for the button group.
-* *text : str*.
-    The text that appears on the ButtonGroup.
 * *title_position : TitlePosition*.
     Can be TitlePosition.BOTTOM, TitlePosition.TOP, TitlePosition.OFF.
 * *button_enabled : boolean*.
     True allows the app to send button events. False disables button pushes.
-* *icon_name : Icon*.
-    Set the icon for the button.
 * *off_color : Color*.
     Set the off color.
 * *on_color : Color*.
     Set the on color.
-* *control_position : ControlPosition*.
-    Set the size and position of the button on a DeviceView.
+* *control_position : ControlPosition*. Set the size and position of the button on a DeviceView.
+
+##### Button Messaging Attributes
+
+* *text : str*.
+    The text that appears on the ButtonGroup. When set the button control will transmit the new value to connected **DashIO* apps.
+* *icon_name : Icon*.
+    Set the icon for the button. When set the button control will transmit the new value to connected **DashIO* apps.
+* *btn_state : ButtonState.* Set the state of the button. When set the button control will transmit the new value to connected **DashIO* apps.
 
 ##### Button Methods
 
