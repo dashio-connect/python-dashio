@@ -116,13 +116,13 @@ First we added a function that sets the dial value. Next we added a Knob control
 
 A Device is a collection of [Controls](#controls) and [DeviceViews](#deviceview) that represent an IoT device. The Device provides attributes and methods to communicate to a **DashIO** app.  
 
-#### Attributes
+#### Device Attributes
 
-* *device_type (str):* The type of device (e.g. TempSensor, GPS...). If you have lots of devices that do the same thing keep this constant across your devices.
-* *device_id (str):* A unique identifier for this particular device.
-* *device_name (str):* The name for this device (E.g. GlassHouse, MothersZimmerFrame...).
+* *device_type : str.* The type of device (e.g. TempSensor, GPS...). If you have lots of devices that do the same thing keep this constant across your devices.
+* *device_id : str.* A unique identifier for this particular device.
+* *device_name : str.* The name for this device (E.g. GlassHouse, MothersZimmerFrame...).
 
-#### Methods
+#### Device Methods
 
 * *add_control(iot_control):* Add a control to the device.
 * *set_wifi_callback(callback):* Set a callback function that is called when the DashIO app provides wifi provisioning information. The callback must return a Boolean indicating success.
@@ -141,6 +141,26 @@ A Device is a collection of [Controls](#controls) and [DeviceViews](#deviceview)
 Controls are objects that represent actions and widgets in the DashIO application. All controls have a ControlID, Title, and TitlePosition. The ControlID should be a string that can uniquely identifiy that control per device. The control Title is text that is displayed on **DashIO** with the Contol. The TitlePosition can be either `TitlePosition.TOP`, `TitlePosition.BOTTOM`, or `TitlePosition.NONE`. Controls that are displayed have a `dashio.ControlPosition` that is composed of four size and position variables: x_position_ratio, y_position_ratio, width_ratio, height_ratio. The first two are position ratios that place the top left corner of the widget on the DeviceView. The last two are ratios that govern the size of the widget. The ratios are propertional to the size of the screen with the full size of the screen representing 1.0. All controls have a `message_rx_event` callback that is used to return messages from the **DashIO** app.
 
 #### DeviceView
+
+A DeviceView provides a control that descibes appearance and style of the group of controls that are displayed on this DeviceView by the iotdashboard app.
+
+#### DeviceView Attributes
+
+* *control_id : str.* An unique control identity string. The control identity string must be a unique string for each control per device. Each control inherits the DeviceViews Control settings.
+* *title : str.* The controls title.
+* *style : DeviceViewStyle.* The style of the DeviceView.
+* *icon : Icon.* The Icon representing the DeviceView.
+* *color : Color.* The color of the DeviceView.
+* *share_column : Booloan.* If there is space can another DeviceView us it.
+* *num_columns : int.* Number of columns for DeviceView.
+* *control_title_box_color : Color.* Title box color for controls.
+* *control_title_box_transparency : int.* Title box transparency for controls.
+* *num_grid_columns : int.* The num of grid columns on the edit view.
+* *num_grid_rows : int.* The num of grid rows on the edit view.
+
+#### DeviceView Methods
+
+* *add_control(Control) :* Add a control to the device view
 
 #### Alarm
 

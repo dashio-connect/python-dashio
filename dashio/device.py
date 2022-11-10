@@ -38,11 +38,11 @@ class Device(threading.Thread):
 
     Attributes
     ----------
-    device_type (str) :
+    device_type : str
         The type of device (e.g. TempSensor, GPS...).
-    device_id (str) :
+    device_id : str
         A unique identifier for this device
-    device_name (str) :
+    device_name : str
         The name for this device (E.g. GlassHouse, MothersZimmerFrame...)
 
     Methods
