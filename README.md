@@ -114,6 +114,8 @@ First we added a function that sets the dial value. Next we added a Knob control
 
 ### Device
 
+A Device is a collection of [Controls](###Controls) and [DeviceViews](####DeviceView) that represent an IoT device.
+
 #### Attributes
 
 * *device_type (str):* The type of device (e.g. TempSensor, GPS...).
@@ -138,10 +140,12 @@ First we added a function that sets the dial value. Next we added a Knob control
 
 Controls are objects that represent actions and widgets in the DashIO application. All controls have a ControlID, Title, and TitlePosition. The ControlID should be a string that can uniquely identifiy that control per device. The control Title is text that is displayed on **DashIO** with the Contol. The TitlePosition can be either `TitlePosition.TOP`, `TitlePosition.BOTTOM`, or `TitlePosition.NONE`. Controls that are displayed have a `dashio.ControlPosition` that is composed of four size and position variables: x_position_ratio, y_position_ratio, width_ratio, height_ratio. The first two are position ratios that place the top left corner of the widget on the DeviceView. The last two are ratios that govern the size of the widget. The ratios are propertional to the size of the screen with the full size of the screen representing 1.0. All controls have a `message_rx_event` callback that is used to return messages from the **DashIO** app.
 
+#### DeviceView
+
 #### Alarm
 
 ```python
-alarm = dashio.Alarm("alarm1_ID", description="An alarming alarm", sound_name=SoundName.SHIPHORN)
+alarm = dashio.Alarm("alarm1_ID")
 alarm.send("Alarm Header", "Alarm Body")
 ```
 
