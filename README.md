@@ -2,10 +2,9 @@
 
 [**DashIO**](http://dashio.io) - a python library to connect and display widgets on the **DashIO** app.
 
-**Beta Testers**
+## Beta Testers
 
 We are currently looking for beta testers for our products. If you are interested in using and testing our app and a free DashIO account, please contact us at info@dashio.io
-
 
 ## Getting Started
 
@@ -39,7 +38,7 @@ This guide covers the **DashIO** python library. For information on the [***Dash
 
 So what is **DashIO**? It is a quick effortless way to connect your IoT device to your phone. It allows easy setup of controls such as Dials, Text Boxes, Maps, Graphs, Notifications..., from your Device. You can define the look and layout of the controls on your phone from your IoT device. There are three methods to connect to your phone tcp, mqtt, dash, and BLE. What's Dash then? Dash is a mqtt server with extra bits added in to allow you to send notifications, share your devices, and save your settings from your phone via the **DashIO** app.
 
-Show me some code!
+Show me some code.
 
 ```python
 import dashio
@@ -47,13 +46,13 @@ import random
 import time
 
 device = dashio.Device("aDeviceType", "aDeviceID", "aDeviceName")
-tcp_con = dashio.tcpConnection()
+tcp_con = dashio.TCPConnection()
 tcp_con.add_device(device)
 first_dial_control = dashio.Dial("FirstDial")
 device.add_control(first_dial_control)
 
 while True:
-    dial_control.dial_value = random.random() * 100
+    first_dial_control.dial_value = random.random() * 100
     time.sleep(5)
 ```
 
@@ -67,7 +66,7 @@ import random
 import time
 
 device = dashio.Device("aDeviceType", "aDeviceID", "aDeviceName")
-tcp_con = dashio.tcpConnection()
+tcp_con = dashio.TCPConnection()
 tcp_con.add_device(device)
 first_dial_control = dashio.Dial("FirstDial", control_position=dashio.ControlPosition(0.24, 0.36, 0.54, 0.26))
 device.add_control(first_dial_control)
@@ -77,7 +76,7 @@ dv_dial.add_control(first_dial_control)
 device.add_control(dv_dial)
 
 while True:
-    dial_control.dial_value = random.random() * 100
+    first_dial_control.dial_value = random.random() * 100
     time.sleep(5)
 ```
 
@@ -87,11 +86,10 @@ The next piece of the puzzle to consider is how do we get data from the DashIO a
 
 ```python
 import dashio
-import random
 import time
 
 device = dashio.Device("aDeviceType", "aDeviceID", "aDeviceName")
-tcp_con = dashio.tcpConnection()
+tcp_con = dashio.TCPConnection()
 tcp_con.add_device(device)
 first_dial_control = dashio.Dial("FirstDial", control_position=dashio.ControlPosition(0.24, 0.36, 0.54, 0.26))
 device.add_control(first_dial_control)
@@ -109,7 +107,7 @@ dv_dial.add_control(aknob)
 device.add_control(aknob)
 
 while True:
-    time.sleep(5)
+    time.sleep(1)
 ```
 
 First we added a function that sets the dial value. Next we added a Knob control and set our new function to be called when it receives data from the DashIO app.
@@ -130,7 +128,7 @@ An alarm sends a notification throught the dashio mqtt server to registered phon
 
 #### Audio Visual Display
 
-An Audio Visual display allows the IoT Device to send a URL to the DashIO app to play or display 
+An Audio Visual display allows the IoT Device to send a URL to the DashIO app to play or display
 the contents of the URL. The URL may be a video or audio stream or an image
 
 #### Button
@@ -204,7 +202,7 @@ A Button Group control is used to present a popup grid or table of Button contro
 
 #### Color Picker
 
-A Color Picker control is used to select a colour to send to the IoT device. The Colour Picker may 
+A Color Picker control is used to select a colour to send to the IoT device. The Colour Picker may
 be shown as either a spectrum or as a colour wheel and brightness slider.
 
 #### Direction

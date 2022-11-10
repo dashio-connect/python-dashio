@@ -50,10 +50,6 @@ class Alarm(Control):
         ----------
             control_id (str):
                 Set the control id string
-            description (str, optional):
-                Sets the alarm description. Defaults to "Alarm Description"
-            sound_name ([soundName], optional):
-                The sound name to use. Defaults to SoundName.DEFAULT
         """
         super().__init__("ALM", control_id)
 
