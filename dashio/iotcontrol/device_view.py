@@ -60,6 +60,9 @@ class DeviceView(Control):
     -------
     add_control(Control) :
         Add a control to the device view
+
+    from_cfg_dict(dict) :
+        A class method to instantiate a DeviceView object from a dictionary
     """
 
     def __init__(
