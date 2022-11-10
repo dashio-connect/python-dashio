@@ -58,7 +58,7 @@ while True:
 
 This is about the fewest lines of code to get talking to the app. There is a lot happening under the hood to make this work. After the import we create a device with three attributes. These attributes describe the device to the app and allow you to distinguish one of your devices from another. The next two lines create a TCP connection and then add the device to the connection. The connection will be created with the default setting of port 5000 and will also advertise the service using zeroconf, also known as bonjour. This allows the **DashIO** app to find your device. After that we create a dial add it to the device and then every five seconds send a randomly generated dial value to the DashIO app.
 
-This device is discoverable by the app. It would be nice to have the DashIO app automagically setup a new DeviceView and place your control on the new DeviceView. To do that we need to add a few more lines of code:
+Though this device is discoverable by the app it would be nice to have the DashIO app automatically setup a new DeviceView and place your control on the new DeviceView. To do that we need to add a few more lines of code:
 
 ```python
 import dashio
@@ -80,7 +80,7 @@ while True:
     time.sleep(5)
 ```
 
-First we altered the instantiation of a Dial by including a control_position. This allows us to place the control at a set location. The added lines instantiated a DeviceView control, which we than added the dial control. Finally we added the dv to the device.
+First we altered the instantiation of a Dial by including a control_position. This allows us to place the control at a set location. The added lines instantiated a DeviceView control, which we than added the dial control. Finally we added the DeviceView to the device.
 
 The next piece of the puzzle to consider is how do we get data from the DashIO app? Lets add a Knob and connect it to the Dial:
 
@@ -110,8 +110,29 @@ while True:
     time.sleep(1)
 ```
 
-First we added a function that sets the dial value. Next we added a Knob control and set our new function to be called when it receives data from the DashIO app.
-We also add it to the DeviceView and to the device. Now when the knob in the DashIO app is moved the dial is set to the same value.
+First we added a function that sets the dial value. Next we added a Knob control and set our new function to be called when it receives data from the DashIO app. We also add it to the DeviceView and to the device. Now when the knob in the DashIO app is moved the dial is set to the same value.
+
+### Device
+
+#### Attributes
+
+* *device_type (str):* The type of device (e.g. TempSensor, GPS...).
+* *device_id (str):* A unique identifier for this device
+* *device_name (str):* The name for this device (E.g. GlassHouse, MothersZimmerFrame...)
+
+#### Methods
+
+* *add_control(iot_control):* Add a control to the device.
+* *set_wifi_callback(callback):* Set a callback function that is called when the DashIO app provides wifi provisioning information. The callback must return a Boolean indicating success.
+* *unset_wifi_callback():* Clears the wifi callback.
+* *set_dashio_callback(callback):* Set a callback function that is called when the DashIO app provides Dash server provisioning information.
+* *unset_dashio_callback():* Clears the set Dash callback.
+* *set_name_callback(callback):* Set a callback function that is called when the DashIO app provides Name provisioning information.
+* *unset_name_callback():* Clears the set Name callback.
+* *set_tcp_callback(callback):* Set a callback function that is called when the DashIO app provides TCP provisioning information.
+* *unset_tcp_callback():* Clears the set TCP callback.
+* *set_mqtt_callback(callback):* Set a callback function that is called when the DashIO app provides MQTT provisioning information.
+* *unset_mqtt_callback():* Clears the set MQTT callback.
 
 ### Controls
 

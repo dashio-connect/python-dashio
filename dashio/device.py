@@ -47,13 +47,6 @@ class Device(threading.Thread):
 
     Methods
     -------
-    send(header, body) :
-        Send an alarm with a header and body.
-
-    send_alarm(alarm_id, message_header, message_body) :
-        Sends and alarm notification to DashIO apps registered on the DashIO server.
-        Notifications are only sent if the device is connected to the DashIO server with a DashConnection.
-
     add_control(iot_control) :
         Add a control to the device.
 
@@ -81,7 +74,7 @@ class Device(threading.Thread):
     unset_tcp_callback() :
         Clears the set TCP callback.
 
-    set_mqtt_callback(callback)
+    set_mqtt_callback(callback) :
         Set a callback function that is called when the DashIO app provides MQTT provisioning information.
 
     unset_mqtt_callback() :
@@ -171,18 +164,7 @@ class Device(threading.Thread):
         reply += dvvw_str
         return reply
 
-    def send_alarm(self, alarm_id, message_header, message_body):
-        """Send an Alarm to the Dash server.
-
-        Parameters
-        ----------
-        alarm_id : str
-            An identifier used by iotdashboard to manage the alarm. It should be unique for each connection.
-        message_header : str
-            Title for the Alarm.
-        message_body : str
-            The text body of the Alarm.
-        """
+    def _send_alarm(self, alarm_id, message_header, message_body):
         payload = self._device_id_str + f"\t{alarm_id}\t{message_header}\t{message_body}\n"
         logging.debug("ALARM: %s", payload)
         self.tx_zmq_pub.send_multipart([b"ALARM", b'0', payload.encode('utf-8')])
@@ -212,7 +194,7 @@ class Device(threading.Thread):
             self._cfg["numDeviceViews"] += 1
         try:
             if isinstance(iot_control, Alarm):
-                iot_control.message_tx_event += self.send_alarm
+                iot_control.message_tx_event += self._send_alarm
             else:
                 iot_control.message_tx_event += self._send_data
         except AttributeError:
