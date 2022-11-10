@@ -145,9 +145,9 @@ class TestControls:
         device.add_control(self.alarm_btn3)
         self.tadevice_view.add_control(self.alarm_btn3)
 
-        self.alarm1_ctrl = dashio.Alarm("TestingAlarms1", "A plop form Alarm1", SoundName.PLOP)
-        self.alarm2_ctrl = dashio.Alarm("TestingAlarms2", "Squeaky from Alarm2", SoundName.SQUEAKY)
-        self.alarm3_ctrl = dashio.Alarm("TestingAlarms3", "Whoosh from Alarm3", SoundName.WHOOSH)
+        self.alarm1_ctrl = dashio.Alarm("TestingAlarms1")
+        self.alarm2_ctrl = dashio.Alarm("TestingAlarms2")
+        self.alarm3_ctrl = dashio.Alarm("TestingAlarms3")
         device.add_control(self.alarm1_ctrl)
         device.add_control(self.alarm2_ctrl)
         device.add_control(self.alarm3_ctrl)
