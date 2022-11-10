@@ -223,7 +223,7 @@ button1.send_button(ButtonState.OFF, Icon.DOWN, "Going Down")
 
 ##### Button Callbacks
 
-* message_rx_event(msg) : Returns msg from **DashIO** app
+* message_rx_event(msg) : Call callback with msg from **DashIO** app.
 
 #### Button Group
 
