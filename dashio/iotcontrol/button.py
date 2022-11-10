@@ -52,11 +52,11 @@ class Button(Control):
 
     Methods
     -------
-    toggle_btn () :
-        Toggles the button state.
-
     send_button(btn_state, btn_icon, text) :
         Updates the button state, button icon and text.
+
+    from_cfg_dict(cfg_dict: dict) :
+        Instatiates Button from cfg dictionary
     """
 
     def toggle_btn(self):
