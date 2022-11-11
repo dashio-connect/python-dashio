@@ -53,7 +53,7 @@ class Dial(Control):
         ----------
         control_id : str
             An unique control identity string. The control identity string must be a unique string for each control per device
-        title : [type], optional
+        title : str, optional
             Title of the control, by default None
         control_position : ControlPosition, optional
             The position of the control on a DeviceView, by default None
