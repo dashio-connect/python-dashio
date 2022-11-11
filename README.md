@@ -376,7 +376,27 @@ Each event contains the time of the event, the color to display the event and th
 
 Multiple IoT devices can be shown on a single Event Log control.
 
-<img src="https://dashio.io/wp-content/uploads/2020/12/EventLog.jpeg" width="200" />
+##### Event Data
+
+An EventData object is a single event used by the EventLog.
+
+###### Attributes
+
+* *lines : str.* Max 25 lines long. Each line is seperated by '\n'
+* *color : Color, optional.* The color to display this data point on the iotdashboard app, by default Color.WHITE
+
+##### Event Log Config Attributes
+
+* *control_id : str.* A unique identifier for this control
+* *title : str, optional.*  The title for this control will be displayed on the iotdashboard app, by default "An Event Log".
+* *title_position : TitlePosition, optional.* The position of the title, by default TitlePosition.BOTTOM
+* *control_position : ControlPosition, optional.* The position of the control on a DeviceView, by default None
+* *max_log_entries : int, optional.* The EventLog usues a ring buffer for data entries this dfines the number entries before over wrting older entires, by default 100.
+
+##### Event Log Methods
+
+* *add_event_data(self, data: EventData):.* Add a data point to the log and send it to any connected iotdashboard app.
+* *send_data(self).* Send the latest log entry to any connected iotdashboard app.
 
 #### Graph
 
