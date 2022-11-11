@@ -59,7 +59,7 @@ class Direction(Control):
             Color of the pointer, by default Color.GREEN
         units : str, optional
             Units to be displayed with the value, by default ""
-        precision : [type], optional
+        precision : Precision, optional
             Precision of the value displayed, by default Precision.OFF
         calibration_angle : int, optional
             Calibration angle offset, by default 0
