@@ -59,8 +59,8 @@ class Graph(Control):
     def get_state(self):
         """Called by iotdashboard"""
         state_str = ""
-        for key in self.line_dict:
-            state_str += self._control_hdr_str + key + self.line_dict[key].get_line_data()
+        for key, line in self.line_dict.items():
+            state_str += self._control_hdr_str + key + line.get_line_data()
         return state_str
 
     def __init__(
@@ -139,8 +139,8 @@ class Graph(Control):
         """Sends the graph to any connected iotdashboard app.
         """
         state_str = ""
-        for key in self.line_dict:
-            state_str += self._control_hdr_str + key + self.line_dict[key].get_line_data()
+        for key, line in self.line_dict.items():
+            state_str += self._control_hdr_str + key + line.get_line_data()
         self.state_str = state_str
 
     @property

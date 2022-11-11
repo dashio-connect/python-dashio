@@ -222,9 +222,9 @@ class TimeGraph(Control):
             from_timestamp = msg[4]
         except IndexError:
             return ""
-        for key in self.line_dict:
-            if self.line_dict[key].data:
-                line_data = self.line_dict[key].get_line_from_timestamp(from_timestamp)
+        for key, line in self.line_dict.items():
+            if line.data:
+                line_data = line.get_line_from_timestamp(from_timestamp)
                 if line_data:
                     state_str += self._control_hdr_str + dashboard_id + "\t" + key + line_data
         return state_str
@@ -233,9 +233,9 @@ class TimeGraph(Control):
         """Sends the latest Data to the iotdashboard app.
         """
         state_str = ""
-        for key in self.line_dict:
-            if self.line_dict[key].data:
-                line_data = self.line_dict[key].get_latest_data()
+        for key, line in self.line_dict.items():
+            if line.data:
+                line_data = line.get_latest_data()
                 if line_data:
                     state_str += self._control_hdr_str + key + line_data
         self.state_str = state_str

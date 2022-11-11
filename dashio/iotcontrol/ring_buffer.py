@@ -22,20 +22,20 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 class RingBuffer:
-    """ class that implements a not-yet-full buffer """
+    """ class that implements a not-yet-full buffer"""
     def __init__(self, size_max):
         self.max = size_max
         self.data = []
         self._full = False
 
     def append(self, val):
-        """append an element at the end of the buffer"""
+        """ append an element at the end of the buffer."""
         if len(self.data) == self.max:
             self.cur = 0
             # Permanently change self's class from non-full to full
             self._full = True
         if self._full:
-            """ Append an element overwriting the oldest one. """
+            # Append an element overwriting the oldest one.
             # pylint: disable=access-member-before-definition
             self.data[self.cur] = val
             self.cur = (self.cur + 1) % self.max
@@ -46,8 +46,7 @@ class RingBuffer:
         """Get the last item in the buffer
         """
         if self._full:
-            """Get the last item in the buffer
-            """
+            # Get the last item in the buffer
             indx = self.cur - 1
             if indx < 0:
                 indx = self.max - 1
@@ -63,8 +62,8 @@ class RingBuffer:
         return False
 
     def get(self):
-        """ Return a list of elements from the oldest to the newest. """
+        """ Return a list of elements from the oldest to the newest."""
         if self._full:
-            """ return list of elements in correct order """
+            # return list of elements in correct order
             return self.data[self.cur:] + self.data[:self.cur]
         return self.data

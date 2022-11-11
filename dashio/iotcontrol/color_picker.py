@@ -93,7 +93,7 @@ class ColorPicker(Control):
 
     def send_color_rgb(self, red: int, green: int, blue: int):
         """Send color as #rrggbb for the given color values."""
-        self._color_value = '#%02x%02x%02x' % (red, green, blue)
+        self._color_value = f"#{red:02x}{green:02x}{blue:02x}"
         self.state_str = self._control_hdr_str + f"{self._color_value}\n"
 
 
