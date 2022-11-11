@@ -69,9 +69,9 @@ class EventData:
         return json.dumps(event_dict)
 
     def __str__(self):
-        header = "{ts}\t{color}".format(ts=self.timestamp.isoformat(), color=str(self.color.value))
+        header = f"{self.timestamp.isoformat()}\t{str(self.color.value)}"
         for line in self.event_lines:
-            header += "\t" + line
+            header += f"\t{line}"
         header += "\n"
         return header
 
