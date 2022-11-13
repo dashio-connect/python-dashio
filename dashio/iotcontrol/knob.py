@@ -48,32 +48,32 @@ class Knob(Control):
 
         Parameters
         ----------
-        control_id : [type]
-            [description]
+        control_id : str
+            A unique identifier for this control
         title : str, optional
-            [description], by default "A Knob"
-        title_position : [type], optional
-            [description], by default TitlePosition.BOTTOM
-        knob_style : [type], optional
-            [description], by default KnobStyle.NORMAL
+            The title for this control will be displayed on the iotdashboard app, by default "A Knob"
+        title_position : TitlePosition, optional
+            The position of the title, by default TitlePosition.BOTTOM
+        knob_style : KnobStyle, optional
+            The Knob style, by default KnobStyle.NORMAL
         dial_min : float, optional
-            [description], by default 0.0
+            Minimum dial value, by default 0.0
         dial_max : float, optional
-            [description], by default 100.0
+            Maximum dial value, by default 100.0
         red_value : float, optional
-            [description], by default 75.0
+            The value where the red starts, by default 75.0
         show_min_max : bool, optional
-            [description], by default False
+            Whether to show the min amd max values, by default False
         send_only_on_release : bool, optional
-            [description], by default True
+            Have the DashIO app send values either on release or during movement, by default True
         dial_follows_knob : bool, optional
-            [description], by default False
-        dial_color : [type], optional
-            [description], by default Color.BLUE
-        knob_color : [type], optional
-            [description], by default Color.RED
-        control_position : [type], optional
-            [description], by default None
+            Have the DashIO app adjust the dial to match the knob value, by default False
+        dial_color : Color, optional
+            Color of the Dial, by default Color.BLUE
+        knob_color : Color, optional
+            Color of the Knob, by default Color.RED
+        control_position : ControlPosition, optional
+            The position of the control on a DeviceView, by default None
         """
         super().__init__("KNOB", control_id, title=title, control_position=control_position, title_position=title_position)
         self._control_id_dial = f"\t{{device_id}}\tKBDL\t{control_id}\t"
