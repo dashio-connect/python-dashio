@@ -79,6 +79,37 @@ class Graph(Control):
         y_axis_num_bars=5,
         control_position=None,
     ):
+        """A Graph Control
+
+        Parameters
+        ----------
+        control_id : str
+            A unique identifier for this control
+        title : str, optional
+            The title for this control will be displayed on the iotdashboard app, by default "A Graph"
+        title_position : TitlePosition, optional
+            The position of the title, by default TitlePosition.BOTTOM
+        x_axis_label : str, optional
+            The label for the X axis, by default ""
+        x_axis_min : float, optional
+            Min value for the X axis, by default 0.0
+        x_axis_max : float, optional
+            Max value for the X axis, by default 100.0
+        x_axis_num_bars : int, optional
+            Number of bars on the X axis, by default 5
+        x_axis_labels_style : GraphXAxisLabelsStyle, optional
+            The style for the X axis, by default GraphXAxisLabelsStyle.ON
+        y_axis_label : str, optional
+            The label for the Y axis,, by default ""
+        y_axis_min : float, optional
+            Min value for the Y axis, by default 0.0
+        y_axis_max : float, optional
+            Max value for the Y axis, by default 100.0
+        y_axis_num_bars : int, optional
+            Number of bars on the Y axis, by default 5
+        control_position : ControlPosition, optional
+            The position of the control on a DeviceView, by default None
+        """
         super().__init__("GRPH", control_id, title=title, control_position=control_position, title_position=title_position)
         self.x_axis_label = x_axis_label
         self.x_axis_min = x_axis_min
