@@ -459,6 +459,27 @@ The IoT device may send messages to update both the dial and knob positions.
 
 <img src="https://dashio.io/wp-content/uploads/2020/12/Knobs.jpeg" width="200" />
 
+##### Knob Config Attributes
+
+* *control_id : str.* A unique identifier for this control.
+* *title : str, optional.* The title for this control will be displayed on the iotdashboard app, by default "A Knob".
+* *title_position : TitlePosition, optional.* The position of the title, by default TitlePosition.BOTTOM.
+* *knob_style : KnobStyle, optional.* The Knob style, by default KnobStyle.NORMAL.
+* *dial_min : float, optional.* Minimum dial value, by default 0.0.
+* *dial_max : float, optional.* Maximum dial value, by default 100.0.
+* *red_value : float, optional.* The value where the red starts, by default 75.0.
+* *show_min_max : bool, optional.* Whether to show the min amd max values, by default False.
+* *send_only_on_release : bool, optional.* Have the **DashIO** app send values either on release or during movement, by default True.
+* *dial_follows_knob : bool, optional.* Have the DashIO app adjust the dial to match the knob value, by default False.
+* *dial_color : Color, optional.* Color of the Dial, by default Color.BLUE.
+* *knob_color : Color, optional.* Color of the Knob, by default Color.RED. 
+* *control_position : ControlPosition, optional.* The position of the control on a DeviceView, by default None.
+
+##### Knob Message Attributes
+
+* *knob_value : float.* Sends the value of the knob.
+* *knob_dial_value : float.* Sends the value for the dial on the knob.
+
 #### Label
 
 A Label is a simple control to add structure to your layout on the dashboard. They do not transfer information with IoT devices.
