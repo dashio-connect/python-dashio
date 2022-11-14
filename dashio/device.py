@@ -398,7 +398,7 @@ class Device(threading.Thread):
         self.start()
 
     def use_cfg64(self):
-        """Generate CFG64 formated CFG messages
+        """Generate a CFG64 formated CFG message
         """
         self._device_commands_dict['CFG'] = self._make_cfg64
 
@@ -454,7 +454,7 @@ class Device(threading.Thread):
         self._send_data(f"\t{{device_id}}\tNAME\t{self._device_name}\t")
 
     def close(self):
-        """Close the connection"""
+        """Close the device"""
         self.running = False
 
     def run(self):
