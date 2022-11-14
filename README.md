@@ -133,6 +133,11 @@ A Device is a collection of [Controls](#controls) and [DeviceViews](#deviceview)
 #### Device Methods
 
 * *add_control(iot_control):* Add a control to the device.
+
+#### Device Callback Methods
+
+These callbacks are used to setup and configure connections by the **DashIO** app. Setting these callbacks advertises to the **DashIO** app that the connection can be modified.
+
 * *set_wifi_callback(callback):* Set a callback function that is called when the DashIO app provides wifi provisioning information. The callback must return a Boolean indicating success.
 * *unset_wifi_callback():* Clears the wifi callback.
 * *set_dashio_callback(callback):* Set a callback function that is called when the DashIO app provides Dash server provisioning information.
