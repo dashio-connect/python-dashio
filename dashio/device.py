@@ -352,6 +352,7 @@ class Device(threading.Thread):
                  device_type: str,
                  device_id: str,
                  device_name: str,
+                 cfg_dict: dict = None,
                  context=None) -> None:
         """DashDevice
 
@@ -363,6 +364,8 @@ class Device(threading.Thread):
                 A unique identifier for this device
             device_name : str
                 The name for this device
+            cfg_dict : dict optional
+                Setup dict to cfgRev, defaults None
             context : optional
                 ZMQ context. Defaults to None.
         """
@@ -388,6 +391,8 @@ class Device(threading.Thread):
         self._control_dict = {}
         self._cfg = {}
         self._device_id_str = f"\t{device_id}"
+        if cfg_dict is not None:
+            self._cfg["cfgRev"] = cfg_dict['CFG']['cfgRev']
         self._cfg["numDeviceViews"] = 0
         self.running = True
         self.start()
