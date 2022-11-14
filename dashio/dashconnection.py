@@ -204,7 +204,7 @@ class DashConnection(threading.Thread):
             host : str
                 The server name of the dash host.
             port : int
-                Port number to connect to.
+                Port number to connect to. Defaults to 8883.
             username : str
                 username for the dash connection.
             password : str
