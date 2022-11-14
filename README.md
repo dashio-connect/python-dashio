@@ -129,6 +129,7 @@ A Device is a collection of [Controls](#controls) and [DeviceViews](#deviceview)
 * *device_type : str.* The type of device (e.g. TempSensor, GPS...). If you have lots of devices that do the same thing keep this constant across your devices.
 * *device_id : str.* A unique identifier for this particular device.
 * *device_name : str.* The name for this device (E.g. GlassHouse, MothersZimmerFrame...).
+* *cfg_dict : dict.* Setup dict to setup numDeviceViews and cfgRev, defaults None.
 
 #### Device Methods
 
