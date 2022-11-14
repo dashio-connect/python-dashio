@@ -476,7 +476,7 @@ A Knob allow the user to send numerical values to the IoT device when the user d
 
 The IoT device may send messages to update both the dial and knob positions.
 
-<img src="Documents/Knobs.jpeg" width="200" />
+<img src="Documents/Knobs.jpeg" width="200"/>
 
 ##### Knob Config Attributes
 
@@ -511,7 +511,7 @@ The IoT device may send messages to update both the dial and knob positions.
 
 A Label is a simple control to add structure to your layout on the dashboard. Labels do not transfer information with IoT devices.
 
-<img src="Documents/Label.jpeg" width="200" />
+<img src="Documents/Label.jpeg" width="200"/>
 
 ##### Label Config Attributes
 
@@ -532,7 +532,7 @@ A Map display is used to plot positions on a map. The Map display receives messa
 
 Multiple IoT devices can be shown on a single Map.
 
-<img src="Documents/Mao.jpeg" width="200" />
+<img src="Documents/Map.jpeg" width="200"/>
 
 #### Menu
 
@@ -540,7 +540,7 @@ A Menu control is used to present a popup table of user adjustable controls and 
 
 Controls that can be included in a Menu control are Text Boxes, Sliders, Selectors and Buttons.
 
-<img src="Documents/Menu.jpeg" width="200" />
+<img src="Documents/Menu.jpeg" width="200"/>
 
 ##### Menu Config Attributes
 
@@ -562,7 +562,7 @@ A Selector control is used to present a popup list of options that the user can 
 
 Feedback to the user of the dashboard is achieved when the IoT device responds to the selection message. The dashboard updates the Selector control check box with this value.
 
-<img src="Documents/Selector.jpeg" width="200" />
+<img src="Documents/Selector.jpeg" width="200"/>
 
 ##### Selector Config Attributes
 
@@ -593,7 +593,7 @@ The IoT device may send messages to update both the bar graph and the slider kno
 
 The knob of the slider may be disabled so that the slider becomes a simple bar graph indicator.
 
-<img src="Documents/Slider.jpeg" width="200" />
+<img src="Documents/Slider.jpeg" width="200"/>
 
 ##### Slider Config Attributes
 
@@ -668,7 +668,7 @@ Each line can be independently added, deleted or changed by the IoT device. Mult
 
 Graph data is stored in the dashboard.
 
-<img src="Documents/ToimeGraph.jpeg" width="200" />
+<img src="Documents/TimeGraph.jpeg" width="200"/>
 
 ##### Data Point
 
