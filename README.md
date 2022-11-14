@@ -203,6 +203,8 @@ An alarm sends a notification throught the dashio mqtt server to registered phon
 
 #### Audio Visual Display
 
+<img src="Documents/av_display.jpeg" width="200"/>
+
 An Audio Visual display allows the IoT Device to send a URL to the DashIO app to play or display
 the contents of the URL. The URL may be a video or audio stream or an image.
 
@@ -225,7 +227,7 @@ A Button control behaves as both as a momentary push button for user input and a
 
 The control can change the button icon and text of the control on the **DashIO** app.
 
-<img src="https://dashio.io/wp-content/uploads/2020/12/Buttons.jpeg" width="200"/>
+<img src="Documents/Buttons.jpeg" width="200"/>
 
 ```python
 button1 = Button("button1_id", "Button Title")
@@ -274,7 +276,7 @@ When these attributes are set the button control will transmit the new value to 
 
 A ButtonGroup control is used to present a popup grid or table of Button controls. The Button Group does not receive or send messages directly, but presents Button controls that send and receive messages.
 
-<img src="https://dashio.io/wp-content/uploads/2020/12/ButtonGroup.jpeg" width="200" />
+<img src="Documents/ButtonGroup.jpeg" width="200"/>
 
 ##### Button Group Config Attributes
 
@@ -323,7 +325,7 @@ be shown as either a spectrum or as a colour wheel and brightness slider.
 
 A Direction display is used to graphically present a decimal direction value from 0 to 360 degrees. The Direction display receives messages from the IoT device to set the direction indicator position.
 
-<img src="https://dashio.io/wp-content/uploads/2020/12/Direction.jpeg" width="200" />
+<img src="Documents/Direction.jpeg" width="200" />
 
 ##### Direction Config Attributes
 
@@ -354,7 +356,7 @@ A Direction display is used to graphically present a decimal direction value fro
 
 A Dial display is used to present a numerical value in a graphical circular dial. The Dial display receives messages from the IoT device to set the dial position.
 
-<img src="https://dashio.io/wp-content/uploads/2020/12/Dial.jpeg" width="200" />
+<img src="Documents/Dial.jpeg" width="200" />
 
 ##### Dial Config Attributes
 
@@ -422,7 +424,7 @@ A Graph display is used to present graphical data on the DashIO Dashboard, where
 
 Each line can be independently added, deleted or changed by the IoT device. Multiple IoT devices can add lines to a single Graph control.
 
-<img src="https://dashio.io/wp-content/uploads/2020/12/Graph.jpeg" width="200" />
+<img src="Documents/Graph.jpeg" width="200" />
 
 ```python
 import dashio
@@ -474,7 +476,7 @@ A Knob allow the user to send numerical values to the IoT device when the user d
 
 The IoT device may send messages to update both the dial and knob positions.
 
-<img src="https://dashio.io/wp-content/uploads/2020/12/Knobs.jpeg" width="200" />
+<img src="Documents/Knobs.jpeg" width="200" />
 
 ##### Knob Config Attributes
 
@@ -509,7 +511,7 @@ The IoT device may send messages to update both the dial and knob positions.
 
 A Label is a simple control to add structure to your layout on the dashboard. Labels do not transfer information with IoT devices.
 
-<img src="https://dashio.io/wp-content/uploads/2020/12/Label.jpeg" width="200" />
+<img src="Documents/Label.jpeg" width="200" />
 
 ##### Label Config Attributes
 
@@ -530,7 +532,7 @@ A Map display is used to plot positions on a map. The Map display receives messa
 
 Multiple IoT devices can be shown on a single Map.
 
-<img src="https://dashio.io/wp-content/uploads/2020/12/Mao.jpeg" width="200" />
+<img src="Documents/Mao.jpeg" width="200" />
 
 #### Menu
 
@@ -538,7 +540,7 @@ A Menu control is used to present a popup table of user adjustable controls and 
 
 Controls that can be included in a Menu control are Text Boxes, Sliders, Selectors and Buttons.
 
-<img src="https://dashio.io/wp-content/uploads/2020/12/Menu.jpeg" width="200" />
+<img src="Documents/Menu.jpeg" width="200" />
 
 ##### Menu Config Attributes
 
@@ -560,7 +562,7 @@ A Selector control is used to present a popup list of options that the user can 
 
 Feedback to the user of the dashboard is achieved when the IoT device responds to the selection message. The dashboard updates the Selector control check box with this value.
 
-<img src="https://dashio.io/wp-content/uploads/2020/12/Selector.jpeg" width="200" />
+<img src="Documents/Selector.jpeg" width="200" />
 
 ##### Selector Config Attributes
 
@@ -591,7 +593,7 @@ The IoT device may send messages to update both the bar graph and the slider kno
 
 The knob of the slider may be disabled so that the slider becomes a simple bar graph indicator.
 
-<img src="https://dashio.io/wp-content/uploads/2020/12/Slider.jpeg" width="200" />
+<img src="Documents/Slider.jpeg" width="200" />
 
 ##### Slider Config Attributes
 
@@ -630,7 +632,7 @@ A Text Box control receives simple line text messages from the IoT device to dis
 
 The Text Box may also allow the user to input text. Touching the control will present the user with a keyboard where the user can enter text. When the Send button on the keyboard is pressed, the message will be sent to the IoT device.
 
-<img src="https://dashio.io/wp-content/uploads/2020/12/TextBox.jpeg" width="200" />
+<img src="Documents/TextBox.jpeg" width="200"/>
 
 ##### Text Box Config Attributes
 
@@ -666,7 +668,7 @@ Each line can be independently added, deleted or changed by the IoT device. Mult
 
 Graph data is stored in the dashboard.
 
-<img src="https://dashio.io/wp-content/uploads/2020/12/ToimeGraph.jpeg" width="200" />
+<img src="Documents/ToimeGraph.jpeg" width="200" />
 
 ##### Data Point
 
