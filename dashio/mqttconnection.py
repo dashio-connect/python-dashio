@@ -161,6 +161,10 @@ class MQTTConnection(threading.Thread):
                 control_topic = f"{self.username}/{device.device_id}/control"
                 self.mqttc.subscribe(control_topic, 0)
 
+    def close(self):
+        """Close the connection."""
+        self.running = False
+
     def __init__(self, host, port, username="", password="", use_ssl=False, context=None):
         """
         Setups and manages a connection thread to the MQTT Server.
@@ -169,7 +173,7 @@ class MQTTConnection(threading.Thread):
         ---------
             host : str
                 The server name of the mqtt host.
-            port {int}:
+            port :int
                 Port number to connect to.
             username : str
                 username for the mqtt connection.

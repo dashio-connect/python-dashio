@@ -33,7 +33,7 @@ from zeroconf import IPVersion, ServiceInfo, Zeroconf
 
 from . import ip
 from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
-
+from .device import Device
 
 class TCP():
     """A CFG control class to store TCP connection information
@@ -110,7 +110,7 @@ class TCPConnection(threading.Thread):
         zconf_desc = {'ConnectionUUID': self.connection_id}
         zconf_info = ServiceInfo(
             "_DashIO._tcp.local.",
-            "{}._DashIO._tcp.local.".format(self.connection_id),
+            f"{self.connection_id}._DashIO._tcp.local.",
             addresses=[socket.inet_aton(self.local_ip)],
             port=port,
             properties=zconf_desc,
@@ -118,7 +118,7 @@ class TCPConnection(threading.Thread):
         )
         self.zeroconf.register_service(zconf_info)
 
-    def add_device(self, device):
+    def add_device(self, device: Device):
         """Add a device to the connection
 
         Parameters
@@ -174,7 +174,7 @@ class TCPConnection(threading.Thread):
         if self.use_zeroconf:
             self.zeroconf = Zeroconf(ip_version=IPVersion.V4Only)
             self._zconf_publish_tcp(port)
-        
+
         self.tcp_control = TCP(self.connection_id, self.local_ip, port)
         self.start()
         time.sleep(1)

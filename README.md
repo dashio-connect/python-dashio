@@ -708,15 +708,77 @@ A TimeGraphLine for a TimeGraph control.
 
 ### Connections
 
+To enable a device to communicate to the **DashIO** app a connection is required. A device can have multiple connections and a connection can have multiple devices.
+
+#### DashConnection
+
+The DashConnection sets up a connection to the **DashIO** app via the **DashIO** mqtt server. The **DashIO** server has support for:
+
+1. sending notifications
+2. data storage for TimeGraphs, EventLogs, and Maps.
+3. Sharing devices with other users.
+
+##### DashConnection Attributes
+
+* *username : str* username for the dash server connection.
+* *password : str* password for the dash server connection.
+* *host : str, optional.* The server name of the dash server host. Optional defaults to "dash.dashio.io"
+* *port :int, optional.* Port number to connect to. Defaults to 8883,
+* *use_ssl : bool, optional.* Whether to use ssl for the connection or not. default: True.
+
+##### DashConnection Methods
+
+* *add_device(device: Device).* Adds a device to the connection.
+* *close().* Closes the connection.
+* *set_connection(username: str, password)* Changes the connection to the DashIO server.
+  * *username : str.* username for the server.
+  * *password : str.* password for the server.
+
 #### TCPConnection
+
+The TCPConnection sets up a connection to the **DashIO** app within a local area network.
+
+##### TCPConnection Attributes
+
+* *ip_address : str, optional.* IP Address to use. Defaults to "\*". Only set this if you know which IP address to connect to on the local machine. The "\*" option will use all available addresses.
+* *port : int, optional.* Port to use. Defaults to 5650.
+* *use_zero_conf : bool, optional.* Use mDNS to advertise the connection. Defaults to True. This allows the **DashIO** app to find the connection on the network.
+
+##### TCPConnection Methods
+
+* *add_device(device: Device).* Adds a device to the connection.
+* *close().* Closes the connection.
 
 #### MQTTConnection
 
-#### DashConnection
+The MQTTConnection sets up a connection to the **DashIO** app via a MQTT server.
+
+##### MQTTConnection Attributes
+
+* *host : str.* The server name of the mqtt host.
+* *port :int.* Port number to connect to.
+* *username : str* username for the mqtt connection.
+* *password : str* password for the mqtt connection.
+* *use_ssl : bool.* Whether to use ssl for the connection or not. (default: {False})
+
+##### MQTTConnection Methods
+
+* *add_device(device: Device).* Adds a device to the connection.
+* *close().* Closes the connection.
 
 #### BLEConnection
 
 The BLEConnection is only supported on Linux systems and requires bluez and dbus to be installed. It has been developed with the RaspberryPi Zero W in mind.
+
+##### BLEConnection Attributes
+
+* *ble_uuid : str, optional.* The UUID used by the BLE connection, if None a UUID is generated.
+
+##### BLEConnection Methods
+
+* *add_device(device: Device).* Adds a device to the connection.
+* *close().* Closes the connection.
+
 The steps to get a Pi Zero to become a Device Server
 
 Install bluez and bluetooth:
@@ -799,7 +861,3 @@ Returns a control config dictionary from cfg_dict with the given control_id
 #### **load_all_controls_from_config(device, cfg_dict) -> dict:**
 
 Loads all the controls in cfg_dict into the given device and returns a dictionary of the control objects
-
-### Dash Server
-
-### Advanced Architecture
