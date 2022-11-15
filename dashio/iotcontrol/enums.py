@@ -231,7 +231,7 @@ class GraphXAxisLabelsStyle(Enum):
 
 
 class TimeGraphLineType(Enum):
-    """Time grapgh line types"""
+    """Time graph line types"""
     LINE = "LINE"
     BAR = "BAR"
     BOOL = "BOOL"
@@ -239,7 +239,7 @@ class TimeGraphLineType(Enum):
 
 
 class TimeGraphPositionOfKey(Enum):
-    """Time grapgh positions of key"""
+    """Time graph positions of key"""
     TOPLEFT = "Top Left"
     TOPRIGHT = "Top Right"
 

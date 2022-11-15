@@ -60,7 +60,7 @@ class TCP():
         try:
             dashboard_id = data[2]
         except IndexError:
-            return
+            return ""
         cfg_str = f"\tCFG\t{dashboard_id}\t" + self.cntrl_type + "\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
 
