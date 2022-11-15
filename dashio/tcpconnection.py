@@ -58,12 +58,21 @@ class TCP():
             The CFG string for this control
         """
         try:
-            num_columns = data[3]
             dashboard_id = data[2]
         except IndexError:
             return
         cfg_str = f"\tCFG\t{dashboard_id}\t" + self.cntrl_type + "\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
+
+    def get_cfg64(self, data) -> dict:
+        """Returns the CFG dict for this TCP control
+
+        Returns
+        -------
+        dict
+            The CFG string for this control
+        """
+        return self._cfg
 
     def __init__(self, control_id, ip_address="", port=5650):
         self._cfg = {}

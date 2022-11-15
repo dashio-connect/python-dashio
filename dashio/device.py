@@ -136,12 +136,12 @@ class Device(threading.Thread):
         reply = self._device_id_str + f"\tCFG\t{dashboard_id}\tC64\t"
         cfg = {}
         cfg["CFG"] = self._cfg
-        for value in self._control_dict.values():
-            if value.cntrl_type == "ALM":
+        for control in self._control_dict.values():
+            if control.cntrl_type == "ALM":
                 continue
-            if value.cntrl_type not in cfg:
-                cfg[value.cntrl_type] = []
-            cfg[value.cntrl_type].append(value._cfg)
+            if control.cntrl_type not in cfg:
+                cfg[control.cntrl_type] = []
+            cfg[control.cntrl_type].append(control.get_cfg64(data))
         c64_json = encode_cfg64(cfg)
         reply += c64_json + "\n"
         return reply
@@ -154,13 +154,13 @@ class Device(threading.Thread):
             return ""
         reply = self._device_id_str + f"\tCFG\t{dashboard_id}\tDVCE\t" + json.dumps(self._cfg) + "\n"
         dvvw_str = ""
-        for value in self._control_dict.values():
-            if value.cntrl_type == "ALM":
+        for control in self._control_dict.values():
+            if control.cntrl_type == "ALM":
                 continue
-            if value.cntrl_type == "DVVW":
-                dvvw_str += self._device_id_str + value.get_cfg(data)
+            if control.cntrl_type == "DVVW":
+                dvvw_str += self._device_id_str + control.get_cfg(data)
             else:
-                reply += self._device_id_str + value.get_cfg(data)
+                reply += self._device_id_str + control.get_cfg(data)
         reply += dvvw_str
         return reply
 

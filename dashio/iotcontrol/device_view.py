@@ -375,7 +375,7 @@ class DeviceView(Control):
 
     @num_grid_columns.setter
     def num_grid_columns(self, val: int):
-        self._cfg["gridRows"] = val
+        self._cfg["gridColumns"] = val
 
 
     @property
