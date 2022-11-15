@@ -159,7 +159,7 @@ class TestControls:
         self.device.set_name_callback(self.name_handler)
         self.device.set_tcp_callback(self.tcp_handler)
         self.device.set_mqtt_callback(self.mqtt_handler)
-        #self.device.use_cfg64()
+        self.device.use_cfg64()
         self.tcp_con = dashio.TCPConnection()
         self.dash_con = dashio.DashConnection(args.username, args.password)
         self.tcp_con.add_device(self.device)
