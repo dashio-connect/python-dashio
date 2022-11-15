@@ -63,6 +63,16 @@ class Dash():
         cfg_str =f"\tCFG\t{dashboard_id}\t" + self.cntrl_type + "\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
 
+    def get_cfg64(self, data) -> dict:
+        """Returns the CFG dict for this TCP control
+
+        Returns
+        -------
+        dict
+            The CFG string for this control
+        """
+        return self._cfg
+
     def __init__(self, control_id, username="", servername=""):
         self.cntrl_type = "DASHIO"
         self._cfg = {}

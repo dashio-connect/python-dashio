@@ -23,7 +23,6 @@ SOFTWARE.
 """
 import copy
 import json
-import logging
 
 from ..constants import BAD_CHARS
 from .enums import ColorPickerStyle, DeviceViewStyle, DialNumberPosition, DirectionStyle, GraphXAxisLabelsStyle, Keyboard, KnobStyle, Precision,\
@@ -134,19 +133,7 @@ class Control:
         """This is called by iotdashboard app. Controls need to implement their own version."""
         return ""
 
-    def get_cfg(self, data):
-        """Returns the CFG for the control called when the iotdashboard app asks for a CFG
-
-        Parameters
-        ----------
-        data : list from IoTDashboard
-            The command from IoTDashboard split on \t into a list
-
-        Returns
-        -------
-        str
-            The CFG for this control
-        """
+    def _set_positions(self, data):
         try:
             num_columns = int(data[3])
             dashboard_id = data[2]
@@ -167,9 +154,40 @@ class Control:
             self._cfg["yPositionRatio"] = self._control_position_column_1.y_position_ratio
             self._cfg["widthRatio"] = self._control_position_column_1.width_ratio
             self._cfg["heightRatio"] = self._control_position_column_1.height_ratio
+        return dashboard_id
 
+    def get_cfg(self, data) -> str:
+        """Returns the CFG str for the control called when the iotdashboard app asks for a CFG
+
+        Parameters
+        ----------
+        data : list from IoTDashboard
+            The command from IoTDashboard split on \t into a list
+
+        Returns
+        -------
+        str
+            The CFG for this control
+        """
+        dashboard_id = self._set_positions(data)
         cfg_str = f"\tCFG\t{dashboard_id}\t" + self.cntrl_type + "\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
+
+    def get_cfg64(self, data) -> dict:
+        """Returns the CFG dict for the control called when the iotdashboard app asks for a CFG
+
+        Parameters
+        ----------
+        data : list from IoTDashboard
+            The command from IoTDashboard split on \t into a list
+
+        Returns
+        -------
+        dict
+            The CFG dict for this control
+        """
+        _ = self._set_positions(data)
+        return self._cfg
 
 
     def __init__(self, cntrl_type: str, control_id: str, title=None, control_position=None, title_position=None):
