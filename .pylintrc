@@ -1,17 +1,13 @@
 [MESSAGES CONTROL]
 disable=
     locally-disabled,
-    locally-enabled,
     logging-format-interpolation,
-    no-init,
     too-few-public-methods,
     too-many-instance-attributes,  # <-- Ensure at least this entry.
     fixme,
-    too-many-Parameters,
     no-member,
     unused-argument,
     attribute-defined-outside-init,
-    no-self-use,
     duplicate-code
 
 

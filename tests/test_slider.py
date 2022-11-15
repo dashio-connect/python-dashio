@@ -63,9 +63,9 @@ class TestSlider(unittest.TestCase):
         self.assertEqual(Color(int(cfg_dict['barColor'])), Color.CHARTREUSE, "CFG barColor should be True")
 
     def test_slider_single_bar_cfg_bar_style(self):
-        test_control = Slider("SLIDERID", bar_style=SliderBarStyle.SEGMENTED)
+        test_control = Slider("SLIDERID", bar_style=SliderBarStyle.SEG)
         cfg_dict = _get_cfg_dict(test_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
-        self.assertEqual(SliderBarStyle(cfg_dict['barStyle']), SliderBarStyle.SEGMENTED, "CFG barStyle should be SEGMENTED")
+        self.assertEqual(SliderBarStyle(cfg_dict['barStyle']), SliderBarStyle.SEG, "CFG barStyle should be SEGMENTED")
 
     def test_slider_single_bar_cfg_knob_color(self):
         test_control = Slider("SLIDERID", knob_color=Color.CORAL)

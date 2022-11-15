@@ -52,10 +52,7 @@ class TestDeviceView(unittest.TestCase):
         cfg_dict = _get_cfg_dict(test_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
         self.assertEqual(Color(int(cfg_dict['ctrlBorderColor'])), Color.TURQUOISE, "CFG ctrlBorderColor should be TURQUOISE")
 
-    def test_device_view_cfg_control_border_on(self):
-        test_control = DeviceView("DVIEWID", control_border_on=True)
-        cfg_dict = _get_cfg_dict(test_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
-        self.assertEqual(cfg_dict['ctrlBorderOn'], True, "CFG ctrlBorderColor should be True")
+
 
     def test_device_view_control_background_color(self):
         test_control = DeviceView("DVIEWID", control_background_color=Color.BISQUE)
