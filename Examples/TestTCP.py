@@ -1,4 +1,3 @@
-#!/bin/python3
 """
 MIT License
 
@@ -122,7 +121,6 @@ class TestControls:
         args = self.parse_commandline_arguments()
         self.init_logging(args.logfilename, args.verbose)
 
-        logging.info("   Serving on: %s:%s", args.url, str(args.port))
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
         self.tcp_con = dashio.TCPConnection()
