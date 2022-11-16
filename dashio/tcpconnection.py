@@ -167,11 +167,14 @@ class TCPConnection(threading.Thread):
         self.connection_id = shortuuid.uuid()
         self.b_connection_id = self.connection_id.encode('utf-8')
         self.use_zeroconf = use_zero_conf
+        self.local_ip = ip.get_local_ip_address()
         while self._is_port_in_use(port) and use_zero_conf:
             # increment port until we find one that is free.
             port += 1
-        self.ext_url = "tcp://" + ip_address + ":" + str(port)
-
+        if ip_address == "*":
+            self.ext_url = "tcp://" + self.local_ip + ":" + str(port)
+        else:
+            self.ext_url = "tcp://" + ip_address + ":" + str(port)
         self.socket_ids = []
         self.running = True
 
@@ -179,7 +182,6 @@ class TCPConnection(threading.Thread):
         host_list = host_name.split(".")
         # rename for .local mDNS advertising
         self.host_name = f"{host_list[0]}.local"
-        self.local_ip = ip.get_local_ip_address()
         if self.use_zeroconf:
             self.zeroconf = Zeroconf(ip_version=IPVersion.V4Only)
             self._zconf_publish_tcp(port)
