@@ -115,12 +115,12 @@ class TCP():
 class TCPConnection(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via TCP."""
 
-    def _zconf_publish_tcp(self, port):
+    def _zconf_publish_tcp(self, ip_address, port):
         zconf_desc = {'ConnectionUUID': self.connection_id}
         zconf_info = ServiceInfo(
             "_DashIO._tcp.local.",
             f"{self.connection_id}._DashIO._tcp.local.",
-            addresses=[socket.inet_aton(self.local_ip)],
+            addresses=[socket.inet_aton(ip_address)],
             port=port,
             properties=zconf_desc,
             server=self.host_name + ".",
@@ -143,9 +143,9 @@ class TCPConnection(threading.Thread):
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
 
     @staticmethod
-    def _is_port_in_use(port):
+    def _is_port_in_use(ip_address, port):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as port_s:
-            return port_s.connect_ex(('localhost', port)) == 0
+            return port_s.connect_ex((ip_address, port)) == 0
 
     def __init__(self, ip_address="*", port=5650, use_zero_conf=True, context=None):
         """TCP Connection
@@ -168,13 +168,14 @@ class TCPConnection(threading.Thread):
         self.b_connection_id = self.connection_id.encode('utf-8')
         self.use_zeroconf = use_zero_conf
         self.local_ip = ip.get_local_ip_address()
-        while self._is_port_in_use(port) and use_zero_conf:
+        self.local_port = port
+        while self._is_port_in_use(self.local_ip, self.local_port) and use_zero_conf:
             # increment port until we find one that is free.
-            port += 1
+            self.local_port += 1
         if ip_address == "*":
-            self.ext_url = "tcp://" + self.local_ip + ":" + str(port)
+            self.ext_url = "tcp://" + self.local_ip + ":" + str(self.local_port)
         else:
-            self.ext_url = "tcp://" + ip_address + ":" + str(port)
+            self.ext_url = "tcp://" + ip_address + ":" + str(self.local_port)
         self.socket_ids = []
         self.running = True
 
@@ -184,9 +185,9 @@ class TCPConnection(threading.Thread):
         self.host_name = f"{host_list[0]}.local"
         if self.use_zeroconf:
             self.zeroconf = Zeroconf(ip_version=IPVersion.V4Only)
-            self._zconf_publish_tcp(port)
+            self._zconf_publish_tcp(self.local_ip, self.local_port)
 
-        self.tcp_control = TCP(self.connection_id, self.local_ip, port)
+        self.tcp_control = TCP(self.connection_id, self.local_ip, self.local_port)
         self.start()
         time.sleep(1)
 
