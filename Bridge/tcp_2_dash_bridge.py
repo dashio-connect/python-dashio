@@ -21,19 +21,20 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-import threading
-import time
-import paho.mqtt.client as mqtt
-import ssl
-import logging
-import zmq
-import signal
-import socket
 import configparser
 import ipaddress
-import netifaces
+import logging
+import signal
+import socket
+import ssl
+import threading
+import time
 from collections import defaultdict
-from zeroconf import Zeroconf, ServiceBrowser
+
+import netifaces
+import paho.mqtt.client as mqtt
+import zmq
+from zeroconf import ServiceBrowser, Zeroconf
 
 # TODO: Add documentation
 
@@ -48,20 +49,20 @@ class ZeroConfDashTCPListener:
         info = zeroconf.get_service_info(service_type, name)
         if info:
             for address in info.addresses:
-                self.zmq_socket.send_multipart([b"remove", socket.inet_ntoa(address).encode('utf-8'), str(info.port).encode('utf-8')])
+                self.zmq_socket.send_multipart([b"remove", socket.inet_ntoa(address).encode(), str(info.port).encode()])
 
     def add_service(self, zeroconf, service_type, name):
         info = zeroconf.get_service_info(service_type, name)
         if info:
             for address in info.addresses:
-                logging.debug('IP: %s', socket.inet_ntoa(address).encode('utf-8'))
-                self.zmq_socket.send_multipart([b"add", socket.inet_ntoa(address).encode('utf-8'), str(info.port).encode('utf-8')])
+                logging.debug('IP: %s', socket.inet_ntoa(address).encode())
+                self.zmq_socket.send_multipart([b"add", socket.inet_ntoa(address).encode(), str(info.port).encode()])
 
     def update_service(self, zeroconf, service_type, name):
         info = zeroconf.get_service_info(service_type, name)
         if info:
             for address in info.addresses:
-                self.zmq_socket.send_multipart([b"update", socket.inet_ntoa(address).encode('utf-8'), str(info.port).encode('utf-8')])
+                self.zmq_socket.send_multipart([b"update", socket.inet_ntoa(address).encode(), str(info.port).encode()])
 
 
 class TCPPoller(threading.Thread):
@@ -78,11 +79,11 @@ class TCPPoller(threading.Thread):
             if result == 0:
                 if ip not in self.open_address_list:
                     self.open_address_list.append(ip)
-                    self.zmq_socket.send_multipart([b"add", ip.encode('utf-8'), str(port).encode('utf-8')])
+                    self.zmq_socket.send_multipart([b"add", ip.encode(), str(port).encode()])
             else:
                 if ip in self.open_address_list:
                     self.open_address_list.remove(ip)
-                    self.zmq_socket.send_multipart([b"remove", ip.encode('utf-8'), str(port).encode('utf-8')])
+                    self.zmq_socket.send_multipart([b"remove", ip.encode(), str(port).encode()])
             sock.close()
         except socket.error:
             pass
@@ -105,7 +106,7 @@ class TCPPoller(threading.Thread):
         self.open_address_list = []
         gws = netifaces.gateways()
         net_dict = netifaces.ifaddresses(gws['default'][netifaces.AF_INET][1])[netifaces.AF_INET]
-        net_str = '{}/{}'.format(net_dict[0]['addr'], net_dict[0]['netmask'])
+        net_str = f"{net_dict[0]['addr']}/{net_dict[0]['netmask']}"
         self.network = [str(ip) for ip in ipaddress.IPv4Network(net_str, strict=False)]
         self.start()
 
@@ -123,7 +124,7 @@ class TCPPoller(threading.Thread):
             time.sleep(60)
 
 
-class tcp_dashBridge(threading.Thread):
+class TCPDashBridge(threading.Thread):
     """Setups and manages a connection thread to the Dash Server."""
 
     def __on_connect(self, client, userdata, flags, rc):
@@ -134,7 +135,7 @@ class tcp_dashBridge(threading.Thread):
         topic_array = msg.topic.split("/")
         device_id = topic_array[1]
         logging.debug("BRIDGE Dash: RX: %s", data)
-        self.tcp_socket.send(self.tcp_device_dict[device_id.encode('utf-8')], zmq.SNDMORE)
+        self.tcp_socket.send(self.tcp_device_dict[device_id.encode()], zmq.SNDMORE)
         self.tcp_socket.send(msg.payload)
 
     def __on_publish(self, client, obj, mid):
@@ -147,24 +148,23 @@ class tcp_dashBridge(threading.Thread):
         logging.debug(string)
 
     def add_device(self, ip_address, port):
-        url = "tcp://{}:{}".format(ip_address.decode('utf-8'), port.decode('utf-8'))
-        print(url)
+        url = f"tcp://{ip_address.decode()}:{port.decode()}"
         self.tcp_socket.connect(url)
-        id = self.tcp_socket.getsockopt(zmq.IDENTITY)
+        socket_id = self.tcp_socket.getsockopt(zmq.IDENTITY)
         ip_b = ip_address + b':' + port
         if ip_b not in self.tcp_ip_2_id_dict:
             try:
-                self.tcp_socket.send(id, zmq.SNDMORE)
+                self.tcp_socket.send(socket_id, zmq.SNDMORE)
                 self.tcp_socket.send_string('\tWHO\n')
-                self.tcp_id_2_ip_dict[id] = ip_address + b':' + port
-                self.tcp_ip_2_id_dict[ip_address + b':' + port] = id
+                self.tcp_id_2_ip_dict[socket_id] = ip_address + b':' + port
+                self.tcp_ip_2_id_dict[ip_address + b':' + port] = socket_id
                 logging.debug("BRIDGE TX: \tWHO")
 
             except zmq.error.ZMQError:
                 logging.debug("Sending TX Error.")
                 self.tcp_socket.send(b'')
         time.sleep(0.1)
-        return id
+        return socket_id
 
     def remove_device(self, ip_address, port):
         pass
@@ -210,18 +210,18 @@ class tcp_dashBridge(threading.Thread):
 
     def announce_device(self, device_id, message):
         logging.debug("Adding device: %s", device_id)
-        control_topic = "{}/{}/control".format(self.username, device_id)
-        announce_topic = "{}/{}/announce".format(self.username, device_id)
+        control_topic = f"{self.username}/{device_id}/control"
+        announce_topic = f"{self.username}/{device_id}/announce"
         self.dash_c.subscribe(control_topic, 0)
         self.dash_c.publish(announce_topic, message)
 
     def clear_device(self, device_id):
         logging.debug("Removing device: %s", device_id)
-        control_topic = "{}/{}/control".format(self.username, device_id)
-        id = self.tcp_device_dict[device_id.encode('utf-8')]
-        self.tcp_device_dict.pop(device_id.encode('utf-8'))
+        control_topic = f"{self.username}/{device_id}/control"
+        socket_id = self.tcp_device_dict[device_id.encode()]
+        self.tcp_device_dict.pop(device_id.encode())
         try:
-            self.tcp_id_dict[id].remove(device_id)
+            self.tcp_id_dict[socket_id].remove(device_id)
         except ValueError:
             pass
         self.dash_c.unsubscribe(control_topic)
@@ -247,39 +247,39 @@ class tcp_dashBridge(threading.Thread):
             if rx_zconf_pull in socks:
                 action, ip_address, port = rx_zconf_pull.recv_multipart()
                 if action == b'add':
-                    logging.debug("Adding device: %s:%s", ip_address.decode('utf-8'), port.decode('utf-8'))
+                    logging.debug("Adding device: %s:%s", ip_address.decode(), port.decode())
                     self.add_device(ip_address, port)
                 elif action == b'remove':
-                    logging.debug("Remove device: %s:%s", ip_address.decode('utf-8'), port.decode('utf-8'))
+                    logging.debug("Remove device: %s:%s", ip_address.decode(), port.decode())
                     self.remove_device(ip_address, port)
             if self.tcp_socket in socks:
-                id = self.tcp_socket.recv()
+                socket_id = self.tcp_socket.recv()
                 message = self.tcp_socket.recv()
                 if message:
                     msg_l = message.split(b'\t')
                     if len(msg_l) == 1:
-                        self.tcp_socket.send(id, zmq.SNDMORE)
+                        self.tcp_socket.send(socket_id, zmq.SNDMORE)
                         self.tcp_socket.send(b'')
                     elif msg_l[1] not in self.tcp_device_dict:
-                        if (len(msg_l) > 3) and (msg_l[2] == b'WHO') and (msg_l[1].decode('utf-8') not in self.ignore_list):
-                            logging.debug("Added device: %s", msg_l[1].decode('utf-8'))
-                            self.tcp_id_dict[id].append(msg_l[1])
-                            self.tcp_device_dict[msg_l[1]] = id
-                            self.announce_device(msg_l[1].decode('utf-8'), message)
+                        if (len(msg_l) > 3) and (msg_l[2] == b'WHO') and (msg_l[1].decode() not in self.ignore_list):
+                            logging.debug("Added device: %s", msg_l[1].decode())
+                            self.tcp_id_dict[socket_id].append(msg_l[1])
+                            self.tcp_device_dict[msg_l[1]] = socket_id
+                            self.announce_device(msg_l[1].decode(), message)
                     else:
-                        logging.debug("BRIDGE  TCP: RX: %s", message.decode('utf-8').strip())
+                        logging.debug("BRIDGE  TCP: RX: %s", message.decode().strip())
                         if msg_l[2] == b'ALM':
-                            data_topic = "{}/{}/alarm".format(self.username, msg_l[1].decode('utf-8'))
+                            data_topic = f"{self.username}/{msg_l[1].decode()}/alarm"
                         else:
-                            data_topic = "{}/{}/data".format(self.username, msg_l[1].decode('utf-8'))
+                            data_topic = f"{self.username}/{msg_l[1].decode()}/data"
                         self.dash_c.publish(data_topic, message)
-                elif id in self.tcp_id_dict:
-                    for device_id in self.tcp_id_dict[id]:
-                        self.clear_device(device_id.decode('utf-8'))
-                    self.tcp_socket.send(id, zmq.SNDMORE)
+                elif socket_id in self.tcp_id_dict:
+                    for device_id in self.tcp_id_dict[socket_id]:
+                        self.clear_device(device_id.decode())
+                    self.tcp_socket.send(socket_id, zmq.SNDMORE)
                     self.tcp_socket.send(b'')
-                    ip_b = self.tcp_id_2_ip_dict[id]
-                    self.tcp_id_2_ip_dict.pop(id)
+                    ip_b = self.tcp_id_2_ip_dict[socket_id]
+                    self.tcp_id_2_ip_dict.pop(socket_id)
                     self.tcp_ip_2_id_dict.pop(ip_b)
 
 
@@ -328,7 +328,6 @@ def load_configfile(filename):
 
 def main():
     # Catch CNTRL-C signel
-    global SHUTDOWN
     signal.signal(signal.SIGINT, signal_cntrl_c)
 
     init_logging("", 2)
@@ -340,7 +339,7 @@ def main():
     listener = ZeroConfDashTCPListener(context)
     browser = ServiceBrowser(zeroconf, "_DashIO._tcp.local.", listener)
     pinger = TCPPoller(port=5000, context=context)
-    bridge = tcp_dashBridge(
+    bridge = TCPDashBridge(
         configs.get('Dash', 'Username'),
         configs.get('Dash', 'Password'),
         host=configs.get('Dash', 'Server'),
