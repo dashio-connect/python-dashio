@@ -50,13 +50,12 @@ class BLE():
         """Called by iotdashboard app to get controls CFG
         """
         try:
-            num_columns = data[3]
             dashboard_id = data[2]
         except IndexError:
-            return
-        cfg_str = "\tCFG\t{dashboard_id}\t" + self.cntrl_type + "\t" + json.dumps(self._cfg) + "\n"
+            return ""
+        cfg_str = f"\tCFG\t{dashboard_id}\t" + self.cntrl_type + "\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
-    
+
     def get_cfg64(self, data) -> dict:
         """Returns the CFG dict for this TCP control
 
