@@ -127,7 +127,7 @@ class SerialConnection(threading.Thread):
         device.add_control(self.serial_control)
 
         self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
+        #self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
 
 
     def __init__(self, serial_port='/dev/ttyUSB0', baud_rate=38400, context=None):
@@ -148,7 +148,7 @@ class SerialConnection(threading.Thread):
         threading.Thread.__init__(self, daemon=True)
         self.context = context or zmq.Context.instance()
         self.connection_id = shortuuid.uuid()
-        self.b_connection_id = self.connection_id.encode('utf-8')
+        self.b_connection_id = self.connection_id.encode()
 
         self.running = True
 
