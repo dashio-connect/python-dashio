@@ -30,7 +30,7 @@ import zmq
 from zeroconf import IPVersion, ServiceInfo, Zeroconf
 
 from . import ip
-from .constants import CONNECTION_PUB_URL
+from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 
 class ZMQConnection(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via ZMQ."""
@@ -59,6 +59,7 @@ class ZMQConnection(threading.Thread):
         """
         device.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.connection_id))
         device.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
+        self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
 
         sub_topic = f"\t{device.device_id}"
         self.ext_rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, sub_topic.encode('utf-8'))
@@ -100,7 +101,7 @@ class ZMQConnection(threading.Thread):
         host_name = socket.gethostname()
         host_list = host_name.split(".")
         # rename for .local mDNS advertising
-        self.host_name = "{}.local".format(host_list[0])
+        self.host_name = f"{host_list[0]}.local"
 
         self.local_ip = ip.get_local_ip_address()
         self.zeroconf = Zeroconf(ip_version=IPVersion.V4Only)

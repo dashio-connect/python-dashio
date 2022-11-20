@@ -135,12 +135,10 @@ class SerialConnection(threading.Thread):
 
         Parameters
         ---------
-            ip_address : str, optional
-                IP Address to use. Defaults to "*" - forces The TCP connection to find the ip address attached to the local network.
-            port : int, optional
-                Port to use. Defaults to 5650.
-            use_zero_conf : bool, optional
-                Use mDNS to advertise the connection. Defaults to True.
+            serial_port : str, optional
+                Serial port to use. Defaults to "/dev/ttyUSB0".
+            baud_rate : int, optional
+                Baud rate to use. Defaults to 38400.
             context : optional
                 ZMQ context. Defaults to None.
         """
