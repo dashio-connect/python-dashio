@@ -257,6 +257,7 @@ class TCPDashBridge(threading.Thread):
                 message = self.tcp_socket.recv()
                 if message:
                     msg_l = message.split(b'\t')
+                    logging.debug("MESSAGE: %s", message)
                     if len(msg_l) == 1:
                         self.tcp_socket.send(socket_id, zmq.SNDMORE)
                         self.tcp_socket.send(b'')

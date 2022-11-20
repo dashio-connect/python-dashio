@@ -124,10 +124,12 @@ class TestControls:
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
         self.tcp_con = dashio.TCPConnection()
+        self.serial_con = dashio.SerialConnection('/dev/cu.usbserial-14130')
         self.device = dashio.Device("ControlTest", args.device_id, args.device_name)
         self.device.use_cfg64()
         
         self.device.config_revision = 2
+        self.serial_con.add_device(self.device)
         self.tcp_con.add_device(self.device)
 
         self.page_name = "TestTCP: " + platform.node()
