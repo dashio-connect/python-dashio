@@ -172,7 +172,7 @@ class DashConnection(threading.Thread):
             device.add_control(self.dash_control)
 
             self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
-            self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
+            #self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
 
             if self._connected:
                 control_topic = f"{self.username}/{device.device_id}/control"

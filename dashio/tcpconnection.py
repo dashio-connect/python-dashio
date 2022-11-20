@@ -140,7 +140,7 @@ class TCPConnection(threading.Thread):
         device.add_control(self.tcp_control)
 
         self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
+        #self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
 
     @staticmethod
     def _is_port_in_use(ip_address, port):
