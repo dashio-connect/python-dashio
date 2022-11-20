@@ -193,7 +193,7 @@ class SerialConnection(threading.Thread):
                     continue
                 if not data:
                     continue
-                logging.debug("SERIAL Tx:%s\n", data.decode().rstrip())
+                logging.debug("SERIAL Tx:\n%s", data.decode().rstrip())
                 self.serial_com.write(data)
             if self.serial_com.in_waiting > 0:
                 message = self.serial_com.readline()
@@ -202,7 +202,6 @@ class SerialConnection(threading.Thread):
                         logging.debug("SERIAL Rx:\n%s", message.decode())
                         tx_zmq_pub.send_multipart([self.b_connection_id, b'', message])
                     except UnicodeDecodeError:
-
                         logging.debug("SERIAL DECODE ERROR Rx:\n%s", message.hex())
 
         self.serial_com.close()
