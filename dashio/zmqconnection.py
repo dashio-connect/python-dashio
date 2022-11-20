@@ -41,7 +41,7 @@ class ZMQConnection(threading.Thread):
 
         zconf_info = ServiceInfo(
             "_DashZMQ._tcp.local.",
-            "{}._DashZMQ._tcp.local.".format(self.connection_id),
+            f"{self.connection_id}._DashZMQ._tcp.local.",
             addresses=[socket.inet_aton(self.local_ip)],
             port=pub_port,
             properties=zconf_desc,
@@ -59,7 +59,8 @@ class ZMQConnection(threading.Thread):
         """
         device.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.connection_id))
         device.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
-        sub_topic = "\t{}".format(device.device_id)
+
+        sub_topic = f"\t{device.device_id}"
         self.ext_rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, sub_topic.encode('utf-8'))
 
     def close(self):
