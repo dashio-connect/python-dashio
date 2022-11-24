@@ -35,7 +35,7 @@ from . import ip
 from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 from .device import Device
 
-class TCP():
+class TCPControl():
     """A CFG control class to store TCP connection information
     """
 
@@ -135,10 +135,7 @@ class TCPConnection(threading.Thread):
         device : dashio.Device
             Add a device to the connection.
         """
-        device.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.connection_id))
-        device.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
-        device.add_control(self.tcp_control)
-
+        device._add_connection(self)
         self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
         #self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
 
@@ -187,7 +184,7 @@ class TCPConnection(threading.Thread):
             self.zeroconf = Zeroconf(ip_version=IPVersion.V4Only)
             self._zconf_publish_tcp(self.local_ip, self.local_port)
 
-        self.tcp_control = TCP(self.connection_id, self.local_ip, self.local_port)
+        self.connection_control = TCPControl(self.connection_id, self.local_ip, self.local_port)
         self.start()
         time.sleep(1)
 

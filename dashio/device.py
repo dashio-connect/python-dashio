@@ -28,7 +28,8 @@ import threading
 import shortuuid
 import zmq
 
-from .constants import DEVICE_PUB_URL, BAD_CHARS
+from .constants import DEVICE_PUB_URL, CONNECTION_PUB_URL, BAD_CHARS
+from .action_station import ActionStation, ActionControl
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.device_view import DeviceView
 from .load_config import encode_cfg64
@@ -139,7 +140,7 @@ class Device(threading.Thread):
         for control in self._control_dict.values():
             if control.cntrl_type == "ALM":
                 continue
-            if control.cntrl_type in ("TCP", "MQTT", "BLE"):
+            if control.cntrl_type in ("TCP", "MQTT", "BLE", "ACTN"):
                 cfg[control.cntrl_type] = control.get_cfg64(data)
                 continue
             if control.cntrl_type not in cfg:
@@ -155,7 +156,7 @@ class Device(threading.Thread):
             #  no_views = data[3]
         except IndexError:
             return ""
-        reply = self._device_id_str + f"\tCFG\t{dashboard_id}\tDVCE\t" + json.dumps(self._cfg) + "\n"
+        reply = self._device_id_str + f"\tCFG\t{dashboard_id}\tDVCE\t{json.dumps(self._cfg)}\n"
         dvvw_str = ""
         for control in self._control_dict.values():
             if control.cntrl_type == "ALM":
@@ -202,13 +203,14 @@ class Device(threading.Thread):
                 iot_control.message_tx_event += self._send_data
         except AttributeError:
             pass
-        key = iot_control.cntrl_type + "_" + iot_control.control_id
+        key = f"{iot_control.cntrl_type}_{iot_control.control_id}"
         self._control_dict[key] = iot_control
 
     def _set_devicesetup(self, control_name: str, settable: bool):
         if settable:
             self._device_commands_dict[control_name.upper()] = getattr(self, '_' + control_name + '_rx_event', None)
-            self._device_setup_list.append(control_name)
+            if control_name not in self._device_setup_list:
+                self._device_setup_list.append(control_name)
         else:
             try:
                 del self._device_commands_dict[control_name.upper()]
@@ -216,6 +218,21 @@ class Device(threading.Thread):
                 pass
             try:
                 self._device_setup_list.remove(control_name)
+            except ValueError:
+                pass
+        self._cfg["deviceSetup"] = ','.join(self._device_setup_list)
+
+    def _add_action_device_setup(self, settable: bool):
+        if settable:
+            if 'actn' not in self._device_setup_list:
+                self._device_setup_list.append('actn')
+        else:
+            try:
+                del self._device_commands_dict['actn']
+            except KeyError:
+                pass
+            try:
+                self._device_setup_list.remove('actn')
             except ValueError:
                 pass
         self._cfg["deviceSetup"] = ','.join(self._device_setup_list)
@@ -300,6 +317,13 @@ class Device(threading.Thread):
             self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
         return ""
 
+    def _add_connection(self, connection):
+        self.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=connection.connection_id))
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, connection.connection_id)
+        self.add_control(connection.connection_control)
+        if self._add_actions:
+            self.actions.add_connection(connection)
+
     def set_tcp_callback(self, callback):
         """Specify a callback function to be called when IoTDashboard sets tcp parameters.
 
@@ -355,6 +379,7 @@ class Device(threading.Thread):
                  device_type: str,
                  device_id: str,
                  device_name: str,
+                 add_actions: bool = False,
                  cfg_dict: dict = None,
                  context=None) -> None:
         """DashDevice
@@ -369,6 +394,8 @@ class Device(threading.Thread):
                 The name for this device
             cfg_dict : dict optional
                 Setup dict to cfgRev, defaults None
+            add_actions : boolean
+                To include actions or not, defaults false
             context : optional
                 ZMQ context. Defaults to None.
         """
@@ -397,6 +424,12 @@ class Device(threading.Thread):
         if cfg_dict is not None:
             self._cfg["cfgRev"] = cfg_dict['CFG']['cfgRev']
         self._cfg["numDeviceViews"] = 0
+        self._add_actions = add_actions
+        if self._add_actions:
+            self._add_action_device_setup(True)
+            self.actions = ActionStation(device_id, context=self.context)
+            self.actions.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=self.zmq_pub_id))
+            self.add_control(self.actions.action_control)
         self.running = True
         self.start()
 
@@ -458,7 +491,10 @@ class Device(threading.Thread):
 
     def close(self):
         """Close the device"""
+        if self._add_actions:
+            self.actions.close()
         self.running = False
+
 
     def run(self):
         # Continue the network loop, exit when an error occurs
@@ -486,7 +522,6 @@ class Device(threading.Thread):
                     reply = self._on_message(msg[2])
                     if reply:
                         self.tx_zmq_pub.send_multipart([msg[0], msg[1], reply.encode('utf-8')])
-
         self.tx_zmq_pub.close()
         self.rx_zmq_sub.close()
         self.context.term()

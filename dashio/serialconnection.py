@@ -34,7 +34,7 @@ import serial
 from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 from .device import Device
 
-class SerialCFG():
+class SerialControl():
     """A CFG control class to store SerialCFG connection information
     """
 
@@ -122,10 +122,7 @@ class SerialConnection(threading.Thread):
         device : dashio.Device
             Add a device to the connection.
         """
-        device.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.connection_id))
-        device.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
-        device.add_control(self.serial_control)
-
+        device._add_connection(self)
         self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
         #self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
 
@@ -156,7 +153,7 @@ class SerialConnection(threading.Thread):
         self.host_name = f"{host_list[0]}.local"
         self.serial_com = serial.Serial(serial_port, baud_rate, timeout=1.0)
         self.serial_com.flush()
-        self.serial_control = SerialCFG(self.connection_id, serial_port, baud_rate)
+        self.connection_control = SerialControl(self.connection_id, serial_port, baud_rate)
         self.start()
         time.sleep(1)
 

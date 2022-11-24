@@ -31,10 +31,10 @@ import paho.mqtt.client as mqtt
 import shortuuid
 import zmq
 
-from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
+from .constants import CONNECTION_PUB_URL
 
 
-class Dash():
+class DashControl():
     """Class to stare dash connection info
     """
     def get_state(self) -> str:
@@ -167,11 +167,8 @@ class DashConnection(threading.Thread):
         """
         if device.device_id not in self._device_id_list:
             self._device_id_list.append(device.device_id)
-            device.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self._connection_id))
-            device.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self._b_connection_id)
-            device.add_control(self.dash_control)
+            device._add_connection(self)
 
-            self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
             #self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
 
             if self._connected:
@@ -228,8 +225,8 @@ class DashConnection(threading.Thread):
         self.context = context or zmq.Context.instance()
         self._connected = False
         self._disconnected = True
-        self._connection_id = shortuuid.uuid()
-        self._b_connection_id = self._connection_id.encode('utf-8')
+        self.connection_id = shortuuid.uuid()
+        self._b_connection_id = self.connection_id.encode('utf-8')
         self._device_id_list = []
         # self.LWD = "OFFLINE"
         self.running = True
@@ -243,7 +240,7 @@ class DashConnection(threading.Thread):
         self._dash_c.on_disconnect = self._on_disconnect
         # self.dash_c.on_publish = self.__on_publish
         self._dash_c.on_subscribe = self._on_subscribe
-        self.dash_control = Dash(self._connection_id, username, host)
+        self.connection_control = DashControl(self.connection_id, username, host)
         if use_ssl:
             self._dash_c.tls_set(
                 ca_certs=None,
@@ -277,15 +274,15 @@ class DashConnection(threading.Thread):
         self._dash_c.loop_start()
 
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self._connection_id))
+        self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
 
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
 
         # Subscribe on ALL, and my connection
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ANNOUNCE")
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self._connection_id)
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALARM")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_id)
         poller = zmq.Poller()
         poller.register(self.rx_zmq_sub, zmq.POLLIN)
 

@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="dashio",
-    version="3.1.7",
+    version="3.1.8",
     description="DashIO interface library",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -16,6 +16,6 @@ setup(
     packages=find_packages(),
     license="MIT",
     classifiers=["Programming Language :: Python :: 3.6", "Operating System :: OS Independent"],
-    install_requires=["paho-mqtt", "pyzmq", "python-dateutil", "zeroconf", "shortuuid"],
+    install_requires=["paho-mqtt", "pyzmq", "python-dateutil", "zeroconf", "shortuuid", "pyserial"],
     python_requires='>3.6.0',
 )

@@ -39,7 +39,7 @@ from dashio.device import Device
 from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 
 
-class BLE():
+class BLEControl():
     """BLE connection control
     """
     def get_state(self) -> str:
@@ -203,9 +203,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         device : Device
             The device to add
         """
-        device.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.connection_id))
-        device.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
-        device.add_control(self.ble_control)
+        device._add_connection(self)
         self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
         # self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
 
@@ -275,7 +273,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
         dashio_service_uuid = ble_uuid or str(uuid.uuid4())
 
-        self.ble_control = BLE(self.connection_id, dashio_service_uuid, str(uuid.uuid4()), str(uuid.uuid4()))
+        self.connection_control = BLEControl(self.connection_id, dashio_service_uuid, str(uuid.uuid4()), str(uuid.uuid4()))
 
         GLib.threads_init()
         dbus.mainloop.glib.threads_init()
