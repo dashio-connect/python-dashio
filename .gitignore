@@ -127,6 +127,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# Dashio JSON files
+*.json
 
 # End of https://www.gitignore.io/api/python
 .vscode/
