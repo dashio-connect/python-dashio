@@ -1,0 +1,207 @@
+"""action_station.py
+
+Copyright (c) 2019, Douglas Otwell, DashIO
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
+import json
+import logging
+import threading
+import time
+
+import shortuuid
+import zmq
+
+from .constants import CONNECTION_PUB_URL
+
+
+class ActionControl():
+    """A CFG control class to store Action information
+    """
+
+    def get_state(self) -> str:
+        """Returns controls state. Not used for this control
+
+        Returns
+        -------
+        str
+            Not used in this control
+        """
+        return ""
+
+    def get_cfg(self, data) -> str:
+        """Returns the CFG string for this TCP control
+
+        Returns
+        -------
+        str
+            The CFG string for this control
+        """
+        try:
+            dashboard_id = data[2]
+        except IndexError:
+            return ""
+        cfg_str = f"\tCFG\t{dashboard_id}\t{self.cntrl_type}\t{json.dumps(self._cfg)}\n"
+        logging.debug("ACTN: %s", cfg_str)
+        return cfg_str
+
+    def get_cfg64(self, data) -> dict:
+        """Returns the CFG dict for this TCP control
+
+        Returns
+        -------
+        dict
+            The CFG string for this control
+        """
+        return self._cfg
+
+    def __init__(self, control_id, max_actions: int):
+        self._cfg = {}
+        self.cntrl_type = "ACTN"
+        self.control_id = control_id
+        self.max_actions = max_actions
+
+    @property
+    def max_actions(self) -> int:
+        """The port of the current connection
+
+        Returns
+        -------
+        int
+            The port number used by the current connection
+        """
+        return int(self._cfg["maxActions"])
+
+    @max_actions.setter
+    def max_actions(self, val: int):
+        self._cfg["maxActions"] = val
+
+
+class ActionStation(threading.Thread):
+    """_summary_
+
+    Parameters
+    ----------
+    threading : _type_
+        _description_
+    """
+
+    def save_action(self, filename: str, actions_dict: dict):
+        """_summary_
+
+        Parameters
+        ----------
+        filename : str
+            Save the Actions
+        """
+        with open(filename, 'w', encoding='ASCII') as outfile:
+            json.dump(actions_dict, outfile)
+
+    def load_action(self, filename: str):
+        """load action from a file.
+
+        Parameters
+        ----------
+        filename : str
+            Filename of the file where the Actions are stored.
+        """
+        actions_dict = {}
+        try:
+            with open(filename, 'r', encoding='ASCII') as infile:
+                actions_dict = json.load(infile)
+
+        except FileNotFoundError:
+            pass
+        return actions_dict
+
+    def add_connection(self, connection):
+        """Add a connection to listen too
+
+        Parameters
+        ----------
+        connection : _type_
+            _description_
+        """
+        self.connection_zmq_sub.connect(CONNECTION_PUB_URL.format(id=connection.connection_id))
+        self.connection_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, connection.connection_id)
+
+    def close(self):
+        """Close the action
+        """
+        self.save_action(self._json_filename, self.actions_dict)
+        self.running = False
+
+    def __init__(self, device_id: str, max_actions=100, context=None):
+        """Action Station
+        """
+        threading.Thread.__init__(self, daemon=True)
+        self.context = context or zmq.Context.instance()
+        self._json_filename = f"{device_id}_Actions.json"
+        self.actions_dict = self.load_action(self._json_filename)
+        self.max_actions = max_actions
+        self.action_id = shortuuid.uuid()
+        if not self.actions_dict:
+            self.actions_dict['actionID'] = self.action_id
+        else:
+            self.action_id = self.actions_dict['actionID']
+        self.action_control = ActionControl(self.action_id, self.max_actions)
+        self.running = True
+        self.start()
+        time.sleep(1)
+
+    def run(self):
+        tx_zmq_pub = self.context.socket(zmq.PUB)
+        tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.action_id))
+
+        self.rx_zmq_sub = self.context.socket(zmq.SUB)
+        # Subscribe on ALL, and my connection
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALARM")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.action_id)
+        # rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
+
+        self.connection_zmq_sub = self.context.socket(zmq.SUB)
+
+        poller = zmq.Poller()
+        poller.register(self.rx_zmq_sub, zmq.POLLIN)
+        poller.register(self.connection_zmq_sub, zmq.POLLIN)
+        while self.running:
+            try:
+                socks = dict(poller.poll(50))
+            except zmq.error.ContextTerminated:
+                break
+            if self.rx_zmq_sub in socks:
+                try:
+                    [_, _, data] = self.rx_zmq_sub.recv_multipart()
+                except ValueError:
+                    # If there aren't three parts continue.
+                    pass
+                if data:
+                    logging.debug("ACTION Device RX:\n%s", data.decode().rstrip())
+            if self.connection_zmq_sub in socks:
+                try:
+                    [_, _, data] = self.connection_zmq_sub.recv_multipart()
+                except ValueError:
+                    # If there aren't three parts continue.
+                    pass
+                if data:
+                    logging.debug("ACTION Connection RX:\n%s", data.decode().rstrip())
+
+        tx_zmq_pub.close()
+        self.rx_zmq_sub.close()

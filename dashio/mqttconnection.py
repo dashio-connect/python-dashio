@@ -34,7 +34,7 @@ import zmq
 from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 
 
-class MQTT():
+class MQTTControl():
     """A CFG only control"""
     def get_state(self):
         """Not used by this class as its a CFG only control
@@ -160,10 +160,7 @@ class MQTTConnection(threading.Thread):
         """
         if device.device_id not in self.device_id_list:
             self.device_id_list.append(device.device_id)
-            device.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.connection_id))
-            device.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self.b_connection_id)
-            device.add_control(self.mqtt_control)
-
+            device._add_connection(self)
             self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
             # self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
 
@@ -202,7 +199,7 @@ class MQTTConnection(threading.Thread):
         self.connection_id = shortuuid.uuid()
         self.b_connection_id = self.connection_id.encode('utf-8')
 
-        self.mqtt_control = MQTT(self.connection_id, username, password, host, use_ssl)
+        self.connection_control = MQTTControl(self.connection_id, username, password, host, use_ssl)
         self._connected = False
         self._disconnected = True
         self.connection_topic_list = []
