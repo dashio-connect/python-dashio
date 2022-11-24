@@ -28,8 +28,8 @@ import time
 import shortuuid
 import zmq
 
-from .constants import CONNECTION_PUB_URL
-
+from .constants import CONNECTION_PUB_URL, TASK_PULL_URL
+from .tasks import task_runner
 
 class ActionControl():
     """A CFG control class to store Action information
@@ -58,7 +58,6 @@ class ActionControl():
         except IndexError:
             return ""
         cfg_str = f"\tCFG\t{dashboard_id}\t{self.cntrl_type}\t{json.dumps(self._cfg)}\n"
-        logging.debug("ACTN: %s", cfg_str)
         return cfg_str
 
     def get_cfg64(self, data) -> dict:
@@ -101,6 +100,24 @@ class ActionStation(threading.Thread):
     threading : _type_
         _description_
     """
+    def _on_message(self, payload):
+        data = str(payload, "utf-8").strip()
+        command_array = data.split("\n")
+        for command in command_array:
+            self._on_command(command.strip())
+
+    def _on_command(self, data):
+        data_array = data.split("\t")
+        try:
+            rx_device_id = data_array[0]
+            cntrl_type = data_array[1]
+        except KeyError:
+            return
+        task_dict_key = f"{rx_device_id}\t{cntrl_type}\t"
+        if task_dict_key in self._device_control_dict:
+            logging.debug("ACTION: %s", task_dict_key)
+            threading.Thread(target=task_runner, args=(self._device_control_dict[task_dict_key], data_array, self.action_id, self.context)).start()
+
 
     def save_action(self, filename: str, actions_dict: dict):
         """_summary_
@@ -155,9 +172,11 @@ class ActionStation(threading.Thread):
         self._json_filename = f"{device_id}_Actions.json"
         self.actions_dict = self.load_action(self._json_filename)
         self.max_actions = max_actions
-        self.action_id = shortuuid.uuid()
+        self._device_control_dict = {}
         if not self.actions_dict:
+            self.action_id = shortuuid.uuid()
             self.actions_dict['actionID'] = self.action_id
+            self.actions_dict['tasks'] = {}
         else:
             self.action_id = self.actions_dict['actionID']
         self.action_control = ActionControl(self.action_id, self.max_actions)
@@ -175,12 +194,16 @@ class ActionStation(threading.Thread):
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALARM")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.action_id)
         # rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
-
         self.connection_zmq_sub = self.context.socket(zmq.SUB)
+
+        # Socket to receive messages on
+        task_receiver = self.context.socket(zmq.PULL)
+        task_receiver.bind(TASK_PULL_URL.format(self.action_id))
 
         poller = zmq.Poller()
         poller.register(self.rx_zmq_sub, zmq.POLLIN)
         poller.register(self.connection_zmq_sub, zmq.POLLIN)
+        poller.register(task_receiver, zmq.POLLIN)
         while self.running:
             try:
                 socks = dict(poller.poll(50))
@@ -194,6 +217,7 @@ class ActionStation(threading.Thread):
                     pass
                 if data:
                     logging.debug("ACTION Device RX:\n%s", data.decode().rstrip())
+                    self._on_message(data)
             if self.connection_zmq_sub in socks:
                 try:
                     [_, _, data] = self.connection_zmq_sub.recv_multipart()
@@ -202,6 +226,11 @@ class ActionStation(threading.Thread):
                     pass
                 if data:
                     logging.debug("ACTION Connection RX:\n%s", data.decode().rstrip())
-
+                    self._on_message(data)
+            if task_receiver in socks:
+                message = task_receiver.recv()
+                if message:
+                    logging.debug("ACTION Device TX:\n%s", message.decode().rstrip())
+                    tx_zmq_pub.send_multipart([b'ALL', b'', message])
         tx_zmq_pub.close()
         self.rx_zmq_sub.close()
