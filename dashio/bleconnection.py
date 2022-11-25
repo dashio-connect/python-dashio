@@ -69,6 +69,7 @@ class BLEControl():
     def __init__(self, control_id, service_uuid="", read_uuid="", write_uuid=""):
         self._cfg = {}
         self.cntrl_type = "BLE"
+        self._cfg["controlID"] = control_id
         self.control_id = control_id
         self.service_uuid = service_uuid
         self.read_uuid = read_uuid
@@ -242,7 +243,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
     def _ble_rx(self, msg: str):
         self.tx_zmq_pub.send_multipart([self.b_connection_id, b'1', msg.encode('utf-8')])
 
-    def __init__(self, ble_uuid=None, context=None):
+    def __init__(self, ble_uuid=None, context: zmq.Context=None):
         """BLE Connection
 
         Parameters

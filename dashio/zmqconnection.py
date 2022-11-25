@@ -75,6 +75,7 @@ class ZMQControl():
     def __init__(self, control_id, zmq_url="*", pub_port=5555, sub_port=5556):
         self._cfg = {}
         self.cntrl_type = "TCP"
+        self._cfg["controlID"] = control_id
         self.control_id = control_id
         self.zmq_url = zmq_url
         self.pub_port = pub_port
@@ -162,7 +163,7 @@ class ZMQConnection(threading.Thread):
         self.zeroconf.close()
         self.running = False
 
-    def __init__(self, zmq_out_url="*", pub_port=5555, sub_port=5556, context=None):
+    def __init__(self, zmq_out_url="*", pub_port=5555, sub_port=5556, context: zmq.Context=None):
         """ZMQConnection
 
         Parameters
