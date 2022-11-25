@@ -61,14 +61,16 @@ def task_runner(task_dict: dict, data: list, push_id: str, context: zmq.Context)
     context : zmq.Context
         Use this context to be Thread safe
     """
-
+    result = "TASK TEST"
 
     for task in task_dict['tasks']:
-        result = TASK_FUNC_DICT[task['objectType']](data)
-
+        try:
+            result = TASK_FUNC_DICT[task['objectType']](data)
+        except KeyError:
+            logging.debug("TASK NOT YET IMPLEMENTED: %s", task['objectType'])
     if result:
     # Set up socket to send messages to
         task_sender = context.socket(zmq.PUSH)
-        task_sender.connect(TASK_PULL_URL.format(push_id))
+        task_sender.connect(TASK_PULL_URL.format(id=push_id))
         # send the result
-        task_sender.send(result)
+        task_sender.send(result.encode())

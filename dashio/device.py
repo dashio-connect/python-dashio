@@ -29,8 +29,10 @@ import shortuuid
 import zmq
 
 from .constants import DEVICE_PUB_URL, CONNECTION_PUB_URL, BAD_CHARS
-from .action_station import ActionStation, ActionControl
+from .action_station import ActionStation
 from .iotcontrol.alarm import Alarm
+from .iotcontrol.knob import Knob
+from .iotcontrol.slider import Slider
 from .iotcontrol.device_view import DeviceView
 from .load_config import encode_cfg64
 
@@ -205,6 +207,12 @@ class Device(threading.Thread):
             pass
         key = f"{iot_control.cntrl_type}_{iot_control.control_id}"
         self._control_dict[key] = iot_control
+        if isinstance(iot_control, Knob):
+            key = f"KBDL_{iot_control.control_id}"
+            self._control_dict[key] = iot_control
+        elif isinstance(iot_control, Slider):
+            key = f"BAR_{iot_control.control_id}"
+            self._control_dict[key] = iot_control
 
     def _set_devicesetup(self, control_name: str, settable: bool):
         if settable:

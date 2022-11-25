@@ -1,6 +1,6 @@
 """action_station.py
 
-Copyright (c) 2019, Douglas Otwell, DashIO
+Copyright (c) 2022, Douglas Otwell, DashIO
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -119,15 +119,15 @@ class ActionStation(threading.Thread):
             cntrl_type = data_array[1]
             control_id = data_array[2]
         except (KeyError, IndexError):
-            return
+            return ""
         if rx_device_id == self.device_id and cntrl_type == 'ACTN':
             command = data_array[2]
             if command in self._action_station_commands:
                 return self._action_station_commands[command](data_array)
         task_dict_key = f"{rx_device_id}\t{control_id}\t"
-        if task_dict_key in self._device_control_dict:
-            logging.debug("ACTION: %s", task_dict_key)
-            threading.Thread(target=task_runner, args=(self._device_control_dict[task_dict_key], data_array, self.action_id, self.context)).start()
+        if task_dict_key in self._device_control_filter_dict:
+            uuid = self._device_control_filter_dict[task_dict_key]
+            threading.Thread(target=task_runner, args=( self.actions_dict['actions'][uuid], data_array, self.action_id, self.context)).start()
         return ""
 
     def save_action(self, filename: str, actions_dict: dict):
@@ -168,7 +168,6 @@ class ActionStation(threading.Thread):
         """
         self.connection_zmq_sub.connect(CONNECTION_PUB_URL.format(id=connection.connection_id))
         self.connection_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, connection.connection_id)
-
         connection.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=self.action_id))
 
     def close(self):
@@ -176,6 +175,19 @@ class ActionStation(threading.Thread):
         """
         self.save_action(self._json_filename, self.actions_dict)
         self.running = False
+
+    def _add_input_filter(self, action: dict):
+        rx_device_id = action['tasks'][0]["deviceID"]
+        control_id = action['tasks'][0]["controlID"]
+        task_dict_key = f"{rx_device_id}\t{control_id}\t"
+        self._device_control_filter_dict[task_dict_key] = action['uuid']
+
+    def _delete_input_filter(self, uuid: str):
+        action = self.actions_dict['actions'][uuid]
+        rx_device_id = action['tasks'][0]["deviceID"]
+        control_id = action['tasks'][0]["controlID"]
+        task_dict_key = f"{rx_device_id}\t{control_id}\t"
+        del self._device_control_filter_dict[task_dict_key]
 
     def _list_command(self, data):
         actions_list = []
@@ -189,7 +201,6 @@ class ActionStation(threading.Thread):
             'objectType': "LIST_RESULT",
             'list': actions_list
         }
-        # payload = json.loads(data[4])
         reply = f"\t{self.device_id}\tACTN\tLIST\t{json.dumps(result)}\n"
         return reply
 
@@ -210,6 +221,7 @@ class ActionStation(threading.Thread):
             'result': True
         }
         try:
+            self._delete_input_filter(payload["uuid"])
             del self.actions_dict['actions'][payload["uuid"]]
         except KeyError:
             result['result'] = False
@@ -228,6 +240,7 @@ class ActionStation(threading.Thread):
                 self.actions_dict['actions'] = {}
             self.actions_dict['actions'][payload['uuid']] = payload
             reply = f"\t{self.device_id}\tACTN\tUPDATE\t{json.dumps(result)}\n"
+            self._add_input_filter(payload)
         self.save_action(self._json_filename,  self.actions_dict)
         return reply
 
@@ -245,7 +258,7 @@ class ActionStation(threading.Thread):
         self._json_filename = f"{device_id}_Actions.json"
         self.actions_dict = self.load_action(self._json_filename)
         self.max_actions = max_actions
-        self._device_control_dict = {}
+        self._device_control_filter_dict = {}
         self.device_id = device_id
         self._action_station_commands = {
             "LIST": self._list_command,
@@ -261,6 +274,8 @@ class ActionStation(threading.Thread):
             self.actions_dict['actions'] = {}
         else:
             self.action_id = self.actions_dict['actionID']
+            for action in self.actions_dict['actions'].values():
+                self._add_input_filter(action)
         self.action_control = ActionControl(self.action_id, self.max_actions)
         self.running = True
         self.start()
@@ -315,7 +330,7 @@ class ActionStation(threading.Thread):
             if task_receiver in socks:
                 message = task_receiver.recv()
                 if message:
-                    logging.debug("ACTION TASK TX:\n%s", message.decode().rstrip())
+                    logging.debug("ACTION TASK RX:\n%s", message.decode())
                     tx_zmq_pub.send_multipart([b'ALL', b'', message])
         tx_zmq_pub.close()
         self.device_zmq_sub.close()
