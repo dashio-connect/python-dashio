@@ -70,6 +70,7 @@ class MQTTControl():
     def __init__(self, control_id: str, username="", password="", servername="", use_ssl=False):
         self._cfg = {}
         self.cntrl_type = "MQTT"
+        self._cfg["controlID"] = control_id
         self.control_id = control_id
         self.username = username
         self.servername = servername
@@ -172,7 +173,7 @@ class MQTTConnection(threading.Thread):
         """Close the connection."""
         self.running = False
 
-    def __init__(self, host, port, username="", password="", use_ssl=False, context=None):
+    def __init__(self, host, port, username="", password="", use_ssl=False, context: zmq.Context=None):
         """
         Setups and manages a connection thread to the MQTT Server.
 

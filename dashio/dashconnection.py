@@ -76,6 +76,7 @@ class DashControl():
     def __init__(self, control_id, username="", servername=""):
         self.cntrl_type = "DASHIO"
         self._cfg = {}
+        self._cfg["controlID"] = control_id
         self.control_id = control_id
         self.username = username
         self.servername = servername
@@ -201,7 +202,7 @@ class DashConnection(threading.Thread):
         host='dash.dashio.io',
         port=8883,
         use_ssl=True,
-        context=None
+        context: zmq.Context=None
     ):
         """
         Setups and manages a connection thread to the Dash Server.

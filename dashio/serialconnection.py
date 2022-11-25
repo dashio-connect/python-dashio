@@ -76,6 +76,7 @@ class SerialControl():
     def __init__(self, control_id, serial_port, baud_rate):
         self._cfg = {}
         self.cntrl_type = "Serial"
+        self._cfg["controlID"] = control_id
         self.control_id = control_id
         self.serial_port = serial_port
         self.baud_rate = baud_rate
@@ -127,7 +128,7 @@ class SerialConnection(threading.Thread):
         #self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
 
 
-    def __init__(self, serial_port='/dev/ttyUSB0', baud_rate=38400, context=None):
+    def __init__(self, serial_port='/dev/ttyUSB0', baud_rate=38400, context: zmq.Context=None):
         """TCP Connection
 
         Parameters

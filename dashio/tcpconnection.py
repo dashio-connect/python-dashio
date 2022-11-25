@@ -77,6 +77,7 @@ class TCPControl():
     def __init__(self, control_id, ip_address="", port=5650):
         self._cfg = {}
         self.cntrl_type = "TCP"
+        self._cfg["controlID"] = control_id
         self.control_id = control_id
         self.ip_address = ip_address
         self.port = port
@@ -144,7 +145,7 @@ class TCPConnection(threading.Thread):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as port_s:
             return port_s.connect_ex((ip_address, port)) == 0
 
-    def __init__(self, ip_address="*", port=5650, use_zero_conf=True, context=None):
+    def __init__(self, ip_address="*", port=5650, use_zero_conf=True, context: zmq.Context=None):
         """TCP Connection
 
         Parameters
