@@ -322,7 +322,7 @@ class Device(threading.Thread):
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, connection.connection_id)
         self.add_control(connection.connection_control)
         if self._add_actions:
-            self.actions.add_connection(connection)
+            self.action_station.add_connection(connection)
 
     def set_tcp_callback(self, callback):
         """Specify a callback function to be called when IoTDashboard sets tcp parameters.
@@ -427,9 +427,9 @@ class Device(threading.Thread):
         self._add_actions = add_actions
         if self._add_actions:
             self._add_action_device_setup(True)
-            self.actions = ActionStation(device_id, context=self.context)
-            self.actions.device_zmq_sub.connect(DEVICE_PUB_URL.format(id=self.zmq_pub_id))
-            self.add_control(self.actions.action_control)
+            self.action_station = ActionStation(device_id, context=self.context)
+            self.action_station.device_zmq_sub.connect(DEVICE_PUB_URL.format(id=self.zmq_pub_id))
+            self.add_control(self.action_station.action_control)
         self.running = True
         self.start()
 
@@ -492,7 +492,7 @@ class Device(threading.Thread):
     def close(self):
         """Close the device"""
         if self._add_actions:
-            self.actions.close()
+            self.action_station.close()
         self.running = False
 
 

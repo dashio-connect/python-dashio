@@ -114,15 +114,14 @@ class ActionStation(threading.Thread):
 
     def _on_command(self, data):
         data_array = data.split("\t")
-
         try:
             rx_device_id = data_array[0]
             cntrl_type = data_array[1]
         except (KeyError, IndexError):
             return
         if rx_device_id == self.device_id and cntrl_type == 'ACTN':
-            command = data_array[3]
-            if cntrl_type in self._action_station_commands:
+            command = data_array[2]
+            if command in self._action_station_commands:
                 return self._action_station_commands[command](data_array)
         task_dict_key = f"{rx_device_id}\t{cntrl_type}\t"
         if task_dict_key in self._device_control_dict:
@@ -169,6 +168,8 @@ class ActionStation(threading.Thread):
         self.connection_zmq_sub.connect(CONNECTION_PUB_URL.format(id=connection.connection_id))
         self.connection_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, connection.connection_id)
 
+        connection.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=self.action_id))
+
     def close(self):
         """Close the action
         """
@@ -176,15 +177,20 @@ class ActionStation(threading.Thread):
         self.running = False
 
     def _list_command(self, data):
-        actions_list = self.actions_dict['Actions']
+        actions_list = []
+        for action in self.actions_dict['actions']:
+            action_pair = {
+                "name": action['name'],
+                "uuid": action['uuid']
+            }
+            actions_list.append(action_pair)
         result = {
-            'ObjectType': "LIST_RESULT",
-            'result': True,
-            'list': actions_list 
+            'objectType': "LIST_RESULT",
+            'list': actions_list
         }
         app_id = data[2]
-        payload = json.loads(data[4])
-        reply = f"\t{self.device_id}\tACTN\t{app_id}\tLIST\t"
+        # payload = json.loads(data[4])
+        reply = f"\t{self.device_id}\tACTN\tLIST\t{json.dumps(result)}\n"
         return reply
 
     def _get_command(self, data):
@@ -203,7 +209,7 @@ class ActionStation(threading.Thread):
         app_id = data[2]
         payload = json.loads(data[4])
         result = {
-            'ObjectType': "UPDATE_RESULT",
+            'objectType': "UPDATE_RESULT",
             'result': True,
             'uuid': payload['uuid']
         }
@@ -232,8 +238,8 @@ class ActionStation(threading.Thread):
 
         if not self.actions_dict:
             self.action_id = shortuuid.uuid()
-            self.actions_dict['ControlID'] = self.action_id
-            self.actions_dict['Actions'] = {}
+            self.actions_dict['actionID'] = self.action_id
+            self.actions_dict['actions'] = {}
         else:
             self.action_id = self.actions_dict['actionID']
         self.action_control = ActionControl(self.action_id, self.max_actions)
@@ -243,7 +249,7 @@ class ActionStation(threading.Thread):
 
     def run(self):
         tx_zmq_pub = self.context.socket(zmq.PUB)
-        tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.action_id))
+        tx_zmq_pub.bind(DEVICE_PUB_URL.format(id=self.action_id))
 
         self.device_zmq_sub = self.context.socket(zmq.SUB)
         # Subscribe on ALL, and my connection
@@ -277,7 +283,7 @@ class ActionStation(threading.Thread):
                     logging.debug("ACTION Device RX:\n%s", data.decode().rstrip())
                     reply = self._on_message(data)
                     if reply:
-                        self.tx_zmq_pub.send_multipart([b'ALL', b'', reply.encode('utf-8')])
+                        tx_zmq_pub.send_multipart([b'ALL', b'', reply.encode('utf-8')])
             if self.connection_zmq_sub in socks:
                 msg = self.connection_zmq_sub.recv_multipart()
                 if len(msg) == 3:
