@@ -139,7 +139,7 @@ class ActionStation(threading.Thread):
             Save the Actions
         """
         with open(filename, 'w', encoding='ASCII') as outfile:
-            json.dump(actions_dict, outfile)
+            json.dump(actions_dict, outfile, indent=4)
 
     def load_action(self, filename: str):
         """load action from a file.
