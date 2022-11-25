@@ -117,13 +117,14 @@ class ActionStation(threading.Thread):
         try:
             rx_device_id = data_array[0]
             cntrl_type = data_array[1]
+            control_id = data_array[2]
         except (KeyError, IndexError):
             return
         if rx_device_id == self.device_id and cntrl_type == 'ACTN':
             command = data_array[2]
             if command in self._action_station_commands:
                 return self._action_station_commands[command](data_array)
-        task_dict_key = f"{rx_device_id}\t{cntrl_type}\t"
+        task_dict_key = f"{rx_device_id}\t{control_id}\t"
         if task_dict_key in self._device_control_dict:
             logging.debug("ACTION: %s", task_dict_key)
             threading.Thread(target=task_runner, args=(self._device_control_dict[task_dict_key], data_array, self.action_id, self.context)).start()
@@ -178,7 +179,7 @@ class ActionStation(threading.Thread):
 
     def _list_command(self, data):
         actions_list = []
-        for action in self.actions_dict['actions']:
+        for action in self.actions_dict['actions'].values():
             action_pair = {
                 "name": action['name'],
                 "uuid": action['uuid']
@@ -188,34 +189,51 @@ class ActionStation(threading.Thread):
             'objectType': "LIST_RESULT",
             'list': actions_list
         }
-        app_id = data[2]
         # payload = json.loads(data[4])
         reply = f"\t{self.device_id}\tACTN\tLIST\t{json.dumps(result)}\n"
         return reply
 
     def _get_command(self, data):
-        app_id = data[2]
-        payload = json.loads(data[4])
-        reply = f"\t{self.device_id}\tACTN\t{app_id}\tGET\t"
+        payload = json.loads(data[3])
+        try:
+            action = self.actions_dict['actions'][payload["uuid"]]
+        except KeyError:
+            action = {}
+        reply = f"\t{self.device_id}\tACTN\tGET\t{json.dumps(action)}\n"
         return reply
 
     def _delete_command(self, data):
-        app_id = data[2]
-        payload = json.loads(data[4])
-        reply = f"\t{self.device_id}\tACTN\t{app_id}\tDELETE\t"
+        payload = json.loads(data[3])
+        result = {
+            'objectType': "DELETE_RESULT",
+            'uuid': payload['uuid'],
+            'result': True
+        }
+        try:
+            del self.actions_dict['actions'][payload["uuid"]]
+        except KeyError:
+            result['result'] = False
+        reply = f"\t{self.device_id}\tACTN\tDELETE\t{json.dumps(result)}\n"
+        self.save_action(self._json_filename,  self.actions_dict)
         return reply
 
     def _update_command(self, data):
-        app_id = data[2]
-        payload = json.loads(data[4])
+        payload = json.loads(data[3])
         result = {
             'objectType': "UPDATE_RESULT",
-            'result': True,
             'uuid': payload['uuid']
         }
         if payload['objectType'] == 'ACTION':
-            self.actions_dict['Actions'][payload['uuid']] = payload
-            reply = f"\t{self.device_id}\tACTN\t{app_id}\tUPDATE\t{json.dumps(result)}\n"
+            if 'actions' not in self.actions_dict:
+                self.actions_dict['actions'] = {}
+            self.actions_dict['actions'][payload['uuid']] = payload
+            reply = f"\t{self.device_id}\tACTN\tUPDATE\t{json.dumps(result)}\n"
+        self.save_action(self._json_filename,  self.actions_dict)
+        return reply
+
+    def _run_command(self, data):
+        payload = json.loads(data[3])
+        reply = ""
         return reply
 
 
@@ -233,7 +251,8 @@ class ActionStation(threading.Thread):
             "LIST": self._list_command,
             "GET": self._get_command,
             "DELETE": self._delete_command,
-            "UPDATE": self._update_command
+            "UPDATE": self._update_command,
+            "RUN": self._run_command
         }
 
         if not self.actions_dict:
