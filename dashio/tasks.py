@@ -3,9 +3,41 @@ import logging
 
 from .constants import TASK_PULL_URL
 
+def num(s_num: str):
+    try:
+        return int(s_num)
+    except ValueError:
+        return float(s_num)
+    
+def _read_control_task(data, task):
+    logging.debug("READ_CONTROL: %s", data)
+    return data[+3]
 
-def _read_control(data):
-    logging.debug("TASK: ")
+def _if_task(data, task):
+    logging.debug("IF: %s", data)
+    number = num(data)
+    operator = task["ifOperator"]
+    if operator == "=":
+        if number == task["value"]:
+            return True
+    if operator == "<":
+        if task["value"] < number:
+            return True
+    if operator == ">":
+        if task["value"] > number:
+            return True
+    return False
+
+def _endif_task(data, task):
+    logging.debug("ENDIF: %s", data)
+    return  data
+
+def _send_alarm_task(data, task):
+    logging.debug("SEND_ALARM: %s", data)
+    return  data
+
+def _write_control_task(data, task):
+    logging.debug("WRITE_CONTROL: %s", data)
     return ""
 
 MESSAGE_FORMAT_INPUTS = {
@@ -43,7 +75,11 @@ MESSAGE_FORMAT_OUTPUTS = {
 }
 
 TASK_FUNC_DICT = {
-    "READ_CONTROL": _read_control
+    "READ_CONTROL": _read_control_task,
+    "IF": _if_task,
+    "ENDIF": _endif_task,
+    "SEND_ALARM": _send_alarm_task,
+    "WRITE_CONTROL": _write_control_task
 }
 
 
@@ -61,16 +97,20 @@ def task_runner(task_dict: dict, data: list, push_id: str, context: zmq.Context)
     context : zmq.Context
         Use this context to be Thread safe
     """
-    result = "TASK TEST"
-
+    results = []
+    task_no = 0
     for task in task_dict['tasks']:
         try:
-            result = TASK_FUNC_DICT[task['objectType']](data)
+            if task_no == 0:
+                results.append(TASK_FUNC_DICT[task['objectType']](data, task))
+            else:
+                results.append(TASK_FUNC_DICT[task['objectType']](results[-1], task))
+            task_no += 1
         except KeyError:
             logging.debug("TASK NOT YET IMPLEMENTED: %s", task['objectType'])
-    if result:
+    if results:
     # Set up socket to send messages to
         task_sender = context.socket(zmq.PUSH)
         task_sender.connect(TASK_PULL_URL.format(id=push_id))
         # send the result
-        task_sender.send(result.encode())
+        task_sender.send(results[-1].encode())

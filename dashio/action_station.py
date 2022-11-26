@@ -30,6 +30,7 @@ import zmq
 
 from .constants import CONNECTION_PUB_URL,DEVICE_PUB_URL, TASK_PULL_URL
 from .tasks import task_runner
+from .action_station_controls.action_control_config import ActionControlCFG
 
 class ActionControl():
     """A CFG control class to store Action information
@@ -70,21 +71,22 @@ class ActionControl():
         """
         return self._cfg
 
-    def __init__(self, control_id, max_actions: int):
+    def __init__(self, control_id, max_actions: int, number_timers: int):
         self._cfg = {}
         self.cntrl_type = "ACTN"
         self._cfg['controlID'] = control_id
         self.control_id = control_id
         self.max_actions = max_actions
+        self.number_timers = number_timers
 
     @property
     def max_actions(self) -> int:
-        """The port of the current connection
+        """max number of actions
 
         Returns
         -------
         int
-            The port number used by the current connection
+            The max number of 
         """
         return int(self._cfg["maxActions"])
 
@@ -92,6 +94,20 @@ class ActionControl():
     def max_actions(self, val: int):
         self._cfg["maxActions"] = val
 
+    @property
+    def number_timers(self) -> int:
+        """number of Timers
+
+        Returns
+        -------
+        int
+            The number of timers
+        """
+        return int(self._cfg["numTimers"])
+
+    @number_timers.setter
+    def number_timers(self, val: int):
+        self._cfg["numTimers"] = val
 
 class ActionStation(threading.Thread):
     """_summary_
@@ -249,8 +265,10 @@ class ActionStation(threading.Thread):
         reply = ""
         return reply
 
-
-    def __init__(self, device_id: str, max_actions=100, context: zmq.Context=None):
+    def _make_timer_config(self, num_timers):
+        pass
+    
+    def __init__(self, device_id: str, max_actions=100, number_timers=10, context: zmq.Context=None):
         """Action Station
         """
         threading.Thread.__init__(self, daemon=True)
@@ -258,8 +276,10 @@ class ActionStation(threading.Thread):
         self._json_filename = f"{device_id}_Actions.json"
         self.actions_dict = self.load_action(self._json_filename)
         self.max_actions = max_actions
+        self.number_timers = number_timers
         self._device_control_filter_dict = {}
         self.device_id = device_id
+        self.timers = []
         self._action_station_commands = {
             "LIST": self._list_command,
             "GET": self._get_command,
@@ -276,7 +296,7 @@ class ActionStation(threading.Thread):
             self.action_id = self.actions_dict['actionID']
             for action in self.actions_dict['actions'].values():
                 self._add_input_filter(action)
-        self.action_control = ActionControl(self.action_id, self.max_actions)
+        self.action_control = ActionControl(self.action_id, self.max_actions, self.number_timers)
         self.running = True
         self.start()
         time.sleep(1)
