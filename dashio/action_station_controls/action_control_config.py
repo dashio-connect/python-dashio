@@ -76,7 +76,7 @@ class ActionControlCFG:
     """Action Control CFG"""
     def __init__(self, control_type: str, name: str, text: str, control_id: str, num_avail: int, is_persistent: bool, is_trigger: bool, is_io: bool, provisioning_list: list, param_list: list) -> None:
         self._param = {
-            'objectType': control_type,
+            'objectType': f"{control_type}_CFG",
             'uuid': shortuuid.uuid(),
             'name': name,
             'text': text,
@@ -88,3 +88,6 @@ class ActionControlCFG:
             'provisioning': provisioning_list,
             'parameters': param_list
         }
+
+    def __json__(self, **options):
+        return self._param
