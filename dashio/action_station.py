@@ -193,7 +193,7 @@ class ActionStation(threading.Thread):
         self.running = False
 
     def _add_input_filter(self, j_object: dict):
-        if j_object['objectType'] == 'ACTION':
+        if j_object['objectType'] == 'TASK':
             try:
                 rx_device_id = j_object['tasks'][0]["deviceID"]
             except KeyError:
@@ -204,7 +204,7 @@ class ActionStation(threading.Thread):
 
     def _delete_input_filter(self, uuid: str):
         store_object = self.action_station_dict['jsonStore'][uuid]
-        if store_object['objectType'] in ['ACTION']:
+        if store_object['objectType'] in ['TASK']:
             rx_device_id = store_object['tasks'][0]["deviceID"]
             control_id = store_object['tasks'][0]["controlID"]
             task_dict_key = f"{rx_device_id}\t{control_id}\t"
@@ -261,7 +261,7 @@ class ActionStation(threading.Thread):
             'objectType': "UPDATE_RESULT",
             'uuid': payload['uuid']
         }
-        if payload['objectType'] in ['ACTION', 'TIMER']:
+        if payload['objectType'] in ['TASK', 'TIMER']:
             if 'jsonStore' not in self.action_station_dict:
                 self.action_station_dict['jsonStore'] = {}
             self.action_station_dict['jsonStore'][payload['uuid']] = payload
@@ -363,7 +363,7 @@ class ActionStation(threading.Thread):
                     # If there aren't three parts continue.
                     pass
                 if data:
-                    logging.debug("ACTION Device RX:\n%s", data.decode().rstrip())
+                    logging.debug("ActionStation Device RX:\n%s", data.decode().rstrip())
                     reply = self._on_message(data)
                     if reply:
                         tx_zmq_pub.send_multipart([b'ALL', b'', reply.encode('utf-8')])
@@ -372,14 +372,14 @@ class ActionStation(threading.Thread):
                 if len(msg) == 3:
                     if msg[0] == b"COMMAND":
                         continue
-                    logging.debug("ACTION Connection RX:\n%s", msg[2].decode().rstrip())
+                    logging.debug("ActionStation Connection RX:\n%s", msg[2].decode().rstrip())
                     reply = self._on_message(msg[2])
                     if reply:
                         tx_zmq_pub.send_multipart([msg[0], msg[1], reply.encode('utf-8')])
             if task_receiver in socks:
                 message = task_receiver.recv()
                 if message:
-                    logging.debug("ACTION TASK RX:\n%s", message.decode())
+                    logging.debug("ActionStation TASK RX:\n%s", message.decode())
                     tx_zmq_pub.send_multipart([b'ALL', b'', message])
         tx_zmq_pub.close()
         self.device_zmq_sub.close()
