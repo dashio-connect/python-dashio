@@ -30,7 +30,7 @@ import zmq
 
 from .constants import CONNECTION_PUB_URL,DEVICE_PUB_URL, TASK_PULL_URL
 from .tasks import task_runner
-from .action_station_controls.action_control_config import ActionControlCFG, SelectorParameterSpec, IntParameterSpec
+from .action_station_controls.timer import make_timer_config
 
 class ActionControl():
     """A CFG control class to store Action information
@@ -335,7 +335,7 @@ class ActionStation(threading.Thread):
             self.action_id = shortuuid.uuid()
             self.action_station_dict['actionID'] = self.action_id
             self.action_station_dict['jsonStore'] = {}
-            timer_cfg = self._make_timer_config(number_timers)
+            timer_cfg = make_timer_config(number_timers)
             self.action_station_dict['jsonStore'][timer_cfg['uuid']] = timer_cfg
         else:
             self.action_id = self.action_station_dict['actionID']

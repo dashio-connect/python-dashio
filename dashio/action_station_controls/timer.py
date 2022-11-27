@@ -4,7 +4,7 @@ from .action_control_config import ActionControlCFG, SelectorParameterSpec, IntP
 
 
 
-def _make_timer_config(self, num_timers):
+def make_timer_config(self, num_timers):
     provisioning_list = [
         SelectorParameterSpec("SLCTR1", "Timer Type",["Repeat", "OneShot"], "Repeat"),
         IntParameterSpec("INT1", "Timeout", 100, 600000, "ms", 1000)
