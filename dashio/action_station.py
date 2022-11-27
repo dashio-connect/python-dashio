@@ -143,7 +143,7 @@ class ActionStation(threading.Thread):
         task_dict_key = f"{rx_device_id}\t{control_id}\t"
         if task_dict_key in self._device_control_filter_dict:
             uuid = self._device_control_filter_dict[task_dict_key]
-            threading.Thread(target=task_runner, args=( self.action_station_dict['jsonObject'][uuid], data_array, self.action_id, self.context)).start()
+            threading.Thread(target=task_runner, args=( self.action_station_dict['jsonStore'][uuid], data_array, self.action_id, self.context)).start()
         return ""
 
     def save_action(self, filename: str, actions_dict: dict):
