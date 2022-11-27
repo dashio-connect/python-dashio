@@ -245,7 +245,7 @@ class ActionStation(threading.Thread):
         try:
             self._delete_input_filter(payload["uuid"])
             store_obj = self.action_station_dict['jsonStore'][payload["uuid"]]
-            if store_obj['objectType'] not in ["TIMER_CFG", "MEMORY_CFG"]:
+            if store_obj['objectType'] not in ["CONFIG"]:
                 del self.action_station_dict['jsonStore'][payload["uuid"]]
                 result['result'] = True
         except KeyError:
