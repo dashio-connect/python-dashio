@@ -226,6 +226,41 @@ class ActionStation(threading.Thread):
         reply = f"\t{self.device_id}\tACTN\tLIST\t{json.dumps(result)}\n"
         return reply
 
+    def _list_configs_command(self, data):
+        actions_list = []
+        for action in self.action_station_dict['jsonStore'].values():
+            if action['objectType'] == "CONFIG":
+                action_pair = {
+                    "name": action['name'],
+                    "uuid": action['uuid'],
+                    "objectType": action['objectType']
+                }
+                actions_list.append(action_pair)
+        result = {
+            'objectType': "LIST_RESULT",
+            'list': actions_list
+        }
+        reply = f"\t{self.device_id}\tACTN\tLIST\t{json.dumps(result)}\n"
+        return reply
+
+    
+    def _list_tasks_command(self, data):
+        actions_list = []
+        for action in self.action_station_dict['jsonStore'].values():
+            if action['objectType'] == "TASK":
+                action_pair = {
+                    "name": action['name'],
+                    "uuid": action['uuid'],
+                    "objectType": action['objectType']
+                }
+                actions_list.append(action_pair)
+        result = {
+            'objectType': "LIST_RESULT",
+            'list': actions_list
+        }
+        reply = f"\t{self.device_id}\tACTN\tLIST\t{json.dumps(result)}\n"
+        return reply
+    
     def _get_command(self, data):
         payload = json.loads(data[3])
         try:
@@ -274,26 +309,6 @@ class ActionStation(threading.Thread):
         payload = json.loads(data[3])
         reply = ""
         return reply
-
-    def _make_timer_config(self, num_timers):
-        provisioning_list = [
-            SelectorParameterSpec("SLCTR1", "Timer Type",["Repeat", "OneShot"], "Repeat"),
-            IntParameterSpec("INT1", "Timeout", 100, 600000, "ms", 1000)
-        ]
-        parameter_list = []
-        timer_cfg = ActionControlCFG(
-            "TIMER",
-            "Timer Provisioning",
-            "A useful timer can be used as a recurring or oneshot.",
-            "TMR",
-            num_timers,
-            True,
-            True,
-            True,
-            provisioning_list,
-            parameter_list
-        )
-        return timer_cfg.__json__()
     
     def __init__(self, device_id: str, max_actions=100, number_timers=10, context: zmq.Context=None):
         """Action Station
@@ -308,6 +323,8 @@ class ActionStation(threading.Thread):
         self.timers = []
         self._action_station_commands = {
             "LIST": self._list_command,
+            "LIST_TASKS": self._list_configs_command,
+            "LIST_CONFIGS": self._list_tasks_command,
             "GET": self._get_command,
             "DELETE": self._delete_command,
             "UPDATE": self._update_command,
