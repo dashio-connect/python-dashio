@@ -203,18 +203,20 @@ class ActionStation(threading.Thread):
             self._device_control_filter_dict[task_dict_key] = j_object['uuid']
 
     def _delete_input_filter(self, uuid: str):
-        action = self.actions_dict['jsonStore'][uuid]
-        rx_device_id = action['tasks'][0]["deviceID"]
-        control_id = action['tasks'][0]["controlID"]
-        task_dict_key = f"{rx_device_id}\t{control_id}\t"
-        del self._device_control_filter_dict[task_dict_key]
+        store_object = self.actions_dict['jsonStore'][uuid]
+        if store_object['objectType'] in ['ACTION']:
+            rx_device_id = store_object['tasks'][0]["deviceID"]
+            control_id = store_object['tasks'][0]["controlID"]
+            task_dict_key = f"{rx_device_id}\t{control_id}\t"
+            del self._device_control_filter_dict[task_dict_key]
 
     def _list_command(self, data):
         actions_list = []
         for action in self.actions_dict['jsonStore'].values():
             action_pair = {
                 "name": action['name'],
-                "uuid": action['uuid']
+                "uuid": action['uuid'],
+                "objectType": action['objectType']
             }
             actions_list.append(action_pair)
         result = {
@@ -238,11 +240,14 @@ class ActionStation(threading.Thread):
         result = {
             'objectType': "DELETE_RESULT",
             'uuid': payload['uuid'],
-            'result': True
+            'result': False
         }
         try:
             self._delete_input_filter(payload["uuid"])
-            del self.actions_dict['jsonStore'][payload["uuid"]]
+            store_obj = self.actions_dict['jsonStore'][payload["uuid"]]
+            if store_obj['objectType'] not in ["TIMER_CFG", "MEMORY_CFG"]:
+                del self.actions_dict['jsonStore'][payload["uuid"]]
+                result['result'] = True
         except KeyError:
             result['result'] = False
         reply = f"\t{self.device_id}\tACTN\tDELETE\t{json.dumps(result)}\n"
@@ -287,7 +292,7 @@ class ActionStation(threading.Thread):
             provisioning_list,
             parameter_list
         )
-        return timer_cfg
+        return timer_cfg.__json__()
     
     def __init__(self, device_id: str, max_actions=100, number_timers=10, context: zmq.Context=None):
         """Action Station
@@ -317,7 +322,7 @@ class ActionStation(threading.Thread):
             for j_object in self.actions_dict['jsonStore'].values():
                 self._add_input_filter(j_object)
         timer_cfg = self._make_timer_config(number_timers)
-        self.actions_dict['jsonStore'][timer_cfg.uuid] = timer_cfg
+        self.actions_dict['jsonStore'][timer_cfg['uuid']] = timer_cfg
         self.action_control = ActionControl(self.action_id, self.max_actions, number_timers)
         self.running = True
         self.start()
