@@ -250,6 +250,7 @@ class ActionStation(threading.Thread):
                 result['result'] = True
         except KeyError:
             result['result'] = False
+            result['error'] = f"Cannot delete {store_obj['objectType']}"
         reply = f"\t{self.device_id}\tACTN\tDELETE\t{json.dumps(result)}\n"
         self.save_action(self._json_filename,  self.actions_dict)
         return reply
