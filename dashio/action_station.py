@@ -30,7 +30,7 @@ import zmq
 
 from .constants import CONNECTION_PUB_URL,DEVICE_PUB_URL, TASK_PULL_URL
 from .tasks import task_runner
-from .action_station_controls.action_control_config import ActionControlCFG
+from .action_station_controls.action_control_config import ActionControlCFG, SelectorParameterSpec, IntParameterSpec
 
 class ActionControl():
     """A CFG control class to store Action information
@@ -270,6 +270,11 @@ class ActionStation(threading.Thread):
         return reply
 
     def _make_timer_config(self, num_timers):
+        provisioning_list = [
+            SelectorParameterSpec("SLCTR1", "Timer Type",["Repeat", "OneShot"], "Repeat"),
+            IntParameterSpec("INT1", "Timeout", 100, 600000, "ms", 1000)
+        ]
+        parameter_list = []
         timer_cfg = ActionControlCFG(
             "TIMER",
             "Timer",
@@ -279,10 +284,10 @@ class ActionStation(threading.Thread):
             True,
             True,
             True,
-            [],
-            []
+            provisioning_list,
+            parameter_list
         )
-        return timer_cfg.__json__()
+        return timer_cfg
     
     def __init__(self, device_id: str, max_actions=100, number_timers=10, context: zmq.Context=None):
         """Action Station
@@ -312,7 +317,7 @@ class ActionStation(threading.Thread):
             for j_object in self.actions_dict['jsonStore'].values():
                 self._add_input_filter(j_object)
         timer_cfg = self._make_timer_config(number_timers)
-        self.actions_dict['jsonStore'][timer_cfg['uuid']] = timer_cfg
+        self.actions_dict['jsonStore'][timer_cfg.uuid] = timer_cfg
         self.action_control = ActionControl(self.action_id, self.max_actions, number_timers)
         self.running = True
         self.start()
