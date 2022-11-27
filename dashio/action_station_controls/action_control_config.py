@@ -119,7 +119,8 @@ class ActionControlCFG:
     def __init__(self, control_type: str, name: str, text: str, control_id: str, num_avail: int, is_persistent: bool, is_trigger: bool, is_io: bool, provisioning_list: list, param_list: list) -> None:
         self.uuid = shortuuid.uuid()
         self._param = {
-            'objectType': f"{control_type}_CFG",
+            'objectType': "CONFIG",
+            'objectName': control_type,
             'uuid': self.uuid,
             'name': name,
             'text': text,
