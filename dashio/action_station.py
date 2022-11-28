@@ -29,7 +29,7 @@ import shortuuid
 import zmq
 
 from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL, TASK_PULL_URL
-from .tasks import task_runner
+from .action_station_controls.tasks import task_runner
 from .action_station_controls.timer_control import make_timer_config
 
 class ActionControl():

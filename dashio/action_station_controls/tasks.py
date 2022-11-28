@@ -1,7 +1,7 @@
 import zmq
 import logging
 
-from .constants import TASK_PULL_URL
+from ..constants import TASK_PULL_URL
 
 def num(s_num: str):
     try:
