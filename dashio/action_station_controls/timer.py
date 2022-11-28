@@ -32,7 +32,7 @@ class RepeatTimer(threading.Timer):
         while not self.finished.wait(self.interval):
             self.function(*self.args, **self.kwargs)
 
-class Timer(threading.Thread):
+class ActionStationTimer(threading.Thread):
     """Timer Class"""
 
     def timeout(self):
@@ -41,5 +41,6 @@ class Timer(threading.Thread):
     def __init__(self, timer_type: str, timeout: int) -> None:
         threading.Thread.__init__(self, daemon=True)
         self.timer_type = None
+        timer_time = timeout/1000.0
         if timer_type == 'REPEAT':
-            self.timer_type = RepeatTimer(1, self.timeout, args=("bar",))
+            self.timer_type = RepeatTimer(timer_time, self.timeout, args=("bar",))
