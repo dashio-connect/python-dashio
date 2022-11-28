@@ -230,12 +230,7 @@ class ActionStation(threading.Thread):
         j_object_list = []
         for j_object in self.action_station_dict['jsonStore'].values():
             if j_object['objectType'] == "CONFIG":
-                action_pair = {
-                    "name": j_object['name'],
-                    "uuid": j_object['uuid'],
-                    "objectType": j_object['objectType']
-                }
-                j_object_list.append(action_pair)
+                j_object_list.append(j_object)
         result = {
             'objectType': "LIST_RESULT",
             'list': j_object_list
