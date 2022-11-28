@@ -84,12 +84,15 @@ def task_runner(task_dict: dict, data: list, push_url: str, context: zmq.Context
     context : zmq.Context
         Use this context to be Thread safe
     """
-    for task in task_dict['tasks']:
-        try:
-            TASK_FUNC_DICT[task['objectType']](data, task)
-        except KeyError:
-            logging.debug("TASK NOT YET IMPLEMENTED: %s", task['objectType'])
-    
+    try:
+        for task in task_dict['tasks']:
+            try:
+                TASK_FUNC_DICT[task['objectType']](data, task)
+            except KeyError:
+                logging.debug("TASK NOT YET IMPLEMENTED: %s", task['objectType'])
+    except KeyError:
+        logging.debug("No Tasks!")
+
     # Set up socket to send messages to
     #    task_sender = context.socket(zmq.PUSH)
     #    task_sender.connect(push_url)
