@@ -240,10 +240,9 @@ class ActionStation(threading.Thread):
             'objectType': "LIST_RESULT",
             'list': j_object_list
         }
-        reply = f"\t{self.device_id}\tACTN\tLIST\t{json.dumps(result)}\n"
+        reply = f"\t{self.device_id}\tACTN\tLIST_CONFIGS\t{json.dumps(result)}\n"
         return reply
 
-    
     def _list_tasks_command(self, data):
         j_object_list = []
         for j_object in self.action_station_dict['jsonStore'].values():
@@ -258,7 +257,7 @@ class ActionStation(threading.Thread):
             'objectType': "LIST_RESULT",
             'list': j_object_list
         }
-        reply = f"\t{self.device_id}\tACTN\tLIST\t{json.dumps(result)}\n"
+        reply = f"\t{self.device_id}\tACTN\tLIST_TASKS\t{json.dumps(result)}\n"
         return reply
     
     def _get_command(self, data):
@@ -333,12 +332,12 @@ class ActionStation(threading.Thread):
 
         if not self.action_station_dict:
             self.action_id = shortuuid.uuid()
-            self.action_station_dict['actionID'] = self.action_id
+            self.action_station_dict['actionStationID'] = self.action_id
             self.action_station_dict['jsonStore'] = {}
             timer_cfg = make_timer_config(number_timers)
             self.action_station_dict['jsonStore'][timer_cfg['uuid']] = timer_cfg
         else:
-            self.action_id = self.action_station_dict['actionID']
+            self.action_id = self.action_station_dict['actionStationID']
             for j_object in self.action_station_dict['jsonStore'].values():
                 self._add_input_filter(j_object)
         
