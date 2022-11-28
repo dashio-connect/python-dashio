@@ -28,9 +28,9 @@ import time
 import shortuuid
 import zmq
 
-from .constants import CONNECTION_PUB_URL,DEVICE_PUB_URL, TASK_PULL_URL
+from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL, TASK_PULL_URL
 from .tasks import task_runner
-from .action_station_controls.timer import make_timer_config
+from .action_station_controls.timer_control import make_timer_config
 
 class ActionControl():
     """A CFG control class to store Action information
@@ -71,13 +71,15 @@ class ActionControl():
         """
         return self._cfg
 
-    def __init__(self, control_id, max_tasks: int, number_timers: int):
+    def __init__(self, control_id, max_tasks: int, number_timers: int, memory_size: int):
         self._cfg = {}
         self.cntrl_type = "ACTN"
         self._cfg['controlID'] = control_id
         self.control_id = control_id
         self.max_tasks = max_tasks
         self.number_timers = number_timers
+        if memory_size > 0:
+            self.memory_storage_size = memory_size
 
     @property
     def max_tasks(self) -> int:
@@ -109,6 +111,22 @@ class ActionControl():
     def number_timers(self, val: int):
         self._cfg["numTimers"] = val
 
+    @property
+    def memory_storage_size(self) -> int:
+        """Size of memory storage
+
+        Returns
+        -------
+        int
+            The number of timers
+        """
+        return int(self._cfg["memSize"])
+
+    @memory_storage_size.setter
+    def memory_storage_size(self, val: int):
+        self._cfg["memSize"] = val
+    
+    
 class ActionStation(threading.Thread):
     """_summary_
 
@@ -143,7 +161,7 @@ class ActionStation(threading.Thread):
         task_dict_key = f"{rx_device_id}\t{control_id}\t"
         if task_dict_key in self._device_control_filter_dict:
             uuid = self._device_control_filter_dict[task_dict_key]
-            threading.Thread(target=task_runner, args=( self.action_station_dict['jsonStore'][uuid], data_array, self.action_id, self.context)).start()
+            threading.Thread(target=task_runner, args=( self.action_station_dict['jsonStore'][uuid], data_array, self.action_station_id, self.context)).start()
         return ""
 
     def save_action(self, filename: str, actions_dict: dict):
@@ -184,7 +202,7 @@ class ActionStation(threading.Thread):
         """
         self.connection_zmq_sub.connect(CONNECTION_PUB_URL.format(id=connection.connection_id))
         self.connection_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, connection.connection_id)
-        connection.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=self.action_id))
+        connection.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=self.action_station_id))
 
     def close(self):
         """Close the action_station json filename
@@ -254,7 +272,7 @@ class ActionStation(threading.Thread):
         }
         reply = f"\t{self.device_id}\tACTN\tLIST_TASKS\t{json.dumps(result)}\n"
         return reply
-    
+
     def _get_command(self, data):
         payload = json.loads(data[3])
         try:
@@ -290,7 +308,7 @@ class ActionStation(threading.Thread):
             'objectType': "UPDATE_RESULT",
             'uuid': payload['uuid']
         }
-        if payload['objectType'] in ['TASK', 'TIMER']:
+        if payload['objectType'] in ['TASK', 'TIMER', 'MEMORY']:
             if 'jsonStore' not in self.action_station_dict:
                 self.action_station_dict['jsonStore'] = {}
             self.action_station_dict['jsonStore'][payload['uuid']] = payload
@@ -304,9 +322,8 @@ class ActionStation(threading.Thread):
         reply = ""
         return reply
     
-    def __init__(self, device_id: str, max_actions=100, number_timers=10, context: zmq.Context=None):
-        """Action Station
-        """
+    def __init__(self, device_id: str, max_actions=100, number_timers=10, config_size=0, context: zmq.Context=None):
+        """Action Station"""
         threading.Thread.__init__(self, daemon=True)
         self.context = context or zmq.Context.instance()
         self._json_filename = f"{device_id}_Actions.json"
@@ -326,37 +343,36 @@ class ActionStation(threading.Thread):
         }
 
         if not self.action_station_dict:
-            self.action_id = shortuuid.uuid()
-            self.action_station_dict['actionStationID'] = self.action_id
+            self.action_station_id = shortuuid.uuid()
+            self.action_station_dict['actionStationID'] = self.action_station_id
             self.action_station_dict['jsonStore'] = {}
             timer_cfg = make_timer_config(number_timers)
             self.action_station_dict['jsonStore'][timer_cfg['uuid']] = timer_cfg
         else:
-            self.action_id = self.action_station_dict['actionStationID']
+            self.action_station_id = self.action_station_dict['actionStationID']
             for j_object in self.action_station_dict['jsonStore'].values():
                 self._add_input_filter(j_object)
         
-        self.action_control = ActionControl(self.action_id, self.max_actions, number_timers)
         self.running = True
         self.start()
         time.sleep(1)
 
     def run(self):
         tx_zmq_pub = self.context.socket(zmq.PUB)
-        tx_zmq_pub.bind(DEVICE_PUB_URL.format(id=self.action_id))
+        tx_zmq_pub.bind(DEVICE_PUB_URL.format(id=self.action_station_id))
 
         self.device_zmq_sub = self.context.socket(zmq.SUB)
         # Subscribe on ALL, and my connection
         self.device_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")
         self.device_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALARM")
-        self.device_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.action_id)
+        self.device_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.action_station_id)
 
         # rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
         self.connection_zmq_sub = self.context.socket(zmq.SUB)
 
         # Socket to receive messages on
         task_receiver = self.context.socket(zmq.PULL)
-        task_receiver.bind(TASK_PULL_URL.format(id=self.action_id))
+        task_receiver.bind(TASK_PULL_URL.format(id=self.action_station_id))
 
         poller = zmq.Poller()
         poller.register(self.device_zmq_sub, zmq.POLLIN)
