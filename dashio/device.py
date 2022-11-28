@@ -437,7 +437,6 @@ class Device(threading.Thread):
             self._add_action_device_setup(True)
             self.action_station = ActionStation(device_id, context=self.context)
             self.action_station.device_zmq_sub.connect(DEVICE_PUB_URL.format(id=self.zmq_pub_id))
-            self.add_control(self.action_station.action_control)
         self.running = True
         self.start()
 
