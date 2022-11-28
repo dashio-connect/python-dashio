@@ -308,7 +308,7 @@ class ActionStation(threading.Thread):
             'objectType': "UPDATE_RESULT",
             'uuid': payload['uuid']
         }
-        if payload['objectType'] in ['TASK', 'TIMER', 'MEMORY']:
+        if payload['objectType'] in ['TASK', 'TMR', 'MRY']:
             if 'jsonStore' not in self.action_station_dict:
                 self.action_station_dict['jsonStore'] = {}
             self.action_station_dict['jsonStore'][payload['uuid']] = payload
