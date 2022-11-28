@@ -71,28 +71,28 @@ class ActionControl():
         """
         return self._cfg
 
-    def __init__(self, control_id, max_actions: int, number_timers: int):
+    def __init__(self, control_id, max_tasks: int, number_timers: int):
         self._cfg = {}
         self.cntrl_type = "ACTN"
         self._cfg['controlID'] = control_id
         self.control_id = control_id
-        self.max_actions = max_actions
+        self.max_tasks = max_tasks
         self.number_timers = number_timers
 
     @property
-    def max_actions(self) -> int:
-        """max number of actions
+    def max_tasks(self) -> int:
+        """max number of tasks
 
         Returns
         -------
         int
-            The max number of 
+            The max number of tasks
         """
-        return int(self._cfg["maxActions"])
+        return int(self._cfg["maxTasks"])
 
-    @max_actions.setter
-    def max_actions(self, val: int):
-        self._cfg["maxActions"] = val
+    @max_tasks.setter
+    def max_tasks(self, val: int):
+        self._cfg["maxTasks"] = val
 
     @property
     def number_timers(self) -> int:
@@ -158,21 +158,21 @@ class ActionStation(threading.Thread):
             json.dump(actions_dict, outfile, indent=4)
 
     def load_action(self, filename: str):
-        """load action from a file.
+        """load action_station from a file.
 
         Parameters
         ----------
         filename : str
             Filename of the file where the Actions are stored.
         """
-        actions_dict = {}
+        action_station_dict = {}
         try:
             with open(filename, 'r', encoding='ASCII') as infile:
-                actions_dict = json.load(infile)
+                action_station_dict = json.load(infile)
 
         except FileNotFoundError:
             pass
-        return actions_dict
+        return action_station_dict
 
     def add_connection(self, connection):
         """Add a connection to listen too
@@ -187,7 +187,7 @@ class ActionStation(threading.Thread):
         connection.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=self.action_id))
 
     def close(self):
-        """Close the action
+        """Close the action_station json filename
         """
         self.save_action(self._json_filename, self.action_station_dict)
         self.running = False
@@ -211,52 +211,52 @@ class ActionStation(threading.Thread):
             del self._device_control_filter_dict[task_dict_key]
 
     def _list_command(self, data):
-        actions_list = []
-        for action in self.action_station_dict['jsonStore'].values():
+        j_object_list = []
+        for j_object in self.action_station_dict['jsonStore'].values():
             action_pair = {
-                "name": action['name'],
-                "uuid": action['uuid'],
-                "objectType": action['objectType']
+                "name": j_object['name'],
+                "uuid": j_object['uuid'],
+                "objectType": j_object['objectType']
             }
-            actions_list.append(action_pair)
+            j_object_list.append(action_pair)
         result = {
             'objectType': "LIST_RESULT",
-            'list': actions_list
+            'list': j_object_list
         }
         reply = f"\t{self.device_id}\tACTN\tLIST\t{json.dumps(result)}\n"
         return reply
 
     def _list_configs_command(self, data):
-        actions_list = []
-        for action in self.action_station_dict['jsonStore'].values():
-            if action['objectType'] == "CONFIG":
+        j_object_list = []
+        for j_object in self.action_station_dict['jsonStore'].values():
+            if j_object['objectType'] == "CONFIG":
                 action_pair = {
-                    "name": action['name'],
-                    "uuid": action['uuid'],
-                    "objectType": action['objectType']
+                    "name": j_object['name'],
+                    "uuid": j_object['uuid'],
+                    "objectType": j_object['objectType']
                 }
-                actions_list.append(action_pair)
+                j_object_list.append(action_pair)
         result = {
             'objectType': "LIST_RESULT",
-            'list': actions_list
+            'list': j_object_list
         }
         reply = f"\t{self.device_id}\tACTN\tLIST\t{json.dumps(result)}\n"
         return reply
 
     
     def _list_tasks_command(self, data):
-        actions_list = []
-        for action in self.action_station_dict['jsonStore'].values():
-            if action['objectType'] == "TASK":
+        j_object_list = []
+        for j_object in self.action_station_dict['jsonStore'].values():
+            if j_object['objectType'] == "TASK":
                 action_pair = {
-                    "name": action['name'],
-                    "uuid": action['uuid'],
-                    "objectType": action['objectType']
+                    "name": j_object['name'],
+                    "uuid": j_object['uuid'],
+                    "objectType": j_object['objectType']
                 }
-                actions_list.append(action_pair)
+                j_object_list.append(action_pair)
         result = {
             'objectType': "LIST_RESULT",
-            'list': actions_list
+            'list': j_object_list
         }
         reply = f"\t{self.device_id}\tACTN\tLIST\t{json.dumps(result)}\n"
         return reply
@@ -264,10 +264,10 @@ class ActionStation(threading.Thread):
     def _get_command(self, data):
         payload = json.loads(data[3])
         try:
-            action = self.action_station_dict['jsonStore'][payload["uuid"]]
+            j_object = self.action_station_dict['jsonStore'][payload["uuid"]]
         except KeyError:
-            action = {}
-        reply = f"\t{self.device_id}\tACTN\tGET\t{json.dumps(action)}\n"
+            j_object = {}
+        reply = f"\t{self.device_id}\tACTN\tGET\t{json.dumps(j_object)}\n"
         return reply
 
     def _delete_command(self, data):
