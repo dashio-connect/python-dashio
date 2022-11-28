@@ -213,18 +213,18 @@ class ActionStation(threading.Thread):
     def _add_input_filter(self, j_object: dict):
         if j_object['objectType'] == 'TASK':
             try:
-                rx_device_id = j_object['tasks'][0]["deviceID"]
+                rx_device_id = j_object['actions'][0]["deviceID"]
             except KeyError:
                 rx_device_id = self.device_id
-            control_id = j_object['tasks'][0]["controlID"]
+            control_id = j_object['actions'][0]["controlID"]
             task_dict_key = f"{rx_device_id}\t{control_id}\t"
             self._device_control_filter_dict[task_dict_key] = j_object['uuid']
 
     def _delete_input_filter(self, uuid: str):
         store_object = self.action_station_dict['jsonStore'][uuid]
         if store_object['objectType'] in ['TASK']:
-            rx_device_id = store_object['tasks'][0]["deviceID"]
-            control_id = store_object['tasks'][0]["controlID"]
+            rx_device_id = store_object['actions'][0]["deviceID"]
+            control_id = store_object['actions'][0]["controlID"]
             task_dict_key = f"{rx_device_id}\t{control_id}\t"
             del self._device_control_filter_dict[task_dict_key]
 
