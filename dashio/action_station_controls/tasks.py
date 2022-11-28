@@ -1,8 +1,6 @@
 import zmq
 import logging
 
-from ..constants import TASK_PULL_URL
-
 def num(s_num: str):
     try:
         return int(s_num)
@@ -72,7 +70,7 @@ TASK_FUNC_DICT = {
 }
 
 
-def task_runner(task_dict: dict, data: list, push_id: str, context: zmq.Context):
+def task_runner(task_dict: dict, data: list, push_url: str, context: zmq.Context):
     """Run a task
 
     Parameters
@@ -94,6 +92,6 @@ def task_runner(task_dict: dict, data: list, push_id: str, context: zmq.Context)
     
     # Set up socket to send messages to
     #    task_sender = context.socket(zmq.PUSH)
-    #    task_sender.connect(TASK_PULL_URL.format(id=push_id))
+    #    task_sender.connect(push_url)
         # send the result
     #    task_sender.send(results[-1].encode())

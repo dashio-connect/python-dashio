@@ -23,6 +23,5 @@ SOFTWARE.
 """
 CONNECTION_PUB_URL = "inproc://DASHIO_CONN_PUB_{id}"
 DEVICE_PUB_URL = "inproc://DASHIO_DVCE_PUB_{id}"
-TASK_PULL_URL = "inproc://TASK_PULL_{id}"
 
 BAD_CHARS = {ord(i): None for i in '\t\n'}
