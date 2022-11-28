@@ -323,8 +323,8 @@ class ActionStation(threading.Thread):
         self.timers = []
         self._action_station_commands = {
             "LIST": self._list_command,
-            "LIST_TASKS": self._list_configs_command,
-            "LIST_CONFIGS": self._list_tasks_command,
+            "LIST_TASKS": self._list_tasks_command,
+            "LIST_CONFIGS": self._list_configs_command,
             "GET": self._get_command,
             "DELETE": self._delete_command,
             "UPDATE": self._update_command,
