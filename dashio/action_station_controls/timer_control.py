@@ -36,11 +36,10 @@ class RepeatTimer(threading.Timer):
 class TimerControl(threading.Thread):
     """Timer Class"""
 
-    def timeout(self):
+    def send_message(self):
         """Send the message"""
         task_sender = self.context.socket(zmq.PUSH)
         task_sender.connect(self.push_url)
-        # send the result
         task_sender.send(self.control_msg.encode())
 
     def close(self):
@@ -56,9 +55,9 @@ class TimerControl(threading.Thread):
         timer_time = timeout/1000.0
         self.control_msg = f"\t{device_id}\tTMR\t{control_id}\n"
         if timer_type == 'REPEAT':
-            self.timer_type = RepeatTimer(timer_time, self.timeout)
+            self.timer_type = RepeatTimer(timer_time, self.send_message)
         elif timer_type == 'REPEAT':
-            self.timer_type = threading.Timer(timer_time, self.timeout)
+            self.timer_type = threading.Timer(timer_time, self.send_message)
         if self.timer_type:
             self.timer_type.start()
         self.start()
