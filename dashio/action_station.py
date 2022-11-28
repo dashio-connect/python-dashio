@@ -28,7 +28,7 @@ import time
 import shortuuid
 import zmq
 
-from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL, TASK_PULL_URL
+from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 from .action_station_controls.tasks import task_runner
 from .action_station_controls.timer_control import make_timer_config
 
@@ -161,7 +161,7 @@ class ActionStation(threading.Thread):
         task_dict_key = f"{rx_device_id}\t{control_id}\t"
         if task_dict_key in self._device_control_filter_dict:
             uuid = self._device_control_filter_dict[task_dict_key]
-            threading.Thread(target=task_runner, args=( self.action_station_dict['jsonStore'][uuid], data_array, self.action_station_id, self.context)).start()
+            threading.Thread(target=task_runner, args=( self.action_station_dict['jsonStore'][uuid], data_array, self.task_pull_url, self.context)).start()
         return ""
 
     def save_action(self, filename: str, actions_dict: dict):
@@ -322,7 +322,7 @@ class ActionStation(threading.Thread):
         reply = ""
         return reply
     
-    def __init__(self, device_id: str, max_actions=100, number_timers=10, config_size=0, context: zmq.Context=None):
+    def __init__(self, device_id: str, max_actions=100, number_timers=10, memory_storage_size=0, context: zmq.Context=None):
         """Action Station"""
         threading.Thread.__init__(self, daemon=True)
         self.context = context or zmq.Context.instance()
@@ -352,7 +352,8 @@ class ActionStation(threading.Thread):
             self.action_station_id = self.action_station_dict['actionStationID']
             for j_object in self.action_station_dict['jsonStore'].values():
                 self._add_input_filter(j_object)
-        
+
+        self.task_pull_url = f"inproc://TASK_PULL_{self.action_station_id}"
         self.running = True
         self.start()
         time.sleep(1)
@@ -372,7 +373,7 @@ class ActionStation(threading.Thread):
 
         # Socket to receive messages on
         task_receiver = self.context.socket(zmq.PULL)
-        task_receiver.bind(TASK_PULL_URL.format(id=self.action_station_id))
+        task_receiver.bind( self.task_pull_url)
 
         poller = zmq.Poller()
         poller.register(self.device_zmq_sub, zmq.POLLIN)
