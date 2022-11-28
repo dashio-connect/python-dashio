@@ -313,7 +313,8 @@ class ActionStation(threading.Thread):
                 self.action_station_dict['jsonStore'] = {}
             self.action_station_dict['jsonStore'][payload['uuid']] = payload
             reply = f"\t{self.device_id}\tACTN\tUPDATE\t{json.dumps(result)}\n"
-            self._add_input_filter(payload)
+            if payload['objectType'] == 'TASK':
+                self._add_input_filter(payload)
         self.save_action(self._json_filename,  self.action_station_dict)
         return reply
 
