@@ -23,8 +23,8 @@ def make_timer_config(num_timers):
         True,
         True,
         provisioning_list,
-        parameter_in_list,
-        parameter_out_list
+        parameter_in_list
+        #parameter_out_list
     )
     return timer_cfg.__json__()
 
