@@ -19,20 +19,20 @@ def make_test_config(num_tests):
         SliderParameterSpec("SLDR_PROV", "A Slider", 1.0, 10.0, 1.0, 5.0)
     ]
     parameter_list_in = [
-        StringParamValue("STR_IN", "A String"),
-        FloatParamValue("FLT_IN", 3.141592654),
-        IntParamValue("INT_IN", 17),
-        BoolParamValue("BOOL_IN", True),
-        SelectionParamValue("SLCT_IN", "Selected Value"),
-        SliderParamValue("SLDR_IN", 10.0)
+        SelectorParameterSpec("SLCTR_PROV", "A Selector",["Selection 1", "Selection2", "Selection3"], "Selection 1"),
+        IntParameterSpec("INT_PROV", "An Int", 0, 100, "jiggers", 42),
+        StringParameterSpec("STR_PROV", "A String", "Little Bo Peep...."),
+        FloatParameterSpec("FLT_PROV", "A Float", 2.71828, 299792458.0, "jiffies", 1.4142),
+        BoolParameterSpec("BOOL_PROV", "A bool", True),
+        SliderParameterSpec("SLDR_PROV", "A Slider", 1.0, 10.0, 1.0, 5.0)
     ]
     parameter_list_out = [
-        SliderParamValue("SLDR_OUT", 0.0),
-        SelectionParamValue("SLCT_OUT", "Selected Value"),
-        BoolParamValue("BOOL_OUT", True),
-        IntParamValue("INT_OUT", 17),
-        FloatParamValue("FLT_OUT", 3.141592654),
-        StringParamValue("STR_OUT", "A String"),
+        SelectorParameterSpec("SLCTR_PROV", "A Selector",["Selection 1", "Selection2", "Selection3"], "Selection 1"),
+        IntParameterSpec("INT_PROV", "An Int", 0, 100, "jiggers", 42),
+        StringParameterSpec("STR_PROV", "A String", "Little Bo Peep...."),
+        FloatParameterSpec("FLT_PROV", "A Float", 2.71828, 299792458.0, "jiffies", 1.4142),
+        BoolParameterSpec("BOOL_PROV", "A bool", True),
+        SliderParameterSpec("SLDR_PROV", "A Slider", 1.0, 10.0, 1.0, 5.0)
     ]
     timer_cfg = ActionControlCFG(
         "TST",

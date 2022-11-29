@@ -72,59 +72,6 @@ class SliderParameterSpec(BaseParameter):
         self._param['step'] = step
         self._param['value'] = existing_value
 
-class BaseParamValue:
-    """Base class for Parameter"""
-    def __init__(self, param_type: str, param_id: str, param_value):
-        self._param = {
-            'objectType': param_type,
-            'paramID': param_id,
-            'value': param_value
-        }
-
-    def __json__(self, **options):
-        return self._param
-
-class StringParamValue(BaseParamValue):
-    """StringParamValue"""
-    def __init__(self, param_id: str, param_value: str):
-        super().__init__("STRING_PARAM", param_id, param_value)
-
-class FloatParamValue(BaseParamValue):
-    """FloatParamValue"""
-    def __init__(self, param_id: str, param_value: str):
-        super().__init__("FLOAT_PARAM", param_id, param_value)
-
-class IntParamValue(BaseParamValue):
-    """IntParamValue"""
-    def __init__(self, param_id: str, param_value: str):
-        super().__init__("INT_PARAM", param_id, param_value)
-
-class BoolParamValue(BaseParamValue):
-    """BoolParamValue"""
-    def __init__(self, param_id: str, param_value: str):
-        super().__init__("BOOL_PARAM", param_id, param_value)
-
-class SelectionParamValue(BaseParamValue):
-    """SelectionParamValue"""
-    def __init__(self, param_id: str, param_value: str):
-        super().__init__("SELECTION_PARAM", param_id, param_value)
-
-class SliderParamValue(BaseParamValue):
-    """SliderParamValue"""
-    def __init__(self, param_id: str, param_value: float):
-        super().__init__("SLIDER_PARAM", param_id, param_value)
-
-class IconParamValue(BaseParamValue):
-    """IconParamValue"""
-    def __init__(self, param_id: str, param_value: str):
-        super().__init__("ICON_PARAM", param_id, param_value)
-
-class ColorParamValue(BaseParamValue):
-    """SliderParamValue"""
-    def __init__(self, param_id: str, param_value: str):
-        super().__init__("COLOR_PARAM", param_id, param_value)
-
-
 class ActionControlCFG:
     """Action Control CFG"""
     def __init__(self, control_type: str, name: str, text: str, control_id: str, num_avail: int, is_trigger: bool, is_io: bool, provisioning_list: list, param_in_list: list) -> None:
