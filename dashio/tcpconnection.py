@@ -207,6 +207,8 @@ class TCPConnection(threading.Thread):
             except zmq.error.ZMQError as zmq_e:
                 logging.debug("Sending TX Error: %s", zmq_e)
                 # self.socket_ids.remove(tcp_id)
+            except OSError as exc:
+                logging.debug("Socket assignment error: %s", exc)
 
         tx_zmq_pub = self.context.socket(zmq.PUB)
         tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))

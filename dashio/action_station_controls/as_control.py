@@ -43,8 +43,8 @@ def make_test_config(num_tests):
         True,
         True,
         provisioning_list,
-        parameter_list_in,
-        parameter_list_out
+        parameter_list_in
+        #parameter_list_out
     )
     return timer_cfg.__json__()
 

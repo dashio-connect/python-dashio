@@ -114,9 +114,20 @@ class SliderParamValue(BaseParamValue):
     def __init__(self, param_id: str, param_value: float):
         super().__init__("SLIDER_VALUE", param_id, param_value)
 
+class IconParamValue(BaseParamValue):
+    """IconParamValue"""
+    def __init__(self, param_id: str, param_value: str):
+        super().__init__("ICON_VALUE", param_id, param_value)
+
+class ColorParamValue(BaseParamValue):
+    """SliderParamValue"""
+    def __init__(self, param_id: str, param_value: str):
+        super().__init__("COLOR_VALUE", param_id, param_value)
+
+
 class ActionControlCFG:
     """Action Control CFG"""
-    def __init__(self, control_type: str, name: str, text: str, control_id: str, num_avail: int, is_trigger: bool, is_io: bool, provisioning_list: list, param_in_list: list, param_out_list: list) -> None:
+    def __init__(self, control_type: str, name: str, text: str, control_id: str, num_avail: int, is_trigger: bool, is_io: bool, provisioning_list: list, param_in_list: list) -> None:
         self.uuid = shortuuid.uuid()
         self._config_def = {
             'objectType': "CONFIG",
@@ -129,8 +140,8 @@ class ActionControlCFG:
             'isTrigger': is_trigger,
             'isIO': is_io,
             'provisioning': provisioning_list,
-            'parametersIn': param_in_list,
-            'parametersOut': param_out_list
+            'parameters': param_in_list,
+            #'parametersOut': param_out_list
         }
 
     def __json__(self, **options):
