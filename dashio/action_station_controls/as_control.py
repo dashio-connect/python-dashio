@@ -6,6 +6,48 @@ import zmq
 import logging
 
 
+from .action_control_config import *
+
+def make_test_config(num_tests):
+    """Make a timer config"""
+    provisioning_list = [
+        SelectorParameterSpec("SLCTR_PROV", "A Selector",["Selection 1", "Selection2", "Selection3"], "Selection 1"),
+        IntParameterSpec("INT_PROV", "An Int", 0, 100, "jiggers", 42),
+        StringParameterSpec("STR_PROV", "A String", "Little Bo Peep...."),
+        FloatParameterSpec("FLT_PROV", "A Float", 2.71828, 299792458.0, "jiffies", 1.4142),
+        BoolParameterSpec("BOOL_PROV", "A bool", True),
+        SliderParameterSpec("SLDR_PROV", "A Slider", 1.0, 10.0, 1.0, 5.0)
+    ]
+    parameter_list_in = [
+        StringParamValue("STR_IN", "A String"),
+        FloatParamValue("FLT_IN", 3.141592654),
+        IntParamValue("INT_IN", 17),
+        BoolParamValue("BOOL_IN", True),
+        SelectionParamValue("SLCT_IN", "Selected Value"),
+        SliderParamValue("SLDR_IN", 10.0)
+    ]
+    parameter_list_out = [
+        SliderParamValue("SLDR_OUT", 0.0),
+        SelectionParamValue("SLCT_OUT", "Selected Value"),
+        BoolParamValue("BOOL_OUT", True),
+        IntParamValue("INT_OUT", 17),
+        FloatParamValue("FLT_OUT", 3.141592654),
+        StringParamValue("STR_OUT", "A String"),
+    ]
+    timer_cfg = ActionControlCFG(
+        "TST",
+        "Test",
+        "Test with provisioning",
+        "TST$",
+        num_tests,
+        True,
+        True,
+        provisioning_list,
+        parameter_list_in,
+        parameter_list_out
+    )
+    return timer_cfg.__json__()
+
 class ASControl(threading.Thread):
     """AS Template Class"""
 

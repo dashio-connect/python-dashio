@@ -11,18 +11,20 @@ def make_timer_config(num_timers):
         SelectorParameterSpec("SLCTR1", "Timer Type",["Repeat", "OneShot"], "Repeat"),
         IntParameterSpec("INT1", "Timeout", 100, 600000, "ms", 1000)
     ]
-    parameter_list = []
+    parameter_in_list = []
+    parameter_out_list = []
+
     timer_cfg = ActionControlCFG(
-        "TIMER",
+        "TMR",
+        "Timer",
         "Timer Provisioning",
-        "A useful timer can be used as a recurring or oneshot.",
         "TMR",
         num_timers,
         True,
         True,
-        True,
         provisioning_list,
-        parameter_list
+        parameter_in_list,
+        parameter_out_list
     )
     return timer_cfg.__json__()
 
