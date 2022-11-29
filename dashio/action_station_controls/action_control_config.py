@@ -44,7 +44,7 @@ class FloatParameterSpec(BaseParameter):
 class IntParameterSpec(BaseParameter):
     """Int Parameter"""
     def __init__(self, param_id: str, name: str, param_min: int, param_max: int, units: str, existing_value: int):
-        super().__init__("FLOAT_PARAM", param_id, name)
+        super().__init__("INT_PARAM", param_id, name)
         self._param['min'] = param_min
         self._param['max'] = param_max
         self._param['units'] = units
@@ -87,42 +87,42 @@ class BaseParamValue:
 class StringParamValue(BaseParamValue):
     """StringParamValue"""
     def __init__(self, param_id: str, param_value: str):
-        super().__init__("STRING_VALUE", param_id, param_value)
+        super().__init__("STRING_PARAM", param_id, param_value)
 
 class FloatParamValue(BaseParamValue):
     """FloatParamValue"""
     def __init__(self, param_id: str, param_value: str):
-        super().__init__("FLOAT_VALUE", param_id, param_value)
+        super().__init__("FLOAT_PARAM", param_id, param_value)
 
 class IntParamValue(BaseParamValue):
     """IntParamValue"""
     def __init__(self, param_id: str, param_value: str):
-        super().__init__("INT_VALUE", param_id, param_value)
+        super().__init__("INT_PARAM", param_id, param_value)
 
 class BoolParamValue(BaseParamValue):
     """BoolParamValue"""
     def __init__(self, param_id: str, param_value: str):
-        super().__init__("BOOL_VALUE", param_id, param_value)
+        super().__init__("BOOL_PARAM", param_id, param_value)
 
 class SelectionParamValue(BaseParamValue):
     """SelectionParamValue"""
     def __init__(self, param_id: str, param_value: str):
-        super().__init__("SELECTION_VALUE", param_id, param_value)
+        super().__init__("SELECTION_PARAM", param_id, param_value)
 
 class SliderParamValue(BaseParamValue):
     """SliderParamValue"""
     def __init__(self, param_id: str, param_value: float):
-        super().__init__("SLIDER_VALUE", param_id, param_value)
+        super().__init__("SLIDER_PARAM", param_id, param_value)
 
 class IconParamValue(BaseParamValue):
     """IconParamValue"""
     def __init__(self, param_id: str, param_value: str):
-        super().__init__("ICON_VALUE", param_id, param_value)
+        super().__init__("ICON_PARAM", param_id, param_value)
 
 class ColorParamValue(BaseParamValue):
     """SliderParamValue"""
     def __init__(self, param_id: str, param_value: str):
-        super().__init__("COLOR_VALUE", param_id, param_value)
+        super().__init__("COLOR_PARAM", param_id, param_value)
 
 
 class ActionControlCFG:

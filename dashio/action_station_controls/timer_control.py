@@ -1,10 +1,10 @@
 """Timer Class"""
 import threading
 import zmq
-import time
+import logging
 from .action_control_config import ActionControlCFG, SelectorParameterSpec, IntParameterSpec
 
-
+# This defines the provisioning for the TIMER
 def make_timer_config(num_timers):
     """Make a timer config"""
     provisioning_list = [
@@ -35,6 +35,14 @@ class RepeatTimer(threading.Timer):
         while not self.finished.wait(self.interval):
             self.function(*self.args, **self.kwargs)
 
+            
+
+# The app returns the edited provisioning with enough info to instantiate this class:
+# With controlID, timer_type(from provisioning), timeout(from provisioning)
+# THe device knows the rest (device_id, push_url, context)
+
+# parameter_in_list would be used by the TIMER to parse the incoming message.
+# paramiter_out_list is how to format the output message 
 class TimerControl(threading.Thread):
     """Timer Class"""
 
@@ -64,7 +72,20 @@ class TimerControl(threading.Thread):
             self.timer_type.start()
         self.start()
 
+
     def run(self):
-        """Sleep for time"""
+
+        receiver = self.context.socket(zmq.PULL)
+        receiver.bind( self.pull_url)
+        poller = zmq.Poller()
+        poller.register(receiver, zmq.POLLIN)
+
         while self.running:
-            time.sleep(1)
+            try:
+                socks = dict(poller.poll(15))
+            except zmq.error.ContextTerminated:
+                break
+            if receiver in socks:
+                message = receiver.recv()
+                if message:
+                    logging.debug("%s\t%s RX:\n%s", self.control_type, self.control_id, message.decode())
