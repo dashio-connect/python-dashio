@@ -111,14 +111,14 @@ class SelectionParamValue(BaseParamValue):
 
 class SliderParamValue(BaseParamValue):
     """SliderParamValue"""
-    def __init__(self, param_id: str, param_value: str):
+    def __init__(self, param_id: str, param_value: float):
         super().__init__("SLIDER_VALUE", param_id, param_value)
 
 class ActionControlCFG:
     """Action Control CFG"""
-    def __init__(self, control_type: str, name: str, text: str, control_id: str, num_avail: int, is_persistent: bool, is_trigger: bool, is_io: bool, provisioning_list: list, param_list: list) -> None:
+    def __init__(self, control_type: str, name: str, text: str, control_id: str, num_avail: int, is_trigger: bool, is_io: bool, provisioning_list: list, param_in_list: list, param_out_list: list) -> None:
         self.uuid = shortuuid.uuid()
-        self._param = {
+        self._config_def = {
             'objectType': "CONFIG",
             'objectName': control_type,
             'uuid': self.uuid,
@@ -126,12 +126,12 @@ class ActionControlCFG:
             'text': text,
             'controlID': control_id,
             'numAvail': num_avail,
-            'isPersistent': is_persistent,
             'isTrigger': is_trigger,
             'isIO': is_io,
             'provisioning': provisioning_list,
-            'parameters': param_list
+            'parametersIn': param_in_list,
+            'parametersOut': param_out_list
         }
 
     def __json__(self, **options):
-        return self._param
+        return self._config_def
