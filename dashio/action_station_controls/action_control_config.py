@@ -26,11 +26,19 @@ class BaseParameter:
     def __json__(self, **options):
         return self._param
 
+class ListParameterSpec(BaseParameter):
+    """List Parameter"""
+    def __init__(self, param_id: str, name: str, existing_value: str, param_list: list):
+        super().__init__("LIST_PARAM", param_id, name)
+        self._param['value'] = existing_value
+        self._param["list"] = param_list
+
 class StringParameterSpec(BaseParameter):
     """String Parameter"""
-    def __init__(self, param_id: str, name: str, existing_value: str):
+    def __init__(self, param_id: str, name: str, existing_value: int):
         super().__init__("STRING_PARAM", param_id, name)
         self._param['value'] = existing_value
+
 
 class FloatParameterSpec(BaseParameter):
     """Float Parameter"""
