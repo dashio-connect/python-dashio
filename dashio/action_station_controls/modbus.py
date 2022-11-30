@@ -12,7 +12,7 @@ def make_modbus_config(num_tests):
     """Make a timer config"""
     provisioning_list = [
         SelectorParameterSpec("PORT_SLCTR", "Serial Port",["uart1", "uart2", "uart4"], "uart1"),
-        SelectorParameterSpec("BAUD_SLCTR", "Baud", ["1200", "2400", "4800", "9600", "19200", "38400", "57600", "115200"], 9600),
+        SelectorParameterSpec("BAUD_SLCTR", "Baud", ["1200", "2400", "4800", "9600", "19200", "38400", "57600", "115200"], "9600"),
         SelectorParameterSpec("RTYPE_SLCTR", "Modbus Type", ["RTU", "ASCII"], "RTU"),
         ListParameterSpec(
             "RDREG_SLCTR",
