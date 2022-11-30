@@ -334,7 +334,7 @@ class ActionStation(threading.Thread):
         threading.Thread.__init__(self, daemon=True)
         self.context = context or zmq.Context.instance()
         self._json_filename = f"{device_id}_Actions.json"
-        self.action_station_dict = self.load_action(self._json_filename)
+        self.action_station_dict = {}  # self.load_action(self._json_filename)
         self.max_actions = max_actions
         self._device_control_filter_dict = {}
         self.device_id = device_id
