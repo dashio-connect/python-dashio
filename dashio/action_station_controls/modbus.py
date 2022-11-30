@@ -17,7 +17,7 @@ def make_modbus_config(num_tests):
         ListParameterSpec(
             "RDREG_SLCTR",
             "Registers To Read",
-            0,
+            "Create a list of registers to read data from.",
             [
                 IntParameterSpec(
                     "READ_REG_INT",
