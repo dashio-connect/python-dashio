@@ -33,6 +33,7 @@ from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
 from .action_station_controls.tasks import task_runner
 from .action_station_controls.timer_control import make_timer_config
 from .action_station_controls.as_control import make_test_config
+from .action_station_controls.modbus import make_modbus_config
 
 class ActionControl():
     """A CFG control class to store Action information
@@ -215,20 +216,23 @@ class ActionStation(threading.Thread):
     def _add_input_filter(self, j_object: dict):
         if j_object['objectType'] == 'TASK':
             try:
-                rx_device_id = j_object['actions'][0]["deviceID"]
-            except KeyError:
-                rx_device_id = self.device_id
-            control_id = j_object['actions'][0]["controlID"]
-            task_dict_key = f"{rx_device_id}\t{control_id}\t"
-            self._device_control_filter_dict[task_dict_key] = j_object['uuid']
+                rx_device_id = j_object['actions'][0].get("deviceID", self.device_id)
+                control_id = j_object['actions'][0]["controlID"]
+                task_dict_key = f"{rx_device_id}\t{control_id}\t"
+                self._device_control_filter_dict[task_dict_key] = j_object['uuid']
+            except IndexError:
+                logging.debug("Task has no Actions")
 
     def _delete_input_filter(self, uuid: str):
         store_object = self.action_station_dict['jsonStore'][uuid]
         if store_object['objectType'] in ['TASK']:
-            rx_device_id = store_object['actions'][0]["deviceID"]
-            control_id = store_object['actions'][0]["controlID"]
-            task_dict_key = f"{rx_device_id}\t{control_id}\t"
-            del self._device_control_filter_dict[task_dict_key]
+            try:
+                rx_device_id = store_object['actions'][0]["deviceID"]
+                control_id = store_object['actions'][0]["controlID"]
+                task_dict_key = f"{rx_device_id}\t{control_id}\t"
+                del self._device_control_filter_dict[task_dict_key]
+            except IndexError:
+                logging.debug("Task has no Actions")
 
     def _list_command(self, data):
         j_object_list = []
@@ -350,9 +354,12 @@ class ActionStation(threading.Thread):
             self.action_station_dict['actionStationID'] = self.action_station_id
             self.action_station_dict['jsonStore'] = {}
             timer_cfg = make_timer_config(number_timers)
-            test_cfg = make_test_config(2)
+            test_cfg = make_test_config(1)
+            modbus_cfg = make_modbus_config(1)
+
             self.action_station_dict['jsonStore'][timer_cfg['uuid']] = timer_cfg
             self.action_station_dict['jsonStore'][test_cfg['uuid']] = test_cfg
+            self.action_station_dict['jsonStore'][modbus_cfg['uuid']] = modbus_cfg
         else:
             self.action_station_id = self.action_station_dict['actionStationID']
             for j_object in self.action_station_dict['jsonStore'].values():
