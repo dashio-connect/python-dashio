@@ -2,12 +2,13 @@
 import threading
 import zmq
 import logging
-from .action_control_config import ActionControlCFG, SelectorParameterSpec, IntParameterSpec
+from .action_control_config import ActionControlCFG, SelectorParameterSpec, IntParameterSpec, StringParameterSpec
 
 # This defines the provisioning for the TIMER
 def make_timer_config(num_timers):
     """Make a timer config"""
     provisioning_list = [
+        StringParameterSpec("STR1", "name", "A name for a timer"),
         SelectorParameterSpec("SLCTR1", "Timer Type",["Repeat", "OneShot"], "Repeat"),
         IntParameterSpec("INT1", "Timeout", 100, 600000, "ms", 1000)
     ]
@@ -22,6 +23,7 @@ def make_timer_config(num_timers):
         num_timers,
         True,
         True,
+        
         provisioning_list,
         parameter_in_list
         #parameter_out_list

@@ -11,6 +11,7 @@ from .action_control_config import *
 def make_test_config(num_tests):
     """Make a timer config"""
     provisioning_list = [
+        StringParameterSpec("STR1", "name", "A name for a test thingy"),
         SelectorParameterSpec("SLCTR_PROV", "A Selector",["Selection 1", "Selection2", "Selection3"], "Selection 1"),
         IntParameterSpec("INT_PROV", "An Int", 0, 100, "jiggers", 42),
         StringParameterSpec("STR_PROV", "A String", "Little Bo Peep...."),
