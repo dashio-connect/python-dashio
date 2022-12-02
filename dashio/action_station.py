@@ -367,7 +367,7 @@ class ActionStation(threading.Thread):
         if not self.action_station_dict:
             self.action_station_id = shortuuid.uuid()
             self.action_station_dict['actionStationID'] = self.action_station_id
-            self.action_station_dict['jsonStore'] = self.configured_controls
+            self.action_station_dict['controls'] = self.configured_controls
             self.action_station_dict['taskMemory'] = self.task_memory
             self.action_station_dict['configs'] = self.configs
             timer_cfg = make_timer_config(number_timers)
@@ -379,7 +379,7 @@ class ActionStation(threading.Thread):
         else:
             try:
                 self.action_station_id = self.action_station_dict['actionStationID']
-                self.configured_controls = self.action_station_dict['jsonStore']
+                self.configured_controls = self.action_station_dict['controls']
                 self.task_memory = self.action_station_dict['taskMemory']
                 self.configs = self.action_station_dict['configs']
             except KeyError:
