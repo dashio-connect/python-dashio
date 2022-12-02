@@ -351,7 +351,12 @@ class ActionStation(threading.Thread):
             "UPDATE": self._update_command,
             "RUN": self._run_command
         }
-
+        # self._make_controls_dict = {
+        #    "TASK": self._make_task,
+        #    "TMR": self._make_task_timer,
+        #    "TEST": self._make_test
+        #}
+        
         if not self.action_station_dict:
             self.action_station_id = shortuuid.uuid()
             self.action_station_dict['actionStationID'] = self.action_station_id

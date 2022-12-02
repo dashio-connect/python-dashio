@@ -11,29 +11,18 @@ from .action_control_config import *
 def make_test_config(num_tests):
     """Make a timer config"""
     provisioning_list = [
-        StringParameterSpec("name", "Control Name", "A name for a test thingy"),
-        SelectorParameterSpec("SLCTR_PROV", "A Selector",["Selection 1", "Selection2", "Selection3"], "Selection 1"),
-        IntParameterSpec("INT_PROV", "An Int", 0, 100, "jiggers", 42),
-        StringParameterSpec("STR_PROV", "A String", "Little Bo Peep...."),
-        FloatParameterSpec("FLT_PROV", "A Float", 2.71828, 299792458.0, "jiffies", 1.4142),
-        BoolParameterSpec("BOOL_PROV", "A bool", True),
-        SliderParameterSpec("SLDR_PROV", "A Slider", 1.0, 10.0, 1.0, 5.0)
+        SelectorParameterSpec( "A Selector",["Selection 1", "Selection2", "Selection3"], "Selection 1"),
+        IntParameterSpec("An Int", 0, 100, "jiggers", 42),
+        StringParameterSpec("A String", "Little Bo Peep...."),
+        FloatParameterSpec("A Float", 2.71828, 299792458.0, "jiffies", 1.4142),
+        BoolParameterSpec("A bool", True),
+        SliderParameterSpec("A Slider", 1.0, 10.0, 1.0, 5.0)
     ]
     parameter_list_in = [
-        SelectorParameterSpec("SLCTR_PROV", "A Selector",["Selection 1", "Selection2", "Selection3"], "Selection 1"),
-        IntParameterSpec("INT_PROV", "An Int", 0, 100, "jiggers", 42),
-        StringParameterSpec("STR_PROV", "A String", "Little Bo Peep...."),
-        FloatParameterSpec("FLT_PROV", "A Float", 2.71828, 299792458.0, "jiffies", 1.4142),
-        BoolParameterSpec("BOOL_PROV", "A bool", True),
-        SliderParameterSpec("SLDR_PROV", "A Slider", 1.0, 10.0, 1.0, 5.0)
+        
     ]
     parameter_list_out = [
-        SelectorParameterSpec("SLCTR_PROV", "A Selector",["Selection 1", "Selection2", "Selection3"], "Selection 1"),
-        IntParameterSpec("INT_PROV", "An Int", 0, 100, "jiggers", 42),
-        StringParameterSpec("STR_PROV", "A String", "Little Bo Peep...."),
-        FloatParameterSpec("FLT_PROV", "A Float", 2.71828, 299792458.0, "jiffies", 1.4142),
-        BoolParameterSpec("BOOL_PROV", "A bool", True),
-        SliderParameterSpec("SLDR_PROV", "A Slider", 1.0, 10.0, 1.0, 5.0)
+       
     ]
     
     timer_cfg = ActionControlCFG(

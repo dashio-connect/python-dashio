@@ -8,9 +8,8 @@ from .action_control_config import ActionControlCFG, SelectorParameterSpec, IntP
 def make_timer_config(num_timers):
     """Make a timer config"""
     provisioning_list = [
-        StringParameterSpec("name", "Control Name", "A name for a timer"),
-        SelectorParameterSpec("SLCTR1", "Timer Type",["Repeat", "OneShot"], "Repeat"),
-        IntParameterSpec("INT1", "Timeout", 100, 600000, "ms", 1000)
+        SelectorParameterSpec("Timer Type",["Repeat", "OneShot"], "Repeat"),
+        IntParameterSpec("Timeout", 100, 600000, "ms", 1000)
     ]
     parameter_in_list = []
     parameter_out_list = []
@@ -57,13 +56,14 @@ class TimerControl(threading.Thread):
         """Close the thread"""
         self.running = False
 
-    def __init__(self, device_id: str, control_id: str, timer_type: str, timeout: int, push_url: str, context: zmq.Context) -> None:
+    def __init__(self, device_id: str, control_id: str, provision_list: list, push_url: str, context: zmq.Context) -> None:
         threading.Thread.__init__(self, daemon=True)
         self.context = context
         self.running = True
         self.timer_type = None
         self.push_url = push_url
-        timer_time = timeout/1000.0
+        timer_time = 1/1000.0
+        timer_type = 'REPEAT'
         self.control_msg = f"\t{device_id}\tTMR\t{control_id}\n"
         if timer_type == 'REPEAT':
             self.timer_type = RepeatTimer(timer_time, self.send_message)
