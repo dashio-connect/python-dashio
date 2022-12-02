@@ -35,6 +35,7 @@ def make_test_config(num_tests):
         BoolParameterSpec("BOOL_PROV", "A bool", True),
         SliderParameterSpec("SLDR_PROV", "A Slider", 1.0, 10.0, 1.0, 5.0)
     ]
+    
     timer_cfg = ActionControlCFG(
         "TST",
         "Test",

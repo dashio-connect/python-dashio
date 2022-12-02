@@ -312,17 +312,20 @@ class ActionStation(threading.Thread):
         payload = json.loads(data[3])
         result = {
             'objectType': "UPDATE_RESULT",
-            'uuid': payload['uuid']
+            'uuid': payload['uuid'],
+            'result': False
         }
-        if payload['objectType'] in ['TASK', 'TMR', 'MRY']:
+        if payload['objectType'] in ['TASK', 'TMR', 'MDBS']:
             if 'jsonStore' not in self.action_station_dict:
                 self.action_station_dict['jsonStore'] = {}
             self.action_station_dict['jsonStore'][payload['uuid']] = payload
-            reply = f"\t{self.device_id}\tACTN\tUPDATE\t{json.dumps(result)}\n"
             if payload['objectType'] == 'TASK':
                 self._add_input_filter(payload)
-        self.save_action(self._json_filename,  self.action_station_dict)
+            self.save_action(self._json_filename,  self.action_station_dict)
+            result['result']: True
+        reply = f"\t{self.device_id}\tACTN\tUPDATE\t{json.dumps(result)}\n"
         return reply
+        
 
     def _run_command(self, data):
         payload = json.loads(data[3])
