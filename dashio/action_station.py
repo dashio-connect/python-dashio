@@ -22,14 +22,14 @@ SOFTWARE.
 """
 import json
 import logging
-
+from sys import exit
 import threading
 import time
 
 import shortuuid
 import zmq
 
-from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
+from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL, MEMORY_REQ_URL
 from .action_station_controls.tasks import task_runner
 from .action_station_controls.timer_control import make_timer_config
 from .action_station_controls.as_control import make_test_config
@@ -164,7 +164,7 @@ class ActionStation(threading.Thread):
         task_dict_key = f"{rx_device_id}\t{control_id}\t"
         if task_dict_key in self._device_control_filter_dict:
             uuid = self._device_control_filter_dict[task_dict_key]
-            threading.Thread(target=task_runner, args=( self.action_station_dict['jsonStore'][uuid], data_array, self.task_pull_url, self.context)).start()
+            threading.Thread(target=task_runner, args=( self.configured_controls[uuid], data_array, self.task_pull_url, self.context)).start()
         return ""
 
     def save_action(self, filename: str, actions_dict: dict):
@@ -214,29 +214,35 @@ class ActionStation(threading.Thread):
         self.running = False
 
     def _add_input_filter(self, j_object: dict):
-        if j_object['objectType'] == 'TASK':
-            try:
-                rx_device_id = j_object['actions'][0].get("deviceID", self.device_id)
-                control_id = j_object['actions'][0]["controlID"]
-                task_dict_key = f"{rx_device_id}\t{control_id}\t"
-                self._device_control_filter_dict[task_dict_key] = j_object['uuid']
-            except IndexError:
-                logging.debug("Task has no Actions")
+        try:
+            rx_device_id = j_object['actions'][0].get("deviceID", self.device_id)
+            control_id = j_object['actions'][0]["controlID"]
+            task_dict_key = f"{rx_device_id}\t{control_id}\t"
+            self._device_control_filter_dict[task_dict_key] = j_object['uuid']
+        except IndexError:
+            logging.debug("Task has no Actions")
 
     def _delete_input_filter(self, uuid: str):
-        store_object = self.action_station_dict['jsonStore'][uuid]
-        if store_object['objectType'] in ['TASK']:
-            try:
-                rx_device_id = store_object['actions'][0]["deviceID"]
-                control_id = store_object['actions'][0]["controlID"]
-                task_dict_key = f"{rx_device_id}\t{control_id}\t"
-                del self._device_control_filter_dict[task_dict_key]
-            except IndexError:
-                logging.debug("Task has no Actions")
+        store_object = self.configured_controls[uuid]
+        try:
+            rx_device_id = store_object['actions'][0]["deviceID"]
+            control_id = store_object['actions'][0]["controlID"]
+            task_dict_key = f"{rx_device_id}\t{control_id}\t"
+            del self._device_control_filter_dict[task_dict_key]
+        except IndexError:
+            logging.debug("Task has no Actions")
 
     def _list_command(self, data):
         j_object_list = []
-        for j_object in self.action_station_dict['jsonStore'].values():
+        for j_object in self.configured_controls.values():
+            action_pair = {
+                "name": j_object['name'],
+                "uuid": j_object['uuid'],
+                "objectType": j_object['objectType']
+            }
+            j_object_list.append(action_pair)
+        # TODO delete this for loop
+        for j_object in self.configs.values():
             action_pair = {
                 "name": j_object['name'],
                 "uuid": j_object['uuid'],
@@ -252,7 +258,7 @@ class ActionStation(threading.Thread):
 
     def _list_configs_command(self, data):
         j_object_list = []
-        for j_object in self.action_station_dict['jsonStore'].values():
+        for j_object in self.configs.values():
             if j_object['objectType'] == "CONFIG":
                 j_object_list.append(j_object)
         result = {
@@ -264,7 +270,7 @@ class ActionStation(threading.Thread):
 
     def _list_tasks_command(self, data):
         j_object_list = []
-        for j_object in self.action_station_dict['jsonStore'].values():
+        for j_object in self.configured_controls.values():
             if j_object['objectType'] == "TASK":
                 action_pair = {
                     "name": j_object['name'],
@@ -282,7 +288,7 @@ class ActionStation(threading.Thread):
     def _get_command(self, data):
         payload = json.loads(data[3])
         try:
-            j_object = self.action_station_dict['jsonStore'][payload["uuid"]]
+            j_object = self.configured_controls[payload["uuid"]]
         except KeyError:
             j_object = {}
         reply = f"\t{self.device_id}\tACTN\tGET\t{json.dumps(j_object)}\n"
@@ -296,14 +302,13 @@ class ActionStation(threading.Thread):
             'result': False
         }
         try:
-            self._delete_input_filter(payload["uuid"])
-            store_obj = self.action_station_dict['jsonStore'][payload["uuid"]]
-            if store_obj['objectType'] not in ["CONFIG"]:
-                del self.action_station_dict['jsonStore'][payload["uuid"]]
-                result['result'] = True
+            store_obj = self.configured_controls[payload["uuid"]]
+            if store_obj['objectType'] == 'TASK':
+                self._delete_input_filter(payload["uuid"])
+            del self.configured_controls[payload["uuid"]]
+            result['result'] = True
         except KeyError:
             result['result'] = False
-            result['error'] = "Cannot delete CFG"
         reply = f"\t{self.device_id}\tACTN\tDELETE\t{json.dumps(result)}\n"
         self.save_action(self._json_filename,  self.action_station_dict)
         return reply
@@ -315,14 +320,12 @@ class ActionStation(threading.Thread):
             'uuid': payload['uuid'],
             'result': False
         }
-        #if payload['objectType'] in ['TASK', 'TMR', 'MDBS']:
-        if 'jsonStore' not in self.action_station_dict:
-            self.action_station_dict['jsonStore'] = {}
-        self.action_station_dict['jsonStore'][payload['uuid']] = payload
-        if payload['objectType'] == 'TASK':
-            self._add_input_filter(payload)
-        self.save_action(self._json_filename,  self.action_station_dict)
-        result['result']: True
+        if payload['objectType'] in ['TASK', 'TMR', 'MDBS']:
+            self.configured_controls[payload['uuid']] = payload
+            if payload['objectType'] == 'TASK':
+                self._add_input_filter(payload)
+            self.save_action(self._json_filename,  self.action_station_dict)
+            result['result'] = True
         reply = f"\t{self.device_id}\tACTN\tUPDATE\t{json.dumps(result)}\n"
         return reply
         
@@ -337,7 +340,11 @@ class ActionStation(threading.Thread):
         threading.Thread.__init__(self, daemon=True)
         self.context = context or zmq.Context.instance()
         self._json_filename = f"{device_id}_Actions.json"
-        self.action_station_dict = {}  # self.load_action(self._json_filename)
+
+        self.configured_controls = {}
+        self.configs = {}
+        self.task_memory = {}
+        self.action_station_dict = self.load_action(self._json_filename)
         self.max_actions = max_actions
         self._device_control_filter_dict = {}
         self.device_id = device_id
@@ -360,18 +367,28 @@ class ActionStation(threading.Thread):
         if not self.action_station_dict:
             self.action_station_id = shortuuid.uuid()
             self.action_station_dict['actionStationID'] = self.action_station_id
-            self.action_station_dict['jsonStore'] = {}
+            self.action_station_dict['jsonStore'] = self.configured_controls
+            self.action_station_dict['taskMemory'] = self.task_memory
+            self.action_station_dict['configs'] = self.configs
             timer_cfg = make_timer_config(number_timers)
             test_cfg = make_test_config(1)
             modbus_cfg = make_modbus_config(1)
-
-            self.action_station_dict['jsonStore'][timer_cfg['uuid']] = timer_cfg
-            self.action_station_dict['jsonStore'][test_cfg['uuid']] = test_cfg
-            self.action_station_dict['jsonStore'][modbus_cfg['uuid']] = modbus_cfg
+            self.configs[timer_cfg['uuid']] = timer_cfg
+            self.configs[test_cfg['uuid']] = test_cfg
+            self.configs[modbus_cfg['uuid']] = modbus_cfg
         else:
-            self.action_station_id = self.action_station_dict['actionStationID']
-            for j_object in self.action_station_dict['jsonStore'].values():
-                self._add_input_filter(j_object)
+            try:
+                self.action_station_id = self.action_station_dict['actionStationID']
+                self.configured_controls = self.action_station_dict['jsonStore']
+                self.task_memory = self.action_station_dict['taskMemory']
+                self.configs = self.action_station_dict['configs']
+            except KeyError:
+                exit(f"Old json formatted file. Please delete '{self._json_filename}' and restart")
+
+            for j_object in self.configured_controls.values():
+                if j_object['objectType'] == 'TASK':
+                    self._add_input_filter(j_object)
+                # TODO Add other control types here
 
         self.task_pull_url = f"inproc://TASK_PULL_{self.action_station_id}"
         self.running = True
@@ -395,10 +412,14 @@ class ActionStation(threading.Thread):
         task_receiver = self.context.socket(zmq.PULL)
         task_receiver.bind( self.task_pull_url)
 
+        memory_socket = self.context.socket(zmq.REP)
+        memory_socket.bind(MEMORY_REQ_URL.format(id=self.device_id))
+
         poller = zmq.Poller()
         poller.register(self.device_zmq_sub, zmq.POLLIN)
         poller.register(self.connection_zmq_sub, zmq.POLLIN)
         poller.register(task_receiver, zmq.POLLIN)
+        poller.register(memory_socket, zmq.POLLIN)
         while self.running:
             try:
                 socks = dict(poller.poll(50))
@@ -429,5 +450,20 @@ class ActionStation(threading.Thread):
                 if message:
                     logging.debug("ActionStation TASK RX:\n%s", message.decode())
                     tx_zmq_pub.send_multipart([b'ALL', b'', message])
+            if memory_socket in socks:
+                #  Wait for next request from client
+                message = memory_socket.recv_multipart()
+                logging.debug("MEM Rx: %s", message)
+                if len(message) == 3:
+                    if message[0] == b'SET':
+                        self.mem[message[1]]=message[2]
+                        logging.debug("MEM Tx: SET: %s, TO: %s", message[1], message[2])
+                        memory_socket.send_multipart([message[0],message[1],message[2]])
+                    if message[0] == b'GET':
+                        logging.debug("MEM Tx: GET: %s, RTN: %s", message[1], message[1])
+                        memory_socket.send_multipart([message[0],message[1],self.mem[message[1]]])
+                #  Send error reply back to client
+                memory_socket.send_multipart([b'ERROR',b'ERROR',b'ERROR'])
+
         tx_zmq_pub.close()
         self.device_zmq_sub.close()
