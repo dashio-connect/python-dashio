@@ -16,7 +16,7 @@ JSONEncoder.default = wrapped_default
 
 class BaseParameter:
     """Base class for Parameter"""
-    def __init__(self, param_type: str, param_id: str, name: str):
+    def __init__(self, param_type: str, name: str):
         self._param = {
             'objectType': param_type,
             'name': name,
@@ -35,15 +35,15 @@ class ListParameterSpec(BaseParameter):
 
 class StringParameterSpec(BaseParameter):
     """String Parameter"""
-    def __init__(self, param_id: str, name: str, existing_value: int):
-        super().__init__("STRING_PARAM", param_id, name)
+    def __init__(self, name: str, existing_value: int):
+        super().__init__("STRING_PARAM", name)
         self._param['value'] = existing_value
 
 
 class FloatParameterSpec(BaseParameter):
     """Float Parameter"""
-    def __init__(self, param_id: str, name: str, param_min: float, param_max: float, units: str, existing_value: float):
-        super().__init__("FLOAT_PARAM", param_id, name)
+    def __init__(self, name: str, param_min: float, param_max: float, units: str, existing_value: float):
+        super().__init__("FLOAT_PARAM", name)
         self._param['min'] = param_min
         self._param['max'] = param_max
         self._param['units'] = units
@@ -51,8 +51,8 @@ class FloatParameterSpec(BaseParameter):
 
 class IntParameterSpec(BaseParameter):
     """Int Parameter"""
-    def __init__(self, param_id: str, name: str, param_min: int, param_max: int, units: str, existing_value: int):
-        super().__init__("INT_PARAM", param_id, name)
+    def __init__(self, name: str, param_min: int, param_max: int, units: str, existing_value: int):
+        super().__init__("INT_PARAM", name)
         self._param['min'] = param_min
         self._param['max'] = param_max
         self._param['units'] = units
@@ -60,21 +60,21 @@ class IntParameterSpec(BaseParameter):
 
 class BoolParameterSpec(BaseParameter):
     """Bool Parameter"""
-    def __init__(self, param_id: str, name: str, existing_value: bool):
-        super().__init__("BOOL_PARAM", param_id, name)
+    def __init__(self, name: str, existing_value: bool):
+        super().__init__("BOOL_PARAM", name)
         self._param['value'] = existing_value
 
 class SelectorParameterSpec(BaseParameter):
     """Selection Parameter"""
-    def __init__(self, param_id: str, name: str, selection: list, existing_value: str):
-        super().__init__("SELECTION_PARAM", param_id, name)
+    def __init__(self, name: str, selection: list, existing_value: str):
+        super().__init__("SELECTION_PARAM", name)
         self._param['selection'] = selection
         self._param['value'] = existing_value
 
 class SliderParameterSpec(BaseParameter):
     """Slider Parameter"""
-    def __init__(self, param_id: str, name: str, param_min: float, param_max: float, step: float, existing_value: str):
-        super().__init__("SLIDER_PARAM", param_id, name)
+    def __init__(self, name: str, param_min: float, param_max: float, step: float, existing_value: str):
+        super().__init__("SLIDER_PARAM", name)
         self._param['min'] = param_min
         self._param['max'] = param_max
         self._param['step'] = step

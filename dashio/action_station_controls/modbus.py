@@ -11,17 +11,14 @@ from .action_control_config import *
 def make_modbus_config(num_tests):
     """Make a timer config"""
     provisioning_list = [
-        StringParameterSpec("name", "Control Name", "A Name for a modbus thingy"),
-        SelectorParameterSpec("PORT_SLCTR", "Serial Port",["uart1", "uart2", "uart4"], "uart1"),
-        SelectorParameterSpec("BAUD_SLCTR", "Baud", ["1200", "2400", "4800", "9600", "19200", "38400", "57600", "115200"], "9600"),
-        SelectorParameterSpec("RTYPE_SLCTR", "Modbus Type", ["RTU", "ASCII"], "RTU"),
+        SelectorParameterSpec("Serial Port",["uart1", "uart2", "uart4"], "uart1"),
+        SelectorParameterSpec("Baud", ["1200", "2400", "4800", "9600", "19200", "38400", "57600", "115200"], "9600"),
+        SelectorParameterSpec("Modbus Type", ["RTU", "ASCII"], "RTU"),
         ListParameterSpec(
-            "RDREG_SLCTR",
-            "Registers To Read",
+            "Read Registers",
             "Create a list of registers to read data from.",
             [
                 IntParameterSpec(
-                    "READ_REG_INT",
                     "Read Register Base Address",
                     0,
                     65535,
@@ -29,7 +26,6 @@ def make_modbus_config(num_tests):
                     0
                 ),
                 SelectorParameterSpec(
-                    "REGTYPR_SLCTR",
                     "Register Type", [
                         "char",
                         "int_8",
@@ -44,7 +40,6 @@ def make_modbus_config(num_tests):
                      "uint_16",
                 ),
                 IntParameterSpec(
-                    "READ_LEN_INT",
                     "Number of register to read from base address (Optional).",
                     0,
                     65535,
