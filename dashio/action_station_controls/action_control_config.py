@@ -20,7 +20,7 @@ class BaseParameter:
         self._param = {
             'objectType': param_type,
             'name': name,
-            'paramID': param_id
+            'uuid': shortuuid.uuid()
         }
 
     def __json__(self, **options):
@@ -28,8 +28,8 @@ class BaseParameter:
 
 class ListParameterSpec(BaseParameter):
     """List Parameter"""
-    def __init__(self, param_id: str, name: str, text: str, param_list: list):
-        super().__init__("LIST_PARAM", param_id, name)
+    def __init__(self, name: str, text: str, param_list: list):
+        super().__init__("LIST_PARAM", name)
         self._param['text'] = text
         self._param["list"] = param_list
 
