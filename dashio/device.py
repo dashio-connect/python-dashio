@@ -480,6 +480,13 @@ class Device(threading.Thread):
     def config_revision(self, val: int):
         self._cfg["cfgRev"] = val
 
+    def inc_config_revision(self):
+        """Incements the configuration revision."""
+        if "cfgRev" in self._cfg:
+            self._cfg["cfgRev"] = self._cfg["cfgRev"] + 1
+        else:
+            self._cfg["cfgRev"] = 1
+
     @property
     def device_name(self) -> str:
         """Device name
