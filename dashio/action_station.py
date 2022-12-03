@@ -227,6 +227,15 @@ class ActionStation(threading.Thread):
         control.message_rx_event = control.message_tx_event
         self.device.add_control(control)
         self.device.inc_config_revision()
+        self.dash_controls[g_object['uuid']] = control
+
+    def rm_gui_control(self, g_object: dict):
+        """Remove a GUI control"""
+        if g_object['uuid'] in self.dash_controls:
+            control = self.dash_controls[g_object['uuid']]
+            self.device.remove_control(control)
+            self.device.inc_config_revision()
+            del self.dash_controls[g_object['uuid']]
 
     def close(self):
         """Close the action_station json filename
@@ -335,6 +344,9 @@ class ActionStation(threading.Thread):
             store_obj = self.configured_controls[payload["uuid"]]
             if store_obj['objectType'] == 'TASK':
                 self._delete_input_filter(payload["uuid"])
+            if store_obj['objectType'] in self.gui_controls:
+                # TODO Delete the gui control from the device
+                self.rm_gui_control(payload)
             del self.configured_controls[payload["uuid"]]
             result['result'] = True
         except KeyError:
@@ -381,6 +393,7 @@ class ActionStation(threading.Thread):
         self._json_filename = f"{self.device_id}_Actions.json"
 
         self.configured_controls = {}
+        self.dash_controls = {}
         self.configs = {}
         self.memory_tasks = {}
         self.action_station_dict = self.load_action(self._json_filename)

@@ -214,6 +214,23 @@ class Device(threading.Thread):
             key = f"BAR_{iot_control.control_id}"
             self._control_dict[key] = iot_control
 
+    def remove_control(self, iot_control):
+        """Remove a control a control to the device.
+
+        Parameters
+        ----------
+            iot_control : iotControl
+        """
+        key = f"{iot_control.cntrl_type}_{iot_control.control_id}"
+        if key in self._control_dict:
+            del self._control_dict[key]
+        if isinstance(iot_control, Knob):
+            key = f"KBDL_{iot_control.control_id}"
+            del self._control_dict[key]
+        elif isinstance(iot_control, Slider):
+            key = f"BAR_{iot_control.control_id}"
+            del self._control_dict[key]
+
     def _set_devicesetup(self, control_name: str, settable: bool):
         if settable:
             self._device_commands_dict[control_name.upper()] = getattr(self, '_' + control_name + '_rx_event', None)
