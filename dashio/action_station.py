@@ -337,12 +337,15 @@ class ActionStation(threading.Thread):
             'uuid': payload['uuid'],
             'result': False
         }
-        if payload['objectType'] in ['TASK', 'TMR', 'MDBS']:
-            self.configured_controls[payload['uuid']] = payload
-            if payload['objectType'] == 'TASK':
-                self._start_task(payload)
-            self.save_action(self._json_filename,  self.action_station_dict)
-            result['result'] = True
+        try:
+            if payload['objectType'] in ['TASK', 'TMR', 'MDBS']:
+                self.configured_controls[payload['uuid']] = payload
+                if payload['objectType'] == 'TASK':
+                    self._start_task(payload)
+                self.save_action(self._json_filename,  self.action_station_dict)
+                result['result'] = True
+        except KeyError:
+            logging.debug("UPDATE: payload has no objectType")
         reply = f"\t{self.device_id}\tACTN\tUPDATE\t{json.dumps(result)}\n"
         return reply
 
