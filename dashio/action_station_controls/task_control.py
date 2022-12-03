@@ -63,20 +63,12 @@ MESSAGE_FORMAT_OUTPUTS = {
     "LBL": "\t{device_id}\tLBL\t{control_id}\t{url}",
 }
 
-TASK_FUNC_DICT = {
-    "READ_CONTROL": _read_control_task,
-    "IF": _if_task,
-    "ENDIF": _endif_task,
-    "SEND_ALARM": _send_alarm_task,
-    "WRITE_CONTROL": _write_control_task
-}
-
 class TaskControl(threading.Thread):
     """Task Class"""
 
     def send_message(self, out_message=""):
         """Send the message"""
-        self.task_sender.send(out_message.encode())
+        self.task_sender.send_multipart([b"ALL", b"0", out_message.encode('utf-8')])
 
     def close(self):
         """Close the thread"""
@@ -87,7 +79,22 @@ class TaskControl(threading.Thread):
 
     def _task_get_mem(self, mem_loc):
         return self.task_memory.get(mem_loc, "")
-    
+
+    def _send_alarm(self, alarm_id: str, header: str, body: str):
+        msg = f"\t{self.device_id}\t{alarm_id}\t{header}\t{body}\n"
+        self.task_sender.send_multipart([b"ALARM", b"0", msg.encode('utf-8')])
+
+    def _read_control_action(self, action, msg):
+        logging.debug("READ_CONTROL: %s", msg)
+
+    def _send_alarm_action(self, action, msg):
+        logging.debug("SEND_ALARM: %s", msg)
+        self._send_alarm(action['alarmID'], action['title'], action['body'])
+
+    def _write_control_action(self, action, msg):
+        logging.debug("WRITE_CONTROL: %s", msg)
+
+
     def __init__(self, device_id: str, action_station_id: str, task_config_dict: dict, context: zmq.Context) -> None:
         threading.Thread.__init__(self, daemon=True)
         self.context = context
@@ -96,6 +103,13 @@ class TaskControl(threading.Thread):
         self.device_id = device_id
         self.control_type = "TASK"
         self.task_memory = {}
+
+        action_function_dict = {
+            "READ_CONTROL": self._read_control_action,
+            "SEND_ALARM": self._send_alarm_action,
+            "WRITE_CONTROL": self._write_control_action
+        }
+
         self.task_id = task_config_dict['uuid']
         self.actions = task_config_dict['actions']
         self.name = task_config_dict['name']
@@ -105,6 +119,18 @@ class TaskControl(threading.Thread):
         self.task_sender = self.context.socket(zmq.PUSH)
         self.task_sender.connect(self.push_url)
         self.start()
+
+    # Do a simple test case to check messaging.
+    def _do_actions(self, msg):
+        if len(self.actions) == 2:
+            if self.actions[0]['objectType'] == "READ_CONTROL":
+                self._read_control_action(self.actions[0], msg)
+            else:
+                return
+            if self.actions[1]['objectType'] == "SEND_ALARM":
+                self._send_alarm_action(self.actions[1], msg)
+            elif self.actions[1]['objectType'] == "WRITE_CONTROL":
+                self._write_control_action(self.actions[1], msg)
 
     def run(self):
         task_receiver = self.context.socket(zmq.PULL)
@@ -121,6 +147,6 @@ class TaskControl(threading.Thread):
                 message = task_receiver.recv()
                 if message:
                     logging.debug("TASK: %s\t%s RX:%s", self.name, self.task_id, message.decode())
-
+                    self._do_actions(message)
         self.task_sender.close()
         task_receiver.close()
