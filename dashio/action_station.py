@@ -137,7 +137,7 @@ class ActionStation(threading.Thread):
     threading : _type_
         _description_
     """
-    def _on_message(self, payload):
+    def _on_internal_message(self, payload):
         data = str(payload, "utf-8").strip()
         command_array = data.split("\n")
         reply = ""
@@ -146,6 +146,18 @@ class ActionStation(threading.Thread):
                 reply += self._on_command(command.strip())
             except TypeError:
                 pass
+        return reply
+
+    def _on_external_message(self, payload):
+        data = str(payload, "utf-8").strip()
+        command_array = data.split("\n")
+        reply = ""
+        for command in command_array:
+            if command.split("\t", 1)[0] != self.device_id:
+                try:
+                    reply += self._on_command(command.strip())
+                except TypeError:
+                    pass
         return reply
 
     def _on_command(self, data: str):
@@ -437,7 +449,7 @@ class ActionStation(threading.Thread):
                     pass
                 if data:
                     logging.debug("ActionStation Device RX:\n%s", data.decode().rstrip())
-                    reply = self._on_message(data)
+                    reply = self._on_internal_message(data)
                     if reply:
                         tx_zmq_pub.send_multipart([b'ALL', b'', reply.encode('utf-8')])
             if self.connection_zmq_sub in socks:
@@ -446,7 +458,7 @@ class ActionStation(threading.Thread):
                     if msg[0] == b"COMMAND":
                         continue
                     logging.debug("ActionStation Connection RX:\n%s", msg[2].decode().rstrip())
-                    reply = self._on_message(msg[2])
+                    reply = self._on_external_message(msg[2])
                     if reply:
                         tx_zmq_pub.send_multipart([msg[0], msg[1], reply.encode('utf-8')])
             if task_receiver in socks:
