@@ -121,3 +121,6 @@ class TaskControl(threading.Thread):
                 message = task_receiver.recv()
                 if message:
                     logging.debug("TASK: %s\t%s RX:%s", self.name, self.task_id, message.decode())
+
+        self.task_sender.close()
+        task_receiver.close()
