@@ -236,6 +236,9 @@ class ActionStation(threading.Thread):
 
 
     def _start_task(self, t_object: dict):
+        if t_object['uuid'] in self.tasks:
+            self.tasks[t_object['uuid']].close()
+            time.sleep(0.5)
         self.tasks[t_object['uuid']] = TaskControl(self.device_id, self.action_station_id, t_object, self.context)
         try:
             rx_device_id = t_object['actions'][0]["deviceID"]
@@ -352,13 +355,15 @@ class ActionStation(threading.Thread):
                 self.configured_controls[payload['uuid']] = payload
                 if payload['objectType'] == 'TASK':
                     self._start_task(payload)
-                self.save_action(self._json_filename,  self.action_station_dict)
                 result['result'] = True
             if payload['objectType'] in self.gui_controls:
+                self.configured_controls[payload['uuid']] = payload
                 result['result'] = True
                 self.add_gui_control(payload)
         except KeyError:
             logging.debug("UPDATE: payload has no objectType")
+        if result['result']:
+            self.save_action(self._json_filename,  self.action_station_dict)
         reply = f"\t{self.device_id}\tACTN\tUPDATE\t{json.dumps(result)}\n"
         return reply
 
@@ -502,3 +507,5 @@ class ActionStation(threading.Thread):
 
         tx_zmq_pub.close()
         self.device_zmq_sub.close()
+        memory_socket.close()
+        task_receiver.close()
