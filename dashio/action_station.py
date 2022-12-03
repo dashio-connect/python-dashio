@@ -33,7 +33,7 @@ from .action_station_controls.task_control import TaskControl
 from .action_station_controls.timer_control import make_timer_config
 from .action_station_controls.as_control import make_test_config
 from .action_station_controls.modbus import make_modbus_config
-from .device import Device
+from .load_config import CONTROL_INSTANCE_DICT
 
 class ActionControl():
     """A CFG control class to store Action information
@@ -221,6 +221,13 @@ class ActionStation(threading.Thread):
         self.connection_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, connection.connection_id)
         connection.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=self.action_station_id))
 
+    def add_gui_control(self, g_object: dict):
+        """Add a GUI control"""
+        control = CONTROL_INSTANCE_DICT[g_object['objectType']].from_cfg_dict(g_object['provisioning'])
+        control.message_rx_event = control.message_tx_event
+        self.device.add_control(control)
+        self.device.inc_config_revision()
+
     def close(self):
         """Close the action_station json filename
         """
@@ -341,12 +348,15 @@ class ActionStation(threading.Thread):
             'result': False
         }
         try:
-            if payload['objectType'] in ['TASK', 'TMR', 'MDBS']:
+            if payload['objectType'] in self.controls_list:
                 self.configured_controls[payload['uuid']] = payload
                 if payload['objectType'] == 'TASK':
                     self._start_task(payload)
                 self.save_action(self._json_filename,  self.action_station_dict)
                 result['result'] = True
+            if payload['objectType'] in self.gui_controls:
+                result['result'] = True
+                self.add_gui_control(payload)
         except KeyError:
             logging.debug("UPDATE: payload has no objectType")
         reply = f"\t{self.device_id}\tACTN\tUPDATE\t{json.dumps(result)}\n"
@@ -357,7 +367,7 @@ class ActionStation(threading.Thread):
         reply = ""
         return reply
 
-    def __init__(self, device: Device, max_actions=100, number_timers=10, memory_storage_size=0, context: zmq.Context=None):
+    def __init__(self, device, max_actions=100, number_timers=10, memory_storage_size=0, context: zmq.Context=None):
         """Action Station"""
         threading.Thread.__init__(self, daemon=True)
         self.context = context or zmq.Context.instance()
@@ -371,6 +381,8 @@ class ActionStation(threading.Thread):
         self.action_station_dict = self.load_action(self._json_filename)
         self.max_actions = max_actions
         self._device_control_filter_dict = {}
+        self.controls_list = ['TASK', 'TMR', 'MDBS']
+        self.gui_controls = ["AVD", "DVVW", "MENU", "BTGP", "BTTN", "TEXT", "GRPH", "DIAL", "CLR", "TGRPH", "KNOB", "SLCTR", "SLDR", "DIR", "LOG", "LBL"]
         self.tasks = {} # For the Instantiated task objects.
         self.timers = []
         self._action_station_commands = {
