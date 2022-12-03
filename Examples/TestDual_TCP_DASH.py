@@ -152,7 +152,7 @@ class TestControls:
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
 
-        self.device = dashio.Device(args.device_type, args.device_id, args.device_name)
+        self.device = dashio.Device(args.device_type, args.device_id, args.device_name, add_actions=True)
 
         self.device.set_dashio_callback(self.dashio_handler)
         self.device.set_wifi_callback(self.wifi_handler)
@@ -160,9 +160,7 @@ class TestControls:
         self.device.set_tcp_callback(self.tcp_handler)
         self.device.set_mqtt_callback(self.mqtt_handler)
         self.device.use_cfg64()
-        self.tcp_con = dashio.TCPConnection()
         self.dash_con = dashio.DashConnection(args.username, args.password)
-        self.tcp_con.add_device(self.device)
         self.dash_con.add_device(self.device)
 
         self.page_name = "TestTCP: " + platform.node()

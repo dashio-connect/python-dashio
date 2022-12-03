@@ -155,8 +155,8 @@ class ActionStation(threading.Thread):
         reply = ""
         for command in command_array:
             cmd_parts = command.split("\t", 2)
-            # TODO Fix this properly
-            if  (cmd_parts[0] == self.device_id and cmd_parts[1] == "ACTN") or cmd_parts[0] != self.device_id:
+            # TODO Fix this properly with ZMQ subscribe
+            if (cmd_parts[0] == self.device_id and cmd_parts[1] == "ACTN") or cmd_parts[0] != self.device_id:
                 try:
                     reply += self._on_command(command.strip())
                 except TypeError:
@@ -175,6 +175,7 @@ class ActionStation(threading.Thread):
             command = data_array[2]
             if command in self._action_station_commands:
                 return self._action_station_commands[command](data_array)
+            return ""
         task_dict_key = f"{rx_device_id}\t{control_id}\t"
         if task_dict_key in self._device_control_filter_dict:
             socket = self._device_control_filter_dict[task_dict_key]
@@ -329,10 +330,7 @@ class ActionStation(threading.Thread):
 
     def _get_command(self, data):
         payload = json.loads(data[3])
-        try:
-            j_object = self.configured_controls[payload["uuid"]]
-        except KeyError:
-            j_object = {}
+        j_object = self.configured_controls.get(payload["uuid"], {})
         reply = f"\t{self.device_id}\tACTN\tGET\t{json.dumps(j_object)}\n"
         return reply
 
@@ -348,7 +346,6 @@ class ActionStation(threading.Thread):
             if store_obj['objectType'] == 'TASK':
                 self._delete_input_filter(payload["uuid"])
             if store_obj['objectType'] in self.gui_controls:
-                # TODO Delete the gui control from the device
                 self.rm_gui_control(payload)
             del self.configured_controls[payload["uuid"]]
             result['result'] = True
@@ -376,7 +373,9 @@ class ActionStation(threading.Thread):
                 result['result'] = True
                 self.add_gui_control(payload)
         except KeyError:
-            logging.debug("UPDATE: payload has no objectType")
+            msg = "UPDATE: payload has no objectType"
+            logging.debug(msg)
+            result['message'] = msg
         if result['result']:
             self.save_action(self._json_filename,  self.action_station_dict)
         reply = f"\t{self.device_id}\tACTN\tUPDATE\t{json.dumps(result)}\n"
@@ -502,10 +501,10 @@ class ActionStation(threading.Thread):
                     if reply:
                         tx_zmq_pub.send_multipart([msg[0], msg[1], reply.encode('utf-8')])
             if task_receiver in socks:
-                message = task_receiver.recv()
+                message = task_receiver.recv_multipart()
                 if message:
-                    logging.debug("ActionStation TASK RX:\n%s", message.decode())
-                    tx_zmq_pub.send_multipart([b'ALL', b'', message])
+                    logging.debug("ActionStation TASK RX:\n%s", message[2].decode())
+                    tx_zmq_pub.send_multipart([message[0], message[1], message[2]])
             if memory_socket in socks:
                 #  Wait for next request from client
                 message = memory_socket.recv_multipart()
