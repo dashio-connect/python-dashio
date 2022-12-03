@@ -82,6 +82,12 @@ class TaskControl(threading.Thread):
         """Close the thread"""
         self.running = False
 
+    def _task_store_mem(self, mem_loc, data):
+        self.task_memory[mem_loc] = data
+
+    def _task_get_mem(self, mem_loc):
+        return self.task_memory.get(mem_loc, "")
+    
     def __init__(self, device_id: str, action_station_id: str, task_config_dict: dict, context: zmq.Context) -> None:
         threading.Thread.__init__(self, daemon=True)
         self.context = context
@@ -89,6 +95,7 @@ class TaskControl(threading.Thread):
         self.timer_type = None
         self.device_id = device_id
         self.control_type = "TASK"
+        self.task_memory = {}
         self.task_id = task_config_dict['uuid']
         self.actions = task_config_dict['actions']
         self.name = task_config_dict['name']
