@@ -33,6 +33,7 @@ from .action_station_controls.task_control import TaskControl
 from .action_station_controls.timer_control import make_timer_config
 from .action_station_controls.as_control import make_test_config
 from .action_station_controls.modbus import make_modbus_config
+from .device import Device
 
 class ActionControl():
     """A CFG control class to store Action information
@@ -154,6 +155,7 @@ class ActionStation(threading.Thread):
         reply = ""
         for command in command_array:
             cmd_parts = command.split("\t", 2)
+            # TODO Fix this properly
             if  (cmd_parts[0] == self.device_id and cmd_parts[1] == "ACTN") or cmd_parts[0] != self.device_id:
                 try:
                     reply += self._on_command(command.strip())
@@ -355,20 +357,21 @@ class ActionStation(threading.Thread):
         reply = ""
         return reply
 
-    def __init__(self, device_id: str, max_actions=100, number_timers=10, memory_storage_size=0, context: zmq.Context=None):
+    def __init__(self, device: Device, max_actions=100, number_timers=10, memory_storage_size=0, context: zmq.Context=None):
         """Action Station"""
         threading.Thread.__init__(self, daemon=True)
         self.context = context or zmq.Context.instance()
-        self._json_filename = f"{device_id}_Actions.json"
+        self.device_id = device.device_id
+        self.device = device
+        self._json_filename = f"{self.device_id}_Actions.json"
 
         self.configured_controls = {}
         self.configs = {}
-        self.task_memory = {}
+        self.memory_tasks = {}
         self.action_station_dict = self.load_action(self._json_filename)
         self.max_actions = max_actions
         self._device_control_filter_dict = {}
         self.tasks = {} # For the Instantiated task objects.
-        self.device_id = device_id
         self.timers = []
         self._action_station_commands = {
             "LIST": self._list_command,
@@ -389,7 +392,7 @@ class ActionStation(threading.Thread):
             self.action_station_id = shortuuid.uuid()
             self.action_station_dict['actionStationID'] = self.action_station_id
             self.action_station_dict['controls'] = self.configured_controls
-            self.action_station_dict['taskMemory'] = self.task_memory
+            self.action_station_dict['tasksMemory'] = self.memory_tasks
             self.action_station_dict['configs'] = self.configs
             timer_cfg = make_timer_config(number_timers)
             test_cfg = make_test_config(1)
@@ -401,7 +404,7 @@ class ActionStation(threading.Thread):
             try:
                 self.action_station_id = self.action_station_dict['actionStationID']
                 self.configured_controls = self.action_station_dict['controls']
-                self.task_memory = self.action_station_dict['taskMemory']
+                self.memory_tasks = self.action_station_dict['tasksMemory']
                 self.configs = self.action_station_dict['configs']
             except KeyError:
                 sys.exit(f"Old json formatted file. Please delete '{self._json_filename}' and restart")
