@@ -153,7 +153,8 @@ class ActionStation(threading.Thread):
         command_array = data.split("\n")
         reply = ""
         for command in command_array:
-            if command.split("\t", 1)[0] != self.device_id:
+            cmd_parts = command.split("\t", 2)
+            if  (cmd_parts[0] == self.device_id and cmd_parts[1] == "ACTN") or cmd_parts[0] != self.device_id:
                 try:
                     reply += self._on_command(command.strip())
                 except TypeError:
