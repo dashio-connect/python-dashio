@@ -22,15 +22,14 @@ SOFTWARE.
 """
 import json
 import logging
-from sys import exit
 import threading
 import time
-
+import sys
 import shortuuid
 import zmq
 
-from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL, MEMORY_REQ_URL
-from .action_station_controls.tasks import task_runner
+from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL, MEMORY_REQ_URL, TASK_PULL
+from .action_station_controls.task_control import TaskControl
 from .action_station_controls.timer_control import make_timer_config
 from .action_station_controls.as_control import make_test_config
 from .action_station_controls.modbus import make_modbus_config
@@ -128,8 +127,8 @@ class ActionControl():
     @memory_storage_size.setter
     def memory_storage_size(self, val: int):
         self._cfg["memSize"] = val
-    
-    
+
+
 class ActionStation(threading.Thread):
     """_summary_
 
@@ -149,7 +148,7 @@ class ActionStation(threading.Thread):
                 pass
         return reply
 
-    def _on_command(self, data):
+    def _on_command(self, data: str):
         data_array = data.split("\t")
         try:
             rx_device_id = data_array[0]
@@ -163,8 +162,8 @@ class ActionStation(threading.Thread):
                 return self._action_station_commands[command](data_array)
         task_dict_key = f"{rx_device_id}\t{control_id}\t"
         if task_dict_key in self._device_control_filter_dict:
-            uuid = self._device_control_filter_dict[task_dict_key]
-            threading.Thread(target=task_runner, args=( self.configured_controls[uuid], data_array, self.task_pull_url, self.context)).start()
+            socket = self._device_control_filter_dict[task_dict_key]
+            socket.send(data.encode())
         return ""
 
     def save_action(self, filename: str, actions_dict: dict):
@@ -213,14 +212,20 @@ class ActionStation(threading.Thread):
         self.save_action(self._json_filename, self.action_station_dict)
         self.running = False
 
-    def _add_input_filter(self, j_object: dict):
+
+    def _start_task(self, t_object: dict):
+        self.tasks[t_object['uuid']] = TaskControl(self.device_id, self.action_station_id, t_object, self.context)
         try:
-            rx_device_id = j_object['actions'][0].get("deviceID", self.device_id)
-            control_id = j_object['actions'][0]["controlID"]
+            rx_device_id = t_object['actions'][0]["deviceID"]
+            control_id = t_object['actions'][0]["controlID"]
             task_dict_key = f"{rx_device_id}\t{control_id}\t"
-            self._device_control_filter_dict[task_dict_key] = j_object['uuid']
+
+            task_sender = self.context.socket(zmq.PUSH)
+            task_sender.connect(TASK_PULL.format(id=t_object['uuid']))
+            self._device_control_filter_dict[task_dict_key] = task_sender
         except IndexError:
             logging.debug("Task has no Actions")
+
 
     def _delete_input_filter(self, uuid: str):
         store_object = self.configured_controls[uuid]
@@ -323,18 +328,17 @@ class ActionStation(threading.Thread):
         if payload['objectType'] in ['TASK', 'TMR', 'MDBS']:
             self.configured_controls[payload['uuid']] = payload
             if payload['objectType'] == 'TASK':
-                self._add_input_filter(payload)
+                self._start_task(payload)
             self.save_action(self._json_filename,  self.action_station_dict)
             result['result'] = True
         reply = f"\t{self.device_id}\tACTN\tUPDATE\t{json.dumps(result)}\n"
         return reply
-        
 
     def _run_command(self, data):
         payload = json.loads(data[3])
         reply = ""
         return reply
-    
+
     def __init__(self, device_id: str, max_actions=100, number_timers=10, memory_storage_size=0, context: zmq.Context=None):
         """Action Station"""
         threading.Thread.__init__(self, daemon=True)
@@ -347,6 +351,7 @@ class ActionStation(threading.Thread):
         self.action_station_dict = self.load_action(self._json_filename)
         self.max_actions = max_actions
         self._device_control_filter_dict = {}
+        self.tasks = {} # For the Instantiated task objects.
         self.device_id = device_id
         self.timers = []
         self._action_station_commands = {
@@ -383,14 +388,13 @@ class ActionStation(threading.Thread):
                 self.task_memory = self.action_station_dict['taskMemory']
                 self.configs = self.action_station_dict['configs']
             except KeyError:
-                exit(f"Old json formatted file. Please delete '{self._json_filename}' and restart")
+                sys.exit(f"Old json formatted file. Please delete '{self._json_filename}' and restart")
 
             for j_object in self.configured_controls.values():
                 if j_object['objectType'] == 'TASK':
-                    self._add_input_filter(j_object)
+                    self._start_task(j_object)
                 # TODO Add other control types here
 
-        self.task_pull_url = f"inproc://TASK_PULL_{self.action_station_id}"
         self.running = True
         self.start()
         time.sleep(1)
@@ -410,7 +414,7 @@ class ActionStation(threading.Thread):
 
         # Socket to receive messages on
         task_receiver = self.context.socket(zmq.PULL)
-        task_receiver.bind( self.task_pull_url)
+        task_receiver.bind(TASK_PULL.format(id=self.action_station_id))
 
         memory_socket = self.context.socket(zmq.REP)
         memory_socket.bind(MEMORY_REQ_URL.format(id=self.device_id))

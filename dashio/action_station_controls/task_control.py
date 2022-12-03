@@ -1,5 +1,7 @@
 import zmq
 import logging
+import threading
+from ..constants import TASK_PULL
 
 def num(s_num: str):
     try:
@@ -69,32 +71,46 @@ TASK_FUNC_DICT = {
     "WRITE_CONTROL": _write_control_task
 }
 
+class TaskControl(threading.Thread):
+    """Task Class"""
 
-def task_runner(task_dict: dict, data: list, push_url: str, context: zmq.Context):
-    """Run a task
+    def send_message(self, out_message=""):
+        """Send the message"""
+        self.task_sender.send(out_message.encode())
 
-    Parameters
-    ----------
-    task_dict : dict
-        The dask to perfom
-    data : list
-        The data for the task.
-    push_id : str
-        Who to send the result too.
-    context : zmq.Context
-        Use this context to be Thread safe
-    """
-    try:
-        for task in task_dict['tasks']:
+    def close(self):
+        """Close the thread"""
+        self.running = False
+
+    def __init__(self, device_id: str, action_station_id: str, task_config_dict: dict, context: zmq.Context) -> None:
+        threading.Thread.__init__(self, daemon=True)
+        self.context = context
+        self.running = True
+        self.timer_type = None
+        self.device_id = device_id
+        self.control_type = "TASK"
+        self.task_id = task_config_dict['uuid']
+        self.actions = task_config_dict['actions']
+        self.name = task_config_dict['name']
+        self.push_url = TASK_PULL.format(id=action_station_id)
+        self.pull_url = TASK_PULL.format(id=self.task_id)
+
+        self.task_sender = self.context.socket(zmq.PUSH)
+        self.task_sender.connect(self.push_url)
+        self.start()
+
+    def run(self):
+        task_receiver = self.context.socket(zmq.PULL)
+        task_receiver.bind(self.pull_url)
+        poller = zmq.Poller()
+        poller.register(task_receiver, zmq.POLLIN)
+
+        while self.running:
             try:
-                TASK_FUNC_DICT[task['objectType']](data, task)
-            except KeyError:
-                logging.debug("TASK NOT YET IMPLEMENTED: %s", task['objectType'])
-    except KeyError:
-        logging.debug("No Tasks!")
-
-    # Set up socket to send messages to
-    #    task_sender = context.socket(zmq.PUSH)
-    #    task_sender.connect(push_url)
-        # send the result
-    #    task_sender.send(results[-1].encode())
+                socks = dict(poller.poll(15))
+            except zmq.error.ContextTerminated:
+                break
+            if task_receiver in socks:
+                message = task_receiver.recv()
+                if message:
+                    logging.debug("TASK: %s\t%s RX:%s", self.name, self.task_id, message.decode())
