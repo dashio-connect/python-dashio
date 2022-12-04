@@ -1,6 +1,6 @@
 """ble.connection.py
 
-Copyright (c) 2019, Douglas Otwell, DashIO
+Copyright (c) 2019, Douglas Otwell, DashIO-Connect
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

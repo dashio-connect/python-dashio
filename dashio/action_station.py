@@ -1,6 +1,6 @@
 """action_station.py
 
-Copyright (c) 2022, Douglas Otwell, DashIO
+Copyright (c) 2022, DashIO-Connect
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -250,18 +250,16 @@ class ActionStation(threading.Thread):
             control.close()
         self.running = False
 
-
     def _start_control(self, t_object: dict):
         if t_object['uuid'] in self.thread_dicts:
             self.thread_dicts[t_object['uuid']].close()
-            time.sleep(0.5)
+            time.sleep(0.1)
         self.thread_dicts[t_object['uuid']] = self.control_objects[t_object['objectType']](self.device_id, self.action_station_id, t_object, self.context)
         if t_object['objectType'] == 'TASK':
             try:
                 rx_device_id = t_object['actions'][0]["deviceID"]
                 control_id = t_object['actions'][0]["controlID"]
                 task_dict_key = f"{rx_device_id}\t{control_id}\t"
-
                 task_sender = self.context.socket(zmq.PUSH)
                 task_sender.connect(TASK_PULL.format(id=t_object['uuid']))
                 self._device_control_filter_dict[task_dict_key] = task_sender
@@ -269,7 +267,6 @@ class ActionStation(threading.Thread):
                 logging.debug("Task has no Actions")
                 return False
         return True
-
 
     def _delete_input_filter(self, uuid: str):
         store_object = self.configured_controls[uuid]
@@ -386,7 +383,7 @@ class ActionStation(threading.Thread):
         return reply
 
     def _run_command(self, data):
-        payload = json.loads(data[3])
+        # payload = json.loads(data[3])
         reply = ""
         return reply
 
@@ -405,12 +402,14 @@ class ActionStation(threading.Thread):
         self.action_station_dict = self.load_action(self._json_filename)
         self.max_actions = max_actions
         self._device_control_filter_dict = {}
-        self.control_objects ={
+
+        self.control_objects = {
             'TASK': TaskControl,
             'TMR': TimerControl,
             'MDBS': ModbusControl
         }
         self.thread_dicts = {} # For the Instantiated control and task objects.
+
         self._action_station_commands = {
             "LIST": self._list_command,
             "LIST_TASKS": self._list_tasks_command,
@@ -420,11 +419,6 @@ class ActionStation(threading.Thread):
             "UPDATE": self._update_command,
             "RUN": self._run_command
         }
-        # self._make_controls_dict = {
-        #    "TASK": self._make_task,
-        #    "TMR": self._make_task_timer,
-        #    "TEST": self._make_test
-        #}
         
         if not self.action_station_dict:
             self.action_station_id = shortuuid.uuid()
@@ -521,9 +515,9 @@ class ActionStation(threading.Thread):
                         logging.debug("MEM Tx: GET: %s, RTN: %s", message[1], message[1])
                         memory_socket.send_multipart([message[0], message[1], self.memory_tasks[message[1]]])
                 #  Send error reply back to client
-                memory_socket.send_multipart([b'ERROR',b'ERROR',b'ERROR'])
+                else:
+                    memory_socket.send_multipart([b'ERROR',b'ERROR',b'ERROR'])
 
-        
         tx_zmq_pub.close()
         self.device_zmq_sub.close()
         memory_socket.close()
