@@ -6,7 +6,7 @@ import zmq
 import logging
 
 
-from .action_control_config import SelectorParameterSpec, IntParameterSpec, StringParameterSpec, FloatParameterSpec, BoolParameterSpec, SliderParameterSpec, ActionControlCFG
+from .action_control_config import SelectorParameterSpec, IntParameterSpec, StringParameterSpec, FloatParameterSpec, BoolParameterSpec, SliderParameterSpec, ActionControlCFG, ListParameterSpec
 from ..constants import TASK_PULL
 
 def make_test_config(num_tests):
@@ -17,15 +17,43 @@ def make_test_config(num_tests):
         StringParameterSpec("A String", "Little Bo Peep...."),
         FloatParameterSpec("A Float", 2.71828, 299792458.0, "jiffies", 1.4142),
         BoolParameterSpec("A bool", True),
-        SliderParameterSpec("A Slider", 1.0, 10.0, 1.0, 5.0)
+        SliderParameterSpec("A Slider", 1.0, 10.0, 1.0, 5.0),
+        ListParameterSpec(
+            "List of Things",
+            "Create a list",
+            [
+                IntParameterSpec(
+                    "Add a uint_16",
+                    0,
+                    65535,
+                    "",
+                    0
+                ),
+                SelectorParameterSpec(
+                    "Choose a thing", [
+                        "Thing One",
+                        "Thing Two",
+                        "The Lorax",
+                        "The Grinch",
+                        "Horton",
+                        "Sam-I-Am",
+                        "Thidwick",
+                        "Yertle the Turtle",
+                        "Lord Droon"
+                    ],
+                     "Horton",
+                )
+            ]
+        )
+
     ]
     parameter_list = []
-    
+
     timer_cfg = ActionControlCFG(
         "TST",
         "Test",
-        "Test with provisioning",
-        "TST$",
+        "Test with all provisioning types",
+        "TST",
         num_tests,
         True,
         True,

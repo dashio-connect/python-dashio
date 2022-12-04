@@ -40,7 +40,7 @@ def make_timer_config(num_timers):
     timer_cfg = ActionControlCFG(
         "TMR",
         "Timer",
-        "Timer Provisioning",
+        "A timer control.",
         "TMR",
         num_timers,
         True,
