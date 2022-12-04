@@ -30,10 +30,11 @@ import zmq
 
 from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL, MEMORY_REQ_URL, TASK_PULL
 from .action_station_controls.task_control import TaskControl
-from .action_station_controls.timer_control import make_timer_config
+from .action_station_controls.timer_control import TimerControl, make_timer_config
 from .action_station_controls.as_control import make_test_config
-from .action_station_controls.modbus import make_modbus_config
+from .action_station_controls.modbus import ModbusControl, make_modbus_config
 from .load_config import CONTROL_INSTANCE_DICT
+
 
 class ActionControl():
     """A CFG control class to store Action information
@@ -245,24 +246,29 @@ class ActionStation(threading.Thread):
         """Close the action_station json filename
         """
         self.save_action(self._json_filename, self.action_station_dict)
+        for control in self.thread_dicts.values():
+            control.close()
         self.running = False
 
 
-    def _start_task(self, t_object: dict):
-        if t_object['uuid'] in self.tasks:
-            self.tasks[t_object['uuid']].close()
+    def _start_control(self, t_object: dict):
+        if t_object['uuid'] in self.thread_dicts:
+            self.thread_dicts[t_object['uuid']].close()
             time.sleep(0.5)
-        self.tasks[t_object['uuid']] = TaskControl(self.device_id, self.action_station_id, t_object, self.context)
-        try:
-            rx_device_id = t_object['actions'][0]["deviceID"]
-            control_id = t_object['actions'][0]["controlID"]
-            task_dict_key = f"{rx_device_id}\t{control_id}\t"
+        self.thread_dicts[t_object['uuid']] = self.control_objects[t_object['objectType']](self.device_id, self.action_station_id, t_object, self.context)
+        if t_object['objectType'] == 'TASK':
+            try:
+                rx_device_id = t_object['actions'][0]["deviceID"]
+                control_id = t_object['actions'][0]["controlID"]
+                task_dict_key = f"{rx_device_id}\t{control_id}\t"
 
-            task_sender = self.context.socket(zmq.PUSH)
-            task_sender.connect(TASK_PULL.format(id=t_object['uuid']))
-            self._device_control_filter_dict[task_dict_key] = task_sender
-        except IndexError:
-            logging.debug("Task has no Actions")
+                task_sender = self.context.socket(zmq.PUSH)
+                task_sender.connect(TASK_PULL.format(id=t_object['uuid']))
+                self._device_control_filter_dict[task_dict_key] = task_sender
+            except IndexError:
+                logging.debug("Task has no Actions")
+                return False
+        return True
 
 
     def _delete_input_filter(self, uuid: str):
@@ -363,12 +369,10 @@ class ActionStation(threading.Thread):
             'result': False
         }
         try:
-            if payload['objectType'] in self.controls_list:
+            if payload['objectType'] in self.control_objects:
                 self.configured_controls[payload['uuid']] = payload
-                if payload['objectType'] == 'TASK':
-                    self._start_task(payload)
-                result['result'] = True
-            if payload['objectType'] in self.gui_controls:
+                result['result'] = self._start_control(payload)
+            if payload['objectType'] in CONTROL_INSTANCE_DICT:
                 self.configured_controls[payload['uuid']] = payload
                 result['result'] = True
                 self.add_gui_control(payload)
@@ -401,10 +405,12 @@ class ActionStation(threading.Thread):
         self.action_station_dict = self.load_action(self._json_filename)
         self.max_actions = max_actions
         self._device_control_filter_dict = {}
-        self.controls_list = ['TASK', 'TMR', 'MDBS']
-        self.gui_controls = ["AVD", "DVVW", "MENU", "BTGP", "BTTN", "TEXT", "GRPH", "DIAL", "CLR", "TGRPH", "KNOB", "SLCTR", "SLDR", "DIR", "LOG", "LBL"]
-        self.tasks = {} # For the Instantiated task objects.
-        self.timers = []
+        self.control_objects ={
+            'TASK': TaskControl,
+            'TMR': TimerControl,
+            'MDBS': ModbusControl
+        }
+        self.thread_dicts = {} # For the Instantiated control and task objects.
         self._action_station_commands = {
             "LIST": self._list_command,
             "LIST_TASKS": self._list_tasks_command,
@@ -442,9 +448,7 @@ class ActionStation(threading.Thread):
                 sys.exit(f"Old json formatted file. Please delete '{self._json_filename}' and restart")
 
             for j_object in self.configured_controls.values():
-                if j_object['objectType'] == 'TASK':
-                    self._start_task(j_object)
-                # TODO Add other control types here
+                self._start_control(j_object)
 
         self.running = True
         self.start()
@@ -506,20 +510,20 @@ class ActionStation(threading.Thread):
                     logging.debug("ActionStation TASK RX:\n%s", message[2].decode())
                     tx_zmq_pub.send_multipart([message[0], message[1], message[2]])
             if memory_socket in socks:
-                #  Wait for next request from client
                 message = memory_socket.recv_multipart()
                 logging.debug("MEM Rx: %s", message)
                 if len(message) == 3:
                     if message[0] == b'SET':
-                        self.mem[message[1]]=message[2]
+                        self.memory_tasks[message[1]]=message[2]
                         logging.debug("MEM Tx: SET: %s, TO: %s", message[1], message[2])
-                        memory_socket.send_multipart([message[0],message[1],message[2]])
+                        memory_socket.send_multipart([message[0], message[1], message[2]])
                     if message[0] == b'GET':
                         logging.debug("MEM Tx: GET: %s, RTN: %s", message[1], message[1])
-                        memory_socket.send_multipart([message[0],message[1],self.mem[message[1]]])
+                        memory_socket.send_multipart([message[0], message[1], self.memory_tasks[message[1]]])
                 #  Send error reply back to client
                 memory_socket.send_multipart([b'ERROR',b'ERROR',b'ERROR'])
 
+        
         tx_zmq_pub.close()
         self.device_zmq_sub.close()
         memory_socket.close()

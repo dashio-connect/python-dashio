@@ -3,6 +3,7 @@ import threading
 import zmq
 import logging
 from .action_control_config import ActionControlCFG, SelectorParameterSpec, IntParameterSpec, StringParameterSpec
+from ..constants import TASK_PULL
 
 # This defines the provisioning for the TIMER
 def make_timer_config(num_timers):
@@ -46,36 +47,52 @@ class RepeatTimer(threading.Timer):
 class TimerControl(threading.Thread):
     """Timer Class"""
 
-    def send_message(self):
+    def timer_message(self):
         """Send the message"""
-        task_sender = self.context.socket(zmq.PUSH)
-        task_sender.connect(self.push_url)
-        task_sender.send(self.control_msg.encode())
+        self.send_message(out_message=self.control_msg)
+
+    def send_message(self, out_message=""):
+        """Send the message"""
+       
+        self.task_sender.send_multipart([b"ALL", b"0", out_message.encode('utf-8')])
+        
 
     def close(self):
         """Close the thread"""
         self.running = False
 
-    def __init__(self, device_id: str, control_id: str, provision_list: list, push_url: str, context: zmq.Context) -> None:
+    def __init__(self, device_id: str, action_station_id: str, control_config_dict: dict, context: zmq.Context) -> None:
         threading.Thread.__init__(self, daemon=True)
+        
         self.context = context
         self.running = True
         self.timer_type = None
-        self.push_url = push_url
-        timer_time = 1/1000.0
-        timer_type = 'REPEAT'
-        self.control_msg = f"\t{device_id}\tTMR\t{control_id}\n"
-        if timer_type == 'REPEAT':
-            self.timer_type = RepeatTimer(timer_time, self.send_message)
-        elif timer_type == 'REPEAT':
-            self.timer_type = threading.Timer(timer_time, self.send_message)
-        if self.timer_type:
+
+        self.control_id = control_config_dict['controlID']
+        self.name = control_config_dict['name']
+        self.control_type = control_config_dict['objectType']
+        provision_list = control_config_dict['provisioning']
+
+        self.push_url = TASK_PULL.format(id=action_station_id)
+        self.pull_url = TASK_PULL.format(id=self.control_id)
+
+        self.task_sender = self.context.socket(zmq.PUSH)
+        self.task_sender.connect(self.push_url)
+
+        self.timer_time = int(provision_list[1]['value'])/1000.0
+        self.timer_type = provision_list[0]['value']
+
+        self.control_msg = f"\t{device_id}\t{self.control_type}\t{self.control_id}\n"
+        logging.debug("Init Timer Class: %s, %s", self.timer_type, self.timer_time)
+
+        if self.timer_type == 'Repeat':
+            self.timer_type = RepeatTimer(self.timer_time, self.timer_message)
             self.timer_type.start()
         self.start()
 
 
     def run(self):
-
+        logging.debug("Started Timer Class")
         receiver = self.context.socket(zmq.PULL)
         receiver.bind( self.pull_url)
         poller = zmq.Poller()
@@ -90,3 +107,9 @@ class TimerControl(threading.Thread):
                 message = receiver.recv()
                 if message:
                     logging.debug("%s\t%s RX:\n%s", self.control_type, self.control_id, message.decode())
+                    if self.timer_type == 'OneShot':
+                        self.timer_type = threading.Timer(self.timer_time, self.timer_message)
+                        self.timer_type.start()
+        self.timer_type.cancel()
+        self.task_sender.close()
+        receiver.close()
