@@ -1,4 +1,26 @@
-"""Timer Class"""
+"""
+MIT License
+
+Copyright (c) 2020 DashIO-Connect
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
 import threading
 import zmq
 import logging
@@ -36,7 +58,6 @@ class RepeatTimer(threading.Timer):
         while not self.finished.wait(self.interval):
             self.function(*self.args, **self.kwargs)
 
-            
 
 # The app returns the edited provisioning with enough info to instantiate this class:
 # With controlID, timer_type(from provisioning), timeout(from provisioning)
@@ -53,9 +74,7 @@ class TimerControl(threading.Thread):
 
     def send_message(self, out_message=""):
         """Send the message"""
-       
         self.task_sender.send_multipart([b"ALL", b"0", out_message.encode('utf-8')])
-        
 
     def close(self):
         """Close the thread"""
@@ -63,7 +82,7 @@ class TimerControl(threading.Thread):
 
     def __init__(self, device_id: str, action_station_id: str, control_config_dict: dict, context: zmq.Context) -> None:
         threading.Thread.__init__(self, daemon=True)
-        
+
         self.context = context
         self.running = True
         self.timer_type = None
@@ -83,7 +102,8 @@ class TimerControl(threading.Thread):
         self.timer_type = provision_list[0]['value']
 
         self.control_msg = f"\t{device_id}\t{self.control_type}\t{self.control_id}\n"
-        logging.debug("Init Timer Class: %s, %s", self.timer_type, self.timer_time)
+        
+        logging.debug("Init Class: %s, %s", self.control_type, self.name)
 
         if self.timer_type == 'Repeat':
             self.timer_type = RepeatTimer(self.timer_time, self.timer_message)
@@ -92,7 +112,6 @@ class TimerControl(threading.Thread):
 
 
     def run(self):
-        logging.debug("Started Timer Class")
         receiver = self.context.socket(zmq.PULL)
         receiver.bind( self.pull_url)
         poller = zmq.Poller()

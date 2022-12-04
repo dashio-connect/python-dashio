@@ -6,7 +6,8 @@ import zmq
 import logging
 
 
-from .action_control_config import *
+from .action_control_config import SelectorParameterSpec, IntParameterSpec, StringParameterSpec, FloatParameterSpec, BoolParameterSpec, SliderParameterSpec, ActionControlCFG
+from ..constants import TASK_PULL
 
 def make_test_config(num_tests):
     """Make a timer config"""
@@ -18,12 +19,7 @@ def make_test_config(num_tests):
         BoolParameterSpec("A bool", True),
         SliderParameterSpec("A Slider", 1.0, 10.0, 1.0, 5.0)
     ]
-    parameter_list_in = [
-        
-    ]
-    parameter_list_out = [
-       
-    ]
+    parameter_list = []
     
     timer_cfg = ActionControlCFG(
         "TST",
@@ -34,39 +30,46 @@ def make_test_config(num_tests):
         True,
         True,
         provisioning_list,
-        parameter_list_in
+        parameter_list
         #parameter_list_out
     )
     return timer_cfg.__json__()
 
 class ASControl(threading.Thread):
-    """AS Template Class"""
+    """Action Station Template Class"""
 
-    def send_message(self):
+    def send_message(self, out_message=""):
         """Send the message"""
-        task_sender = self.context.socket(zmq.PUSH)
-        task_sender.connect(self.push_url)
-        task_sender.send(self.control_msg.encode())
+        self.task_sender.send_multipart([b"ALL", b"0", out_message.encode('utf-8')])
 
     def close(self):
         """Close the thread"""
         self.running = False
 
-    def __init__(self, device_id: str, control_type: str, control_id: str, push_url: str, pull_url: str,context: zmq.Context) -> None:
+    def __init__(self, device_id: str, action_station_id: str, control_config_dict: dict, context: zmq.Context) -> None:
         threading.Thread.__init__(self, daemon=True)
+
         self.context = context
         self.running = True
-        self.timer_type = None
-        self.push_url = push_url
-        self.pull_url = pull_url
-        self.device_id = device_id
-        self.control_type = control_type
-        self.control_id = control_id
-        self.control_msg = f"\t{device_id}\t{control_type}\t{control_id}\n"
+
+        self.control_id = control_config_dict['controlID']
+        self.name = control_config_dict['name']
+        self.control_type = control_config_dict['objectType']
+        provision_list = control_config_dict['provisioning']
+
+        self.push_url = TASK_PULL.format(id=action_station_id)
+        self.pull_url = TASK_PULL.format(id=self.control_id)
+
+        self.task_sender = self.context.socket(zmq.PUSH)
+        self.task_sender.connect(self.push_url)
+
+        self.control_msg = f"\t{device_id}\t{self.control_type}\t{self.control_id}"
+        logging.debug("Init Class: %s, %s", self.control_type, self.name)
+
         self.start()
 
-    def run(self):
 
+    def run(self):
         receiver = self.context.socket(zmq.PULL)
         receiver.bind( self.pull_url)
         poller = zmq.Poller()
@@ -81,3 +84,7 @@ class ASControl(threading.Thread):
                 message = receiver.recv()
                 if message:
                     logging.debug("%s\t%s RX:\n%s", self.control_type, self.control_id, message.decode())
+
+
+        self.task_sender.close()
+        receiver.close()
