@@ -47,7 +47,7 @@ def make_modbus_config(num_tests):
     """Make a timer config"""
     s_ports = serial_ports()
     provisioning_list = [
-        SelectorParameterSpec("Serial Port",s_ports, s_ports[0]),
+        SelectorParameterSpec("Serial Port", s_ports, s_ports[0]),
         SelectorParameterSpec("Baud", ["1200", "2400", "4800", "9600", "19200", "38400", "57600", "115200"], "9600"),
         SelectorParameterSpec("Modbus Type", ["RTU", "ASCII"], "RTU"),
         ListParameterSpec(

@@ -421,27 +421,24 @@ class ActionStation(threading.Thread):
             "UPDATE": self._update_command,
             "RUN": self._run_command
         }
-
+        timer_cfg = make_timer_config(number_timers)
+        test_cfg = make_test_config(1)
+        modbus_cfg = make_modbus_config(1)
+        clock_cfg = make_clock_config(1)
+        self.configs[timer_cfg['uuid']] = timer_cfg
+        self.configs[test_cfg['uuid']] = test_cfg
+        self.configs[modbus_cfg['uuid']] = modbus_cfg
+        self.configs[clock_cfg['uuid']] = clock_cfg
         if not self.action_station_dict:
             self.action_station_id = shortuuid.uuid()
             self.action_station_dict['actionStationID'] = self.action_station_id
             self.action_station_dict['controls'] = self.configured_controls
             self.action_station_dict['tasksMemory'] = self.memory_tasks
-            self.action_station_dict['configs'] = self.configs
-            timer_cfg = make_timer_config(number_timers)
-            test_cfg = make_test_config(1)
-            modbus_cfg = make_modbus_config(1)
-            clock_cfg = make_clock_config(1)
-            self.configs[timer_cfg['uuid']] = timer_cfg
-            self.configs[test_cfg['uuid']] = test_cfg
-            self.configs[modbus_cfg['uuid']] = modbus_cfg
-            self.configs[clock_cfg['uuid']] = clock_cfg
         else:
             try:
                 self.action_station_id = self.action_station_dict['actionStationID']
                 self.configured_controls = self.action_station_dict['controls']
                 self.memory_tasks = self.action_station_dict['tasksMemory']
-                self.configs = self.action_station_dict['configs']
             except KeyError:
                 sys.exit(f"Old json formatted file. Please delete '{self._json_filename}' and restart")
 
