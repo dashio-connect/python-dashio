@@ -21,7 +21,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 import datetime
-import logging
+# import logging
 import threading
 import time
 
@@ -81,7 +81,6 @@ class ClockThread(threading.Thread):
             time.sleep(sleep_time)
 
 
-
 class ClockControl(threading.Thread):
     """Action Station Template Class"""
 
@@ -95,7 +94,6 @@ class ClockControl(threading.Thread):
             daylight = "SunUp"
         msg = f"{self.control_msg}\t{daylight}\t{tstamp.year}\t{tstamp.month}\t{tstamp.day}\t{tstamp.hour}\t{tstamp.minute}\n"
         self.send_message(out_message=msg)
-
 
     def send_message(self, out_message=""):
         """Send the message"""
@@ -133,7 +131,6 @@ class ClockControl(threading.Thread):
         self.clock = ClockThread(self.clock_message)
 
         self.start()
-
 
     def run(self):
         receiver = self.context.socket(zmq.PULL)
