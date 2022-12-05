@@ -270,7 +270,7 @@ class ActionStation(threading.Thread):
         return True
 
     def _delete_input_filter(self, uuid: str):
-        store_object = self.configured_controls[uuid]
+        store_object = self.configured_services[uuid]
         try:
             rx_device_id = store_object['actions'][0]["deviceID"]
             control_id = store_object['actions'][0]["controlID"]
@@ -281,7 +281,7 @@ class ActionStation(threading.Thread):
 
     def _list_command(self, data):
         j_object_list = []
-        for j_object in self.configured_controls.values():
+        for j_object in self.configured_services.values():
             action_pair = {
                 "name": j_object['name'],
                 "uuid": j_object['uuid'],
@@ -317,7 +317,7 @@ class ActionStation(threading.Thread):
 
     def _list_tasks_command(self, data):
         j_object_list = []
-        for j_object in self.configured_controls.values():
+        for j_object in self.configured_services.values():
             if j_object['objectType'] == "TASK":
                 action_pair = {
                     "name": j_object['name'],
@@ -334,7 +334,7 @@ class ActionStation(threading.Thread):
 
     def _get_command(self, data):
         payload = json.loads(data[3])
-        j_object = self.configured_controls.get(payload["uuid"], {})
+        j_object = self.configured_services.get(payload["uuid"], {})
         reply = f"\t{self.device_id}\tACTN\tGET\t{json.dumps(j_object)}\n"
         return reply
 
@@ -346,12 +346,12 @@ class ActionStation(threading.Thread):
             'result': False
         }
         try:
-            store_obj = self.configured_controls[payload["uuid"]]
+            store_obj = self.configured_services[payload["uuid"]]
             if store_obj['objectType'] == 'TASK':
                 self._delete_input_filter(payload["uuid"])
             if store_obj['objectType'] in self.dash_controls:
                 self.rm_gui_control(payload)
-            del self.configured_controls[payload["uuid"]]
+            del self.configured_services[payload["uuid"]]
             result['result'] = True
         except KeyError:
             result['result'] = False
@@ -368,10 +368,10 @@ class ActionStation(threading.Thread):
         }
         try:
             if payload['objectType'] in self.control_objects:
-                self.configured_controls[payload['uuid']] = payload
+                self.configured_services[payload['uuid']] = payload
                 result['result'] = self._start_control(payload)
             if payload['objectType'] in CONTROL_INSTANCE_DICT:
-                self.configured_controls[payload['uuid']] = payload
+                self.configured_services[payload['uuid']] = payload
                 result['result'] = True
                 self.add_gui_control(payload)
         except KeyError:
@@ -396,7 +396,7 @@ class ActionStation(threading.Thread):
         self.device = device
         self._json_filename = f"{self.device_id}_Actions.json"
 
-        self.configured_controls = {}
+        self.configured_services = {}
         self.dash_controls = {}
         self.configs = {}
         self.memory_tasks = {}
@@ -432,17 +432,17 @@ class ActionStation(threading.Thread):
         if not self.action_station_dict:
             self.action_station_id = shortuuid.uuid()
             self.action_station_dict['actionStationID'] = self.action_station_id
-            self.action_station_dict['controls'] = self.configured_controls
+            self.action_station_dict['services'] = self.configured_services
             self.action_station_dict['tasksMemory'] = self.memory_tasks
         else:
             try:
                 self.action_station_id = self.action_station_dict['actionStationID']
-                self.configured_controls = self.action_station_dict['controls']
+                self.configured_services = self.action_station_dict['services']
                 self.memory_tasks = self.action_station_dict['tasksMemory']
             except KeyError:
                 sys.exit(f"Old json formatted file. Please delete '{self._json_filename}' and restart")
 
-            for j_object in self.configured_controls.values():
+            for j_object in self.configured_services.values():
                 self._start_control(j_object)
 
         self.running = True
