@@ -80,7 +80,7 @@ class SliderParameterSpec(BaseParameter):
         self._param['step'] = step
         self._param['value'] = existing_value
 
-class ActionControlCFG:
+class ActionServiceCFG:
     """Action Control CFG"""
     def __init__(self, control_type: str, name: str, text: str, control_id: str, num_avail: int, is_trigger: bool, is_io: bool, provisioning_list: list, param_in_list: list) -> None:
         self.uuid = shortuuid.uuid()

@@ -29,11 +29,11 @@ import shortuuid
 import zmq
 
 from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL, MEMORY_REQ_URL, TASK_PULL
-from .action_station_controls.task_control import TaskControl
-from .action_station_controls.timer_control import TimerControl, make_timer_config
-from .action_station_controls.as_control import make_test_config
-from .action_station_controls.modbus import ModbusControl, make_modbus_config
-from .action_station_controls.clock_control import ClockControl, make_clock_config
+from .action_station_services.task_service import TaskService
+from .action_station_services.timer_service import TimerService, make_timer_config
+from .action_station_services.as_servicel import make_test_config
+from .action_station_services.modbus_service import ModbusService, make_modbus_config
+from .action_station_services.clock_servicel import ClockService, make_clock_config
 from .load_config import CONTROL_INSTANCE_DICT
 
 
@@ -405,10 +405,10 @@ class ActionStation(threading.Thread):
         self._device_control_filter_dict = {}
 
         self.control_objects = {
-            'TASK': TaskControl,
-            'TMR': TimerControl,
-            'MDBS': ModbusControl,
-            'CLK': ClockControl
+            'TASK': TaskService,
+            'TMR': TimerService,
+            'MDBS': ModbusService,
+            'CLK': ClockService
         }
         self.thread_dicts = {} # For the Instantiated control and task objects.
 

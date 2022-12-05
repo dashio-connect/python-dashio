@@ -1,7 +1,6 @@
-"""
-MIT License
+"""clock.py
 
-Copyright (c) 2020 DashIO-Connect
+Copyright (c) 2022, DashIO-Connect
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -21,56 +20,80 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+import datetime
+# import logging
 import threading
-import zmq
-import logging
-from .action_control_config import ActionControlCFG, SelectorParameterSpec, IntParameterSpec, StringParameterSpec
-from ..constants import TASK_PULL
+import time
 
-# This defines the provisioning for the TIMER
-def make_timer_config(num_timers):
+import zmq
+from astral import LocationInfo
+from astral.sun import sun
+from dateutil import tz
+
+from ..constants import TASK_PULL
+from .action_station_service_config import ActionServiceCFG, FloatParameterSpec
+
+
+def make_clock_config(num_tests):
     """Make a timer config"""
     provisioning_list = [
-        SelectorParameterSpec("Timer Type",["Repeat", "OneShot"], "Repeat"),
-        IntParameterSpec("Timeout", 100, 600000, "ms", 1000)
+        FloatParameterSpec("Latitude", -90.0, 90.0, "degs", -43.5256),
+        FloatParameterSpec("Longitude", -180.0, 180.0, "degs", 172.6398),
     ]
-    parameter_in_list = []
-    parameter_out_list = []
+    parameter_list = []
 
-    timer_cfg = ActionControlCFG(
-        "TMR",
-        "Timer",
-        "A timer control.",
-        "TMR",
-        num_timers,
+    clock_cfg = ActionServiceCFG(
+        "CLK",
+        "Local Clock",
+        "Send local time and SunUp or SunDown every minute.",
+        "CLK1",
+        num_tests,
         True,
         True,
         provisioning_list,
-        parameter_in_list
-        #parameter_out_list
+        parameter_list
+        #parameter_list_out
     )
-    return timer_cfg.__json__()
+    return clock_cfg.__json__()
 
 
-class RepeatTimer(threading.Timer):
-    """The timer"""
+class ClockThread(threading.Thread):
+    """Watch keeping thread returns every minute"""
+    def __init__(self, callback) -> None:
+        threading.Thread.__init__(self, daemon=True)
+        self.running = True
+        self.callback = callback
+        self.logger_interval = 60
+        self.start()
+
+    def close(self):
+        """Stop the thread"""
+        self.running = False
+
     def run(self):
-        while not self.finished.wait(self.interval):
-            self.function(*self.args, **self.kwargs)
+        while self.running:
+            tstamp = datetime.datetime.now()
+            tstamp = tstamp.replace(tzinfo=tz.tzlocal())
+            self.callback(tstamp)
+            seconds_left = tstamp.second + tstamp.microsecond / 1000000.0
+            _, sleep_time = divmod(seconds_left, self.logger_interval)
+            sleep_time = self.logger_interval - sleep_time
+            time.sleep(sleep_time)
 
 
-# The app returns the edited provisioning with enough info to instantiate this class:
-# With controlID, timer_type(from provisioning), timeout(from provisioning)
-# THe device knows the rest (device_id, push_url, context)
+class ClockService(threading.Thread):
+    """Action Station Template Class"""
 
-# parameter_in_list would be used by the TIMER to parse the incoming message.
-# paramiter_out_list is how to format the output message 
-class TimerControl(threading.Thread):
-    """Timer Class"""
-
-    def timer_message(self):
+    def clock_message(self, tstamp: datetime.datetime):
         """Send the message"""
-        self.send_message(out_message=self.control_msg)
+        if tstamp.day != self.day:
+            self.sun_time = sun(self.location_info.observer, date=tstamp)
+            self.day = tstamp.day
+        daylight = "SunDown"
+        if self.sun_time['sunrise'] < tstamp < self.sun_time['sunset']:
+            daylight = "SunUp"
+        msg = f"{self.control_msg}\t{daylight}\t{tstamp.year}\t{tstamp.month}\t{tstamp.day}\t{tstamp.hour}\t{tstamp.minute}\n"
+        self.send_message(out_message=msg)
 
     def send_message(self, out_message=""):
         """Send the message"""
@@ -78,6 +101,7 @@ class TimerControl(threading.Thread):
 
     def close(self):
         """Close the thread"""
+        self.clock.close()
         self.running = False
 
     def __init__(self, device_id: str, action_station_id: str, control_config_dict: dict, context: zmq.Context) -> None:
@@ -85,31 +109,28 @@ class TimerControl(threading.Thread):
 
         self.context = context
         self.running = True
-        self.timer_type = None
 
         self.control_id = control_config_dict['controlID']
         self.name = control_config_dict['name']
         self.control_type = control_config_dict['objectType']
         provision_list = control_config_dict['provisioning']
 
+        self.control_msg = f"\t{device_id}\t{self.control_type}\t{self.control_id}"
+
+        latitude = provision_list[0]['value']
+        longitude = provision_list[1]['value']
+        self.location_info = LocationInfo('name', 'region', 'timezone/name', latitude, longitude)
+        tstamp = datetime.datetime.now()
+        self.day =  tstamp.day
+        self.sun_time = sun(self.location_info.observer, date=datetime.datetime.now(tz=tz.tzlocal()))
+
         self.push_url = TASK_PULL.format(id=action_station_id)
         self.pull_url = TASK_PULL.format(id=self.control_id)
-
         self.task_sender = self.context.socket(zmq.PUSH)
         self.task_sender.connect(self.push_url)
+        self.clock = ClockThread(self.clock_message)
 
-        self.timer_time = int(provision_list[1]['value'])/1000.0
-        self.timer_type = provision_list[0]['value']
-
-        self.control_msg = f"\t{device_id}\t{self.control_type}\t{self.control_id}\n"
-        
-        logging.debug("Init Class: %s, %s", self.control_type, self.name)
-
-        if self.timer_type == 'Repeat':
-            self.timer_type = RepeatTimer(self.timer_time, self.timer_message)
-            self.timer_type.start()
         self.start()
-
 
     def run(self):
         receiver = self.context.socket(zmq.PULL)
@@ -125,10 +146,7 @@ class TimerControl(threading.Thread):
             if receiver in socks:
                 message = receiver.recv()
                 if message:
-                    logging.debug("%s\t%s RX:\n%s", self.control_type, self.control_id, message.decode())
-                    if self.timer_type == 'OneShot':
-                        self.timer_type = threading.Timer(self.timer_time, self.timer_message)
-                        self.timer_type.start()
-        self.timer_type.cancel()
+                    self.clock_message(datetime.datetime.now())
+
         self.task_sender.close()
         receiver.close()
