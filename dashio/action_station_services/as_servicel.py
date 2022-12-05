@@ -6,7 +6,7 @@ import zmq
 import logging
 
 
-from .action_control_config import SelectorParameterSpec, IntParameterSpec, StringParameterSpec, FloatParameterSpec, BoolParameterSpec, SliderParameterSpec, ActionControlCFG, ListParameterSpec
+from .action_station_service_config import SelectorParameterSpec, IntParameterSpec, StringParameterSpec, FloatParameterSpec, BoolParameterSpec, SliderParameterSpec, ActionServiceCFG, ListParameterSpec
 from ..constants import TASK_PULL
 
 def make_test_config(num_tests):
@@ -49,7 +49,7 @@ def make_test_config(num_tests):
     ]
     parameter_list = []
 
-    timer_cfg = ActionControlCFG(
+    timer_cfg = ActionServiceCFG(
         "TST",
         "Test",
         "Test with all provisioning types",
@@ -63,7 +63,7 @@ def make_test_config(num_tests):
     )
     return timer_cfg.__json__()
 
-class ASControl(threading.Thread):
+class ASService(threading.Thread):
     """Action Station Template Class"""
 
     def send_message(self, out_message=""):

@@ -86,7 +86,7 @@ MESSAGE_FORMAT_OUTPUTS = {
     "LBL": "\t{device_id}\tLBL\t{control_id}\t{url}",
 }
 
-class TaskControl(threading.Thread):
+class TaskService(threading.Thread):
     """Task Class"""
 
     def send_message(self, out_message=""):

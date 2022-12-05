@@ -8,7 +8,7 @@ import serial
 import zmq
 
 from ..constants import TASK_PULL
-from .action_control_config import (ActionControlCFG, IntParameterSpec,
+from .action_station_service_config import (ActionServiceCFG, IntParameterSpec,
                                     ListParameterSpec, SelectorParameterSpec)
 
 
@@ -87,7 +87,7 @@ def make_modbus_config(num_tests):
     ]
     parameter_list_in = []
     parameter_list_out = []
-    timer_cfg = ActionControlCFG(
+    timer_cfg = ActionServiceCFG(
         "MDBS",
         "Modbus Test",
         "Modbus - Test provisioning of list",
@@ -101,7 +101,7 @@ def make_modbus_config(num_tests):
     )
     return timer_cfg.__json__()
 
-class ModbusControl(threading.Thread):
+class ModbusService(threading.Thread):
     """Action Station Template Class"""
 
 
