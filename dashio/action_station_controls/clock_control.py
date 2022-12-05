@@ -37,15 +37,15 @@ from .action_control_config import ActionControlCFG, FloatParameterSpec
 def make_clock_config(num_tests):
     """Make a timer config"""
     provisioning_list = [
-        FloatParameterSpec("Latitude", -90.0, 90.0, "degs", 0.0),
-        FloatParameterSpec("Longitude", -180.0, 180.0, "degs", 0.0),
+        FloatParameterSpec("Latitude", -90.0, 90.0, "degs", -43.5256),
+        FloatParameterSpec("Longitude", -180.0, 180.0, "degs", 172.6398),
     ]
     parameter_list = []
 
     clock_cfg = ActionControlCFG(
         "CLK",
         "Local Clock",
-        "Send local time, SunUp or SunDown.",
+        "Send local time and SunUp or SunDown every minute.",
         "CLK1",
         num_tests,
         True,
