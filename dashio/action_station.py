@@ -349,7 +349,7 @@ class ActionStation(threading.Thread):
             store_obj = self.configured_controls[payload["uuid"]]
             if store_obj['objectType'] == 'TASK':
                 self._delete_input_filter(payload["uuid"])
-            if store_obj['objectType'] in self.gui_controls:
+            if store_obj['objectType'] in self.dash_controls:
                 self.rm_gui_control(payload)
             del self.configured_controls[payload["uuid"]]
             result['result'] = True
