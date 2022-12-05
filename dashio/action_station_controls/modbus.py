@@ -1,18 +1,53 @@
 """Modbus"""
-import threading
-import time
-
-import zmq
+import glob
 import logging
+import sys
+import threading
 
+import serial
+import zmq
 
-from .action_control_config import SelectorParameterSpec, ListParameterSpec, IntParameterSpec, ActionControlCFG
 from ..constants import TASK_PULL
+from .action_control_config import (ActionControlCFG, IntParameterSpec,
+                                    ListParameterSpec, SelectorParameterSpec)
+
+
+
+
+def serial_ports():
+    """ Lists serial port names
+
+        :raises EnvironmentError:
+            On unsupported or unknown platforms
+        :returns:
+            A list of the serial ports available on the system
+    """
+    if sys.platform.startswith('win'):
+        ports = ['COM%s' % (i + 1) for i in range(256)]
+    elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+        # this excludes your current terminal "/dev/tty"
+        ports = glob.glob('/dev/tty[A-Za-z]*')
+    elif sys.platform.startswith('darwin'):
+        ports = glob.glob('/dev/tty.*')
+    else:
+        raise EnvironmentError('Unsupported platform')
+
+    result = []
+    for port in ports:
+        try:
+            s = serial.Serial(port)
+            s.close()
+            result.append(port)
+        except (OSError, serial.SerialException):
+            pass
+    return result
+
 
 def make_modbus_config(num_tests):
     """Make a timer config"""
+    s_ports = serial_ports()
     provisioning_list = [
-        SelectorParameterSpec("Serial Port",["uart1", "uart2", "uart4"], "uart1"),
+        SelectorParameterSpec("Serial Port",s_ports, s_ports[0]),
         SelectorParameterSpec("Baud", ["1200", "2400", "4800", "9600", "19200", "38400", "57600", "115200"], "9600"),
         SelectorParameterSpec("Modbus Type", ["RTU", "ASCII"], "RTU"),
         ListParameterSpec(
@@ -68,6 +103,8 @@ def make_modbus_config(num_tests):
 
 class ModbusControl(threading.Thread):
     """Action Station Template Class"""
+
+
 
     def send_message(self, out_message=""):
         """Send the message"""
