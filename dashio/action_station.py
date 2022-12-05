@@ -33,6 +33,7 @@ from .action_station_controls.task_control import TaskControl
 from .action_station_controls.timer_control import TimerControl, make_timer_config
 from .action_station_controls.as_control import make_test_config
 from .action_station_controls.modbus import ModbusControl, make_modbus_config
+from .action_station_controls.clock_control import ClockControl, make_clock_config
 from .load_config import CONTROL_INSTANCE_DICT
 
 
@@ -406,7 +407,8 @@ class ActionStation(threading.Thread):
         self.control_objects = {
             'TASK': TaskControl,
             'TMR': TimerControl,
-            'MDBS': ModbusControl
+            'MDBS': ModbusControl,
+            'CLK': ClockControl
         }
         self.thread_dicts = {} # For the Instantiated control and task objects.
 
@@ -419,7 +421,7 @@ class ActionStation(threading.Thread):
             "UPDATE": self._update_command,
             "RUN": self._run_command
         }
-        
+
         if not self.action_station_dict:
             self.action_station_id = shortuuid.uuid()
             self.action_station_dict['actionStationID'] = self.action_station_id
@@ -429,9 +431,11 @@ class ActionStation(threading.Thread):
             timer_cfg = make_timer_config(number_timers)
             test_cfg = make_test_config(1)
             modbus_cfg = make_modbus_config(1)
+            clock_cfg = make_clock_config(1)
             self.configs[timer_cfg['uuid']] = timer_cfg
             self.configs[test_cfg['uuid']] = test_cfg
             self.configs[modbus_cfg['uuid']] = modbus_cfg
+            self.configs[clock_cfg['uuid']] = clock_cfg
         else:
             try:
                 self.action_station_id = self.action_station_dict['actionStationID']
