@@ -71,7 +71,6 @@ class ClockThread(threading.Thread):
         self.running = False
 
     def run(self):
-        tstamp = datetime.datetime.utcnow()
         while self.running:
             tstamp = datetime.datetime.now()
             tstamp = tstamp.replace(tzinfo=tz.tzlocal())
@@ -95,7 +94,6 @@ class ClockControl(threading.Thread):
             self.sun_time = sun(self.location_info.observer, date=datetime.datetime.now())
             self.new_day = False
         daylight = "SunDown"
-        logging.debug("%s < %s < %s",self.sun_time['sunrise'], tstamp, self.sun_time['sunset'] )
         if self.sun_time['sunrise'] < tstamp < self.sun_time['sunset']:
             daylight = "SunUp"
         msg = f"{self.control_msg}\t{daylight}\t{tstamp.year}\t{tstamp.month}\t{tstamp.day}\t{tstamp.hour}\t{tstamp.minute}\n"
@@ -129,7 +127,6 @@ class ClockControl(threading.Thread):
         self.location_info = LocationInfo('name', 'region', 'timezone/name', latitude, longitude)
         self.new_day = False
         self.sun_time = sun(self.location_info.observer, date=datetime.datetime.now(tz=tz.tzlocal()))
-        logging.debug("Init Class: %s, %s", self.control_type, self.name)
 
         self.push_url = TASK_PULL.format(id=action_station_id)
         self.pull_url = TASK_PULL.format(id=self.control_id)
@@ -154,7 +151,6 @@ class ClockControl(threading.Thread):
             if receiver in socks:
                 message = receiver.recv()
                 if message:
-                    logging.debug("%s\t%s RX:\n%s", self.control_type, self.control_id, message.decode())
                     self.clock_message(datetime.datetime.now())
 
         self.task_sender.close()
