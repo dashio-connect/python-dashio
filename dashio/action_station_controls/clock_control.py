@@ -87,12 +87,9 @@ class ClockControl(threading.Thread):
 
     def clock_message(self, tstamp: datetime.datetime):
         """Send the message"""
-
-        if tstamp.hour == 0 and tstamp.minute == 0:
-            self.new_day = True
-        if self.new_day:
-            self.sun_time = sun(self.location_info.observer, date=datetime.datetime.now())
-            self.new_day = False
+        if tstamp.day != self.day:
+            self.sun_time = sun(self.location_info.observer, date=tstamp)
+            self.day = tstamp.day
         daylight = "SunDown"
         if self.sun_time['sunrise'] < tstamp < self.sun_time['sunset']:
             daylight = "SunUp"
@@ -125,7 +122,8 @@ class ClockControl(threading.Thread):
         latitude = provision_list[0]['value']
         longitude = provision_list[1]['value']
         self.location_info = LocationInfo('name', 'region', 'timezone/name', latitude, longitude)
-        self.new_day = False
+        tstamp = datetime.datetime.now()
+        self.day =  tstamp.day
         self.sun_time = sun(self.location_info.observer, date=datetime.datetime.now(tz=tz.tzlocal()))
 
         self.push_url = TASK_PULL.format(id=action_station_id)
