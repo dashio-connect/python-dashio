@@ -16,6 +16,6 @@ setup(
     packages=find_packages(),
     license="MIT",
     classifiers=["Programming Language :: Python :: 3.6", "Operating System :: OS Independent"],
-    install_requires=["paho-mqtt", "pyzmq", "python-dateutil", "zeroconf", "shortuuid", "pyserial"],
+    install_requires=["paho-mqtt", "pyzmq", "python-dateutil", "zeroconf", "shortuuid", "pyserial", "astral"],
     python_requires='>3.6.0',
 )
