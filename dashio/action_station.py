@@ -514,12 +514,12 @@ class ActionStation(threading.Thread):
                 logging.debug("MEM Rx: %s", message)
                 if len(message) == 3:
                     if message[0] == b'SET':
-                        self.memory_tasks[message[1]]=message[2]
+                        self.memory_tasks[message[1].decode()]=message[2].decode()
                         logging.debug("MEM Tx: SET: %s, TO: %s", message[1], message[2])
                         memory_socket.send_multipart([message[0], message[1], message[2]])
                     if message[0] == b'GET':
                         logging.debug("MEM Tx: GET: %s, RTN: %s", message[1], message[1])
-                        memory_socket.send_multipart([message[0], message[1], self.memory_tasks[message[1]]])
+                        memory_socket.send_multipart([message[0], message[1], self.memory_tasks[message[1].decode()].encode()])
                 #  Send error reply back to client
                 else:
                     memory_socket.send_multipart([b'ERROR',b'ERROR',b'ERROR'])
