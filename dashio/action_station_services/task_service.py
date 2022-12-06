@@ -115,7 +115,30 @@ class TaskService(threading.Thread):
         self._send_alarm(action['alarmID'], action['title'], action['body'])
 
     def _write_control_action(self, action, msg):
-        logging.debug("WRITE_CONTROL: %s", msg)
+        logging.debug("WRITE_CONTROL memType: %s", action["memType"])
+
+    def _read_mem_action(self, action, msg):
+        logging.debug("READ_MEM memType: %s", action["memType"])
+        if action["memType"] == "Local":
+            pass
+        elif action["memType"] == "task":
+            stored = self._task_get_mem(action['memoryID'])
+            logging.debug("READ_MEM Task: %s", stored)
+        elif action["memType"] == "Global":
+            pass
+        else:
+            logging.debug("READ_MEM unknown memType: %s", action["memType"])
+
+    def _write_mem_action(self, action, msg):
+        logging.debug("WRITE_MEM memType: %s", action["memType"])
+        if action["memType"] == "Local":
+            pass
+        elif action["memType"] == "task":
+            self._task_store_mem(action['memoryID'], action['thing'])
+        elif action["memType"] == "Global":
+            pass
+        else:
+            logging.debug("WRITE_MEM unknown memType: %s", action["memType"])
 
 
     def __init__(self, device_id: str, action_station_id: str, task_config_dict: dict, context: zmq.Context) -> None:
@@ -130,7 +153,9 @@ class TaskService(threading.Thread):
         action_function_dict = {
             "READ_CONTROL": self._read_control_action,
             "SEND_ALARM": self._send_alarm_action,
-            "WRITE_CONTROL": self._write_control_action
+            "WRITE_CONTROL": self._write_control_action,
+            "READ_MEM": self._read_mem_action,
+            "WRITE_MEM": self._write_mem_action,
         }
 
         self.task_id = task_config_dict['uuid']
