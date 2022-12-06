@@ -255,7 +255,7 @@ class ActionStation(threading.Thread):
         if t_object['uuid'] in self.thread_dicts:
             self.thread_dicts[t_object['uuid']].close()
             time.sleep(0.1)
-        self.thread_dicts[t_object['uuid']] = self.control_objects[t_object['objectType']](self.device_id, self.action_station_id, t_object, self.context)
+        self.thread_dicts[t_object['uuid']] = self.service_objects_defs[t_object['objectType']](self.device_id, self.action_station_id, t_object, self.context)
         if t_object['objectType'] == 'TASK':
             try:
                 rx_device_id = t_object['actions'][0]["deviceID"]
@@ -339,6 +339,7 @@ class ActionStation(threading.Thread):
         return reply
 
     def _delete_command(self, data):
+        logging.debug("DELETE: %s", data)
         payload = json.loads(data[3])
         result = {
             'objectType': "DELETE_RESULT",
@@ -347,8 +348,12 @@ class ActionStation(threading.Thread):
         }
         try:
             store_obj = self.configured_services[payload["uuid"]]
-            if store_obj['objectType'] == 'TASK':
-                self._delete_input_filter(payload["uuid"])
+            if store_obj['objectType'] in self.service_objects_defs:
+                if store_obj['objectType'] == 'TASK':
+                    self._delete_input_filter(store_obj["uuid"])
+                self.thread_dicts[payload['uuid']].close()
+                time.sleep(0.1)
+                del self.thread_dicts[payload['uuid']]
             if store_obj['objectType'] in self.dash_controls:
                 self.rm_gui_control(payload)
             del self.configured_services[payload["uuid"]]
@@ -367,7 +372,7 @@ class ActionStation(threading.Thread):
             'result': False
         }
         try:
-            if payload['objectType'] in self.control_objects:
+            if payload['objectType'] in self.service_objects_defs:
                 self.configured_services[payload['uuid']] = payload
                 result['result'] = self._start_control(payload)
             if payload['objectType'] in CONTROL_INSTANCE_DICT:
@@ -404,7 +409,7 @@ class ActionStation(threading.Thread):
         self.max_actions = max_actions
         self._device_control_filter_dict = {}
 
-        self.control_objects = {
+        self.service_objects_defs = {
             'TASK': TaskService,
             'TMR': TimerService,
             'MDBS': ModbusService,
