@@ -121,13 +121,11 @@ class TaskService(threading.Thread):
         logging.debug("READ_MEM memType: %s", action["memType"])
         if action["memType"] == "Local":
             pass
-        elif action["memType"] == "task":
-            stored = self._task_get_mem(action['memoryID'])
-            logging.debug("READ_MEM Task: %s", stored)
+        elif action["memType"] == "Task":
+            reply = self._task_get_mem(action['memoryID'])
         elif action["memType"] == "Global":
             self.device_mem_socket.send_multipart([b'GET', action['memoryID'].encode(), b'0'])
             reply = self.device_mem_socket.recv_multipart()
-            logging.debug("WRITE_MEM global REP: %s", reply)
         else:
             logging.debug("READ_MEM unknown memType: %s", action["memType"])
 
@@ -135,12 +133,11 @@ class TaskService(threading.Thread):
         logging.debug("WRITE_MEM memType: %s", action["memType"])
         if action["memType"] == "Local":
             pass
-        elif action["memType"] == "task":
+        elif action["memType"] == "Task":
             self._task_store_mem(action['memoryID'], action['thing'])
         elif action["memType"] == "Global":
             self.device_mem_socket.send_multipart([b'SET', action['memoryID'].encode(), action['thing'].encode()])
             reply = self.device_mem_socket.recv_multipart()
-            logging.debug("WRITE_MEM global REP: %s", reply)
         else:
             logging.debug("WRITE_MEM unknown memType: %s", action["memType"])
 
@@ -154,7 +151,7 @@ class TaskService(threading.Thread):
         self.control_type = "TASK"
         self.task_memory = {}
 
-        action_function_dict = {
+        self.action_function_dict = {
             "READ_CONTROL": self._read_control_action,
             "SEND_ALARM": self._send_alarm_action,
             "WRITE_CONTROL": self._write_control_action,
@@ -177,15 +174,9 @@ class TaskService(threading.Thread):
 
     # Do a simple test case to check messaging.
     def _do_actions(self, msg):
-        if len(self.actions) == 2:
-            if self.actions[0]['objectType'] == "READ_CONTROL":
-                self._read_control_action(self.actions[0], msg)
-            else:
-                return
-            if self.actions[1]['objectType'] == "SEND_ALARM":
-                self._send_alarm_action(self.actions[1], msg)
-            elif self.actions[1]['objectType'] == "WRITE_CONTROL":
-                self._write_control_action(self.actions[1], msg)
+        for action in self.actions:
+            self.action_function_dict[action['objectType']](action, msg)
+
 
     def run(self):
         task_receiver = self.context.socket(zmq.PULL)
