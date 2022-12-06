@@ -24,7 +24,7 @@ SOFTWARE.
 import zmq
 import logging
 import threading
-from ..constants import TASK_PULL
+from ..constants import TASK_PULL, MEMORY_REQ_URL
 
 def num(s_num: str):
     try:
@@ -91,7 +91,7 @@ class TaskService(threading.Thread):
 
     def send_message(self, out_message=""):
         """Send the message"""
-        self.task_sender.send_multipart([b"ALL", b"0", out_message.encode('utf-8')])
+        self.task_sender.send_multipart([b"ALL", b"0", out_message.encode()])
 
     def close(self):
         """Close the thread"""
@@ -105,7 +105,7 @@ class TaskService(threading.Thread):
 
     def _send_alarm(self, alarm_id: str, header: str, body: str):
         msg = f"\t{self.device_id}\t{alarm_id}\t{header}\t{body}\n"
-        self.task_sender.send_multipart([b"ALARM", b"0", msg.encode('utf-8')])
+        self.task_sender.send_multipart([b"ALARM", b"0", msg.encode()])
 
     def _read_control_action(self, action, msg):
         logging.debug("READ_CONTROL: %s", msg)
@@ -125,7 +125,9 @@ class TaskService(threading.Thread):
             stored = self._task_get_mem(action['memoryID'])
             logging.debug("READ_MEM Task: %s", stored)
         elif action["memType"] == "Global":
-            pass
+            self.device_mem_socket.send_multipart([b'GET', action['memoryID'].encode(), b'0'])
+            reply = self.device_mem_socket.recv_multipart()
+            logging.debug("WRITE_MEM global REP: %s", reply)
         else:
             logging.debug("READ_MEM unknown memType: %s", action["memType"])
 
@@ -136,7 +138,9 @@ class TaskService(threading.Thread):
         elif action["memType"] == "task":
             self._task_store_mem(action['memoryID'], action['thing'])
         elif action["memType"] == "Global":
-            pass
+            self.device_mem_socket.send_multipart([b'SET', action['memoryID'].encode(), action['thing'].encode()])
+            reply = self.device_mem_socket.recv_multipart()
+            logging.debug("WRITE_MEM global REP: %s", reply)
         else:
             logging.debug("WRITE_MEM unknown memType: %s", action["memType"])
 
@@ -163,6 +167,9 @@ class TaskService(threading.Thread):
         self.name = task_config_dict['name']
         self.push_url = TASK_PULL.format(id=action_station_id)
         self.pull_url = TASK_PULL.format(id=self.task_id)
+
+        self.device_mem_socket = self.context.socket(zmq.REQ)
+        self.device_mem_socket.connect(MEMORY_REQ_URL.format(id=self.device_id))
 
         self.task_sender = self.context.socket(zmq.PUSH)
         self.task_sender.connect(self.push_url)
@@ -198,3 +205,4 @@ class TaskService(threading.Thread):
                     self._do_actions(message)
         self.task_sender.close()
         task_receiver.close()
+        self.device_mem_socket.close()
