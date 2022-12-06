@@ -136,6 +136,9 @@ class DashConnection(threading.Thread):
             for device_id in self._device_id_list:
                 control_topic = f"{self.username}/{device_id}/control"
                 self._dash_c.subscribe(control_topic, 0)
+            for device_id in self._device_id_rx_list:
+                data_topic = f"{self.username}/{device_id}/data"
+                self._dash_c.subscribe(data_topic, 0)
             self._send_dash_announce()
             logging.debug("connected OK")
         else:
@@ -178,6 +181,27 @@ class DashConnection(threading.Thread):
                 control_topic = f"{self.username}/{device.device_id}/control"
                 self._dash_c.subscribe(control_topic, 0)
                 self._send_dash_announce()
+
+    def _add_device_rx(self, device_cmd):
+        """Connect to another device"""
+        d_split = device_cmd.split("\t")
+        device_id = d_split[2].strip()
+        logging.debug("DASH DEVICE CONNECT: %s", device_id)
+        if device_id not in self._device_id_rx_list:
+            self._device_id_rx_list.append(device_id)
+            data_topic = f"{self.username}/{device_id}/data"
+            self._dash_c.subscribe(data_topic, 0)
+            
+            
+
+    def _del_device_rx(self, device_cmd):
+        d_split = device_cmd.split("\t")
+        device_id = d_split[2].strip()
+        if device_id in self._device_id_rx_list:
+            data_topic = f"{self.username}/{device_id}/data"
+            self._dash_c.unsubscribe(data_topic)
+            logging.debug("DASH DEVICE_DISCONNECT: %s", device_id)
+            del self._device_id_rx_list[device_id]
 
     def _send_dash_announce(self):
         self.tx_zmq_pub.send_multipart([b'COMMAND', b'1', b"send_announce"])
@@ -231,6 +255,7 @@ class DashConnection(threading.Thread):
         self.connection_id = shortuuid.uuid()
         self._b_connection_id = self.connection_id.encode('utf-8')
         self._device_id_list = []
+        self._device_id_rx_list = []
         # self.LWD = "OFFLINE"
         self.running = True
         self.username = username
@@ -285,10 +310,12 @@ class DashConnection(threading.Thread):
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALARM")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "DVCE_CNCT")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "DVCE_DCNCT")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_id)
         poller = zmq.Poller()
         poller.register(self.rx_zmq_sub, zmq.POLLIN)
-
+        data_topic = ""
         while self.running:
             try:
                 socks = dict(poller.poll(50))
@@ -301,19 +328,24 @@ class DashConnection(threading.Thread):
                     continue
                 msg_l = data.split(b'\t')
                 try:
-                    device_id = msg_l[1].decode('utf-8').strip()
+                    device_id = msg_l[1].decode().strip()
                 except IndexError:
                     continue
                 if address == b'ALARM':
                     data_topic = f"{self.username}/{device_id}/alarm"
                 elif address == b"ANNOUNCE":
                     data_topic = f"{self.username}/{device_id}/announce"
+                elif address == b"DVCE_CNCT":
+                    self._add_device_rx(data.decode())
+                    continue
+                elif address == b"DVCE_DCNCT":
+                    self._del_device_rx(data.decode())
+                    continue
                 else:
                     data_topic = f"{self.username}/{device_id}/data"
-                if self._connected:
-                    logging.debug("DASH TX:\n%s", data.decode('utf-8').rstrip())
-                    self._dash_c.publish(data_topic, data.decode('utf-8'))
-
+                if self._connected and data_topic:
+                    logging.debug("DASH TX:\n%s", data.decode().rstrip())
+                    self._dash_c.publish(data_topic, data.decode())
             if self._disconnected:
                 self.disconnect_timeout = min(self.disconnect_timeout, 900)
                 time.sleep(self.disconnect_timeout)
