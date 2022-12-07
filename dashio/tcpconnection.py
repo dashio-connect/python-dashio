@@ -117,7 +117,10 @@ class TCPConnection(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via TCP."""
 
     def _zconf_publish_tcp(self, ip_address, port):
-        zconf_desc = {'ConnectionUUID': self.connection_id}
+        zconf_desc = {
+            'connectionUUID': self.connection_id,
+            'deviceID': ','.join(self.device_id_list)
+        }
         zconf_info = ServiceInfo(
             "_DashIO._tcp.local.",
             f"{self.connection_id}._DashIO._tcp.local.",
@@ -126,7 +129,8 @@ class TCPConnection(threading.Thread):
             properties=zconf_desc,
             server=self.host_name + ".",
         )
-        self.zeroconf.register_service(zconf_info)
+        self.zeroconf.update_service(zconf_info)
+
 
     def add_device(self, device: Device):
         """Add a device to the connection
@@ -138,6 +142,9 @@ class TCPConnection(threading.Thread):
         """
         device._add_connection(self)
         self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
+        if device.device_id not in self.device_id_list:
+            self.device_id_list.append(device.device_id)
+            self._zconf_publish_tcp(self.local_ip, self.local_port)
         #self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
 
     @staticmethod
@@ -175,6 +182,7 @@ class TCPConnection(threading.Thread):
             self.local_port += 1
         self.ext_url = "tcp://" + self.local_ip + ":" + str(self.local_port)
         self.socket_ids = []
+        self.device_id_list = []
         self.running = True
 
         host_name = socket.gethostname()
@@ -216,7 +224,8 @@ class TCPConnection(threading.Thread):
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         # Subscribe on ALL, and my connection
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALARM")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "DVCE_CNCT")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "DVCE_DCNCT")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_id)
         # rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
 

@@ -169,7 +169,6 @@ class SerialConnection(threading.Thread):
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         # Subscribe on ALL, and my connection
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALARM")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_id)
         # rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
 

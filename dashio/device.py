@@ -171,9 +171,9 @@ class Device(threading.Thread):
         return reply
 
     def _send_alarm(self, alarm_id, message_header, message_body):
-        payload = self._device_id_str + f"\t{alarm_id}\t{message_header}\t{message_body}\n"
+        payload = self._device_id_str + f"\tALM\t{alarm_id}\t{message_header}\t{message_body}\n"
         logging.debug("ALARM: %s", payload)
-        self.tx_zmq_pub.send_multipart([b"ALARM", b'0', payload.encode('utf-8')])
+        self.tx_zmq_pub.send_multipart([b"ALL", b'0', payload.encode('utf-8')])
 
     def _send_data(self, data: str):
         if not data:

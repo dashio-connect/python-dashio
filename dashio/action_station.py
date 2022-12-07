@@ -479,7 +479,6 @@ class ActionStation(threading.Thread):
         self.device_zmq_sub = self.context.socket(zmq.SUB)
         # Subscribe on ALL, and my connection
         self.device_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")
-        self.device_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALARM")
         self.device_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.action_station_id)
 
         # rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
