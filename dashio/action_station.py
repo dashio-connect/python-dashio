@@ -26,6 +26,7 @@ import threading
 import time
 import sys
 import shortuuid
+import socket
 import zmq
 
 from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL, MEMORY_REQ_URL, TASK_PULL
@@ -130,6 +131,7 @@ class ActionControl():
     @memory_storage_size.setter
     def memory_storage_size(self, val: int):
         self._cfg["memSize"] = val
+
 
 
 class ActionStation(threading.Thread):
@@ -469,6 +471,7 @@ class ActionStation(threading.Thread):
                 sys.exit(f"Old json formatted file. Please delete '{self._json_filename}' and restart")
 
         self.running = True
+
         self.start()
         time.sleep(1)
 
@@ -532,6 +535,7 @@ class ActionStation(threading.Thread):
                 if message:
                     logging.debug("ActionStation TASK RX:\n%s", message[2].decode())
                     self.tx_zmq_pub.send_multipart([message[0], message[1], message[2]])
+            
             if memory_socket in socks:
                 message = memory_socket.recv_multipart()
                 logging.debug("MEM Rx: %s", message)
@@ -546,6 +550,7 @@ class ActionStation(threading.Thread):
                 #  Send error reply back to client
                 else:
                     memory_socket.send_multipart([b'ERROR',b'ERROR',b'ERROR'])
+            
 
         self.tx_zmq_pub.close()
         self.device_zmq_sub.close()
