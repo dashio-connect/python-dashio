@@ -169,7 +169,6 @@ class DashConnection(threading.Thread):
             device (Device):
                 The Device to add.
         """
-       
         if device.device_id not in self._device_id_list:
             self._device_id_list.append(device.device_id)
             device._add_connection(self)
@@ -309,13 +308,13 @@ class DashConnection(threading.Thread):
         # Subscribe on ALL, and my connection
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALARM")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "DVCE_CNCT")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "DVCE_DCNCT")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_id)
         poller = zmq.Poller()
         poller.register(self.rx_zmq_sub, zmq.POLLIN)
         data_topic = ""
+        control_type = ""
         while self.running:
             try:
                 socks = dict(poller.poll(50))
@@ -327,12 +326,15 @@ class DashConnection(threading.Thread):
                 if not data:
                     continue
                 msg_l = data.split(b'\t')
+                if len(msg_l) > 3:
+                    control_type = msg_l[2]
                 try:
                     device_id = msg_l[1].decode().strip()
                 except IndexError:
                     continue
-                if address == b'ALARM':
+                if control_type == b'ALM':
                     data_topic = f"{self.username}/{device_id}/alarm"
+                    control_type = ""
                 elif address == b"ANNOUNCE":
                     data_topic = f"{self.username}/{device_id}/announce"
                 elif address == b"DVCE_CNCT":

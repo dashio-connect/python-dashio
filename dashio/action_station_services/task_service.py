@@ -104,7 +104,7 @@ class TaskService(threading.Thread):
         return self.task_memory.get(mem_loc, "")
 
     def _send_alarm(self, alarm_id: str, header: str, body: str):
-        msg = f"\t{self.device_id}\t{alarm_id}\t{header}\t{body}\n"
+        msg = f"\t{self.device_id}\tALM\t{alarm_id}\t{header}\t{body}\n"
         self.task_sender.send_multipart([b"ALARM", b"0", msg.encode()])
 
     def _read_control_action(self, action, msg):

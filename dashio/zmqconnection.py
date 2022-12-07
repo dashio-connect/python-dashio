@@ -131,9 +131,12 @@ class ZMQControl():
 class ZMQConnection(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via ZMQ."""
 
-    def __zconf_publish_zmq(self, sub_port, pub_port):
-        zconf_desc = {'sub_port': str(sub_port),
-                      'pub_port': str(pub_port)}
+    def _zconf_publish_zmq(self, sub_port, pub_port):
+        zconf_desc = {
+            'subPort': str(sub_port),
+            'pubPort': str(pub_port),
+            'deviceID': ','.join(self.device_id_list)
+        }
 
         zconf_info = ServiceInfo(
             "_DashZMQ._tcp.local.",
@@ -143,7 +146,7 @@ class ZMQConnection(threading.Thread):
             properties=zconf_desc,
             server=self.host_name + ".",
         )
-        self.zeroconf.register_service(zconf_info)
+        self.zeroconf.update_service(zconf_info)
 
     def add_device(self, device):
         """Add a device to the connection
@@ -155,6 +158,9 @@ class ZMQConnection(threading.Thread):
         """
         device._add_connection(self)
         self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
+        if device.device_id not in self.device_id_list:
+            self.device_id_list.append(device.device_id)
+            self._zconf_publish_tcp(self.local_ip, self.local_port)
 
     def close(self):
         """Close the connection."""
@@ -181,6 +187,7 @@ class ZMQConnection(threading.Thread):
         self.context = context or zmq.Context.instance()
         self.running = True
 
+        self.device_id_list = []
         self.connection_id = shortuuid.uuid()
         self.b_connection_id = self.connection_id.encode('utf-8')
 
@@ -192,7 +199,7 @@ class ZMQConnection(threading.Thread):
         self.local_ip = ip.get_local_ip_address()
         self.connection_control = ZMQControl(zmq_out_url, pub_port, sub_port)
         self.zeroconf = Zeroconf(ip_version=IPVersion.V4Only)
-        self.__zconf_publish_zmq(sub_port, pub_port)
+        self._zconf_publish_zmq(sub_port, pub_port)
         self.start()
 
     def run(self):
@@ -204,7 +211,8 @@ class ZMQConnection(threading.Thread):
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         # Subscribe on ALL, and my connection
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALARM")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "DVCE_CNCT")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "DVCE_DCNCT")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_id)
         # rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
 
