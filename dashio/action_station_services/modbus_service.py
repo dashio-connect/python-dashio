@@ -83,7 +83,28 @@ def make_modbus_config(num_tests):
                     2
                 )
             ]
+        ),
+        ListParameterSpec(
+            "Read a Bit",
+            "Create a list of registers to read data from.",
+            [
+                IntParameterSpec(
+                    "Read Register Base Address",
+                    0,
+                    65535,
+                    "",
+                    0
+                ),
+                IntParameterSpec(
+                    "Bit Mask",
+                    0,
+                    65535,
+                    "",
+                    0
+                )
+            ]
         )
+
     ]
     parameter_list_in = []
     parameter_list_out = []
