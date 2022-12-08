@@ -117,7 +117,7 @@ class BBB_Temperature:
         dash_con.add_device(device)
 
         gph_15_minutes = dashio.TimeGraph("Temperature15M")
-        gph_15_minutes.title = "Temp15M:{}".format(args.device_name)
+        gph_15_minutes.title = f"Temp15M:{args.device_name}"
         gph_15_minutes.y_axis_label = "Degrees C"
         gph_15_minutes.y_axis_min = 0.0
         gph_15_minutes.y_axis_max = 50.0
@@ -128,7 +128,7 @@ class BBB_Temperature:
         gph_15_minutes.add_line("DegC", line_15_minutes)
 
         gph_1_day = dashio.TimeGraph("Temperature1D")
-        gph_1_day.title = "Temp1D:{}".format(args.device_name)
+        gph_1_day.title = f"Temp1D:{args.device_name}"
         gph_1_day.y_axis_label = "Degrees C"
         gph_1_day.y_axis_min = 0.0
         gph_1_day.y_axis_max = 50.0
@@ -139,7 +139,7 @@ class BBB_Temperature:
         gph_1_day.add_line("DegC", line_1_day)
 
         gph_1_week = dashio.TimeGraph("Temperature1W")
-        gph_1_week.title = "Temp1W:{}".format(args.device_name)
+        gph_1_week.title = f"Temp1W:{args.device_name}"
         gph_1_week.y_axis_label = "Degrees C"
         gph_1_week.y_axis_min = 0.0
         gph_1_week.y_axis_max = 50.0
@@ -150,7 +150,7 @@ class BBB_Temperature:
         gph_1_week.add_line("DegC", line_1_week)
 
         gph_1_year = dashio.TimeGraph("Temperature1Y")
-        gph_1_year.title = "Temp1Y:{}".format(args.device_name)
+        gph_1_year.title = f"Temp1Y:{args.device_name}"
         gph_1_year.y_axis_label = "Degrees C"
         gph_1_year.y_axis_min = 0.0
         gph_1_year.y_axis_max = 50.0
@@ -207,7 +207,7 @@ class BBB_Temperature:
             t = datetime.datetime.now()
             if (t.minute == 0 or t.minute == 15 or t.minute == 30 or t.minute == 45) and (t.second < 5):
                 total = 0
-                for d in line_15_minutes.data:
+                for d in line_15_minutes.data.data:
                     temps = d.data_point
                     total += float(temps)
                 avg = total / len(line_15_minutes.data)

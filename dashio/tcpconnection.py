@@ -130,11 +130,15 @@ class ZeroConfDashTCPListener:
     def add_service(self, zeroconf, service_type, name):
         info = zeroconf.get_service_info(service_type, name)
         if info:
+            try:
+                device_id = info.properties[b'deviceID'].decode()
+            except KeyError:
+                device_id = ''
             for address in info.addresses:
                 msg = {
                     'objectType': 'zeroConfAdd',
                     'address': socket.inet_ntoa(address),
-                    'deviceID': info.properties[b'deviceID'].decode(),
+                    'deviceID': device_id,
                     'connectionID': name.split("_", 1)[0],
                     'port': str(info.port)
                 }
@@ -143,11 +147,15 @@ class ZeroConfDashTCPListener:
     def update_service(self, zeroconf, service_type, name):
         info = zeroconf.get_service_info(service_type, name)
         if info:
+            try:
+                device_id = info.properties[b'deviceID'].decode()
+            except KeyError:
+                device_id = ''
             for address in info.addresses:
                 msg = {
                     'objectType': 'zeroConfUpdate',
                     'address': socket.inet_ntoa(address),
-                    'deviceID': info.properties[b'deviceID'].decode(),
+                    'deviceID': device_id,
                     'connectionID': name.split("_", 1)[0],
                     'port': str(info.port)
                 }
@@ -260,6 +268,7 @@ class TCPConnection(threading.Thread):
 
         self.connection_control = TCPControl(self.connection_id, self.local_ip, self.local_port)
         self.start()
+        threading.Thread(target=self._zconf_start_zmq).start()
         time.sleep(1)
 
     def close(self):
@@ -273,13 +282,13 @@ class TCPConnection(threading.Thread):
         self.running = False
 
 
-    def connect_remote_device(self, msg: dict):
+    def _connect_remote_device(self, msg: dict):
         """Connect to remote device"""
         ip_address = msg['address']
         port = msg['port']
         url = f"tcp://{ip_address}:{port}"
         self.tcpsocket.connect(url)
-        socket_id = self.tcp_socket.getsockopt(zmq.IDENTITY)
+        socket_id = self.tcpsocket.getsockopt(zmq.IDENTITY)
         ip_b = ip_address + ':' + port
         if ip_b not in self.tcp_ip_2_id_dict:
             try:
@@ -287,20 +296,52 @@ class TCPConnection(threading.Thread):
                 self.tcpsocket.send_string('\tWHO\n')
                 self.tcp_id_2_ip_dict[socket_id] = ip_address + ':' + port
                 self.tcp_ip_2_id_dict[ip_address + ':' + port] = socket_id
-                logging.debug("BRIDGE TX: \tWHO")
+                logging.debug("TCP TX: \tWHO")
 
             except zmq.error.ZMQError:
                 logging.debug("Sending TX Error.")
-                self.tcp_socket.send(b'')
+                self.tcpsocket.send(b'')
         time.sleep(0.1)
+        if socket_id not in self.socket_ids:
+            logging.debug("Added Socket ID: %s", socket_id.hex())
+            self.socket_ids.append(socket_id)
         return socket_id
 
-    def remove_remote_device(self, ip_address, port):
+    def _remove_remote_device(self, ip_address, port):
         pass
 
-    def run(self):
-        self.tcpsocket = self.context.socket(zmq.STREAM)
+    def _service_zconf_message(self, rx_zconf_pull):
+        message = rx_zconf_pull.recv()
+        logging.debug("ZCONF Rx: %s", message)
+        msg = json.loads(message)
+        if msg['objectType'] in ['zeroConfAdd', 'zeroConfUpdate']:
+            device_list = msg['deviceID'].split(',')
+            for device_id in device_list:
+                if len(device_id) > 0 and (device_id not in self.device_id_list) and (device_id not in self.remote_device_id_list):
+                    self.remote_device_id_list.append(device_id)
+                    added = True
+                else:
+                    added = False
+            if added:
+                self.remote_connection_dict[msg['connectionID']] = device_list
+                self.remote_device_con_dict[msg['connectionID']] = msg
+                # self._connect_remote_device(msg)
+                
+                added = False
+        elif msg['objectType'] == 'zeroConfDisconnect':
+            try:
+                for device_id in self.remote_connection_dict[msg['connectionID']]:
+                    if device_id in self.remote_device_id_list:
+                        self.remote_device_id_list.remove(device_id)
+            except KeyError:
+                return
+            del self.remote_connection_dict[msg['connectionID']]
+            del self.remote_device_con_dict[msg['connectionID']]
+        logging.debug("DeviceID List: %s", self.remote_device_id_list)
+        logging.debug("ConnectionID Dict: %s", self.remote_device_con_dict)
 
+    def _service_device_messaging(self):
+        
         def _zmq_tcp_send(tcp_id, data):
             try:
                 self.tcpsocket.send(tcp_id, zmq.SNDMORE)
@@ -310,6 +351,36 @@ class TCPConnection(threading.Thread):
                 # self.socket_ids.remove(tcp_id)
             except OSError as exc:
                 logging.debug("Socket assignment error: %s", exc)
+        try:
+            [address, msg_id, data] = self.rx_zmq_sub.recv_multipart()
+        except ValueError:
+            return
+        if not data:
+            return
+        if address == b'ALL':
+            for tcp_id in self.socket_ids:
+                logging.debug("TCP ID: %s, Tx:\n%s", tcp_id.hex(), data.decode('utf-8').rstrip())
+                _zmq_tcp_send(tcp_id, data)
+        elif address == self.b_connection_id:
+            logging.debug("TCP ID: %s, Tx:\n%s", msg_id.hex(), data.decode('utf-8').rstrip())
+            _zmq_tcp_send(msg_id, data)
+
+    def _service_tcp_messages(self, tx_zmq_pub):
+        tcp_id = self.tcpsocket.recv()
+        message = self.tcpsocket.recv()
+        if tcp_id not in self.socket_ids:
+            logging.debug("Added Socket ID: %s", tcp_id.hex())
+            self.socket_ids.append(tcp_id)
+        logging.debug("TCP ID: %s, Rx:\n%s", tcp_id.hex(), message.decode('utf-8').rstrip())
+        if message:
+            tx_zmq_pub.send_multipart([self.b_connection_id, tcp_id, message])
+        else:
+            if tcp_id in self.socket_ids:
+                logging.debug("Removed Socket ID: %s", tcp_id.hex())
+                self.socket_ids.remove(tcp_id)
+
+    def run(self):
+        self.tcpsocket = self.context.socket(zmq.STREAM)
 
         tx_zmq_pub = self.context.socket(zmq.PUB)
         tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
@@ -332,75 +403,26 @@ class TCPConnection(threading.Thread):
         poller.register(self.tcpsocket, zmq.POLLIN)
         poller.register(self.rx_zmq_sub, zmq.POLLIN)
         poller.register(rx_zconf_pull, zmq.POLLIN)
-        threading.Thread(target=self._zconf_start_zmq).start()
+
 
         tcp_id = self.tcpsocket.recv()
         self.tcpsocket.recv()  # empty data here
-        added = False
+
         while self.running:
             try:
                 socks = dict(poller.poll(50))
             except zmq.error.ContextTerminated:
                 break
-
             if self.tcpsocket in socks:
-                tcp_id = self.tcpsocket.recv()
-                message = self.tcpsocket.recv()
-                if tcp_id not in self.socket_ids:
-                    logging.debug("Added Socket ID: %s", tcp_id.hex())
-                    self.socket_ids.append(tcp_id)
-                logging.debug("TCP ID: %s, Rx:\n%s", tcp_id.hex(), message.decode('utf-8').rstrip())
-                if message:
-                    tx_zmq_pub.send_multipart([self.b_connection_id, tcp_id, message])
-                else:
-                    if tcp_id in self.socket_ids:
-                        logging.debug("Removed Socket ID: %s", tcp_id.hex())
-                        self.socket_ids.remove(tcp_id)
+                self._service_tcp_messages(tx_zmq_pub)
             if self.rx_zmq_sub in socks:
-                try:
-                    [address, msg_id, data] = self.rx_zmq_sub.recv_multipart()
-                except ValueError:
-                    # If there aren't three parts continue.
-                    continue
-                if not data:
-                    continue
-                if address == b'ALL':
-                    for tcp_id in self.socket_ids:
-                        logging.debug("TCP ID: %s, Tx:\n%s", tcp_id.hex(), data.decode('utf-8').rstrip())
-                        _zmq_tcp_send(tcp_id, data)
-                elif address == self.b_connection_id:
-                    logging.debug("TCP ID: %s, Tx:\n%s", msg_id.hex(), data.decode('utf-8').rstrip())
-                    _zmq_tcp_send(msg_id, data)
+                self._service_device_messaging()
             if rx_zconf_pull in socks:
-                message = rx_zconf_pull.recv()
-                logging.debug("ZCONF Rx: %s", message)
-                msg = json.loads(message)
-                if msg['objectType'] in ['zeroConfAdd', 'zeroConfUpdate']:
-                    device_list = msg['deviceID'].split(',')
-                    for device_id in device_list:
-                        if len(device_id) > 0 and (device_id not in self.device_id_list) and (device_id not in self.remote_device_id_list):
-                            self.remote_device_id_list.append(device_id)
-                            added = True
-                        else:
-                            added = False
-                    if added:
-                        self.remote_connection_dict[msg['connectionID']] = device_list
-                        self.remote_device_con_dict[msg['connectionID']] = msg
-                        self.connect_remote_device(msg)
-                        added = False
-                elif msg['objectType'] == 'zeroConfDisconnect':
-                    try:
-                        for device_id in self.remote_connection_dict[msg['connectionID']]:
-                            if device_id in self.remote_device_id_list:
-                                self.remote_device_id_list.remove(device_id)
-                    except KeyError:
-                        continue
-                    del self.remote_connection_dict[msg['connectionID']]
-                    del self.remote_device_con_dict[msg['connectionID']]
-                #logging.debug("DeviceID List: %s", self.remote_device_id_list)
-                #logging.debug("ConnectionID Dict: %s", self.remote_device_con_dict)
+                self._service_zconf_message(rx_zconf_pull)
+        
         for tcp_id in self.socket_ids:
-            _zmq_tcp_send(tcp_id, b'')
+            self.tcpsocket.send(tcp_id, zmq.SNDMORE)
+            self.tcpsocket.send(b'', zmq.NOBLOCK)
 
         self.tcpsocket.close()
         tx_zmq_pub.close()
