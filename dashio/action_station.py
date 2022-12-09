@@ -290,7 +290,7 @@ class ActionStation(threading.Thread):
                     self.remote_device_ids.remove(rx_device_id)
                 msg = f"\tDVCE_DCNCT\t{rx_device_id}\n"
                 logging.debug("AS TX DVCE_DCNCT %s", msg)
-                self.tx_zmq_pub.send_multipart([b"DVCE_CNCT", b"1", msg.encode()])
+                self.tx_zmq_pub.send_multipart([b"DVCE_DCNCT", b"1", msg.encode()])
             task_dict_key = f"{rx_device_id}\t{control_id}\t"
             del self._device_control_filter_dict[task_dict_key]
         except IndexError:
