@@ -190,8 +190,6 @@ class DashConnection(threading.Thread):
             self._device_id_rx_list.append(device_id)
             data_topic = f"{self.username}/{device_id}/data"
             self._dash_c.subscribe(data_topic, 0)
-            
-            
 
     def _del_device_rx(self, device_cmd):
         d_split = device_cmd.split("\t")

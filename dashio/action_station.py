@@ -264,10 +264,11 @@ class ActionStation(threading.Thread):
                 rx_device_id = t_object['actions'][0]["deviceID"]
                 control_id = t_object['actions'][0]["controlID"]
                 if rx_device_id != self.device_id:
-                    logging.debug("AS TX DVCE_CNCT %s", rx_device_id)
                     if rx_device_id not in self.remote_device_ids:
                         self.remote_device_ids.append(rx_device_id)
-                        self.tx_zmq_pub.send_multipart([b"DVCE_CNCT", b"0", rx_device_id.encode()])
+                    msg = f"\tDVCE_CNCT\t{rx_device_id}\n"
+                    logging.debug("AS TX DVCE_CNCT %s, %s", rx_device_id, msg)
+                    self.tx_zmq_pub.send_multipart([b"DVCE_CNCT", b"1", msg.encode()])
                 task_dict_key = f"{rx_device_id}\t{control_id}\t"
                 task_sender = self.context.socket(zmq.PUSH)
                 task_sender.connect(TASK_PULL.format(id=t_object['uuid']))
@@ -287,8 +288,9 @@ class ActionStation(threading.Thread):
             if rx_device_id != self.device_id:
                 if rx_device_id in self.remote_device_ids:
                     self.remote_device_ids.remove(rx_device_id)
-                logging.debug("AS TX DVCE_DCNCT %s", rx_device_id)
-                self.tx_zmq_pub.send_multipart([b"DVCE_DCNCT", b"0", rx_device_id.encode()])
+                msg = f"\tDVCE_DCNCT\t{rx_device_id}\n"
+                logging.debug("AS TX DVCE_DCNCT %s", msg)
+                self.tx_zmq_pub.send_multipart([b"DVCE_CNCT", b"1", msg.encode()])
             task_dict_key = f"{rx_device_id}\t{control_id}\t"
             del self._device_control_filter_dict[task_dict_key]
         except IndexError:
@@ -471,9 +473,7 @@ class ActionStation(threading.Thread):
                 sys.exit(f"Old json formatted file. Please delete '{self._json_filename}' and restart")
 
         self.running = True
-
         self.start()
-        time.sleep(1)
 
     def run(self):
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
@@ -506,7 +506,7 @@ class ActionStation(threading.Thread):
 
         while self.running:
             try:
-                socks = dict(poller.poll(50))
+                socks = dict(poller.poll(20))
             except zmq.error.ContextTerminated:
                 break
             if self.device_zmq_sub in socks:
