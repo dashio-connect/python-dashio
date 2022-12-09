@@ -111,7 +111,7 @@ class Device(threading.Thread):
         if cntrl_type in self._device_commands_dict:
             return self._device_commands_dict[cntrl_type](data_array)
         try:
-            reply = self._control_dict[cntrl_type + "_" + data_array[2]].message_rx_event(data_array)
+            reply = self._control_dict[cntrl_type + "\t" + data_array[2]].message_rx_event(data_array)
             if reply:
                 return reply.replace("{device_id}", self.device_id)
         except (KeyError, IndexError):
@@ -205,7 +205,7 @@ class Device(threading.Thread):
                 iot_control.message_tx_event += self._send_data
         except AttributeError:
             pass
-        key = f"{iot_control.cntrl_type}_{iot_control.control_id}"
+        key = f"{iot_control.cntrl_type}\t{iot_control.control_id}"
         self._control_dict[key] = iot_control
         if isinstance(iot_control, Knob):
             key = f"KBDL_{iot_control.control_id}"
@@ -343,8 +343,8 @@ class Device(threading.Thread):
         return ""
 
     def _add_connection(self, connection):
-        self.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=connection.connection_id))
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, connection.connection_id)
+        self.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=connection.connection_uuid))
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, connection.connection_uuid)
         self.add_control(connection.connection_control)
         if self._add_actions:
             self.action_station.add_connection(connection)

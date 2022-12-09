@@ -140,7 +140,7 @@ class ZMQConnection(threading.Thread):
 
         zconf_info = ServiceInfo(
             "_DashZMQ._tcp.local.",
-            f"{self.connection_id}._DashZMQ._tcp.local.",
+            f"{self.connection_uuid}._DashZMQ._tcp.local.",
             addresses=[socket.inet_aton(self.local_ip)],
             port=pub_port,
             properties=zconf_desc,
@@ -188,8 +188,8 @@ class ZMQConnection(threading.Thread):
         self.running = True
 
         self.device_id_list = []
-        self.connection_id = shortuuid.uuid()
-        self.b_connection_id = self.connection_id.encode('utf-8')
+        self.connection_uuid = shortuuid.uuid()
+        self.b_connection_id = self.connection_uuid.encode('utf-8')
 
         host_name = socket.gethostname()
         host_list = host_name.split(".")
@@ -205,7 +205,7 @@ class ZMQConnection(threading.Thread):
     def run(self):
 
         tx_zmq_pub = self.context.socket(zmq.PUB)
-        tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
+        tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_uuid))
 
         #  Subscribe on ALL, and my connection
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
@@ -213,7 +213,7 @@ class ZMQConnection(threading.Thread):
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "DVCE_CNCT")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "DVCE_DCNCT")
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_id)
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_uuid)
         # rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
 
         ext_tx_zmq_pub = self.context.socket(zmq.PUB)

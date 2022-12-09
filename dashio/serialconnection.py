@@ -143,8 +143,8 @@ class SerialConnection(threading.Thread):
 
         threading.Thread.__init__(self, daemon=True)
         self.context = context or zmq.Context.instance()
-        self.connection_id = shortuuid.uuid()
-        self.b_connection_id = self.connection_id.encode()
+        self.connection_uuid = shortuuid.uuid()
+        self.b_connection_id = self.connection_uuid.encode()
 
         self.running = True
 
@@ -154,7 +154,7 @@ class SerialConnection(threading.Thread):
         self.host_name = f"{host_list[0]}.local"
         self.serial_com = serial.Serial(serial_port, baud_rate, timeout=1.0)
         self.serial_com.flush()
-        self.connection_control = SerialControl(self.connection_id, serial_port, baud_rate)
+        self.connection_control = SerialControl(self.connection_uuid, serial_port, baud_rate)
         self.start()
         time.sleep(1)
 
@@ -164,12 +164,12 @@ class SerialConnection(threading.Thread):
 
     def run(self):
         tx_zmq_pub = self.context.socket(zmq.PUB)
-        tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
+        tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_uuid))
 
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         # Subscribe on ALL, and my connection
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_id)
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_uuid)
         # rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
 
         poller = zmq.Poller()

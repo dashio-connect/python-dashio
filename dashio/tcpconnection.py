@@ -114,52 +114,61 @@ class TCPControl():
 
 
 class ZeroConfDashTCPListener:
-    def __init__(self, context):
+    """A zeroc conf listener"""
+    def __init__(self, service_type: str, connection_uuid: str, context: zmq.Context):
         self.context = context
+        self.service_type = service_type
+        self.connection_uuid = connection_uuid
         self.zmq_socket = self.context.socket(zmq.PUSH)
         self.zmq_socket.connect("inproc://zconf")
 
+    def _send_msg(self, msg: dict):
+        """Send a message"""
+        logging.debug("ZCONF: %s", json.dumps(msg))
+        self.zmq_socket.send(json.dumps(msg).encode())
+
     def remove_service(self, zeroconf, service_type, name):
-        if service_type ==  "_DashIO._tcp.local.":
+        """Remove service"""
+        connection_uuid  = name.split("._", 1)[0]
+        if service_type == self.service_type and connection_uuid != self.connection_uuid:
             msg = {
                 'objectType': 'zeroConfDisconnect',
-                'connectionID': name.split("_", 1)[0]
+                'connectionID': name.split(".", 1)[0]
             }
-            self.zmq_socket.send(json.dumps(msg).encode())
+            self._send_msg(msg)
+
+    def _send_info(self, name, info):
+        try:
+            device_ids = info.properties[b'deviceID'].decode()
+        except KeyError:
+            device_ids = ''
+        for address in info.addresses:
+            msg = {
+                'objectType': 'zeroConfUpdate',
+                'address': socket.inet_ntoa(address),
+                'deviceID': device_ids,
+                'connectionID': name.split(".", 1)[0],
+                'port': str(info.port)
+            }
+            self._send_msg(msg)
 
     def add_service(self, zeroconf, service_type, name):
-        info = zeroconf.get_service_info(service_type, name)
-        if info:
-            try:
-                device_id = info.properties[b'deviceID'].decode()
-            except KeyError:
-                device_id = ''
-            for address in info.addresses:
-                msg = {
-                    'objectType': 'zeroConfAdd',
-                    'address': socket.inet_ntoa(address),
-                    'deviceID': device_id,
-                    'connectionID': name.split("_", 1)[0],
-                    'port': str(info.port)
-                }
-                self.zmq_socket.send(json.dumps(msg).encode())
+        """add service"""
+        connection_uuid  =name.split(".", 1)[0]
+        if service_type == self.service_type and connection_uuid != self.connection_uuid:
+            info = zeroconf.get_service_info(service_type, name)
+            if info:
+                self._send_info(name, info)
 
     def update_service(self, zeroconf, service_type, name):
-        info = zeroconf.get_service_info(service_type, name)
-        if info:
-            try:
-                device_id = info.properties[b'deviceID'].decode()
-            except KeyError:
-                device_id = ''
-            for address in info.addresses:
-                msg = {
-                    'objectType': 'zeroConfUpdate',
-                    'address': socket.inet_ntoa(address),
-                    'deviceID': device_id,
-                    'connectionID': name.split("_", 1)[0],
-                    'port': str(info.port)
-                }
-                self.zmq_socket.send(json.dumps(msg).encode())
+        """update service"""
+        connection_uuid  =name.split(".", 1)[0]
+        if service_type == self.service_type and connection_uuid != self.connection_uuid:
+            info = zeroconf.get_service_info(service_type, name)
+            if info:
+                self._send_info(name, info)
+
+
 
 
 class TCPConnection(threading.Thread):
@@ -167,14 +176,14 @@ class TCPConnection(threading.Thread):
 
     def _zconf_start_zmq(self):
         # give a little time for ZMQ to start up.
-        self.browser = ServiceBrowser(self.zeroconf, "_DashIO._tcp.local.", self.listener)
+        self.browser = ServiceBrowser(self.zeroconf, self.zconf_service_type, self.listener)
         zconf_desc = {
-            'connectionUUID': self.connection_id,
+            'connectionUUID': self.connection_uuid,
             'deviceID': ','.join(self.device_id_list)
         }
         zconf_info = ServiceInfo(
-            "_DashIO._tcp.local.",
-            f"{self.connection_id}._DashIO._tcp.local.",
+            self.zconf_service_type,
+            f"{self.connection_uuid}._DashIO._tcp.local.",
             addresses=[socket.inet_aton(self.local_ip)],
             port=self.local_port,
             properties=zconf_desc,
@@ -184,12 +193,12 @@ class TCPConnection(threading.Thread):
 
     def _zconf_update_zmq(self):
         zconf_desc = {
-            'connectionUUID': self.connection_id,
+            'connectionUUID': self.connection_uuid,
             'deviceID': ','.join(self.device_id_list)
         }
         zconf_info = ServiceInfo(
-            "_DashIO._tcp.local.",
-            f"{self.connection_id}._DashIO._tcp.local.",
+            self.zconf_service_type,
+            f"{self.connection_uuid}._DashIO._tcp.local.",
             addresses=[socket.inet_aton(self.local_ip)],
             port=self.local_port,
             properties=zconf_desc,
@@ -235,8 +244,8 @@ class TCPConnection(threading.Thread):
 
         threading.Thread.__init__(self, daemon=True)
         self.context = context or zmq.Context.instance()
-        self.connection_id = shortuuid.uuid()
-        self.b_connection_id = self.connection_id.encode('utf-8')
+        self.connection_uuid = shortuuid.uuid()
+        self.b_connection_uuid = self.connection_uuid.encode('utf-8')
         self.use_zeroconf = use_zero_conf
         if ip_address == "*":
             self.local_ip = ip.get_local_ip_address()
@@ -264,11 +273,12 @@ class TCPConnection(threading.Thread):
         host_list = host_name.split(".")
         # rename for .local mDNS advertising
         self.host_name = f"{host_list[0]}.local"
+        self.zconf_service_type = "_DashIO._tcp.local."
         if self.use_zeroconf:
             self.zeroconf = Zeroconf()
-            self.listener = ZeroConfDashTCPListener(self.context)
+            self.listener = ZeroConfDashTCPListener(self.zconf_service_type, self.connection_uuid, self.context)
 
-        self.connection_control = TCPControl(self.connection_id, self.local_ip, self.local_port)
+        self.connection_control = TCPControl(self.connection_uuid, self.local_ip, self.local_port)
         self.start()
         threading.Thread(target=self._zconf_start_zmq).start()
         time.sleep(1)
@@ -308,11 +318,11 @@ class TCPConnection(threading.Thread):
         return socket_id
 
     def _disconnect_remote_device(self, msg: dict):
-        ip = msg['address'] + ':' + msg['port']
-        if ip in self.tcp_ip_2_id_dict:
-            self.tcpsocket.send(self.tcp_ip_2_id_dict[ip], zmq.SNDMORE)
+        ip_key = msg['address'] + ':' + msg['port']
+        if ip_key in self.tcp_ip_2_id_dict:
+            self.tcpsocket.send(self.tcp_ip_2_id_dict[ip_key], zmq.SNDMORE)
             self.tcpsocket.send(b'', zmq.NOBLOCK)
-            del self.tcp_ip_2_id_dict[ip]
+            del self.tcp_ip_2_id_dict[ip_key]
 
     def _service_zconf_message(self, rx_zconf_pull):
         message = rx_zconf_pull.recv()
@@ -400,7 +410,7 @@ class TCPConnection(threading.Thread):
         elif address == b"DVCE_DCNCT":
             self._del_device_rx(data.decode())
             return
-        elif address == self.b_connection_id:
+        elif address == self.b_connection_uuid:
             logging.debug("TCP ID: %s, Tx:\n%s", msg_id.hex(), data.decode('utf-8').rstrip())
             _zmq_tcp_send(msg_id, data)
         else:
@@ -413,7 +423,8 @@ class TCPConnection(threading.Thread):
             logging.debug("Added Socket ID: %s", tcp_id.hex())
             self.socket_ids.append(tcp_id)
         if message:
-            tx_zmq_pub.send_multipart([self.b_connection_id, tcp_id, message])
+            logging.debug("TCP ID: %s, Rx:\n%s",tcp_id.hex(), message.decode('utf-8').rstrip())
+            tx_zmq_pub.send_multipart([self.b_connection_uuid, tcp_id, message])
         else:
             if tcp_id in self.socket_ids:
                 logging.debug("Removed Socket ID: %s", tcp_id.hex())
@@ -423,14 +434,14 @@ class TCPConnection(threading.Thread):
         self.tcpsocket = self.context.socket(zmq.STREAM)
 
         tx_zmq_pub = self.context.socket(zmq.PUB)
-        tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
+        tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_uuid))
 
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         # Subscribe on ALL, and my connection
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "DVCE_CNCT")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "DVCE_DCNCT")
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_id)
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_uuid)
         # rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
 
         self.tcpsocket.bind(self.ext_url)
