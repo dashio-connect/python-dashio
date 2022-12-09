@@ -197,10 +197,10 @@ class MQTTConnection(threading.Thread):
         threading.Thread.__init__(self, daemon=True)
 
         self.context = context or zmq.Context.instance()
-        self.connection_id = shortuuid.uuid()
-        self.b_connection_id = self.connection_id.encode('utf-8')
+        self.connection_uuid = shortuuid.uuid()
+        self.b_connection_id = self.connection_uuid.encode('utf-8')
 
-        self.connection_control = MQTTControl(self.connection_id, username, password, host, use_ssl)
+        self.connection_control = MQTTControl(self.connection_uuid, username, password, host, use_ssl)
         self._connected = False
         self._disconnected = True
         self.connection_topic_list = []
@@ -245,7 +245,7 @@ class MQTTConnection(threading.Thread):
         self.mqttc.loop_start()
 
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_id))
+        self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_uuid))
 
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
@@ -254,7 +254,7 @@ class MQTTConnection(threading.Thread):
         # Subscribe on ALL, and my connection
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_id)
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_uuid)
 
         poller = zmq.Poller()
         poller.register(self.rx_zmq_sub, zmq.POLLIN)

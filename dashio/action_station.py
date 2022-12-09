@@ -222,8 +222,8 @@ class ActionStation(threading.Thread):
         connection : _type_
             _description_
         """
-        self.connection_zmq_sub.connect(CONNECTION_PUB_URL.format(id=connection.connection_id))
-        self.connection_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, connection.connection_id)
+        self.connection_zmq_sub.connect(CONNECTION_PUB_URL.format(id=connection.connection_uuid))
+        self.connection_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, connection.connection_uuid)
         connection.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=self.action_station_id))
 
     def add_gui_control(self, g_object: dict):
