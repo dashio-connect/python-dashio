@@ -45,16 +45,6 @@ class ZeroConfDashTCPListener:
         logging.debug("ZCONF: %s", json.dumps(msg))
         self.zmq_socket.send(json.dumps(msg).encode())
 
-    def remove_service(self, zeroconf, service_type, name):
-        """Remove service"""
-        connection_uuid  = name.split("._", 1)[0]
-        if service_type == self.service_type and connection_uuid != self.connection_uuid:
-            msg = {
-                'objectType': 'zeroConfDisconnect',
-                'connectionID': connection_uuid
-            }
-            self._send_msg(msg)
-
     def _send_info(self, connection_uuid, info):
         try:
             device_ids = info.properties[b'deviceID'].decode()
@@ -67,6 +57,16 @@ class ZeroConfDashTCPListener:
                 'deviceID': device_ids,
                 'connectionID': connection_uuid,
                 'port': str(info.port)
+            }
+            self._send_msg(msg)
+
+    def remove_service(self, zeroconf, service_type, name):
+        """Remove service"""
+        connection_uuid  = name.split("._", 1)[0]
+        if service_type == self.service_type and connection_uuid != self.connection_uuid:
+            msg = {
+                'objectType': 'zeroConfDisconnect',
+                'connectionID': connection_uuid
             }
             self._send_msg(msg)
 
