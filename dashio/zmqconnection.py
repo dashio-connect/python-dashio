@@ -30,7 +30,7 @@ import zmq
 from zeroconf import IPVersion, ServiceInfo, Zeroconf
 
 from . import ip
-from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
+from .constants import CONNECTION_PUB_URL
 
 
 class ZMQControl():
@@ -157,7 +157,7 @@ class ZMQConnection(threading.Thread):
             The device to add to the connection
         """
         device._add_connection(self)
-        self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
+        self.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=device.zmq_connection_uuid))
         if device.device_id not in self.device_id_list:
             self.device_id_list.append(device.device_id)
             self._zconf_publish_tcp(self.local_ip, self.local_port)

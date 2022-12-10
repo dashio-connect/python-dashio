@@ -31,7 +31,7 @@ import shortuuid
 import zmq
 import serial
 
-from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
+from .constants import CONNECTION_PUB_URL
 from .device import Device
 
 class SerialControl():
@@ -124,7 +124,7 @@ class SerialConnection(threading.Thread):
             Add a device to the connection.
         """
         device._add_connection(self)
-        self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
+        self.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=device.zmq_connection_uuid))
         #self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
 
 

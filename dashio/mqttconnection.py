@@ -31,7 +31,7 @@ import paho.mqtt.client as mqtt
 import shortuuid
 import zmq
 
-from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
+from .constants import CONNECTION_PUB_URL
 
 
 class MQTTControl():
@@ -162,7 +162,7 @@ class MQTTConnection(threading.Thread):
         if device.device_id not in self.device_id_list:
             self.device_id_list.append(device.device_id)
             device._add_connection(self)
-            self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
+            self.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=device.zmq_connection_uuid))
             # self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
 
             if self._connected:

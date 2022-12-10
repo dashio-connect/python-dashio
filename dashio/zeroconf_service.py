@@ -28,7 +28,7 @@ import shortuuid
 import zmq
 import time
 import logging
-from zeroconf import IPVersion, ServiceBrowser, ServiceInfo, Zeroconf
+from zeroconf import ServiceBrowser, ServiceInfo, Zeroconf
 
 
 class ZeroConfDashTCPListener:
@@ -167,13 +167,3 @@ class ZeroconfService(threading.Thread):
             server=self.host_name + ".",
         )
         self.zeroconf.update_service(zconf_info)
-
-
-def main():
-    connection_uuid = shortuuid.uuid()
-    zconf = ZeroconfService(connection_uuid, "192.168.1.45", 5650)
-    while True:
-        time.sleep(1.0)
-
-if __name__ == "__main__":
-    main()

@@ -205,7 +205,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
             The device to add
         """
         device._add_connection(self)
-        self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
+        self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_connection_uuid))
         # self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
 
     def close(self):

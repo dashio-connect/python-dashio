@@ -26,10 +26,9 @@ import threading
 import time
 import sys
 import shortuuid
-import socket
 import zmq
 
-from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL, MEMORY_REQ_URL, TASK_PULL
+from .constants import CONNECTION_PUB_URL, MEMORY_REQ_URL, TASK_PULL
 from .action_station_services.task_service import TaskService
 from .action_station_services.timer_service import TimerService, make_timer_config
 from .action_station_services.as_servicel import make_test_config
@@ -222,9 +221,9 @@ class ActionStation(threading.Thread):
         connection : _type_
             _description_
         """
-        self.connection_zmq_sub.connect(CONNECTION_PUB_URL.format(id=connection.connection_uuid))
-        self.connection_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, connection.connection_uuid)
-        connection.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=self.action_station_id))
+        self.connection_zmq_sub.connect(CONNECTION_PUB_URL.format(id=connection.zmq_connection_uuid))
+        self.connection_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, connection.zmq_connection_uuid)
+        connection.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
 
     def add_gui_control(self, g_object: dict):
         """Add a GUI control"""
@@ -258,7 +257,7 @@ class ActionStation(threading.Thread):
             self.thread_dicts[t_object['uuid']].close()
             time.sleep(0.1)
         logging.debug("INIT TASK %s", t_object['uuid'])
-        self.thread_dicts[t_object['uuid']] = self.service_objects_defs[t_object['objectType']](self.device_id, self.action_station_id, t_object, self.context)
+        self.thread_dicts[t_object['uuid']] = self.service_objects_defs[t_object['objectType']](self.device_id, self.zmq_connection_uuid, t_object, self.context)
         if t_object['objectType'] == 'TASK':
             try:
                 rx_device_id = t_object['actions'][0]["deviceID"]
@@ -460,13 +459,13 @@ class ActionStation(threading.Thread):
         self.configs[modbus_cfg['uuid']] = modbus_cfg
         self.configs[clock_cfg['uuid']] = clock_cfg
         if not self.action_station_dict:
-            self.action_station_id = shortuuid.uuid()
-            self.action_station_dict['actionStationID'] = self.action_station_id
+            self.zmq_connection_uuid = shortuuid.uuid()
+            self.action_station_dict['actionStationID'] = self.zmq_connection_uuid
             self.action_station_dict['services'] = self.configured_services
             self.action_station_dict['tasksMemory'] = self.memory_tasks
         else:
             try:
-                self.action_station_id = self.action_station_dict['actionStationID']
+                self.zmq_connection_uuid = self.action_station_dict['actionStationID']
                 self.configured_services = self.action_station_dict['services']
                 self.memory_tasks = self.action_station_dict['tasksMemory']
             except KeyError:
@@ -477,12 +476,12 @@ class ActionStation(threading.Thread):
 
     def run(self):
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.tx_zmq_pub.bind(DEVICE_PUB_URL.format(id=self.action_station_id))
+        self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
 
         self.device_zmq_sub = self.context.socket(zmq.SUB)
         # Subscribe on ALL, and my connection
         self.device_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")
-        self.device_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.action_station_id)
+        self.device_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.zmq_connection_uuid)
 
         # rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
         self.connection_zmq_sub = self.context.socket(zmq.SUB)
@@ -490,7 +489,7 @@ class ActionStation(threading.Thread):
 
         # Socket to receive messages on
         task_receiver = self.context.socket(zmq.PULL)
-        task_receiver.bind(TASK_PULL.format(id=self.action_station_id))
+        task_receiver.bind(TASK_PULL.format(id=self.zmq_connection_uuid))
 
         memory_socket = self.context.socket(zmq.REP)
         memory_socket.bind(MEMORY_REQ_URL.format(id=self.device_id))
