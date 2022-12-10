@@ -28,7 +28,7 @@ import threading
 import shortuuid
 import zmq
 
-from .constants import DEVICE_PUB_URL, CONNECTION_PUB_URL, BAD_CHARS
+from .constants import CONNECTION_PUB_URL, BAD_CHARS
 from .action_station import ActionStation
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.knob import Knob
@@ -343,8 +343,8 @@ class Device(threading.Thread):
         return ""
 
     def _add_connection(self, connection):
-        self.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=connection.connection_uuid))
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, connection.connection_uuid)
+        self.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=connection.zmq_connection_uuid))
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, connection.zmq_connection_uuid)
         self.add_control(connection.connection_control)
         if self._add_actions:
             self.action_station.add_connection(connection)
@@ -426,8 +426,8 @@ class Device(threading.Thread):
         """
         threading.Thread.__init__(self, daemon=True)
 
-        self.zmq_pub_id = shortuuid.uuid()
-        self._b_zmq_pub_id = self.zmq_pub_id.encode('utf-8')
+        self.zmq_connection_uuid = shortuuid.uuid()
+        self._b_zmq_connection_uuid = self.zmq_connection_uuid.encode('utf-8')
         self.context = context or zmq.Context.instance()
         self._wifi_rx_callback = None
         self._dashio_rx_callback = None
@@ -453,7 +453,7 @@ class Device(threading.Thread):
         if self._add_actions:
             self._add_action_device_setup(True)
             self.action_station = ActionStation(self, context=self.context)
-            self.action_station.device_zmq_sub.connect(DEVICE_PUB_URL.format(id=self.zmq_pub_id))
+            self.action_station.device_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
         self.running = True
         self.start()
 
@@ -531,7 +531,7 @@ class Device(threading.Thread):
         # Continue the network loop, exit when an error occurs
 
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.tx_zmq_pub.bind(DEVICE_PUB_URL.format(id=self.zmq_pub_id))
+        self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "COMMAND")
 

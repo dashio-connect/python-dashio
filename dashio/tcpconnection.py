@@ -31,7 +31,7 @@ import shortuuid
 import zmq
 
 from . import ip
-from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
+from .constants import CONNECTION_PUB_URL
 from .device import Device
 from .zeroconf_service import ZeroconfService
 
@@ -126,7 +126,7 @@ class TCPConnection(threading.Thread):
             Add a device to the connection.
         """
         device._add_connection(self)
-        self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_pub_id))
+        self.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=device.zmq_connection_uuid))
         if device.device_id not in self.device_id_list:
             self.device_id_list.append(device.device_id)
             self.z_conf.add_device(device.device_id)
@@ -154,8 +154,8 @@ class TCPConnection(threading.Thread):
 
         threading.Thread.__init__(self, daemon=True)
         self.context = context or zmq.Context.instance()
-        self.connection_uuid = shortuuid.uuid()
-        self.b_connection_uuid = self.connection_uuid.encode('utf-8')
+        self.zmq_connection_uuid = shortuuid.uuid()
+        self.b_zmq_connection_uuid = self.zmq_connection_uuid.encode('utf-8')
         self.use_zeroconf = use_zero_conf
         
         if ip_address == "*":
@@ -182,9 +182,9 @@ class TCPConnection(threading.Thread):
         self.running = True
 
         if self.use_zeroconf:
-            self.z_conf = ZeroconfService(self.connection_uuid, self.local_ip, self.local_port, self.context)
+            self.z_conf = ZeroconfService(self.zmq_connection_uuid, self.local_ip, self.local_port, self.context)
 
-        self.connection_control = TCPControl(self.connection_uuid, self.local_ip, self.local_port)
+        self.connection_control = TCPControl(self.zmq_connection_uuid, self.local_ip, self.local_port)
         self.start()
         time.sleep(1)
 
@@ -310,7 +310,7 @@ class TCPConnection(threading.Thread):
         elif address == b"DVCE_DCNCT":
             self._del_device_rx(data.decode())
             return
-        elif address == self.b_connection_uuid:
+        elif address == self.b_zmq_connection_uuid:
             logging.debug("TCP ID: %s, Tx:\n%s", msg_id.hex(), data.decode('utf-8').rstrip())
             _zmq_tcp_send(msg_id, data)
         else:
@@ -324,7 +324,7 @@ class TCPConnection(threading.Thread):
             self.socket_ids.append(tcp_id)
         if message:
             logging.debug("TCP ID: %s, Rx:\n%s",tcp_id.hex(), message.decode('utf-8').rstrip())
-            tx_zmq_pub.send_multipart([self.b_connection_uuid, tcp_id, message])
+            tx_zmq_pub.send_multipart([self.b_zmq_connection_uuid, tcp_id, message])
         else:
             if tcp_id in self.socket_ids:
                 logging.debug("Removed Socket ID: %s", tcp_id.hex())
@@ -334,14 +334,14 @@ class TCPConnection(threading.Thread):
         self.tcpsocket = self.context.socket(zmq.STREAM)
 
         tx_zmq_pub = self.context.socket(zmq.PUB)
-        tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_uuid))
+        tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
 
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         # Subscribe on ALL, and my connection
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "DVCE_CNCT")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "DVCE_DCNCT")
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_uuid)
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.zmq_connection_uuid)
         # rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
 
         self.tcpsocket.bind(self.ext_url)
