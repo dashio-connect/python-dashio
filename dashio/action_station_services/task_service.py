@@ -24,6 +24,7 @@ SOFTWARE.
 import zmq
 import logging
 import threading
+import json
 from ..constants import CONNECTION_PUB_URL, TASK_PULL, MEMORY_REQ_URL
 
 def num(s_num: str):
@@ -141,6 +142,13 @@ class TaskService(threading.Thread):
         else:
             logging.debug("WRITE_MEM unknown memType: %s", action["memType"])
 
+    def _connect_device_id(self, device_id):
+        msg_dict = {
+            'msgType': 'connect',
+            'deviceID': device_id
+        }
+        logging.debug("AS CONNECT: %s", device_id)
+        self.task_sender.send_multipart([b"COMMAND", json.dumps(msg_dict).encode()])
 
     def __init__(self, device_id: str, action_station_id: str, task_config_dict: dict, context: zmq.Context) -> None:
         threading.Thread.__init__(self, daemon=True)
@@ -174,6 +182,9 @@ class TaskService(threading.Thread):
 
         self.task_sender = self.context.socket(zmq.PUSH)
         self.task_sender.connect(self.push_url)
+
+        if rx_device_id != device_id:
+            self._connect_device_id(rx_device_id)
         self.start()
 
     # Do a simple test case to check messaging.

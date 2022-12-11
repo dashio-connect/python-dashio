@@ -484,6 +484,12 @@ class ActionStation(threading.Thread):
             if task_receiver in socks:
                 msg_to, msg = task_receiver.recv_multipart()
                 self.tx_zmq_pub.send_multipart([msg_to, msg])
+                if msg_to == b'COMMAND':
+                    msg_dict = json.loads(msg)
+                    if msg_dict['msgType'] == 'connect':
+                        if msg_dict['deviceID'] not in self.remote_device_ids:
+                            logging.debug("Added remote deviceID: %s", msg_dict['deviceID'])
+                            self.remote_device_ids.append(msg_dict['deviceID'])
             
             if memory_socket in socks:
                 message = memory_socket.recv_multipart()
