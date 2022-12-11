@@ -561,7 +561,7 @@ class Device(threading.Thread):
                     logging.debug("Device value error")
                 #logging.debug("DEVICE RX: %s ,%s", msg_from, data)
                 if data == b"COMMAND":
-                    msg_dict = json.loads(data)
+                    msg_dict = json.loads(msg_from)
                     self._local_command(msg_dict)
                     continue
                 reply = self._on_message(data)

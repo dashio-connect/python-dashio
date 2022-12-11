@@ -161,6 +161,8 @@ class TestControls:
         self.device.set_mqtt_callback(self.mqtt_handler)
         self.device.use_cfg64()
         self.dash_con = dashio.DashConnection(args.username, args.password)
+        self.tcp_con = dashio.TCPConnection()
+        self.tcp_con.add_device(self.device)
         self.dash_con.add_device(self.device)
 
         self.page_name = "TestTCP: " + platform.node()
