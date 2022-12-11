@@ -136,6 +136,7 @@ class TCPConnection(threading.Thread):
         if device.device_id not in self.device_id_list:
             device.register_connection(self)
             self.z_conf.add_device(device.device_id)
+
     @staticmethod
     def _is_port_in_use(ip_address, port):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as port_s:

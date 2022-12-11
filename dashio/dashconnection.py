@@ -153,7 +153,7 @@ class DashConnection(threading.Thread):
     def _on_message(self, client, obj, msg):
         data = str(msg.payload, "utf-8").strip()
         logging.debug("DASH RX:\n%s", data)
-        self.tx_zmq_pub.send_multipart([self._b_zmq_connection_uuid, b'1', msg.payload])
+        self.tx_zmq_pub.send_multipart([msg.payload, self._b_zmq_connection_uuid])
 
     def _on_subscribe(self, client, obj, mid, granted_qos):
         logging.debug("Subscribed: %s %s", str(mid), str(granted_qos))
@@ -171,11 +171,7 @@ class DashConnection(threading.Thread):
         """
         if device.device_id not in self._device_id_list:
             self._device_id_list.append(device.device_id)
-            device._add_connection(self)
-
-            self.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=device.zmq_connection_id))
-            self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_connection_id)
-
+            device.register_connection(self)
             if self._connected:
                 control_topic = f"{self.username}/{device.device_id}/control"
                 self._dash_c.subscribe(control_topic, 0)
@@ -199,7 +195,13 @@ class DashConnection(threading.Thread):
             del self._device_id_rx_list[device_id]
 
     def _send_dash_announce(self):
-        self.tx_zmq_pub.send_multipart([b'COMMAND', b'1', b"send_announce"])
+        msg = {
+            'msgType': 'send_announce',
+            'connectionUUID': self.zmq_connection_uuid
+        }
+        logging.debug("DASH SEND ANNOUNCE: %s", msg)
+        self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg).encode()])
+
 
     def set_connection(self, username: str, password: str):
         """Changes the connection to the DashIO server
@@ -310,9 +312,7 @@ class DashConnection(threading.Thread):
 
         # Subscribe on ALL, and my connection
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "DVCE_CNCT")
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "DVCE_DCNCT")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "DASH")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.zmq_connection_uuid)
         poller = zmq.Poller()
         poller.register(self.rx_zmq_sub, zmq.POLLIN)
@@ -333,7 +333,7 @@ class DashConnection(threading.Thread):
                 if not data:
                     logging.debug("DASH no data error")
                     continue
-                logging.debug("DASH: %s ,%s", msg_to, data)
+                # logging.debug("DASH: %s ,%s", msg_to, data)
                 if msg_to == b'COMMAND':
                     logging.debug("TCP RX COMMAND")
                     self._dash_command(json.loads(data))
