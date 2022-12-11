@@ -24,7 +24,7 @@ SOFTWARE.
 import zmq
 import logging
 import threading
-from ..constants import TASK_PULL, MEMORY_REQ_URL
+from ..constants import CONNECTION_PUB_URL, TASK_PULL, MEMORY_REQ_URL
 
 def num(s_num: str):
     try:
@@ -162,8 +162,12 @@ class TaskService(threading.Thread):
         self.task_id = task_config_dict['uuid']
         self.actions = task_config_dict['actions']
         self.name = task_config_dict['name']
+        rx_device_id = self.actions[0]["deviceID"]
+        rx_control_type = self.actions[0]["controlType"]
+        rx_control_id = self.actions[0]["controlID"]
+        self.sub_msg = f"\t{rx_device_id}\t{rx_control_type}\t{rx_control_id}"
         self.push_url = TASK_PULL.format(id=action_station_id)
-        self.pull_url = TASK_PULL.format(id=self.task_id)
+        self.sub_url = CONNECTION_PUB_URL.format(id=action_station_id)
 
         self.device_mem_socket = self.context.socket(zmq.REQ)
         self.device_mem_socket.connect(MEMORY_REQ_URL.format(id=self.device_id))
@@ -179,8 +183,10 @@ class TaskService(threading.Thread):
 
 
     def run(self):
-        task_receiver = self.context.socket(zmq.PULL)
-        task_receiver.bind(self.pull_url)
+        task_receiver = self.context.socket(zmq.SUB)
+        task_receiver.connect(self.sub_url)
+        task_receiver.setsockopt_string(zmq.SUBSCRIBE, self.sub_msg)
+
         poller = zmq.Poller()
         poller.register(task_receiver, zmq.POLLIN)
 
@@ -190,7 +196,7 @@ class TaskService(threading.Thread):
             except zmq.error.ContextTerminated:
                 break
             if task_receiver in socks:
-                message = task_receiver.recv()
+                message, msg_from = task_receiver.recv_multipart()
                 if message:
                     logging.debug("TASK: %s\t%s RX:%s", self.name, self.task_id, message.decode())
                     self._do_actions(message)

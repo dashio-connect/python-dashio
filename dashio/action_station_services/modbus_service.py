@@ -7,7 +7,7 @@ import threading
 import serial
 import zmq
 
-from ..constants import TASK_PULL
+from ..constants import TASK_PULL, CONNECTION_PUB_URL
 from .action_station_service_config import (ActionServiceCFG, IntParameterSpec,
                                     ListParameterSpec, SelectorParameterSpec)
 
@@ -147,7 +147,8 @@ class ModbusService(threading.Thread):
         provision_list = control_config_dict['provisioning']
 
         self.push_url = TASK_PULL.format(id=action_station_id)
-        self.pull_url = TASK_PULL.format(id=self.control_id)
+
+        self.sub_url = CONNECTION_PUB_URL.format(id=action_station_id)
 
         self.task_sender = self.context.socket(zmq.PUSH)
         self.task_sender.connect(self.push_url)
@@ -159,8 +160,9 @@ class ModbusService(threading.Thread):
 
 
     def run(self):
-        receiver = self.context.socket(zmq.PULL)
-        receiver.bind( self.pull_url)
+        receiver = self.context.socket(zmq.SUB)
+        receiver.connect(self.sub_url)
+        receiver.setsockopt_string(zmq.SUBSCRIBE, self.control_msg)
         poller = zmq.Poller()
         poller.register(receiver, zmq.POLLIN)
 
@@ -170,7 +172,7 @@ class ModbusService(threading.Thread):
             except zmq.error.ContextTerminated:
                 break
             if receiver in socks:
-                message = receiver.recv()
+                message, msg_from = receiver.recv()
                 if message:
                     logging.debug("%s\t%s RX:\n%s", self.control_type, self.control_id, message.decode())
 
