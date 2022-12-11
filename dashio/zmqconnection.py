@@ -188,7 +188,7 @@ class ZMQConnection(threading.Thread):
         self.running = True
 
         self.device_id_list = []
-        self.connection_uuid = shortuuid.uuid()
+        self.connection_uuid = "ZMQ:" + shortuuid.uuid()
         self.b_connection_id = self.connection_uuid.encode('utf-8')
 
         host_name = socket.gethostname()

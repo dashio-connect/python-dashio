@@ -74,7 +74,7 @@ class TimerService(threading.Thread):
 
     def send_message(self, out_message=""):
         """Send the message"""
-        self.task_sender.send_multipart([b"ALL", b"0", out_message.encode('utf-8')])
+        self.task_sender.send_multipart([b"ALL", out_message.encode('utf-8')])
 
     def close(self):
         """Close the thread"""

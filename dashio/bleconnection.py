@@ -255,13 +255,13 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         """
         threading.Thread.__init__(self, daemon=True)
 
-        self.connection_uuid = shortuuid.uuid()
-        self.b_connection_id = self.connection_uuid.encode('utf-8')
+        self.zmq_connection_uuid = "BLE:" + shortuuid.uuid()
+        self.b_connection_id = self.zmq_connection_uuid.encode('utf-8')
 
         self.context = context or zmq.Context.instance()
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_uuid)
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.zmq_connection_uuid)
         # TODO: Need to figure out why this doesn't work
         # GLib.io_add_watch(
         #     self.rx_zmq_sub.getsockopt(zmq.FD),
@@ -270,10 +270,10 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         # )
         GLib.timeout_add(10, self._zmq_callback, "q", "p")
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_uuid))
+        self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
         dashio_service_uuid = ble_uuid or str(uuid.uuid4())
 
-        self.connection_control = BLEControl(self.connection_uuid, dashio_service_uuid, str(uuid.uuid4()), str(uuid.uuid4()))
+        self.connection_control = BLEControl(self.zmq_connection_uuid, dashio_service_uuid, str(uuid.uuid4()), str(uuid.uuid4()))
 
         GLib.threads_init()
         dbus.mainloop.glib.threads_init()

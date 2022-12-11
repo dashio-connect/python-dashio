@@ -91,7 +91,7 @@ class TaskService(threading.Thread):
 
     def send_message(self, out_message=""):
         """Send the message"""
-        self.task_sender.send_multipart([b"ALL", b"0", out_message.encode()])
+        self.task_sender.send_multipart([b"ALL", out_message.encode()])
 
     def close(self):
         """Close the thread"""
@@ -105,7 +105,7 @@ class TaskService(threading.Thread):
 
     def _send_alarm(self, alarm_id: str, header: str, body: str):
         msg = f"\t{self.device_id}\tALM\t{alarm_id}\t{header}\t{body}\n"
-        self.task_sender.send_multipart([b"ALARM", b"0", msg.encode()])
+        self.send_message(msg)
 
     def _read_control_action(self, action, msg):
         logging.debug("READ_CONTROL: %s", msg)
