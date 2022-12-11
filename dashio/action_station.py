@@ -143,30 +143,20 @@ class ActionStation(threading.Thread):
     """
     def _on_internal_message(self, payload):
         data = str(payload, "utf-8").strip()
-        command_array = data.split("\n")
-        reply = ""
-        for command in command_array:
-            try:
-                reply += self._on_command(command.strip())
-            except TypeError:
-                pass
-        return reply
+        data_array = data.split("\t")
+        try:
+            rx_device_id = data_array[0]
+            cntrl_type = data_array[1]
+            control_id = data_array[2]
+        except (KeyError, IndexError):
+            return
+        task_dict_key = f"{rx_device_id}\t{cntrl_type}\t{control_id}"
+        if task_dict_key in self._device_control_filter_dict:
+            socket = self._device_control_filter_dict[task_dict_key]
+            socket.send(data.encode())  
 
-    def _on_external_message(self, payload):
+    def _on_external_message(self, payload: bytearray, msg_from: bytearray):
         data = str(payload, "utf-8").strip()
-        command_array = data.split("\n")
-        reply = ""
-        for command in command_array:
-            cmd_parts = command.split("\t", 2)
-            # TODO Fix this properly with ZMQ subscribe
-            if (cmd_parts[0] == self.device_id and cmd_parts[1] == "ACTN") or cmd_parts[0] != self.device_id:
-                try:
-                    reply += self._on_command(command.strip())
-                except TypeError:
-                    pass
-        return reply
-
-    def _on_command(self, data: str):
         data_array = data.split("\t")
         try:
             rx_device_id = data_array[0]
@@ -179,7 +169,14 @@ class ActionStation(threading.Thread):
             if command in self._action_station_commands:
                 return self._action_station_commands[command](data_array)
             return ""
-        task_dict_key = f"{rx_device_id}\t{control_id}\t"
+        if rx_device_id in self.remote_device_ids and cntrl_type == "WHO":
+            if rx_device_id not in self.remote_connections_device_id:
+                self.remote_connections_device_id[rx_device_id] = [msg_from]
+            else:
+                self.remote_connections_device_id[rx_device_id].append(msg_from)
+            logging.debug("Remote Connections DeviceIDs: %s", self.remote_connections_device_id)
+            return ""
+        task_dict_key = f"{rx_device_id}\t{cntrl_type}\t{control_id}"
         if task_dict_key in self._device_control_filter_dict:
             socket = self._device_control_filter_dict[task_dict_key]
             socket.send(data.encode())
@@ -286,10 +283,12 @@ class ActionStation(threading.Thread):
                         self._connect_device_id(rx_device_id)
                         sub_msg = f"\t{rx_device_id}\t{control_type}\t{control_id}"
                         self.connection_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, sub_msg)
+                        self.connection_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, f"\t{rx_device_id}\tWHO")
                 else:
                     sub_msg = f"\t{self.device_id}\t{control_type}\t{control_id}"
                     self.device_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, sub_msg)
-                task_dict_key = f"{rx_device_id}\t{control_id}\t"
+                
+                task_dict_key = f"{rx_device_id}\t{control_type}\t{control_id}"
                 task_sender = self.context.socket(zmq.PUSH)
                 task_sender.connect(TASK_PULL.format(id=t_object['uuid']))
                 self._device_control_filter_dict[task_dict_key] = task_sender
@@ -315,7 +314,7 @@ class ActionStation(threading.Thread):
             else:
                 sub_msg = f"\t{self.device_id}\t{control_type}\t{control_id}"
                 self.device_zmq_sub.setsockopt_string(zmq.UNSUBSCRIBE, sub_msg)
-            task_dict_key = f"{rx_device_id}\t{control_id}\t"
+            task_dict_key = f"{rx_device_id}\t{control_type}\t{control_id}"
             del self._device_control_filter_dict[task_dict_key]
         except IndexError:
             logging.debug("Task has no Actions")
@@ -452,6 +451,7 @@ class ActionStation(threading.Thread):
         self.memory_tasks = {}
         self.remote_device_ids = []
         self.connections_list = []
+        self.remote_connections_device_id = {}
         self.action_station_dict = self.load_action(self._json_filename)
         self.max_actions = max_actions
         self._device_control_filter_dict = {}
@@ -509,7 +509,6 @@ class ActionStation(threading.Thread):
         # rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
         self.connection_zmq_sub = self.context.socket(zmq.SUB)
         self.connection_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "COMMAND")
-        self.connection_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "\tWHO")
         self.connection_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, f"\t{self.device_id}\tACTN")
 
         # Socket to receive messages on
@@ -535,28 +534,25 @@ class ActionStation(threading.Thread):
                 break
             if self.device_zmq_sub in socks:
                 try:
-                    [msg, msg_from] = self.device_zmq_sub.recv_multipart()
+                    [_, msg] = self.device_zmq_sub.recv_multipart()
                 except ValueError:
                     # If there aren't three parts continue.
                     pass
                 if msg:
                     logging.debug("ActionStation Device RX:\n%s", msg.decode().rstrip())
-                    reply = self._on_internal_message(msg)
-                    if reply:
-                        self.tx_zmq_pub.send_multipart([msg_from, reply.encode()])
+                    self._on_internal_message(msg)
             if self.connection_zmq_sub in socks:
                 msg, msg_from = self.connection_zmq_sub.recv_multipart()
                 logging.debug("ActionStation Connection RX:\n%s, %s", msg_from, msg.decode())
                 if msg[0] == b"COMMAND":
                     self._rx_command(msg_from)
                     continue
-                reply = self._on_external_message(msg)
+                reply = self._on_external_message(msg, msg_from)
                 if reply:
                     self.tx_zmq_pub.send_multipart([msg_from, reply.encode()])
             if task_receiver in socks:
                 message = task_receiver.recv_multipart()
                 if message:
-                    logging.debug("ActionStation TASK RX:\n%s", message)
                     self.tx_zmq_pub.send_multipart(message)
             
             if memory_socket in socks:
