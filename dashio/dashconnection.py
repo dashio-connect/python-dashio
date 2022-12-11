@@ -181,19 +181,17 @@ class DashConnection(threading.Thread):
                 self._dash_c.subscribe(control_topic, 0)
                 self._send_dash_announce()
 
-    def _add_device_rx(self, device_cmd):
+    def _add_device_rx(self, msg_dict):
         """Connect to another device"""
-        d_split = device_cmd.split("\t")
-        device_id = d_split[2].strip()
+        device_id = msg_dict["deviceID"]
         logging.debug("DASH DEVICE CONNECT: %s", device_id)
         if device_id not in self._device_id_rx_list:
             self._device_id_rx_list.append(device_id)
             data_topic = f"{self.username}/{device_id}/data"
             self._dash_c.subscribe(data_topic, 0)
 
-    def _del_device_rx(self, device_cmd):
-        d_split = device_cmd.split("\t")
-        device_id = d_split[2].strip()
+    def _del_device_rx(self, msg_dict):
+        device_id = msg_dict["deviceID"]
         if device_id in self._device_id_rx_list:
             data_topic = f"{self.username}/{device_id}/data"
             self._dash_c.unsubscribe(data_topic)
@@ -295,6 +293,13 @@ class DashConnection(threading.Thread):
         """Close the connection."""
         self.running = False
 
+    def _dash_command(self, msg_dict: dict):
+        logging.debug("TCP CMD: %s", msg_dict)
+        if msg_dict['msgType'] == 'connect':
+            self._add_device_rx(msg_dict)
+        if msg_dict['msgType'] == 'disconnect':
+            self._del_device_rx(msg_dict)
+
     def run(self):
         self._dash_c.loop_start()
 
@@ -320,8 +325,18 @@ class DashConnection(threading.Thread):
                 break
 
             if self.rx_zmq_sub in socks:
-                [address, _, data] = self.rx_zmq_sub.recv_multipart()
+                try:
+                    [msg_to, data] = self.rx_zmq_sub.recv_multipart()
+                except ValueError:
+                    logging.debug("DASH value error")
+                    continue
                 if not data:
+                    logging.debug("DASH no data error")
+                    continue
+                logging.debug("DASH: %s ,%s", msg_to, data)
+                if msg_to == b'COMMAND':
+                    logging.debug("TCP RX COMMAND")
+                    self._dash_command(json.loads(data))
                     continue
                 msg_l = data.split(b'\t')
                 if len(msg_l) > 3:
@@ -333,14 +348,8 @@ class DashConnection(threading.Thread):
                 if control_type == b'ALM':
                     data_topic = f"{self.username}/{device_id}/alarm"
                     control_type = ""
-                elif address == b"ANNOUNCE":
+                elif msg_to == b"DASH":
                     data_topic = f"{self.username}/{device_id}/announce"
-                elif address == b"DVCE_CNCT":
-                    self._add_device_rx(data.decode())
-                    continue
-                elif address == b"DVCE_DCNCT":
-                    self._del_device_rx(data.decode())
-                    continue
                 else:
                     data_topic = f"{self.username}/{device_id}/data"
                 if self._connected and data_topic:

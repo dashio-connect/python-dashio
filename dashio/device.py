@@ -27,7 +27,6 @@ import threading
 
 import shortuuid
 import zmq
-import time
 
 from .constants import CONNECTION_PUB_URL, BAD_CHARS
 from .action_station import ActionStation
@@ -560,13 +559,13 @@ class Device(threading.Thread):
                     [data, msg_from] = self.rx_zmq_sub.recv_multipart()
                 except ValueError:
                     logging.debug("Device value error")
-                logging.debug("DEVICE RX: %s ,%s", msg_from, data)
+                #logging.debug("DEVICE RX: %s ,%s", msg_from, data)
                 if data == b"COMMAND":
                     msg_dict = json.loads(data)
                     self._local_command(msg_dict)
                     continue
                 reply = self._on_message(data)
-                if reply:
+                if reply != "":
                     # logging.debug("DEVICE TX: %s ,%s", msg_from, data)
                     self.tx_zmq_pub.send_multipart([msg_from, reply.encode('utf-8')])
         self.tx_zmq_pub.close()

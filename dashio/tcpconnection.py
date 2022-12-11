@@ -210,11 +210,11 @@ class TCPConnection(threading.Thread):
         ip_b = ip_address + ':' + port
         if ip_b not in self.tcp_ip_2_id_dict:
             try:
+                logging.debug("Sending WHO to ID: %s", socket_id.hex())
                 self.tcpsocket.send(socket_id, zmq.SNDMORE)
                 self.tcpsocket.send_string('\tWHO\n')
                 self.tcp_id_2_ip_dict[socket_id] = ip_address + ':' + port
                 self.tcp_ip_2_id_dict[ip_address + ':' + port] = socket_id
-                logging.debug("TCP TX: \tWHO")
             except zmq.error.ZMQError:
                 logging.debug("Sending TX Error.")
                 self.tcpsocket.send(b'')
@@ -274,7 +274,7 @@ class TCPConnection(threading.Thread):
         logging.debug("device_ids to connect too: %s", self._device_id_action_station_list)
 
     def _del_device_rx(self, msg_dict):
-        device_id = msg_dict[["deviceID"]]
+        device_id = msg_dict["deviceID"]
         if device_id in self._device_id_action_station_list:
             logging.debug("TCP DEVICE_DISCONNECT: %s", device_id)
             if device_id in self.remote_device_id_msg_dict:
@@ -291,7 +291,8 @@ class TCPConnection(threading.Thread):
 
     def _service_device_messaging(self):
 
-        def _zmq_tcp_send(tcp_id, data):
+        def _zmq_tcp_send(tcp_id, data: bytearray):
+            logging.debug("TCP TX:\n%s", data.decode().rstrip())
             try:
                 self.tcpsocket.send(tcp_id, zmq.SNDMORE)
                 self.tcpsocket.send(data, zmq.NOBLOCK)
@@ -309,30 +310,26 @@ class TCPConnection(threading.Thread):
         if not data:
             logging.debug("TCP no data error")
             return
-        logging.debug("TCP: %s ,%s", msg_to, data)
         if msg_to == b'ALL':
             for tcp_id in self.socket_ids:
-                logging.debug("TCP ID: %s, Tx:\n%s", tcp_id.hex(), data.decode('utf-8').rstrip())
                 _zmq_tcp_send(tcp_id, data)
         elif msg_to == b'COMMAND':
-            logging.debug("TCP RX COMMAND")
             self._tcp_command(json.loads(data))
             return
         else:
             tcp_id = msg_to.split(b':')[-1]
-            logging.debug("TCP ID: %s, Tx:\n%s", tcp_id.hex(), data.decode().rstrip())
             _zmq_tcp_send(tcp_id, data)
         
 
     def _service_tcp_messages(self, tx_zmq_pub):
         tcp_id = self.tcpsocket.recv()
         message = self.tcpsocket.recv()
-        if tcp_id not in self.socket_ids:
+        if tcp_id not in self.socket_ids and tcp_id not in self.tcp_id_2_ip_dict:
             logging.debug("Added Socket ID: %s", tcp_id.hex())
             self.socket_ids.append(tcp_id)
         if message:
+            logging.debug("TCP RX: %s\n%s",tcp_id.hex(), message.decode().rstrip())
             msg_from = self.b_zmq_connection_uuid + b":" + tcp_id
-            logging.debug("TCP ID: %s", message)
             tx_zmq_pub.send_multipart([message, msg_from])
         else:
             if tcp_id in self.socket_ids:

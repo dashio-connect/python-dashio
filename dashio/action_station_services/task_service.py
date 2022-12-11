@@ -107,8 +107,8 @@ class TaskService(threading.Thread):
         msg = f"\t{self.device_id}\tALM\t{alarm_id}\t{header}\t{body}\n"
         self.send_message(msg)
 
-    def _read_control_action(self, action, msg):
-        logging.debug("READ_CONTROL: %s", msg)
+    def _read_control_action(self, action, msg: bytearray):
+        logging.debug("READ_CONTROL: %s", msg.decode())
 
     def _send_alarm_action(self, action, msg):
         logging.debug("SEND_ALARM: %s", msg)
