@@ -21,7 +21,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 import datetime
-# import logging
+import logging
 import threading
 import time
 
@@ -30,7 +30,7 @@ from astral import LocationInfo
 from astral.sun import sun
 from dateutil import tz
 
-from ..constants import TASK_PULL
+from ..constants import TASK_PULL, CONNECTION_PUB_URL
 from .action_station_service_config import ActionServiceCFG, FloatParameterSpec
 
 
@@ -97,6 +97,7 @@ class ClockService(threading.Thread):
 
     def send_message(self, out_message=""):
         """Send the message"""
+        logging.debug("Clock TX: %s", out_message)
         self.task_sender.send_multipart([b"ALL", out_message.encode('utf-8')])
 
     def close(self):
@@ -125,16 +126,19 @@ class ClockService(threading.Thread):
         self.sun_time = sun(self.location_info.observer, date=datetime.datetime.now(tz=tz.tzlocal()))
 
         self.push_url = TASK_PULL.format(id=action_station_id)
-        self.pull_url = TASK_PULL.format(id=self.control_id)
+
+        self.sub_url = CONNECTION_PUB_URL.format(id=action_station_id)
+
         self.task_sender = self.context.socket(zmq.PUSH)
         self.task_sender.connect(self.push_url)
         self.clock = ClockThread(self.clock_message)
-
+        logging.debug("Clock Started")
         self.start()
 
     def run(self):
-        receiver = self.context.socket(zmq.PULL)
-        receiver.bind( self.pull_url)
+        receiver = self.context.socket(zmq.SUB)
+        receiver.connect(self.sub_url)
+        receiver.setsockopt_string(zmq.SUBSCRIBE, self.control_msg)
         poller = zmq.Poller()
         poller.register(receiver, zmq.POLLIN)
 
@@ -144,7 +148,7 @@ class ClockService(threading.Thread):
             except zmq.error.ContextTerminated:
                 break
             if receiver in socks:
-                message = receiver.recv()
+                message, msg_from = receiver.recv()
                 if message:
                     self.clock_message(datetime.datetime.now())
 

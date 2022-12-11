@@ -25,7 +25,7 @@ import threading
 import zmq
 import logging
 from .action_station_service_config import ActionServiceCFG, SelectorParameterSpec, IntParameterSpec
-from ..constants import TASK_PULL
+from ..constants import CONNECTION_PUB_URL, TASK_PULL
 
 # This defines the provisioning for the TIMER
 def make_timer_config(num_timers):
@@ -70,7 +70,7 @@ class TimerService(threading.Thread):
 
     def timer_message(self):
         """Send the message"""
-        self.send_message(out_message=self.control_msg)
+        self.send_message(out_message=self.control_msg + "\n")
 
     def send_message(self, out_message=""):
         """Send the message"""
@@ -91,17 +91,17 @@ class TimerService(threading.Thread):
         self.name = control_config_dict['name']
         self.control_type = control_config_dict['objectType']
         provision_list = control_config_dict['provisioning']
+        
+        self.sub_url = CONNECTION_PUB_URL.format(id=action_station_id)
 
         self.push_url = TASK_PULL.format(id=action_station_id)
-        self.pull_url = TASK_PULL.format(id=self.control_id)
-
         self.task_sender = self.context.socket(zmq.PUSH)
         self.task_sender.connect(self.push_url)
 
         self.timer_time = int(provision_list[1]['value'])/1000.0
         self.timer_type = provision_list[0]['value']
 
-        self.control_msg = f"\t{device_id}\t{self.control_type}\t{self.control_id}\n"
+        self.control_msg = f"\t{device_id}\t{self.control_type}\t{self.control_id}"
         
         logging.debug("Init Class: %s, %s", self.control_type, self.name)
 
@@ -112,8 +112,9 @@ class TimerService(threading.Thread):
 
 
     def run(self):
-        receiver = self.context.socket(zmq.PULL)
-        receiver.bind( self.pull_url)
+        receiver = self.context.socket(zmq.SUB)
+        receiver.connect(self.sub_url)
+        receiver.setsockopt_string(zmq.SUBSCRIBE, self.control_msg)
         poller = zmq.Poller()
         poller.register(receiver, zmq.POLLIN)
 
@@ -123,7 +124,7 @@ class TimerService(threading.Thread):
             except zmq.error.ContextTerminated:
                 break
             if receiver in socks:
-                message = receiver.recv()
+                message, msg_from = receiver.recv()
                 if message:
                     logging.debug("%s\t%s RX:\n%s", self.control_type, self.control_id, message.decode())
                     if self.timer_type == 'OneShot':
