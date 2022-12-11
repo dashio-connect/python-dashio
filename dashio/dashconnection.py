@@ -153,7 +153,7 @@ class DashConnection(threading.Thread):
     def _on_message(self, client, obj, msg):
         data = str(msg.payload, "utf-8").strip()
         logging.debug("DASH RX:\n%s", data)
-        self.tx_zmq_pub.send_multipart([self._b_connection_uuid, b'1', msg.payload])
+        self.tx_zmq_pub.send_multipart([self._b_zmq_connection_uuid, b'1', msg.payload])
 
     def _on_subscribe(self, client, obj, mid, granted_qos):
         logging.debug("Subscribed: %s %s", str(mid), str(granted_qos))
@@ -249,8 +249,8 @@ class DashConnection(threading.Thread):
         self.context = context or zmq.Context.instance()
         self._connected = False
         self._disconnected = True
-        self.connection_uuid = shortuuid.uuid()
-        self._b_connection_uuid = self.connection_uuid.encode('utf-8')
+        self.zmq_connection_uuid = "DASH:" + shortuuid.uuid()
+        self._b_zmq_connection_uuid = self.zmq_connection_uuid.encode('utf-8')
         self._device_id_list = []
         self._device_id_rx_list = []
         # self.LWD = "OFFLINE"
@@ -265,7 +265,7 @@ class DashConnection(threading.Thread):
         self._dash_c.on_disconnect = self._on_disconnect
         # self.dash_c.on_publish = self.__on_publish
         self._dash_c.on_subscribe = self._on_subscribe
-        self.connection_control = DashControl(self.connection_uuid, username, host)
+        self.connection_control = DashControl(self.zmq_connection_uuid, username, host)
         if use_ssl:
             self._dash_c.tls_set(
                 ca_certs=None,
@@ -299,7 +299,7 @@ class DashConnection(threading.Thread):
         self._dash_c.loop_start()
 
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_uuid))
+        self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
 
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
 
@@ -308,7 +308,7 @@ class DashConnection(threading.Thread):
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "DVCE_CNCT")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "DVCE_DCNCT")
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_uuid)
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.zmq_connection_uuid)
         poller = zmq.Poller()
         poller.register(self.rx_zmq_sub, zmq.POLLIN)
         data_topic = ""

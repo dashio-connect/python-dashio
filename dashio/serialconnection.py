@@ -143,7 +143,7 @@ class SerialConnection(threading.Thread):
 
         threading.Thread.__init__(self, daemon=True)
         self.context = context or zmq.Context.instance()
-        self.connection_uuid = shortuuid.uuid()
+        self.connection_uuid = "SERIAL:" + shortuuid.uuid()
         self.b_connection_id = self.connection_uuid.encode()
 
         self.running = True

@@ -27,7 +27,7 @@ import platform
 import random
 import signal
 import time
-
+import zmq 
 import dashio
 from dashio.iotcontrol.enums import (DialNumberPosition, DialStyle,
                                      DirectionStyle, Precision)
@@ -123,11 +123,12 @@ class TestControls:
 
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
-        self.tcp_con = dashio.TCPConnection()
+        context = zmq.Context.instance()
         #self.serial_con = dashio.SerialConnection('/dev/cu.usbserial-14130', baud_rate=9600)
-        self.device = dashio.Device("ControlTest", args.device_id, args.device_name, add_actions=True)
+        self.device = dashio.Device("ControlTest", args.device_id, args.device_name, add_actions=True, context=context)
         #self.device.use_cfg64()
         
+        self.tcp_con = dashio.TCPConnection(context=context)
         self.device.config_revision = 2
         #self.serial_con.add_device(self.device)
         self.tcp_con.add_device(self.device)

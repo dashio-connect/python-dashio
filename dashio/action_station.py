@@ -213,17 +213,14 @@ class ActionStation(threading.Thread):
             pass
         return action_station_dict
 
-    def add_connection(self, connection):
-        """Add a connection to listen too
-
-        Parameters
-        ----------
-        connection : _type_
-            _description_
-        """
-        self.connection_zmq_sub.connect(CONNECTION_PUB_URL.format(id=connection.zmq_connection_uuid))
-        self.connection_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, connection.zmq_connection_uuid)
-        connection.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
+    def register_connection(self, connection):
+        """Cennections register here"""
+        if connection.zmq_connection_uuid not in self.connections_list:
+            logging.debug("AS REG CONNECTION")
+            self.connections_list.append(connection.zmq_connection_uuid)
+            self.connection_zmq_sub.connect(CONNECTION_PUB_URL.format(id=connection.zmq_connection_uuid))
+            connection.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
+            self._connect_all_ext_devices()
 
     def add_gui_control(self, g_object: dict):
         """Add a GUI control"""
@@ -252,6 +249,26 @@ class ActionStation(threading.Thread):
             control.close()
         self.running = False
 
+    def _connect_all_ext_devices(self):
+        for device_id in self.remote_device_ids:
+            self._connect_device_id(device_id)
+
+    def _connect_device_id(self, device_id):
+        msg_dict = {
+            'msgType': 'connect',
+            'deviceID': device_id
+        }
+        logging.debug("AS CONNECT: %s", device_id)
+        self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg_dict).encode()])
+
+    def _disconnect_device_id(self, device_id):
+        msg_dict = {
+            'msgType': 'disconnect',
+            'deviceID': device_id
+        }
+        logging.debug("AS DISCONNECT: %s", device_id)
+        self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg_dict).encode()])
+
     def _start_control(self, t_object: dict):
         if t_object['uuid'] in self.thread_dicts:
             self.thread_dicts[t_object['uuid']].close()
@@ -261,13 +278,17 @@ class ActionStation(threading.Thread):
         if t_object['objectType'] == 'TASK':
             try:
                 rx_device_id = t_object['actions'][0]["deviceID"]
+                control_type = t_object['actions'][0]["controlType"]
                 control_id = t_object['actions'][0]["controlID"]
                 if rx_device_id != self.device_id:
                     if rx_device_id not in self.remote_device_ids:
                         self.remote_device_ids.append(rx_device_id)
-                    msg = f"\tDVCE_CNCT\t{rx_device_id}\n"
-                    logging.debug("AS TX DVCE_CNCT %s, %s", rx_device_id, msg)
-                    self.tx_zmq_pub.send_multipart([b"DVCE_CNCT", b"1", msg.encode()])
+                        self._connect_device_id(rx_device_id)
+                        sub_msg = f"\t{rx_device_id}\t{control_type}\t{control_id}"
+                        self.connection_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, sub_msg)
+                else:
+                    sub_msg = f"\t{self.device_id}\t{control_type}\t{control_id}"
+                    self.device_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, sub_msg)
                 task_dict_key = f"{rx_device_id}\t{control_id}\t"
                 task_sender = self.context.socket(zmq.PUSH)
                 task_sender.connect(TASK_PULL.format(id=t_object['uuid']))
@@ -283,13 +304,17 @@ class ActionStation(threading.Thread):
         store_object = self.configured_services[uuid]
         try:
             rx_device_id = store_object['actions'][0]["deviceID"]
+            control_type = store_object['actions'][0]["controlType"]
             control_id = store_object['actions'][0]["controlID"]
             if rx_device_id != self.device_id:
                 if rx_device_id in self.remote_device_ids:
                     self.remote_device_ids.remove(rx_device_id)
-                msg = f"\tDVCE_DCNCT\t{rx_device_id}\n"
-                logging.debug("AS TX DVCE_DCNCT %s", msg)
-                self.tx_zmq_pub.send_multipart([b"DVCE_DCNCT", b"1", msg.encode()])
+                sub_msg = f"\t{rx_device_id}\t{control_type}\t{control_id}"
+                self.connection_zmq_sub.setsockopt_string(zmq.UNSUBSCRIBE, sub_msg)
+                self._disconnect_device_id(rx_device_id)
+            else:
+                sub_msg = f"\t{self.device_id}\t{control_type}\t{control_id}"
+                self.device_zmq_sub.setsockopt_string(zmq.UNSUBSCRIBE, sub_msg)
             task_dict_key = f"{rx_device_id}\t{control_id}\t"
             del self._device_control_filter_dict[task_dict_key]
         except IndexError:
@@ -380,12 +405,9 @@ class ActionStation(threading.Thread):
         self.save_action(self._json_filename,  self.action_station_dict)
         return reply
 
-    def _send_connect(self):
-        logging.debug("Sending DVCE_CNCT")
-        for device_id in self.remote_device_ids:
-            logging.debug("Sending DVCE_CNCT: %s", device_id)
-            msg = f"\tDVCE_CNCT\t{device_id}\n"
-            self.tx_zmq_pub.send_multipart([b"DVCE_CNCT", b"0", msg.encode()])
+    def _rx_command(self, msg):
+        msg_dict = json.loads(msg)
+        logging.debug("AS RX CMD: %s", msg_dict)
 
     def _update_command(self, data):
         payload = json.loads(data[3])
@@ -429,6 +451,7 @@ class ActionStation(threading.Thread):
         self.configs = {}
         self.memory_tasks = {}
         self.remote_device_ids = []
+        self.connections_list = []
         self.action_station_dict = self.load_action(self._json_filename)
         self.max_actions = max_actions
         self._device_control_filter_dict = {}
@@ -459,7 +482,7 @@ class ActionStation(threading.Thread):
         self.configs[modbus_cfg['uuid']] = modbus_cfg
         self.configs[clock_cfg['uuid']] = clock_cfg
         if not self.action_station_dict:
-            self.zmq_connection_uuid = shortuuid.uuid()
+            self.zmq_connection_uuid = "ACTN:" + shortuuid.uuid()
             self.action_station_dict['actionStationID'] = self.zmq_connection_uuid
             self.action_station_dict['services'] = self.configured_services
             self.action_station_dict['tasksMemory'] = self.memory_tasks
@@ -486,6 +509,8 @@ class ActionStation(threading.Thread):
         # rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
         self.connection_zmq_sub = self.context.socket(zmq.SUB)
         self.connection_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "COMMAND")
+        self.connection_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "\tWHO")
+        self.connection_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, f"\t{self.device_id}\tACTN")
 
         # Socket to receive messages on
         task_receiver = self.context.socket(zmq.PULL)
@@ -510,30 +535,29 @@ class ActionStation(threading.Thread):
                 break
             if self.device_zmq_sub in socks:
                 try:
-                    [_, _, data] = self.device_zmq_sub.recv_multipart()
+                    [msg, msg_from] = self.device_zmq_sub.recv_multipart()
                 except ValueError:
                     # If there aren't three parts continue.
                     pass
-                if data:
-                    logging.debug("ActionStation Device RX:\n%s", data.decode().rstrip())
-                    reply = self._on_internal_message(data)
+                if msg:
+                    logging.debug("ActionStation Device RX:\n%s", msg.decode().rstrip())
+                    reply = self._on_internal_message(msg)
                     if reply:
-                        self.tx_zmq_pub.send_multipart([b'ALL', b'', reply.encode()])
+                        self.tx_zmq_pub.send_multipart([msg_from, reply.encode()])
             if self.connection_zmq_sub in socks:
-                msg = self.connection_zmq_sub.recv_multipart()
-                if len(msg) == 3:
-                    logging.debug("ActionStation Connection RX:\n%s, %s", msg[0].decode(), msg[2].decode().rstrip())
-                    if msg[0] == b"COMMAND" and msg[2] == b'send_announce':
-                        self._send_connect()
-                        continue
-                    reply = self._on_external_message(msg[2])
-                    if reply:
-                        self.tx_zmq_pub.send_multipart([msg[0], msg[1], reply.encode()])
+                msg, msg_from = self.connection_zmq_sub.recv_multipart()
+                logging.debug("ActionStation Connection RX:\n%s, %s", msg_from, msg.decode())
+                if msg[0] == b"COMMAND":
+                    self._rx_command(msg_from)
+                    continue
+                reply = self._on_external_message(msg)
+                if reply:
+                    self.tx_zmq_pub.send_multipart([msg_from, reply.encode()])
             if task_receiver in socks:
                 message = task_receiver.recv_multipart()
                 if message:
-                    logging.debug("ActionStation TASK RX:\n%s", message[2].decode())
-                    self.tx_zmq_pub.send_multipart([message[0], message[1], message[2]])
+                    logging.debug("ActionStation TASK RX:\n%s", message)
+                    self.tx_zmq_pub.send_multipart(message)
             
             if memory_socket in socks:
                 message = memory_socket.recv_multipart()

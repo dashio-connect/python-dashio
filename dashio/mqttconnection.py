@@ -197,7 +197,7 @@ class MQTTConnection(threading.Thread):
         threading.Thread.__init__(self, daemon=True)
 
         self.context = context or zmq.Context.instance()
-        self.connection_uuid = shortuuid.uuid()
+        self.connection_uuid = "MQTT:" + shortuuid.uuid()
         self.b_connection_id = self.connection_uuid.encode('utf-8')
 
         self.connection_control = MQTTControl(self.connection_uuid, username, password, host, use_ssl)

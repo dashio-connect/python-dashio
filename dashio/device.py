@@ -27,6 +27,7 @@ import threading
 
 import shortuuid
 import zmq
+import time
 
 from .constants import CONNECTION_PUB_URL, BAD_CHARS
 from .action_station import ActionStation
@@ -173,21 +174,21 @@ class Device(threading.Thread):
     def _send_alarm(self, alarm_id, message_header, message_body):
         payload = self._device_id_str + f"\tALM\t{alarm_id}\t{message_header}\t{message_body}\n"
         logging.debug("ALARM: %s", payload)
-        self.tx_zmq_pub.send_multipart([b"ALL", b'0', payload.encode('utf-8')])
+        self.tx_zmq_pub.send_multipart([b"ALL", payload.encode('utf-8')])
 
     def _send_data(self, data: str):
         if not data:
             return
         reply_send = data.format(device_id=self.device_id)
         try:
-            self.tx_zmq_pub.send_multipart([b"ALL", b'0', reply_send.encode('utf-8')])
+            self.tx_zmq_pub.send_multipart([b"ALL", reply_send.encode('utf-8')])
         except zmq.error.ZMQError:
             pass
 
     def _send_announce(self):
         payload = self._device_id_str + f"\tWHO\t{self.device_type}\t{self.device_name}\n"
         logging.debug("ANNOUNCE: %s", payload)
-        self.tx_zmq_pub.send_multipart([b"ANNOUNCE", b'0', payload.encode('utf-8')])
+        self.tx_zmq_pub.send_multipart([b"DASH", payload.encode('utf-8')])
 
     def add_control(self, iot_control):
         """Add a control to the device.
@@ -285,7 +286,7 @@ class Device(threading.Thread):
     def _wifi_rx_event(self, msg):
         if self._wifi_rx_callback(msg):
             data = self._device_id_str + "\tWIFI\n"
-            self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
+            self.tx_zmq_pub.send_multipart([b"ALL", data.encode('utf-8')])
         return ""
 
     def set_dashio_callback(self, callback):
@@ -311,7 +312,7 @@ class Device(threading.Thread):
     def _dashio_rx_event(self, msg):
         if self._dashio_rx_callback(msg):
             data = self._device_id_str + "\tDASHIO\n"
-            self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
+            self.tx_zmq_pub.send_multipart([b"ALL", data.encode('utf-8')])
         return ""
 
     def set_name_callback(self, callback):
@@ -339,15 +340,8 @@ class Device(threading.Thread):
         if name:
             self._device_name = name
             data = self._device_id_str + f"\tNAME\t{name}\n"
-            self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
+            self.tx_zmq_pub.send_multipart([b"ALL", data.encode('utf-8')])
         return ""
-
-    def _add_connection(self, connection):
-        self.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=connection.zmq_connection_uuid))
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, connection.zmq_connection_uuid)
-        self.add_control(connection.connection_control)
-        if self._add_actions:
-            self.action_station.add_connection(connection)
 
     def set_tcp_callback(self, callback):
         """Specify a callback function to be called when IoTDashboard sets tcp parameters.
@@ -371,7 +365,7 @@ class Device(threading.Thread):
     def _tcp_rx_event(self, msg):
         if self._tcp_rx_callback(msg):
             data = self._device_id_str + "\tTCP\n"
-            self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
+            self.tx_zmq_pub.send_multipart([b"ALL", data.encode('utf-8')])
         return ""
 
     def set_mqtt_callback(self, callback):
@@ -397,8 +391,19 @@ class Device(threading.Thread):
     def _mqtt_rx_event(self, msg):
         if self._mqtt_rx_callback(msg):
             data = self._device_id_str + "\tMQTT\n"
-            self.tx_zmq_pub.send_multipart([b"ALL", b'0', data.encode('utf-8')])
+            self.tx_zmq_pub.send_multipart([b"ALL", data.encode('utf-8')])
         return ""
+
+    def register_connection(self, connection):
+        """Cennections register here"""
+        if connection.zmq_connection_uuid not in self.connections_list:
+            logging.debug("DEVICE REG CONECTION")
+            self.connections_list.append(connection.zmq_connection_uuid)
+            self.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=connection.zmq_connection_uuid))
+            connection.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
+            self._send_announce()
+        if self._add_actions:
+            self.action_station.register_connection(connection)
 
     def __init__(self,
                  device_type: str,
@@ -426,8 +431,8 @@ class Device(threading.Thread):
         """
         threading.Thread.__init__(self, daemon=True)
 
-        self.zmq_connection_uuid = shortuuid.uuid()
-        self._b_zmq_connection_uuid = self.zmq_connection_uuid.encode('utf-8')
+        self.zmq_connection_uuid = "DVCE:" + shortuuid.uuid()
+        self._b_zmq_connection_uuid = self.zmq_connection_uuid.encode()
         self.context = context or zmq.Context.instance()
         self._wifi_rx_callback = None
         self._dashio_rx_callback = None
@@ -439,6 +444,7 @@ class Device(threading.Thread):
         self._b_device_id = self.device_id.encode('utf-8')
         self._device_name = device_name.strip()
         self._device_setup_list = []
+        self.connections_list = []
         self._device_commands_dict = {}
         self._device_commands_dict['CONNECT'] = self._make_connect
         self._device_commands_dict['STATUS'] = self._make_status
@@ -526,6 +532,9 @@ class Device(threading.Thread):
             self.action_station.close()
         self.running = False
 
+    def _local_command(self, msg_dict):
+        if msg_dict['msgType'] == 'send_announce':
+            self._send_announce()
 
     def run(self):
         # Continue the network loop, exit when an error occurs
@@ -533,7 +542,10 @@ class Device(threading.Thread):
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
         self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "COMMAND")
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"\tWHO")
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"COMMAND")
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self._b_zmq_connection_uuid)
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "\t" + self.device_id)
 
         poller = zmq.Poller()
         poller.register(self.rx_zmq_sub, zmq.POLLIN)
@@ -544,15 +556,19 @@ class Device(threading.Thread):
             except zmq.error.ContextTerminated:
                 break
             if self.rx_zmq_sub in socks:
-                msg = self.rx_zmq_sub.recv_multipart()
-                if len(msg) == 3:
-                    if msg[0] == b"COMMAND":
-                        if msg[2] == b'send_announce':
-                            self._send_announce()
-                        continue
-                    reply = self._on_message(msg[2])
-                    if reply:
-                        self.tx_zmq_pub.send_multipart([msg[0], msg[1], reply.encode('utf-8')])
+                try:
+                    [data, msg_from] = self.rx_zmq_sub.recv_multipart()
+                except ValueError:
+                    logging.debug("Device value error")
+                logging.debug("DEVICE RX: %s ,%s", msg_from, data)
+                if data == b"COMMAND":
+                    msg_dict = json.loads(data)
+                    self._local_command(msg_dict)
+                    continue
+                reply = self._on_message(data)
+                if reply:
+                    # logging.debug("DEVICE TX: %s ,%s", msg_from, data)
+                    self.tx_zmq_pub.send_multipart([msg_from, reply.encode('utf-8')])
         self.tx_zmq_pub.close()
         self.rx_zmq_sub.close()
         self.context.term()
