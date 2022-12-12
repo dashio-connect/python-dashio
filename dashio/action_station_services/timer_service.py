@@ -21,11 +21,15 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-import threading
-import zmq
 import logging
-from .action_station_service_config import ActionServiceCFG, SelectorParameterSpec, IntParameterSpec
+import threading
+
+import zmq
+
 from ..constants import CONNECTION_PUB_URL, TASK_PULL
+from .action_station_service_config import (ActionServiceCFG, IntParameterSpec,
+                                            SelectorParameterSpec)
+
 
 # This defines the provisioning for the TIMER
 def make_timer_config(num_timers):
@@ -35,7 +39,7 @@ def make_timer_config(num_timers):
         IntParameterSpec("Timeout", 100, 600000, "ms", 1000)
     ]
     parameter_in_list = []
-    parameter_out_list = []
+    #parameter_out_list = []
 
     timer_cfg = ActionServiceCFG(
         "TMR",
@@ -124,7 +128,7 @@ class TimerService(threading.Thread):
             except zmq.error.ContextTerminated:
                 break
             if receiver in socks:
-                message, msg_from = receiver.recv()
+                message, _ = receiver.recv()
                 if message:
                     logging.debug("%s\t%s RX:\n%s", self.control_type, self.control_id, message.decode())
                     if self.timer_type == 'OneShot':

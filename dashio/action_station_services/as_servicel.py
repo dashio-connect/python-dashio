@@ -1,13 +1,18 @@
 """Memory Class"""
-import threading
-import time
-
-import zmq
 import logging
+import threading
+import zmq
 
+from ..constants import CONNECTION_PUB_URL, TASK_PULL
+from .action_station_service_config import (ActionServiceCFG,
+                                            BoolParameterSpec,
+                                            FloatParameterSpec,
+                                            IntParameterSpec,
+                                            ListParameterSpec,
+                                            SelectorParameterSpec,
+                                            SliderParameterSpec,
+                                            StringParameterSpec)
 
-from .action_station_service_config import SelectorParameterSpec, IntParameterSpec, StringParameterSpec, FloatParameterSpec, BoolParameterSpec, SliderParameterSpec, ActionServiceCFG, ListParameterSpec
-from ..constants import TASK_PULL, CONNECTION_PUB_URL
 
 def make_test_config(num_tests):
     """Make a timer config"""
@@ -83,7 +88,7 @@ class ASService(threading.Thread):
         self.control_id = control_config_dict['controlID']
         self.name = control_config_dict['name']
         self.control_type = control_config_dict['objectType']
-        provision_list = control_config_dict['provisioning']
+        # provision_list = control_config_dict['provisioning']
 
         self.sub_url = CONNECTION_PUB_URL.format(id=action_station_id)
 
@@ -110,7 +115,7 @@ class ASService(threading.Thread):
             except zmq.error.ContextTerminated:
                 break
             if receiver in socks:
-                message, msg_from = receiver.recv()
+                message, _ = receiver.recv()
                 if message:
                     logging.debug("%s\t%s RX:\n%s", self.control_type, self.control_id, message.decode())
 
