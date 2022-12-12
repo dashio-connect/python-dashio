@@ -148,7 +148,7 @@ class ClockService(threading.Thread):
             except zmq.error.ContextTerminated:
                 break
             if receiver in socks:
-                message, msg_from = receiver.recv()
+                message, _ = receiver.recv()
                 if message:
                     self.clock_message(datetime.datetime.now())
 

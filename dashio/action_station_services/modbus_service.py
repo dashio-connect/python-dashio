@@ -107,7 +107,7 @@ def make_modbus_config(num_tests):
 
     ]
     parameter_list_in = []
-    parameter_list_out = []
+    # parameter_list_out = []
     timer_cfg = ActionServiceCFG(
         "MDBS",
         "Modbus Test",
@@ -144,7 +144,7 @@ class ModbusService(threading.Thread):
         self.control_id = control_config_dict['controlID']
         self.name = control_config_dict['name']
         self.control_type = control_config_dict['objectType']
-        provision_list = control_config_dict['provisioning']
+        # provision_list = control_config_dict['provisioning']
 
         self.push_url = TASK_PULL.format(id=action_station_id)
 
@@ -172,7 +172,7 @@ class ModbusService(threading.Thread):
             except zmq.error.ContextTerminated:
                 break
             if receiver in socks:
-                message, msg_from = receiver.recv()
+                message, _ = receiver.recv()
                 if message:
                     logging.debug("%s\t%s RX:\n%s", self.control_type, self.control_id, message.decode())
 

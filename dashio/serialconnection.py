@@ -183,7 +183,7 @@ class SerialConnection(threading.Thread):
                 break
             if self.rx_zmq_sub in socks:
                 try:
-                    [msg_to, data]= self.rx_zmq_sub.recv_multipart()
+                    [_, data]= self.rx_zmq_sub.recv_multipart()
                 except ValueError:
                     # If there aren't two parts continue.
                     continue

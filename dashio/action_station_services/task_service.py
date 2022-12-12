@@ -21,11 +21,14 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-import zmq
+import json
 import logging
 import threading
-import json
-from ..constants import CONNECTION_PUB_URL, TASK_PULL, MEMORY_REQ_URL
+
+import zmq
+
+from ..constants import CONNECTION_PUB_URL, MEMORY_REQ_URL, TASK_PULL
+
 
 def num(s_num: str):
     try:
@@ -124,6 +127,7 @@ class TaskService(threading.Thread):
             pass
         elif action["memType"] == "Task":
             reply = self._task_get_mem(action['memoryID'])
+            logging.debug("Task read mem: %s", reply)
         elif action["memType"] == "Global":
             self.device_mem_socket.send_multipart([b'GET', action['memoryID'].encode(), b'0'])
             reply = self.device_mem_socket.recv_multipart()
@@ -139,6 +143,7 @@ class TaskService(threading.Thread):
         elif action["memType"] == "Global":
             self.device_mem_socket.send_multipart([b'SET', action['memoryID'].encode(), action['thing'].encode()])
             reply = self.device_mem_socket.recv_multipart()
+            logging.debug("Task write mem: %s", reply)
         else:
             logging.debug("WRITE_MEM unknown memType: %s", action["memType"])
 
@@ -207,7 +212,7 @@ class TaskService(threading.Thread):
             except zmq.error.ContextTerminated:
                 break
             if task_receiver in socks:
-                message, msg_from = task_receiver.recv_multipart()
+                message, _ = task_receiver.recv_multipart()
                 if message:
                     logging.debug("TASK: %s\t%s RX:%s", self.name, self.task_id, message.decode())
                     self._do_actions(message)
