@@ -123,9 +123,9 @@ class SerialConnection(threading.Thread):
         device : dashio.Device
             Add a device to the connection.
         """
-        device._add_connection(self)
-        self.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=device.zmq_connection_uuid))
-        #self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
+        if device.device_id not in self.local_device_id_list:
+            device.register_connection(self)
+            self.local_device_id_list.append(device.device_id)
 
 
     def __init__(self, serial_port='/dev/ttyUSB0', baud_rate=38400, context: zmq.Context=None):
@@ -143,18 +143,18 @@ class SerialConnection(threading.Thread):
 
         threading.Thread.__init__(self, daemon=True)
         self.context = context or zmq.Context.instance()
-        self.connection_uuid = "SERIAL:" + shortuuid.uuid()
-        self.b_connection_id = self.connection_uuid.encode()
+        self.zmq_connection_uuid = "SERIAL:" + shortuuid.uuid()
+        self.b_connection_id = self.zmq_connection_uuid.encode()
 
         self.running = True
-
+        self.local_device_id_list = []
         host_name = socket.gethostname()
         host_list = host_name.split(".")
         # rename for .local mDNS advertising
         self.host_name = f"{host_list[0]}.local"
         self.serial_com = serial.Serial(serial_port, baud_rate, timeout=1.0)
         self.serial_com.flush()
-        self.connection_control = SerialControl(self.connection_uuid, serial_port, baud_rate)
+        self.connection_control = SerialControl(self.zmq_connection_uuid, serial_port, baud_rate)
         self.start()
         time.sleep(1)
 
@@ -164,12 +164,12 @@ class SerialConnection(threading.Thread):
 
     def run(self):
         tx_zmq_pub = self.context.socket(zmq.PUB)
-        tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_uuid))
+        tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
 
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         # Subscribe on ALL, and my connection
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_uuid)
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.zmq_connection_uuid)
         # rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
 
         poller = zmq.Poller()
@@ -182,9 +182,9 @@ class SerialConnection(threading.Thread):
                 break
             if self.rx_zmq_sub in socks:
                 try:
-                    [_, _, data] = self.rx_zmq_sub.recv_multipart()
+                    [msg_to, data]= self.rx_zmq_sub.recv_multipart()
                 except ValueError:
-                    # If there aren't three parts continue.
+                    # If there aren't two parts continue.
                     continue
                 if not data:
                     continue
@@ -195,7 +195,7 @@ class SerialConnection(threading.Thread):
                 if message:
                     try:
                         logging.debug("SERIAL Rx:\n%s", message.decode())
-                        tx_zmq_pub.send_multipart([self.b_connection_id, b'', message])
+                        tx_zmq_pub.send_multipart([message, self.zmq_connection_uuid])
                     except UnicodeDecodeError:
                         logging.debug("SERIAL DECODE ERROR Rx:\n%s", message.hex())
 
