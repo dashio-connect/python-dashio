@@ -133,8 +133,9 @@ class TCPConnection(threading.Thread):
         device : dashio.Device
             Add a device to the connection.
         """
-        if device.device_id not in self.device_id_list:
+        if device.device_id not in self.local_device_id_list:
             device.register_connection(self)
+            self.local_device_id_list.append(device.device_id)
             self.z_conf.add_device(device.device_id)
 
     @staticmethod
@@ -174,7 +175,7 @@ class TCPConnection(threading.Thread):
         self.ext_url = "tcp://" + self.local_ip + ":" + str(self.local_port)
         
         self.socket_ids = []
-        self.device_id_list = []
+        self.local_device_id_list = []
         self.remote_connection_dict = {}
         self.remote_device_con_dict = {}
         self.remote_device_id_msg_dict = {}
@@ -252,7 +253,7 @@ class TCPConnection(threading.Thread):
         if msg['objectType'] in ['zeroConfAdd', 'zeroConfUpdate']:
             device_list = msg['deviceID'].split(',')
             for device_id in device_list:
-                if len(device_id) > 0 and (device_id not in self.device_id_list) and (device_id not in self.remote_device_id_msg_dict):
+                if len(device_id) > 0 and (device_id not in self.local_device_id_list) and (device_id not in self.remote_device_id_msg_dict):
                     self.remote_device_id_msg_dict[device_id] = msg
                     added = True
                     if device_id in self._device_id_action_station_list:
