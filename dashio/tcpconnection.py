@@ -360,6 +360,7 @@ class TCPConnection(threading.Thread):
         # Subscribe on ALL, COMMAND, and my zmq_connection_uuid
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "COMMAND")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "TCP")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.zmq_connection_uuid)
 
         self.tcpsocket.bind(self.ext_url)
