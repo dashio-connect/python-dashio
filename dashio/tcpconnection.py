@@ -232,6 +232,19 @@ class TCPConnection(threading.Thread):
             self.tcpsocket.send(b'', zmq.NOBLOCK)
             del self.tcp_ip_2_id_dict[ip_key]
 
+    def _send_remote_device(self, r_device_id, msg):
+        if r_device_id in self.remote_device_id_msg_dict:
+            remote = self.remote_device_id_msg_dict[r_device_id]
+            ip_address = remote['address']
+            port = remote['port']
+            url = f"tcp://{ip_address}:{port}"
+            self.tcpsocket.connect(url)
+            socket_id = self.tcpsocket.getsockopt(zmq.IDENTITY)
+            self.tcpsocket.send(socket_id, zmq.SNDMORE)
+            self.tcpsocket.send(msg)
+            self.tcpsocket.send(socket_id, zmq.SNDMORE)
+            self.tcpsocket.send(b'', zmq.NOBLOCK)
+
     def _service_zconf_message(self, rx_zconf_pull):
         message = rx_zconf_pull.recv()
         msg = json.loads(message)
@@ -318,9 +331,11 @@ class TCPConnection(threading.Thread):
             self._tcp_command(json.loads(data))
             return
         else:
-            tcp_id = msg_to.split(b':')[-1]
-            _zmq_tcp_send(tcp_id, data)
-        
+            dest = msg_to.split(b':')[-1]
+            if dest in self.socket_ids:
+                _zmq_tcp_send(dest, data)
+            if dest in self.remote_device_id_msg_dict:
+                self._send_remote_device(dest, data)
 
     def _service_tcp_messages(self, tx_zmq_pub):
         tcp_id = self.tcpsocket.recv()
