@@ -140,7 +140,7 @@ class ZMQConnection(threading.Thread):
 
         zconf_info = ServiceInfo(
             "_DashZMQ._tcp.local.",
-            f"{self.connection_uuid}._DashZMQ._tcp.local.",
+            f"{self.zmq_connection_uuid}._DashZMQ._tcp.local.",
             addresses=[socket.inet_aton(self.local_ip)],
             port=pub_port,
             properties=zconf_desc,
@@ -148,19 +148,29 @@ class ZMQConnection(threading.Thread):
         )
         self.zeroconf.update_service(zconf_info)
 
+
     def add_device(self, device):
-        """Add a device to the connection
+        """Add a Device to the connextion
 
         Parameters
         ----------
-        device : Device
-            The device to add to the connection
+            device (Device):
+                The Device to add.
         """
-        device._add_connection(self)
-        self.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=device.zmq_connection_uuid))
-        if device.device_id not in self.device_id_list:
-            self.device_id_list.append(device.device_id)
-            self._zconf_publish_tcp(self.local_ip, self.local_port)
+        if device.device_id not in self._device_id_list:
+            self._device_id_list.append(device.device_id)
+            device.register_connection(self)
+            self._send_dash_announce()
+
+
+    def _send_dash_announce(self):
+        msg = {
+            'msgType': 'send_announce',
+            'connectionUUID': self.zmq_connection_uuid
+        }
+        logging.debug("ZMQ SEND ANNOUNCE: %s", msg)
+        self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg).encode()])
+
 
     def close(self):
         """Close the connection."""
@@ -187,9 +197,9 @@ class ZMQConnection(threading.Thread):
         self.context = context or zmq.Context.instance()
         self.running = True
 
-        self.device_id_list = []
-        self.connection_uuid = "ZMQ:" + shortuuid.uuid()
-        self.b_connection_id = self.connection_uuid.encode('utf-8')
+        self._device_id_list = []
+        self.zmq_connection_uuid = "ZMQ:" + shortuuid.uuid()
+        self.b_zmq_connection_id = self.zmq_connection_uuid.encode('utf-8')
 
         host_name = socket.gethostname()
         host_list = host_name.split(".")
@@ -202,18 +212,37 @@ class ZMQConnection(threading.Thread):
         self._zconf_publish_zmq(sub_port, pub_port)
         self.start()
 
+
+    def _add_device_rx(self, msg_dict):
+        """Connect to another device"""
+        device_id = msg_dict["deviceID"]
+        logging.debug("ZMQ DEVICE CONNECT: %s", device_id)
+        # TODO finish this
+
+    def _del_device_rx(self, msg_dict):
+        device_id = msg_dict["deviceID"]
+        logging.debug("TCP DEVICE_DISCONNECT: %s", device_id)
+         # TODO finish this
+
+    def _zmq_command(self, msg_dict: dict):
+        logging.debug("TCP CMD: %s", msg_dict)
+        if msg_dict['msgType'] == 'connect':
+            self._add_device_rx(msg_dict)
+        if msg_dict['msgType'] == 'disconnect':
+            self._del_device_rx(msg_dict)
+
     def run(self):
 
-        tx_zmq_pub = self.context.socket(zmq.PUB)
-        tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_uuid))
+        self.tx_zmq_pub = self.context.socket(zmq.PUB)
+        self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
 
         #  Subscribe on ALL, and my connection
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         # Subscribe on ALL, and my connection
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "DVCE_CNCT")
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "DVCE_DCNCT")
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_uuid)
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "COMMAND")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "MQTT")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.zmq_connection_uuid)
         # rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
 
         ext_tx_zmq_pub = self.context.socket(zmq.PUB)
@@ -237,13 +266,17 @@ class ZMQConnection(threading.Thread):
             if self.ext_rx_zmq_sub in socks:
                 message = self.ext_rx_zmq_sub.recv()
                 logging.debug("ZMQ Rx: %s", message.decode('utf-8').rstrip())
-                tx_zmq_pub.send_multipart([self.b_connection_id, b'', message])
+                self.tx_zmq_pub.send_multipart([message, self.b_zmq_connection_id])
 
             if self.rx_zmq_sub in socks:
-                [address, _, data] = self.rx_zmq_sub.recv_multipart()
-                if address in (b'ALL', self.b_connection_id):
+                [msg_to, data] = self.rx_zmq_sub.recv_multipart()
+
+                if msg_to == b'ALL':
                     logging.debug("ZMQ Tx: %s", data.decode('utf-8').rstrip())
                     ext_tx_zmq_pub.send(data)
+                elif msg_to == b'COMMAND':
+                    self._zmq_command(json.loads(data))
+                    return
 
-        tx_zmq_pub.close()
+        self.tx_zmq_pub.close()
         self.rx_zmq_sub.close()
