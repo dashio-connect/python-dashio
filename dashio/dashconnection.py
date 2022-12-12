@@ -289,7 +289,6 @@ class DashConnection(threading.Thread):
         # Start subscribe, with QoS level 0
         self.disconnect_timeout = 15.0
         self.start()
-        time.sleep(1)
 
     def close(self):
         """Close the connection."""
@@ -335,7 +334,7 @@ class DashConnection(threading.Thread):
                     continue
                 # logging.debug("DASH: %s ,%s", msg_to, data)
                 if msg_to == b'COMMAND':
-                    logging.debug("TCP RX COMMAND")
+                    logging.debug("DASH RX COMMAND")
                     self._dash_command(json.loads(data))
                     continue
                 msg_l = data.split(b'\t')

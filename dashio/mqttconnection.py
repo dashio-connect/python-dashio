@@ -128,12 +128,17 @@ class MQTTConnection(threading.Thread):
         if msg == 0:
             self._connected = True
             self._disconnected = False
-            for device_id in self.device_id_list:
+            for device_id in self._device_id_list:
                 control_topic = f"{self.username}/{device_id}/control"
-                self.mqttc.subscribe(control_topic, 0)
+                self._dash_c.subscribe(control_topic, 0)
+            for device_id in self._device_id_rx_list:
+                data_topic = f"{self.username}/{device_id}/data"
+                self._dash_c.subscribe(data_topic, 0)
+            self._send_dash_announce()
             logging.debug("connected OK")
         else:
             logging.debug("Bad connection Returned code=%s", msg)
+
 
     def _on_disconnect(self, client, userdata, msg):
         logging.debug("disconnecting reason  %s", msg)
@@ -142,8 +147,9 @@ class MQTTConnection(threading.Thread):
 
     def _on_message(self, client, obj, msg):
         data = str(msg.payload, "utf-8").strip()
-        logging.debug("DASH RX: %s", data)
-        self.tx_zmq_pub.send_multipart([self.b_connection_id, b'1', msg.payload])
+        logging.debug("MQTT RX:\n%s", data)
+        self.tx_zmq_pub.send_multipart([msg.payload, self._b_zmq_connection_uuid])
+
 
     def _on_subscribe(self, client, obj, mid, granted_qos):
         logging.debug("Subscribed: %s %s", str(mid), str(granted_qos))
@@ -152,22 +158,45 @@ class MQTTConnection(threading.Thread):
         logging.debug(string)
 
     def add_device(self, device):
-        """Add device to the connection
+        """Add a Device to the connextion
 
         Parameters
-        ---------
-            device : Device
-                The device to add.
+        ----------
+            device (Device):
+                The Device to add.
         """
-        if device.device_id not in self.device_id_list:
-            self.device_id_list.append(device.device_id)
-            device._add_connection(self)
-            self.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=device.zmq_connection_uuid))
-            # self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
-
+        if device.device_id not in self._device_id_list:
+            self._device_id_list.append(device.device_id)
+            device.register_connection(self)
             if self._connected:
                 control_topic = f"{self.username}/{device.device_id}/control"
                 self.mqttc.subscribe(control_topic, 0)
+                self._send_dash_announce()
+    
+    def _add_device_rx(self, msg_dict):
+        """Connect to another device"""
+        device_id = msg_dict["deviceID"]
+        logging.debug("MQTT DEVICE CONNECT: %s", device_id)
+        if device_id not in self._device_id_rx_list:
+            self._device_id_rx_list.append(device_id)
+            data_topic = f"{self.username}/{device_id}/data"
+            self.mqttc.subscribe(data_topic, 0)
+
+    def _del_device_rx(self, msg_dict):
+        device_id = msg_dict["deviceID"]
+        if device_id in self._device_id_rx_list:
+            data_topic = f"{self.username}/{device_id}/data"
+            self.mqttc.unsubscribe(data_topic)
+            logging.debug("MQTT DEVICE_DISCONNECT: %s", device_id)
+            del self._device_id_rx_list[device_id]
+
+    def _send_dash_announce(self):
+        msg = {
+            'msgType': 'send_announce',
+            'connectionUUID': self.zmq_connection_uuid
+        }
+        logging.debug("MQTT SEND ANNOUNCE: %s", msg)
+        self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg).encode()])
 
     def close(self):
         """Close the connection."""
@@ -197,14 +226,15 @@ class MQTTConnection(threading.Thread):
         threading.Thread.__init__(self, daemon=True)
 
         self.context = context or zmq.Context.instance()
-        self.connection_uuid = "MQTT:" + shortuuid.uuid()
-        self.b_connection_id = self.connection_uuid.encode('utf-8')
+        self.zmq_connection_uuid = "MQTT:" + shortuuid.uuid()
+        self.b_connection_id = self.zmq_connection_uuid.encode('utf-8')
 
-        self.connection_control = MQTTControl(self.connection_uuid, username, password, host, use_ssl)
+        self.connection_control = MQTTControl(self.zmq_connection_uuid, username, password, host, use_ssl)
         self._connected = False
         self._disconnected = True
         self.connection_topic_list = []
-        self.device_id_list = []
+        self._device_id_list = []
+        self._device_id_rx_list = []
         self.host = host
         self.port = port
         # self.last_will = "OFFLINE"
@@ -239,13 +269,21 @@ class MQTTConnection(threading.Thread):
         except mqtt.socket.gaierror as error:
             logging.debug("No connection to internet: %s", str(error))
         # Start subscribe, with QoS level 0
+        self.disconnect_timeout = 15.0
         self.start()
+
+    def _mqtt_command(self, msg_dict: dict):
+        logging.debug("MQTT CMD: %s", msg_dict)
+        if msg_dict['msgType'] == 'connect':
+            self._add_device_rx(msg_dict)
+        if msg_dict['msgType'] == 'disconnect':
+            self._del_device_rx(msg_dict)
 
     def run(self):
         self.mqttc.loop_start()
 
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.connection_uuid))
+        self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
 
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
@@ -253,8 +291,8 @@ class MQTTConnection(threading.Thread):
 
         # Subscribe on ALL, and my connection
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALARM")
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.connection_uuid)
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"MQTT")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.zmq_connection_uuid)
 
         poller = zmq.Poller()
         poller.register(self.rx_zmq_sub, zmq.POLLIN)
@@ -265,16 +303,30 @@ class MQTTConnection(threading.Thread):
             except zmq.error.ContextTerminated:
                 break
             if self.rx_zmq_sub in socks:
-                [_, _, data] = self.rx_zmq_sub.recv_multipart()
+                try:
+                    [msg_to, data] = self.rx_zmq_sub.recv_multipart()
+                except ValueError:
+                    logging.debug("MQTT value error")
+                    continue
+                if not data:
+                    logging.debug("MQTT no data error")
+                    continue
+                # logging.debug("DASH: %s ,%s", msg_to, data)
+                if msg_to == b'COMMAND':
+                    logging.debug("MQTT RX COMMAND")
+                    self._mqtt_command(json.loads(data))
+                    continue
                 msg_l = data.split(b'\t')
-                device_id = msg_l[1].decode('utf-8').strip()
+                try:
+                    device_id = msg_l[1].decode().strip()
+                except IndexError:
+                    continue
+                data_topic = f"{self.username}/{device_id}/data"
                 if self._connected:
-                    logging.debug("%s TX: %s", self.b_connection_id.decode('utf-8'), data.decode('utf-8').rstrip())
-                    data_topic = f"{self.username}/{device_id}/data"
-                    self.mqttc.publish(data_topic, data)
-
+                    logging.debug("MQTT TX:\n%s", data.decode().rstrip())
+                    self.mqttc.publish(data_topic, data.decode())
             if self._disconnected:
-                self.disconnect_timeout = min(self.disconnect_timeout, 900.0)
+                self.disconnect_timeout = min(self.disconnect_timeout, 900)
                 time.sleep(self.disconnect_timeout)
                 try:
                     self.mqttc.connect(self.host, self.port)
