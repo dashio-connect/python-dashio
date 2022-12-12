@@ -437,7 +437,7 @@ class ActionStation(threading.Thread):
         # rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
         self.connection_zmq_sub = self.context.socket(zmq.SUB)
         self.connection_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "COMMAND")
-        self.connection_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, f"\t{self.device_id}\tACTN")
+        self.connection_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "\t") # - All valid DashIO messaging
 
         # Socket to receive messages on
         task_receiver = self.context.socket(zmq.PULL)
@@ -472,7 +472,7 @@ class ActionStation(threading.Thread):
 
             if self.connection_zmq_sub in socks:
                 msg, msg_from = self.connection_zmq_sub.recv_multipart()
-                logging.debug("ActionStation Connection RX:\n%s, %s", msg_from, msg.decode())
+                # logging.debug("ActionStation Connection RX:\n%s, %s", msg_from, msg.decode())
                 if msg[0] == b"COMMAND":
                     self._rx_command(msg_from)
                     continue
