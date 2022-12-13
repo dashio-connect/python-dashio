@@ -191,21 +191,22 @@ class ActionStation(threading.Thread):
 
     def add_gui_control(self, g_object: dict):
         """Add a GUI control"""
-        control = CONTROL_INSTANCE_DICT[g_object['objectType']].from_cfg_dict(g_object['provisioning'])
-        control.message_rx_event = control.message_tx_event
-        if g_object['uuid'] in self.dash_controls:
+        
+        # control = CONTROL_INSTANCE_DICT[g_object['objectType']].from_cfg_dict(g_object['provisioning'])
+        # control.message_rx_event = control.message_tx_event
+        # if g_object['uuid'] in self.dash_controls:
             # A version already there better remove it
-            self.device.remove_control(self.dash_controls[g_object['uuid']])
-        self.device.add_control(control)
-        self.device.inc_config_revision()
-        self.dash_controls[g_object['uuid']] = control
+        #    self.device.remove_control(self.dash_controls[g_object['uuid']])
+        # self.device.add_control(control)
+        # self.device.inc_config_revision()
+        self.dash_controls[g_object['uuid']] = g_object # control
 
     def rm_gui_control(self, g_object: dict):
         """Remove a GUI control"""
         if g_object['uuid'] in self.dash_controls:
-            control = self.dash_controls[g_object['uuid']]
-            self.device.remove_control(control)
-            self.device.inc_config_revision()
+            # control = self.dash_controls[g_object['uuid']]
+            # self.device.remove_control(control)
+            # self.device.inc_config_revision()
             del self.dash_controls[g_object['uuid']]
 
     def close(self):
