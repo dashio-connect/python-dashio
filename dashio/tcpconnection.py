@@ -121,7 +121,7 @@ class TCPConnection(threading.Thread):
             'msgType': 'send_announce',
             'connectionUUID': self.zmq_connection_uuid
         }
-        logging.debug("TCP SEND ANNOUNCE: %s", msg)
+        # logging.debug("TCP SEND ANNOUNCE: %s", msg)
         self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg).encode()])
 
 

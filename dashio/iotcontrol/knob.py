@@ -130,6 +130,25 @@ class Knob(Control):
         self._state_str_dial = self._control_id_dial + f"{self._knob_dial_value}\n"
         self._knob_dial_state_str = self._state_str_knob + self._state_str_dial
 
+        self._dial_min = dial_min
+        self._dial_max = dial_max
+        self._red_value = red_value
+
+    @property
+    def dial_min(self):
+        """Return the minimum dial value"""
+        return self._dial_min
+
+    @property
+    def dial_max(self):
+        """Return the maximum dial value"""
+        return self._dial_max
+
+    @property
+    def red_value(self):
+        """Return the red value for the dial"""
+        return self._red_value
+
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict):
         """Instatiates Knob from cfg dictionary

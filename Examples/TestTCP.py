@@ -83,12 +83,12 @@ class TestControls:
         return args
 
     def up_btn_event_handler(self, msg):
-        if self.sldr_cntrl.bar1_value < self.slider_max:
+        if self.sldr_cntrl.bar1_value < self.sldr_cntrl.bar_max:
             self.sldr_cntrl.bar1_value += 1
             self.sldr_dbl_cntrl.bar1_value += 0.5
 
     def down_btn_event_handler(self, msg):
-        if self.sldr_cntrl.bar1_value > self.slider_min:
+        if self.sldr_cntrl.bar1_value > self.sldr_cntrl.bar_min:
             self.sldr_cntrl.bar1_value -= 1
             self.sldr_dbl_cntrl.bar1_value -= 0.5
 
@@ -150,10 +150,9 @@ class TestControls:
         self.down_btn.icon_name = dashio.Icon.DOWN
         self.down_btn.message_rx_event = self.down_btn_event_handler
         self.page_test.add_control(self.down_btn)
-        self.slider_max = 10
-        self.slider_min = 0
+
         self.sldr_cntrl = dashio.Slider(
-            "SLDR", title = "Slider", bar_max = self.slider_max, slider_enabled = True, red_value = 10, control_position=dashio.ControlPosition(0.02, 0.13, 0.22, 0.73)
+            "SLDR", title = "Slider", bar_max = 10, slider_enabled = True, red_value = 10, control_position=dashio.ControlPosition(0.02, 0.13, 0.22, 0.73)
         )
         self.sldr_cntrl.message_rx_event += self.slider_event_handler
         self.page_test.add_control(self.sldr_cntrl)

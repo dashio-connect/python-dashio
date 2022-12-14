@@ -199,8 +199,27 @@ class TimeGraph(Control):
             )
         )
         self.message_rx_event = self._get_lines_from_timestamp
+        
+        self._y_axis_min = y_axis_min
+        self._y_axis_max = y_axis_max
+        self._y_axis_num_bars = y_axis_num_bars
 
         self.line_dict = {}
+
+    @property
+    def y_axis_min(self):
+        """Returns the Y axis minimum value"""
+        return self._y_axis_min
+
+    @property
+    def y_axis_max(self):
+        """Returns the Y axis maximum value"""
+        return self._y_axis_max
+
+    @property
+    def y_axis_num_bars(self):
+        """Returns the y axis number of bars"""
+        return self.y_axis_num_bars
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict):
