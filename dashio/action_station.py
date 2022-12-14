@@ -189,7 +189,7 @@ class ActionStation(threading.Thread):
             connection.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
             self._connect_all_ext_devices()
 
-    def add_gui_control(self, g_object: dict):
+    def add_gui_controls(self, g_object: dict):
         """Add a GUI control"""
         # control = CONTROL_INSTANCE_DICT[g_object['objectType']].from_cfg_dict(g_object['provisioning'])
         # control.message_rx_event = control.message_tx_event
@@ -200,7 +200,7 @@ class ActionStation(threading.Thread):
         # self.device.inc_config_revision()
         self.dash_controls[g_object['uuid']] = g_object # control
 
-    def rm_gui_control(self, g_object: dict):
+    def rm_gui_controls(self, g_object: dict):
         """Remove a GUI control"""
         if g_object['uuid'] in self.dash_controls:
             # control = self.dash_controls[g_object['uuid']]
@@ -318,7 +318,7 @@ class ActionStation(threading.Thread):
                 time.sleep(0.1)
                 del self.thread_dicts[payload['uuid']]
             if store_obj['objectType'] in self.dash_controls:
-                self.rm_gui_control(payload)
+                self.rm_gui_controls(payload)
             del self.configured_services[payload["uuid"]]
             result['result'] = True
         except KeyError:
@@ -345,7 +345,7 @@ class ActionStation(threading.Thread):
             if payload['objectType'] == 'DVCE_CONFIG':
                 self.configured_services[payload['uuid']] = payload
                 result['result'] = True
-                self.add_gui_control(payload)
+                self.add_gui_controls(payload)
         except KeyError:
             msg = "UPDATE: payload has no objectType"
             logging.debug(msg)
