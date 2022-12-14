@@ -453,7 +453,10 @@ class ActionStation(threading.Thread):
         poller.register(memory_socket, zmq.POLLIN)
 
         for j_object in self.configured_services.values():
-            self._start_control(j_object)
+            if j_object['objectType'] == "DVCE_CONFIG":
+                self.add_gui_controls(j_object)
+            else:
+                self._start_control(j_object)
 
         while self.running:
             try:
