@@ -165,8 +165,10 @@ class Device(threading.Thread):
                 continue
             if control.cntrl_type == "DVVW":
                 dvvw_str += self._device_id_str + control.get_cfg(data)
+                logging.debug("GET DVVW CFG: %s", dvvw_str)
             else:
                 reply += self._device_id_str + control.get_cfg(data)
+                logging.debug("GET CFG: %s", reply)
         reply += dvvw_str
         return reply
 
