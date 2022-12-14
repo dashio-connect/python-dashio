@@ -182,7 +182,10 @@ class Device(threading.Thread):
     def _send_data(self, data: str):
         if not data:
             return
-        reply_send = data.format(device_id=self.device_id)
+        if isinstance(data, str):
+            reply_send = data.format(device_id=self.device_id)
+        elif isinstance(data, list):
+            reply_send = "\t" + "\t".join(data) + "\n"
         try:
             self.tx_zmq_pub.send_multipart([b"ALL", reply_send.encode('utf-8')])
         except zmq.error.ZMQError:
