@@ -132,8 +132,24 @@ class Dial(Control):
             )
         )
         self._dial_value = 0
-        
+        self._dial_min = dial_min
+        self._dial_max = dial_max
+        self._red_value = red_value
 
+    @property
+    def dial_min(self):
+        """Return the minimum dial value"""
+        return self._dial_min
+
+    @property
+    def dial_max(self):
+        """Return the maximum dial value"""
+        return self._dial_max
+
+    @property
+    def red_value(self):
+        """Return the red value for the dial"""
+        return self._red_value
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict):
