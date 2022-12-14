@@ -164,11 +164,13 @@ class Device(threading.Thread):
             if control.cntrl_type == "ALM":
                 continue
             if control.cntrl_type == "DVVW":
-                dvvw_str += self._device_id_str + control.get_cfg(data)
-                logging.debug("GET DVVW CFG: %s", dvvw_str)
+                cfg_list = control.get_cfg(data)
+                for cfg in cfg_list:
+                    dvvw_str += self._device_id_str + cfg
             else:
-                reply += self._device_id_str + control.get_cfg(data)
-                logging.debug("GET CFG: %s", reply)
+                cfg_list = control.get_cfg(data)
+                for cfg in cfg_list:
+                    reply += self._device_id_str + cfg
         reply += dvvw_str
         return reply
 
