@@ -208,9 +208,9 @@ class Device(threading.Thread):
         except AttributeError:
             pass
         key = f"{iot_control.cntrl_type}\t{iot_control.control_id}"
-        loaded = False
+        
         if key not in self._control_dict:
-            loaded = True
+            self.inc_config_revision()
             if isinstance(iot_control, DeviceView):
                 self._cfg["numDeviceViews"] += 1
             self._control_dict[key] = iot_control
@@ -220,7 +220,7 @@ class Device(threading.Thread):
             elif isinstance(iot_control, Slider):
                 key = f"BAR_{iot_control.control_id}"
                 self._control_dict[key] = iot_control
-        return loaded
+        
 
     def remove_control(self, iot_control):
         """Remove a control a control to the device.
