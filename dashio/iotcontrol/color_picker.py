@@ -22,8 +22,25 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from ..constants import BAD_CHARS
-from .control import Control, ControlPosition, _get_title_position, _get_color_picker_style
+from .control import Control, ControlPosition, ControlConfig, _get_title_position, _get_color_picker_style
 from .enums import (ColorPickerStyle, TitlePosition)
+
+
+
+class ColorPickerConfig(ControlConfig):
+    """ButtonGroupConfig"""
+    def __init__(
+        self,
+        control_id: str,
+        title: str,
+        title_position: TitlePosition,
+        style: ColorPickerStyle,
+        send_only_on_release: bool,
+        control_position: ControlPosition
+        ) -> None:
+        super().__init__(control_id, title, control_position, title_position)
+        self._cfg["style"] = style.value
+        self._cfg["sendOnlyOnRelease"] = send_only_on_release
 
 
 class ColorPicker(Control):
@@ -56,9 +73,17 @@ class ColorPicker(Control):
             send only on release, by default True
 
         """
-        super().__init__("CLR", control_id, title=title, control_position=control_position, title_position=title_position)
-        self.picker_style = style
-        self.send_only_on_release = send_only_on_release
+        super().__init__("CLR", control_id)
+        self._cfg_columnar.append(
+            ColorPickerConfig(
+                control_id,
+                title,
+                title_position,
+                style,
+                send_only_on_release,
+                control_position
+            )
+        )
         self._color_value = "#4F5GA2"
 
 
@@ -120,36 +145,3 @@ class ColorPicker(Control):
         _val = val.translate(BAD_CHARS)
         self._color_value = _val
         self.state_str = self._control_hdr_str + f"{_val}\n"
-
-
-    @property
-    def style(self) -> ColorPickerStyle:
-        """Color Picker style
-
-        Returns
-        -------
-        ColorPickerStyle
-            Style to use for the color picker control
-        """
-        return self._style
-
-    @style.setter
-    def style(self, val: ColorPickerStyle):
-        self._style = val
-        self._cfg["style"] = val.value
-
-
-    @property
-    def send_only_on_release(self) -> bool:
-        """Send color on release
-
-        Returns
-        -------
-        bool
-            Set to false for data firehose
-        """
-        return self._cfg["sendOnlyOnRelease"]
-
-    @send_only_on_release.setter
-    def send_only_on_release(self, val: bool):
-        self._cfg["sendOnlyOnRelease"] = val

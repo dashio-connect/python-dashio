@@ -21,10 +21,42 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-from ..constants import BAD_CHARS
-from .control import Control, ControlPosition, _get_color, _get_title_position, _get_dial_number_position, _get_dial_style, _get_precision
+from .control import Control, ControlPosition, ControlConfig, _get_color, _get_title_position, _get_dial_number_position, _get_dial_style, _get_precision
 from .enums import (Color, DialNumberPosition, DialStyle, Precision,
                     TitlePosition)
+
+
+
+class DialConfig(ControlConfig):
+    """ButtonGroupConfig"""
+    def __init__(
+        self,
+        control_id: str,
+        title: str,
+        title_position: TitlePosition,
+        dial_min: float,
+        dial_max: float,
+        red_value: float,
+        dial_fill_color: Color,
+        pointer_color: Color,
+        number_position: DialNumberPosition,
+        show_min_max: bool,
+        style: DialStyle,
+        precision: Precision,
+        units: str,
+        control_position: ControlPosition
+        ) -> None:
+        super().__init__(control_id, title, control_position, title_position)
+        self._cfg["min"] = dial_min
+        self._cfg["max"] = dial_max
+        self._cfg["redValue"] = red_value
+        self._cfg["dialFillColor"] = str(dial_fill_color.value)
+        self._cfg["pointerColor"] = str(pointer_color.value)
+        self._cfg["numberPosition"] = number_position.value
+        self._cfg["showMinMax"] = show_min_max
+        self._cfg["style"] = style.value
+        self._cfg["precision"] = precision.value
+        self._cfg["units"] = units
 
 
 class Dial(Control):
@@ -45,7 +77,7 @@ class Dial(Control):
         style=DialStyle.PIE,
         precision=Precision.OFF,
         units="",
-        control_position=None,
+        control_position=None
     ):
         """Dial
 
@@ -80,18 +112,28 @@ class Dial(Control):
         units : str, optional
             Units of the dial position, by default ""
         """
-        super().__init__("DIAL", control_id, title=title, control_position=control_position, title_position=title_position)
+        super().__init__("DIAL", control_id)
+        self._cfg_columnar.append(
+            DialConfig(
+                control_id,
+                title,
+                title_position,
+                dial_min,
+                dial_max,
+                red_value,
+                dial_fill_color,
+                pointer_color,
+                number_position,
+                show_min_max,
+                style,
+                precision,
+                units,
+                control_position
+            )
+        )
         self._dial_value = 0
-        self.dial_min = dial_min
-        self.dial_max = dial_max
-        self.red_value = red_value
-        self.dial_fill_color = dial_fill_color
-        self.pointer_color = pointer_color
-        self.number_position = number_position
-        self.show_min_max = show_min_max
-        self.style = style
-        self.precision = precision
-        self.units = units
+        
+
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict):
@@ -144,159 +186,3 @@ class Dial(Control):
     def dial_value(self, val: float):
         self._dial_value = val
         self.state_str = self._control_hdr_str + f"{val}\n"
-
-    @property
-    def dial_min(self) -> float:
-        """Dial min
-
-        Returns
-        -------
-        float
-            Minimum dial position
-        """
-        return self._cfg["min"]
-
-    @dial_min.setter
-    def dial_min(self, val: float):
-        self._cfg["min"] = val
-
-    @property
-    def dial_max(self) -> float:
-        """Dial Max
-
-        Returns
-        -------
-        float
-            Maximum position of the dial
-        """
-        return self._cfg["max"]
-
-    @dial_max.setter
-    def dial_max(self, val: float):
-        self._cfg["max"] = val
-
-    @property
-    def red_value(self) -> float:
-        """Red value
-
-        Returns
-        -------
-        float
-            The start of the red part of the dial
-        """
-        return self._cfg["redValue"]
-
-    @red_value.setter
-    def red_value(self, val: float):
-        self._cfg["redValue"] = val
-
-    @property
-    def show_min_max(self) -> bool:
-        """Show min max
-
-        Returns
-        -------
-        bool
-            True to show min max values
-        """
-        return self._cfg["showMinMax"]
-
-    @show_min_max.setter
-    def show_min_max(self, val: bool):
-        self._cfg["showMinMax"] = val
-
-    @property
-    def dial_fill_color(self) -> Color:
-        """Dial fill color
-
-        Returns
-        -------
-        Color
-            The color of the dial
-        """
-        return self._dial_fill_color
-
-    @dial_fill_color.setter
-    def dial_fill_color(self, val: Color):
-        self._dial_fill_color = val
-        self._cfg["dialFillColor"] = str(val.value)
-
-    @property
-    def pointer_color(self) -> Color:
-        """Pointer color
-
-        Returns
-        -------
-        Color
-            The color of the pointer
-        """
-        return self._pointer_color
-
-    @pointer_color.setter
-    def pointer_color(self, val: Color):
-        self._pointer_color = val
-        self._cfg["pointerColor"] = str(val.value)
-
-    @property
-    def number_position(self) -> DialNumberPosition:
-        """Number position
-
-        Returns
-        -------
-        DialNumberPosition
-            Position to display the number on the dial
-        """
-        return self._number_position
-
-    @number_position.setter
-    def number_position(self, val: DialNumberPosition):
-        self._number_position = val
-        self._cfg["numberPosition"] = val.value
-
-    @property
-    def style(self) -> DialStyle:
-        """The style of the dial
-
-        Returns
-        -------
-        DialStyle
-            Which style of Dial to display
-        """
-        return self._style
-
-    @style.setter
-    def style(self, val: DialStyle):
-        self._style = val
-        self._cfg["style"] = val.value
-
-    @property
-    def precision(self) -> Precision:
-        """Precision
-
-        Returns
-        -------
-        Precision
-            The precision of the value that is displayed
-        """
-        return self._cfg["precision"]
-
-    @precision.setter
-    def precision(self, val: Precision):
-        self._precision = val
-        self._cfg["precision"] = val.value
-
-    @property
-    def units(self) -> str:
-        """units
-
-        Returns
-        -------
-        str
-            Include these units to be displayed with the value
-        """
-        return self._cfg["units"]
-
-    @units.setter
-    def units(self, val: str):
-        _val = val.translate(BAD_CHARS)
-        self._cfg["units"] = _val

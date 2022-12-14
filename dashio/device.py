@@ -147,7 +147,7 @@ class Device(threading.Thread):
                 continue
             if control.cntrl_type not in cfg:
                 cfg[control.cntrl_type] = []
-            cfg[control.cntrl_type].append(control.get_cfg64(data))
+            cfg[control.cntrl_type].extend(control.get_cfg64(data))
         c64_json = encode_cfg64(cfg)
         reply += c64_json + "\n"
         return reply

@@ -21,9 +21,38 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-from .control import Control, ControlPosition, _get_color, _get_title_position, _get_knob_style
+from .control import Control, ControlPosition, ControlConfig, _get_color, _get_title_position, _get_knob_style
 from .enums import Color, KnobStyle, TitlePosition
 
+
+class KnobConfig(ControlConfig):
+    """ButtonGroupConfig"""
+    def __init__(
+        self,
+        control_id: str,
+        title: str,
+        title_position: TitlePosition,
+        knob_style: KnobStyle,
+        dial_min: float,
+        dial_max: float,
+        red_value: float,
+        show_min_max: bool,
+        send_only_on_release: bool,
+        dial_follows_knob: bool,
+        dial_color: Color,
+        knob_color: Color,
+        control_position=None,
+        ) -> None:
+        super().__init__(control_id, title, control_position, title_position)
+        self._cfg["style"] = str(knob_style.value)
+        self._cfg["min"] = dial_min
+        self._cfg["max"] = dial_max
+        self._cfg["redValue"] = red_value
+        self._cfg["showMinMax"] = show_min_max
+        self._cfg["sendOnlyOnRelease"] = send_only_on_release
+        self._cfg["dialFollowsKnob"] = dial_follows_knob
+        self._cfg["dialColor"] = str(dial_color.value)
+        self._cfg["knobColor"] = str(knob_color.value)
 
 class Knob(Control):
     """A Knob control
@@ -42,7 +71,7 @@ class Knob(Control):
         dial_follows_knob=False,
         dial_color=Color.BLUE,
         knob_color=Color.RED,
-        control_position=None,
+        control_position=None
     ):
         """A Knob control is a control with a dial and knob.
 
@@ -75,19 +104,28 @@ class Knob(Control):
         control_position : ControlPosition, optional
             The position of the control on a DeviceView, by default None
         """
-        super().__init__("KNOB", control_id, title=title, control_position=control_position, title_position=title_position)
+        super().__init__("KNOB", control_id)
+        self._cfg_columnar.append(
+            KnobConfig(
+                control_id,
+                title,
+                title_position,
+                knob_style,
+                dial_min,
+                dial_max,
+                red_value,
+                show_min_max,
+                send_only_on_release,
+                dial_follows_knob,
+                dial_color,
+                knob_color,
+                control_position
+            )
+        )
+
         self._control_id_dial = f"\t{{device_id}}\tKBDL\t{control_id}\t"
         self._knob_value = 0
         self._knob_dial_value = 0
-        self.knob_style = knob_style
-        self.dial_min = dial_min
-        self.dial_max = dial_max
-        self.red_value = red_value
-        self.show_min_max = show_min_max
-        self.send_only_on_release = send_only_on_release
-        self.dial_follows_knob = dial_follows_knob
-        self.dial_color = dial_color
-        self.knob_color = knob_color
         self._state_str_knob = self._control_hdr_str + f"{self._knob_value}\n"
         self._state_str_dial = self._control_id_dial + f"{self._knob_dial_value}\n"
         self._knob_dial_state_str = self._state_str_knob + self._state_str_dial
@@ -161,141 +199,3 @@ class Knob(Control):
         self._state_str_dial = self._control_id_dial + f"{val}\n"
         self.message_tx_event(self._state_str_dial)
         self._knob_dial_state_str = self._state_str_knob + self._state_str_dial
-
-    @property
-    def knob_style(self) -> KnobStyle:
-        """Knob style
-
-        Returns
-        -------
-        KnobStyle
-            The style of the knob
-        """
-        return self._knob_style
-
-    @knob_style.setter
-    def knob_style(self, val: KnobStyle):
-        self._knob_style = val
-        self._cfg["style"] = str(val.value)
-
-    @property
-    def dial_min(self) -> float:
-        """Dial min
-
-        Returns
-        -------
-        float
-            The min value for the dial
-        """
-        return self._cfg["min"]
-
-    @dial_min.setter
-    def dial_min(self, val: float):
-        self._cfg["min"] = val
-
-    @property
-    def dial_max(self) -> float:
-        """Dial max
-
-        Returns
-        -------
-        float
-            The max value of the dial
-        """
-        return self._cfg["max"]
-
-    @dial_max.setter
-    def dial_max(self, val: float):
-        self._cfg["max"] = val
-
-    @property
-    def red_value(self) -> float:
-        """Knob red value
-
-        Returns
-        -------
-        float
-            The red value start from this value
-        """
-        return self._cfg["redValue"]
-
-    @red_value.setter
-    def red_value(self, val: float):
-        self._cfg["redValue"] = val
-
-    @property
-    def show_min_max(self) -> bool:
-        """Show min max
-
-        Returns
-        -------
-        bool
-            True to show min/max
-        """
-        return self._cfg["showMinMax"]
-
-    @show_min_max.setter
-    def show_min_max(self, val: bool):
-        self._cfg["showMinMax"] = val
-
-    @property
-    def send_only_on_release(self) -> bool:
-        """Send only on release
-
-        Returns
-        -------
-        bool
-            True for iotdashboard to send updates only when control released
-        """
-        return self._cfg["sendOnlyOnRelease"]
-
-    @send_only_on_release.setter
-    def send_only_on_release(self, val: bool):
-        self._cfg["sendOnlyOnRelease"] = val
-
-    @property
-    def dial_follows_knob(self) -> bool:
-        """Dial follows knob
-
-        Returns
-        -------
-        bool
-            Set to true if the Dial follows the Knob
-        """
-        return self._cfg["dialFollowsKnob"]
-
-    @dial_follows_knob.setter
-    def dial_follows_knob(self, val: bool):
-        self._cfg["dialFollowsKnob"] = val
-
-    @property
-    def dial_color(self) -> Color:
-        """The dial color
-
-        Returns
-        -------
-        Color
-            Color of the dial
-        """
-        return self._dial_color
-
-    @dial_color.setter
-    def dial_color(self, val: Color):
-        self._dial_color = val
-        self._cfg["dialColor"] = str(val.value)
-
-    @property
-    def knob_color(self) -> Color:
-        """Knob color
-
-        Returns
-        -------
-        Color
-            The color of the Knob
-        """
-        return self._knob_color
-
-    @knob_color.setter
-    def knob_color(self, val: Color):
-        self._knob_color = val
-        self._cfg["knobColor"] = str(val.value)

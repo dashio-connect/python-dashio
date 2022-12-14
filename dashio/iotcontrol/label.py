@@ -21,8 +21,24 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-from .control import Control, ControlPosition, _get_color, _get_title_position, _get_label_style
+from .control import Control, ControlPosition, ControlConfig, _get_color, _get_title_position, _get_label_style
 from .enums import Color, LabelStyle, TitlePosition
+
+
+class LabelConfig(ControlConfig):
+    """LabelConfig"""
+    def __init__(
+        self,
+        control_id: str,
+        title: str,
+        title_position: TitlePosition,
+        color: Color,
+        style: LabelStyle,
+        control_position: ControlPosition
+        ) -> None:
+        super().__init__(control_id, title, control_position, title_position)
+        self._cfg["style"] = style.value
+        self._cfg["color"] = str(color.value)
 
 
 class Label(Control):
@@ -54,9 +70,17 @@ class Label(Control):
         style : LabelStyle, optional
             Style of label to be displayed, by default LabelStyle.BASIC
         """
-        super().__init__("LBL", control_id, title=title, control_position=control_position, title_position=title_position)
-        self.color = color
-        self.style = style
+        super().__init__("LBL", control_id)
+        self._cfg_columnar.append(
+            LabelConfig(
+                control_id,
+                title,
+                title_position,
+                color,
+                style,
+                control_position
+            )
+        )
         self._state_str = ""
 
     @classmethod
@@ -82,35 +106,3 @@ class Label(Control):
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls
-
-    @property
-    def style(self) -> LabelStyle:
-        """Label style
-
-        Returns
-        -------
-        LabelStyle
-            Style of label to display
-        """
-        return self._style
-
-    @style.setter
-    def style(self, val: LabelStyle):
-        self._style = val
-        self._cfg["style"] = val.value
-
-    @property
-    def color(self) -> Color:
-        """Color
-
-        Returns
-        -------
-        Color
-            Clor of the label
-        """
-        return self._color
-
-    @color.setter
-    def color(self, val: Color):
-        self._color = val
-        self._cfg["color"] = str(val.value)

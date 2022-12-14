@@ -26,7 +26,7 @@ import datetime
 import dateutil.parser
 
 from ..constants import BAD_CHARS
-from .control import Control, ControlPosition, _get_title_position
+from .control import Control, ControlPosition, ControlConfig, _get_title_position
 from .enums import Color, TimeGraphLineType, TitlePosition
 from .ring_buffer import RingBuffer
 
@@ -131,6 +131,24 @@ class TimeGraphLine:
         data_str = "\t" + str(self.data.get_latest()) + "\n"
         return data_str
 
+class TimeGraphConfig(ControlConfig):
+    """ButtonGroupConfig"""
+    def __init__(
+        self,
+        control_id: str,
+        title: str,
+        title_position: TitlePosition,
+        y_axis_label: str,
+        y_axis_min: float,
+        y_axis_max: float,
+        y_axis_num_bars: int,
+        control_position: ControlPosition
+    ) -> None:
+        super().__init__(control_id, title, control_position, title_position)
+        self._cfg["yAxisLabel"] = y_axis_label.translate(BAD_CHARS)
+        self._cfg["yAxisMin"] = y_axis_min
+        self._cfg["yAxisMax"] = y_axis_max
+        self._cfg["yAxisNumBars"] = y_axis_num_bars
 
 class TimeGraph(Control):
     """A TimeGraph control
@@ -167,13 +185,20 @@ class TimeGraph(Control):
         y_axis_num_bars : int, optional
             The number of bars to display on the graph, by default 5
         """
-        super().__init__("TGRPH", control_id, title=title, control_position=control_position, title_position=title_position)
-
+        super().__init__("TGRPH", control_id)
+        self._cfg_columnar.append(
+            TimeGraphConfig(
+                control_id,
+                title,
+                title_position,
+                y_axis_label,
+                y_axis_min,
+                y_axis_max,
+                y_axis_num_bars,
+                control_position
+            )
+        )
         self.message_rx_event = self._get_lines_from_timestamp
-        self.y_axis_label = y_axis_label
-        self.y_axis_min = y_axis_min
-        self.y_axis_max = y_axis_max
-        self.y_axis_num_bars = y_axis_num_bars
 
         self.line_dict = {}
 
@@ -239,63 +264,3 @@ class TimeGraph(Control):
                 if line_data:
                     state_str += self._control_hdr_str + key + line_data
         self.state_str = state_str
-
-    @property
-    def y_axis_label(self) -> str:
-        """Label for the Y axis
-
-        Returns
-        -------
-        str
-            The label
-        """
-        return self._cfg["yAxisLabel"]
-
-    @y_axis_label.setter
-    def y_axis_label(self, val: str):
-        self._cfg["yAxisLabel"] = val
-
-    @property
-    def y_axis_min(self) -> float:
-        """Min value for the Y axis
-
-        Returns
-        -------
-        float
-            The min value
-        """
-        return self._cfg["yAxisMin"]
-
-    @y_axis_min.setter
-    def y_axis_min(self, val: float):
-        self._cfg["yAxisMin"] = val
-
-    @property
-    def y_axis_max(self) -> float:
-        """Max value for the Y axis
-
-        Returns
-        -------
-        float
-            The max value
-        """
-        return self._cfg["yAxisMax"]
-
-    @y_axis_max.setter
-    def y_axis_max(self, val: float):
-        self._cfg["yAxisMax"] = val
-
-    @property
-    def y_axis_num_bars(self) -> int:
-        """The number of bars to display on the graph
-
-        Returns
-        -------
-        int
-            The number of bars
-        """
-        return self._cfg["yAxisNumBars"]
-
-    @y_axis_num_bars.setter
-    def y_axis_num_bars(self, val: int):
-        self._cfg["yAxisNumBars"] = val

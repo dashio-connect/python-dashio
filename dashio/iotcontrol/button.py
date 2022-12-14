@@ -22,9 +22,30 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from ..constants import BAD_CHARS
-from .control import Control, ControlPosition, _get_color, _get_icon, _get_title_position
+from .control import Control, ControlPosition, ControlConfig, _get_color, _get_icon, _get_title_position
 from .enums import ButtonState, Color, Icon, TitlePosition
 
+
+class ButtonConfig(ControlConfig):
+    """ButtonGroupConfig"""
+    def __init__(
+        self,
+        control_id: str,
+        title: str,
+        title_position: TitlePosition,
+        button_enabled: bool,
+        icon_name: Icon,
+        on_color: Color,
+        off_color: Color,
+        text: str,
+        control_position: ControlPosition
+        ) -> None:
+        super().__init__(control_id, title, control_position, title_position)
+        self._cfg["text"] = text.translate(BAD_CHARS)
+        self._cfg["iconName"] = icon_name.value
+        self._cfg["buttonEnabled"] = button_enabled
+        self._cfg["onColor"] = str(on_color.value)
+        self._cfg["offColor"] = str(off_color.value)
 
 class Button(Control):
     """A Button control.
@@ -80,15 +101,25 @@ class Button(Control):
         on_color=Color.BLUE,
         off_color=Color.RED,
         text="",
-        control_position=None,
+        control_position=None
     ):
-        super().__init__("BTTN", control_id, title=title, control_position=control_position, title_position=title_position)
+        super().__init__("BTTN", control_id)
+        self._cfg_columnar.append(
+            ButtonConfig(
+                control_id,
+                title,
+                title_position,
+                button_enabled,
+                icon_name,
+                on_color,
+                off_color,
+                text,
+                control_position
+            )
+        )
         self._btn_state = ButtonState.OFF
-        self.button_enabled = button_enabled
-        self.icon_name = icon_name
-        self.on_color = on_color
-        self.off_color = off_color
-        self.text = text.translate(BAD_CHARS)
+        self._text = text.translate(BAD_CHARS)
+        self._icon_name = icon_name
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict):
@@ -125,60 +156,13 @@ class Button(Control):
         str
             The controls state
         """
-        text = self._cfg["text"]
+        text = self._text
         if (not text) and ( self.icon_name == Icon.NONE):
             return self._control_hdr_str + f"{self._btn_state.value}\n"
         if (not text) and self.icon_name != Icon.NONE:
             return self._control_hdr_str + f"{self._btn_state.value}\t{self._icon_name.value}\n"
         return self._control_hdr_str + f"{self._btn_state.value}\t{self._icon_name.value}\t{text}\n"
 
-    @property
-    def button_enabled(self) -> bool:
-        """Returns the buttons enabled condition
-
-        Returns
-        -------
-        bool
-            If True the button can act as a button in the **DashIO** app.
-            If False the button can be setup as an indicator only.
-        """
-        return self._cfg["buttonEnabled"]
-
-    @button_enabled.setter
-    def button_enabled(self, val: bool):
-        self._cfg["buttonEnabled"] = val
-
-    @property
-    def on_color(self) -> Color:
-        """Returns the Buttons ON color
-
-        Returns
-        -------
-        Color
-            ON color
-        """
-        return self._on_color
-
-    @on_color.setter
-    def on_color(self, val: Color):
-        self._on_color = val
-        self._cfg["onColor"] = str(val.value)
-
-    @property
-    def off_color(self) -> Color:
-        """Returns the Bottons OFF color
-
-        Returns
-        -------
-        Color
-            OFF color
-        """
-        return self._off_color
-
-    @off_color.setter
-    def off_color(self, val: Color):
-        self._off_color = val
-        self._cfg["offColor"] = str(val.value)
 
     @property
     def icon_name(self) -> Icon:
@@ -194,7 +178,6 @@ class Button(Control):
     @icon_name.setter
     def icon_name(self, val: Icon):
         self._icon_name = val
-        self._cfg["iconName"] = val.value
         self.state_str = self._control_hdr_str + f"{self._btn_state.value}\t{val.value}\n"
 
     @property
@@ -207,13 +190,12 @@ class Button(Control):
             The buttons text.
         """
 
-        return self._cfg["text"]
+        return self._text
 
     @text.setter
     def text(self, val: str):
-        _val = val.translate(BAD_CHARS)
-        self._cfg["text"] = _val
-        self.state_str = self._control_hdr_str + f"{self._btn_state.value}\t{self._icon_name.value}\t{_val}\n"
+        self._text = val.translate(BAD_CHARS)
+        self.state_str = self._control_hdr_str + f"{self._btn_state.value}\t{self._icon_name.value}\t{self._text}\n"
 
     @property
     def btn_state(self) -> ButtonState:
@@ -241,6 +223,5 @@ class Button(Control):
         """
         self._btn_state = btn_state
         self._icon_name = btn_icon
-        self._cfg["iconName"] = btn_icon.value
-        self._cfg["text"] = text
-        self.state_str = self._control_hdr_str + f"{self._btn_state.value}\t{self._icon_name.value}\t{text}\n"
+        self._text = text.translate(BAD_CHARS)
+        self.state_str = self._control_hdr_str + f"{self._btn_state.value}\t{self._icon_name.value}\t{self._text}\n"

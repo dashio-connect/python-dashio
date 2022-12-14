@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from ..constants import BAD_CHARS
-from .control import Control, ControlPosition, _get_title_position
+from .control import Control, ControlPosition, ControlConfig, _get_title_position
 from .enums import TitlePosition
 
 
@@ -43,10 +43,17 @@ class Selector(Control):
         title_position : TitlePosition, optional
             Position of the title when displayed on the iotdashboard app, by default None
         """
-        super().__init__("SLCTR", control_id, title=title, control_position=control_position, title_position=title_position)
-        self.selection_list = []
+        super().__init__("SLCTR", control_id)
+        self._cfg_columnar.append(
+            ControlConfig(
+                control_id,
+                title,
+                control_position,
+                title_position
+            )
+        )
         self._position = 0
-        self._cfg["selection"] = self.selection_list
+        self.selection_list = []
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict):

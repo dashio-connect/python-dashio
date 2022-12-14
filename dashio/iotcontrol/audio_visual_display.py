@@ -21,8 +21,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-from .control import Control, ControlPosition, _get_title_position
+from .control import Control, ControlPosition, ControlConfig, _get_title_position
 from .enums import (TitlePosition)
+
 
 class AudioVisualDisplay(Control):
     """AudioVisualDisplay Control
@@ -48,7 +49,8 @@ class AudioVisualDisplay(Control):
         title_position : TitlePosition, optional
             Position of the title when displayed on the iotdashboard app, by default None
         """
-        super().__init__("AVD", control_id, title=title, control_position=control_position, title_position=title_position)
+        super().__init__("AVD", control_id)
+        self._cfg_columnar.append(ControlConfig(control_id, title, control_position, title_position))
         self.url = ""
 
     @classmethod

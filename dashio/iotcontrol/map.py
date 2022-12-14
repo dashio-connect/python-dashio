@@ -26,7 +26,7 @@ import dateutil
 import json
 
 from ..constants import BAD_CHARS
-from .control import Control, ControlPosition, _get_title_position
+from .control import Control, ControlPosition, ControlConfig, _get_title_position
 from .enums import TitlePosition, Color
 
 
@@ -135,6 +135,7 @@ class MapTrack:
         return reply
 
 
+
 class Map(Control):
     """A Map control
     """
@@ -157,7 +158,8 @@ class Map(Control):
         title_position : TitlePosition, optional
             Position of the title when displayed on the iotdashboard app, by default None
         """
-        super().__init__("MAP", control_id, title=title, control_position=control_position, title_position=title_position)
+        super().__init__("MAP", control_id)
+        self._cfg_columnar.append(ControlConfig(control_id, title, control_position, title_position))
         self.tracks = {}
         self.tracks["DEFAULT"] = self.default_track
         self.message_rx_event = self._get_tracks_from_timestamp

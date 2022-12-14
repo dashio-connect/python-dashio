@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from ..constants import BAD_CHARS
-from .control import Control, ControlPosition, _get_title_position, _get_graph_x_axis_labels_style
+from .control import Control, ControlPosition, ControlConfig, _get_title_position, _get_graph_x_axis_labels_style
 from .enums import Color, GraphLineType, GraphXAxisLabelsStyle, TitlePosition
 
 class GraphLine:
@@ -46,6 +46,36 @@ class GraphLine:
         data_str += "\t".join(map(str, self.data))
         data_str += "\n"
         return data_str
+
+
+class GraphConfig(ControlConfig):
+    """ButtonGroupConfig"""
+    def __init__(
+        self,
+        control_id,
+        title: str,
+        title_position: TitlePosition,
+        x_axis_label: str,
+        x_axis_min: float,
+        x_axis_max: float,
+        x_axis_num_bars: int,
+        x_axis_labels_style: GraphXAxisLabelsStyle,
+        y_axis_label: str,
+        y_axis_min: float,
+        y_axis_max: float,
+        y_axis_num_bars: int,
+        control_position: ControlPosition,
+        ) -> None:
+        super().__init__(control_id, title, control_position, title_position)
+        self._cfg["xAxisLabel"] = x_axis_label.translate(BAD_CHARS)
+        self._cfg["xAxisMin"] = x_axis_min
+        self._cfg["xAxisMax"] = x_axis_max
+        self._cfg["xAxisNumBars"] = x_axis_num_bars
+        self._cfg["xAxisLabelsStyle"] = x_axis_labels_style.value
+        self._cfg["yAxisLabel"] = y_axis_label.translate(BAD_CHARS)
+        self._cfg["yAxisMin"] = y_axis_min
+        self._cfg["yAxisMax"] = y_axis_max
+        self._cfg["yAxisNumBars"] = y_axis_num_bars
 
 
 class Graph(Control):
@@ -110,17 +140,26 @@ class Graph(Control):
         control_position : ControlPosition, optional
             The position of the control on a DeviceView, by default None
         """
-        super().__init__("GRPH", control_id, title=title, control_position=control_position, title_position=title_position)
-        self.x_axis_label = x_axis_label
-        self.x_axis_min = x_axis_min
-        self.x_axis_max = x_axis_max
-        self.x_axis_num_bars = x_axis_num_bars
-        self.x_axis_labels_style = x_axis_labels_style
-        self.y_axis_label = y_axis_label
-        self.y_axis_min = y_axis_min
-        self.y_axis_max = y_axis_max
-        self.y_axis_num_bars = y_axis_num_bars
+        super().__init__("GRPH", control_id)
 
+        super().__init__("BTTN", control_id)
+        self._cfg_columnar.append(
+            GraphConfig(
+                control_id,
+                title,
+                title_position,
+                x_axis_label,
+                x_axis_min,
+                x_axis_max,
+                x_axis_num_bars,
+                x_axis_labels_style,
+                y_axis_label,
+                y_axis_min,
+                y_axis_max,
+                y_axis_num_bars,
+                control_position
+            )
+        )
         self.line_dict = {}
 
     @classmethod
@@ -173,139 +212,3 @@ class Graph(Control):
         for key, line in self.line_dict.items():
             state_str += self._control_hdr_str + key + line.get_line_data()
         self.state_str = state_str
-
-    @property
-    def x_axis_label(self) -> str:
-        """Returns the x_axis_label string.
-
-        Returns
-        -------
-        str
-            The x_axis_label
-        """
-        return self._cfg["xAxisLabel"]
-
-    @x_axis_label.setter
-    def x_axis_label(self, val: str):
-        self._cfg["xAxisLabel"] = val.translate(BAD_CHARS)
-
-    @property
-    def x_axis_min(self) -> float:
-        """Returns the x_axis_min
-
-        Returns
-        -------
-        float
-            The x_axis_min
-        """
-        return self._cfg["xAxisMin"]
-
-    @x_axis_min.setter
-    def x_axis_min(self, val: float):
-        self._cfg["xAxisMin"] = val
-
-    @property
-    def x_axis_max(self) -> float:
-        """Returns the x_axis_max
-
-        Returns
-        -------
-        float
-            The x_axis_max
-        """
-        return self._cfg["xAxisMax"]
-
-    @x_axis_max.setter
-    def x_axis_max(self, val: float):
-        self._cfg["xAxisMax"] = val
-
-    @property
-    def x_axis_num_bars(self) -> int:
-        """Returns the x_axis_num_bars
-
-        Returns
-        -------
-        int
-            The x_axis_num_bars
-        """
-        return self._cfg["xAxisNumBars"]
-
-    @x_axis_num_bars.setter
-    def x_axis_num_bars(self, val: int):
-        self._cfg["xAxisNumBars"] = val
-
-    @property
-    def x_axis_labels_style(self) -> GraphXAxisLabelsStyle:
-        """Returns the x_axis_labels_style
-
-        Returns
-        -------
-        GraphXAxisLabelsStyle
-            The x_axis_labels_style
-        """
-        return self._x_axis_labels_style
-
-    @x_axis_labels_style.setter
-    def x_axis_labels_style(self, val: GraphXAxisLabelsStyle):
-        self._x_axis_labels_style = val
-        self._cfg["xAxisLabelsStyle"] = val.value
-
-    @property
-    def y_axis_label(self) -> str:
-        """Returns the y_axis_label
-
-        Returns
-        -------
-        str
-            The y_axis_label
-        """
-        return self._cfg["yAxisLabel"]
-
-    @y_axis_label.setter
-    def y_axis_label(self, val: str):
-        self._cfg["yAxisLabel"] = val.translate(BAD_CHARS)
-
-    @property
-    def y_axis_min(self) -> float:
-        """Returns the y_axis_min
-
-        Returns
-        -------
-        float
-            The y_axis_min
-        """
-        return self._cfg["yAxisMin"]
-
-    @y_axis_min.setter
-    def y_axis_min(self, val: float):
-        self._cfg["yAxisMin"] = val
-
-    @property
-    def y_axis_max(self) -> float:
-        """Returns the y_axis_max
-
-        Returns
-        -------
-        float
-            The y_axis_max
-        """
-        return self._cfg["yAxisMax"]
-
-    @y_axis_max.setter
-    def y_axis_max(self, val: float):
-        self._cfg["yAxisMax"] = val
-
-    @property
-    def y_axis_num_bars(self) -> int:
-        """Returns the y_axis_num_bars
-
-        Returns
-        -------
-        int
-            The y_axis_num_bars
-        """
-        return self._cfg["yAxisNumBars"]
-
-    @y_axis_num_bars.setter
-    def y_axis_num_bars(self, val: int):
-        self._cfg["yAxisNumBars"] = val

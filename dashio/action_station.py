@@ -191,7 +191,6 @@ class ActionStation(threading.Thread):
 
     def add_gui_control(self, g_object: dict):
         """Add a GUI control"""
-        
         # control = CONTROL_INSTANCE_DICT[g_object['objectType']].from_cfg_dict(g_object['provisioning'])
         # control.message_rx_event = control.message_tx_event
         # if g_object['uuid'] in self.dash_controls:
@@ -343,7 +342,7 @@ class ActionStation(threading.Thread):
             if payload['objectType'] in self.service_objects_defs:
                 self.configured_services[payload['uuid']] = payload
                 result['result'] = self._start_control(payload)
-            if payload['objectType'] in CONTROL_INSTANCE_DICT:
+            if payload['objectType'] == 'DVCE_CONFIG':
                 self.configured_services[payload['uuid']] = payload
                 result['result'] = True
                 self.add_gui_control(payload)
