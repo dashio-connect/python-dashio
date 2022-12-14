@@ -28,13 +28,14 @@ import sys
 import shortuuid
 import zmq
 
+
 from .constants import CONNECTION_PUB_URL, MEMORY_REQ_URL, TASK_PULL
 from .action_station_services.task_service import TaskService
 from .action_station_services.timer_service import TimerService, make_timer_config
 from .action_station_services.as_servicel import make_test_config
 from .action_station_services.modbus_service import ModbusService, make_modbus_config
 from .action_station_services.clock_servicel import ClockService, make_clock_config
-from .load_config import CONTROL_INSTANCE_DICT
+from .load_config import CONTROL_INSTANCE_DICT, decode_cfg64
 
 
 class ActionControl():
@@ -189,6 +190,32 @@ class ActionStation(threading.Thread):
             connection.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
             self._connect_all_ext_devices()
 
+
+    def load_all_controls_from_config(self, device, cfg_dict) -> dict:
+        """Loads all the controls in cfg_dict into device and returns a dictionary of the control objects
+
+        Parameters
+        ----------
+        device : Dashio.Device
+            The device to attach the controls to
+        cfg_dict : Dict
+            dictionary of the CFG loaded by decode_cfg from a CFG64 or json
+
+        Returns
+        -------
+        dict
+            Dictionary of the control objects
+        """
+        controls_dict = {}
+        for control_type, control_list in cfg_dict.items():
+            if isinstance(control_list, list):
+                for control in control_list:
+                    controls_dict[control["controlID"]] = CONTROL_INSTANCE_DICT[control_type].from_cfg_dict(control)
+                    controls_dict[control["controlID"]].message_rx_event = controls_dict[control["controlID"]].message_tx_event
+                    device.add_control(controls_dict[control["controlID"]])
+        return controls_dict
+
+
     def add_gui_controls(self, g_object: dict):
         """Add a GUI control"""
         # control = CONTROL_INSTANCE_DICT[g_object['objectType']].from_cfg_dict(g_object['provisioning'])
@@ -198,7 +225,10 @@ class ActionStation(threading.Thread):
         #    self.device.remove_control(self.dash_controls[g_object['uuid']])
         # self.device.add_control(control)
         # self.device.inc_config_revision()
-        self.dash_controls[g_object['uuid']] = g_object # control
+        cfg_dict = decode_cfg64(g_object["provisioning"])
+        logging.debug("CFG64:\n%s", json.dumps(cfg_dict, indent=4))
+        self.load_all_controls_from_config(self.device, cfg_dict)
+        self.dash_controls[g_object['uuid']] = cfg_dict # control
 
     def rm_gui_controls(self, g_object: dict):
         """Remove a GUI control"""

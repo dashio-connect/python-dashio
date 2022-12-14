@@ -200,8 +200,6 @@ class Device(threading.Thread):
         ----------
             iot_control : iotControl
         """
-        if isinstance(iot_control, DeviceView):
-            self._cfg["numDeviceViews"] += 1
         try:
             if isinstance(iot_control, Alarm):
                 iot_control.message_tx_event += self._send_alarm
@@ -210,13 +208,18 @@ class Device(threading.Thread):
         except AttributeError:
             pass
         key = f"{iot_control.cntrl_type}\t{iot_control.control_id}"
-        self._control_dict[key] = iot_control
-        if isinstance(iot_control, Knob):
-            key = f"KBDL_{iot_control.control_id}"
+        
+        if key not in self._control_dict:
+            if isinstance(iot_control, DeviceView):
+                self._cfg["numDeviceViews"] += 1
+            
             self._control_dict[key] = iot_control
-        elif isinstance(iot_control, Slider):
-            key = f"BAR_{iot_control.control_id}"
-            self._control_dict[key] = iot_control
+            if isinstance(iot_control, Knob):
+                key = f"KBDL_{iot_control.control_id}"
+                self._control_dict[key] = iot_control
+            elif isinstance(iot_control, Slider):
+                key = f"BAR_{iot_control.control_id}"
+                self._control_dict[key] = iot_control
 
     def remove_control(self, iot_control):
         """Remove a control a control to the device.
