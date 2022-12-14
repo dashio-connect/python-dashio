@@ -24,7 +24,7 @@ SOFTWARE.
 import json
 import logging
 import threading
-
+import time
 import shortuuid
 import zmq
 
@@ -462,6 +462,7 @@ class Device(threading.Thread):
         if self._add_actions:
             self._add_action_device_setup(True)
             self.action_station = ActionStation(self, context=self.context)
+            time.sleep(0.5)
             self.action_station.device_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
         self.running = True
         self.start()
