@@ -23,24 +23,41 @@ SOFTWARE.
 """
 from ..constants import BAD_CHARS
 from .button import Button
-from .control import Control, ControlPosition, _get_icon, _get_title_position
+from .control import Control, ControlPosition, ControlConfig, _get_icon, _get_title_position
 from .enums import Icon, TitlePosition
 from .selector import Selector
 from .slider import Slider
 from .textbox import TextBox
 
 
+class MenuConfig(ControlConfig):
+    """MenuConfig"""
+    def __init__(
+        self,
+        control_id: str,
+        title: str,
+        title_position: TitlePosition,
+        text: str,
+        icon_name: Icon,
+        control_position: ControlPosition
+        ) -> None:
+        super().__init__(control_id, title, control_position, title_position)
+        self._cfg["text"] = text.translate(BAD_CHARS)
+        self._cfg["iconName"] = icon_name.value
+
 class Menu(Control):
     """A Menu Control
     """
 
-    def __init__(self,
-                 control_id: str,
-                 title="A Menu",
-                 text="A Menu with Text",
-                 icon=Icon.MENU,
-                 control_position=None,
-                 title_position=TitlePosition.BOTTOM):
+    def __init__(
+        self,
+        control_id: str,
+        title="A Menu",
+        title_position=TitlePosition.BOTTOM,
+        text="A Menu with Text",
+        icon_name=Icon.MENU,
+        control_position=None
+    ):
         """A Menu control
 
         Parameters
@@ -58,9 +75,17 @@ class Menu(Control):
         icon : Icon, optional
             Menu icon, by default Icon.MENU
         """
-        super().__init__("MENU", control_id, title=title, control_position=control_position, title_position=title_position)
-        self.icon_name = icon
-        self.text = text
+        super().__init__("MENU", control_id)
+        self._cfg_columnar.append(
+            MenuConfig(
+                control_id,
+                title,
+                title_position,
+                text,
+                icon_name,
+                control_position
+            )
+        )
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict):
@@ -78,10 +103,10 @@ class Menu(Control):
         tmp_cls = cls(
             cfg_dict["controlID"],
             cfg_dict["title"],
+            _get_title_position(cfg_dict["titlePosition"]),
             cfg_dict["text"],
             _get_icon(cfg_dict["iconName"]),
-            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
-            _get_title_position(cfg_dict["titlePosition"])
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls
@@ -103,35 +128,3 @@ class Menu(Control):
             control.parent_id = self.control_id
         else:
             raise TypeError("Only TextBox, Button, Slider, or Selector are allowed")
-
-    @property
-    def icon_name(self) -> Icon:
-        """The icon for the menu
-
-        Returns
-        -------
-        Icon
-            The Icon
-        """
-        return self._icon_name
-
-    @icon_name.setter
-    def icon_name(self, val: Icon):
-        self._icon_name = val
-        self._cfg["iconName"] = val.value
-
-    @property
-    def text(self) -> str:
-        """Text displayed in iotdashboard app
-
-        Returns
-        -------
-        str
-            The text
-        """
-        return self._cfg["text"]
-
-    @text.setter
-    def text(self, val: str):
-        _val = val.translate(BAD_CHARS)
-        self._cfg["text"] = _val

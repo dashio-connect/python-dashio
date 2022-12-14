@@ -22,8 +22,30 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from ..constants import BAD_CHARS
-from .control import Control, ControlPosition, _get_color, _get_title_position, _get_direction_style, _get_precision
+from .control import Control, ControlPosition, ControlConfig, _get_color, _get_title_position, _get_direction_style, _get_precision
 from .enums import Color, DirectionStyle, Precision, TitlePosition
+
+
+class DirectionConfig(ControlConfig):
+    """ButtonGroupConfig"""
+    def __init__(
+        self,
+        control_id: str,
+        title: str,
+        style: DirectionStyle,
+        title_position: TitlePosition,
+        pointer_color: Color,
+        units: str,
+        precision: Precision,
+        calibration_angle: float,
+        control_position: ControlPosition
+        ) -> None:
+        super().__init__(control_id, title, control_position, title_position)
+        self._cfg["style"] = str(style.value)
+        self._cfg["pointerColor"] = str(pointer_color.value)
+        self._cfg["units"] = units
+        self._cfg["precision"] = precision.value
+        self._cfg["calAngle"] = calibration_angle
 
 
 class Direction(Control):
@@ -64,14 +86,22 @@ class Direction(Control):
         calibration_angle : int, optional
             Calibration angle offset, by default 0
         """
-        super().__init__("DIR", control_id, title=title, title_position=title_position, control_position=control_position)
-        self.pointer_color = pointer_color
-        self.calibration_angle = calibration_angle
+        super().__init__("DIR", control_id)
+        self._cfg_columnar.append(
+            DirectionConfig(
+                control_id,
+                title,
+                style,
+                title_position,
+                pointer_color,
+                units,
+                precision,
+                calibration_angle,
+                control_position
+            )
+        )
         self._direction_value = 0
         self._direction_text = ""
-        self.style = style
-        self.units = units.translate(BAD_CHARS)
-        self.precision = precision
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict):
@@ -146,82 +176,3 @@ class Direction(Control):
         else:
             s_str = self._control_hdr_str + f"{self._direction_value}\n"
         self.state_str = s_str
-
-    @property
-    def pointer_color(self) -> Color:
-        """Color of the pointer
-
-        Returns
-        -------
-        Color
-            Pointer color
-        """
-        return self._pointer_color
-
-    @pointer_color.setter
-    def pointer_color(self, val: Color):
-        self._pointer_color = val
-        self._cfg["pointerColor"] = str(val.value)
-
-    @property
-    def calibration_angle(self) -> float:
-        """Calibration
-
-        Returns
-        -------
-        float
-            Calibration offset
-        """
-        return self._cfg["calAngle"]
-
-    @calibration_angle.setter
-    def calibration_angle(self, val: float):
-        self._cfg["calAngle"] = val
-
-    @property
-    def style(self) -> DirectionStyle:
-        """Direction style
-
-        Returns
-        -------
-        DirectionStyle
-            Style of the direction control
-        """
-        return self._style
-
-    @style.setter
-    def style(self, val: DirectionStyle):
-        self._style = val
-        self._cfg["style"] = val.value
-
-    @property
-    def units(self) -> str:
-        """Units displayed on the control
-
-        Returns
-        -------
-        str
-            Units string displayed with the value
-        """
-        return self._cfg["units"]
-
-    @units.setter
-    def units(self, val: str):
-        _val = val.translate(BAD_CHARS)
-        self._cfg["units"] = _val
-
-    @property
-    def precision(self) -> Precision:
-        """Precision
-
-        Returns
-        -------
-        Precision
-            The precision of the value displayed on the control
-        """
-        return self._precision
-
-    @precision.setter
-    def precision(self, val: Precision):
-        self._precision = val
-        self._cfg["precision"] = val.value

@@ -22,9 +22,35 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from ..constants import BAD_CHARS
-from .control import Control, ControlPosition, _get_title_position, _get_text_align, _get_text_format, _get_precision, _get_keyboard_type
+from .control import Control, ControlPosition, ControlConfig, _get_title_position, _get_text_align, _get_text_format, _get_precision, _get_keyboard_type
 from .enums import (Keyboard, Precision, TextAlignment, TextFormat,
                     TitlePosition)
+
+
+class TextBoxConfig(ControlConfig):
+    """ButtonGroupConfig"""
+    def __init__(
+        self,
+        control_id: str,
+        title: str,
+        title_position: TitlePosition,
+        text: str,
+        text_align: TextAlignment,
+        text_format: TextFormat,
+        units: str,
+        precision: Precision,
+        keyboard_type: Keyboard,
+        close_keyboard_on_send: bool,
+        control_position: ControlPosition
+        ) -> None:
+        super().__init__(control_id, title, control_position, title_position)
+        self._cfg["text"] = text.translate(BAD_CHARS)
+        self._cfg["textAlign"] = text_align.value
+        self._cfg["format"] = text_format.value
+        self._cfg["units"] = units.translate(BAD_CHARS)
+        self._cfg["precision"] = precision.value
+        self._cfg["kbdType"] = keyboard_type.value
+        self._cfg["closeKbdOnSend"] = close_keyboard_on_send
 
 
 class TextBox(Control):
@@ -71,14 +97,23 @@ class TextBox(Control):
         close_keyboard_on_send : bool, optional
             Set to True to close keyboard on close, by default True
         """
-        super().__init__("TEXT", control_id, title=title, control_position=control_position, title_position=title_position)
+        super().__init__("TEXT", control_id)
+        self._cfg_columnar.append(
+            TextBoxConfig(
+                control_id,
+                title,
+                title_position,
+                text,
+                text_align,
+                text_format,
+                units,
+                precision,
+                keyboard_type,
+                close_keyboard_on_send,
+                control_position
+            )
+        )
         self.text = text.translate(BAD_CHARS)
-        self.text_align = text_align
-        self.units = units
-        self.precision = precision
-        self.text_format = text_format
-        self.keyboard_type = keyboard_type
-        self.close_keyboard_on_send = close_keyboard_on_send
 
     def get_state(self):
         return self._control_hdr_str + f"{self.text}\n"
@@ -129,92 +164,3 @@ class TextBox(Control):
         _val = val.translate(BAD_CHARS)
         self._text = _val
         self.state_str = self._control_hdr_str + f"{_val}\n"
-
-    @property
-    def text_align(self) -> TextAlignment:
-        """How to align the text
-
-        Returns
-        -------
-        TextAlignment
-            Text alignment
-        """
-        return self._text_align
-
-    @text_align.setter
-    def text_align(self, val: TextAlignment):
-        self._text_align = val
-        self._cfg["textAlign"] = val.value
-
-    @property
-    def text_format(self) -> TextFormat:
-        """[summary]
-
-        Returns
-        -------
-        TextFormat
-            [description]
-        """
-        return self._text_format
-
-    @text_format.setter
-    def text_format(self, val: TextFormat):
-        self._text_format = val
-        self._cfg["format"] = val.value
-
-    @property
-    def units(self) -> str:
-        """Add units to the text string
-
-        Returns
-        -------
-        str
-            the units
-        """
-        return self._cfg["units"]
-
-    @units.setter
-    def units(self, val: str):
-        _val = val.translate(BAD_CHARS)
-        self._cfg["units"] = _val
-
-    @property
-    def precision(self) -> Precision:
-        """Apply a prescion to the text string if it is a number
-
-        Returns
-        -------
-        Precision
-            The prescion to use
-        """
-        return self._precision
-
-    @precision.setter
-    def precision(self, val: Precision):
-        self._precision = val
-        self._cfg["precision"] = val.value
-
-    @property
-    def keyboard_type(self) -> Keyboard:
-        """Keyboard type to use when entering text"""
-        return self._cfg["kbdType"]
-
-    @keyboard_type.setter
-    def keyboard_type(self, val: Keyboard):
-        self._keyboard_type = val
-        self._cfg["kbdType"] = val.value
-
-    @property
-    def close_keyboard_on_send(self) -> bool:
-        """Close the keyboard on send
-
-        Returns
-        -------
-        bool
-            Set to True for the keyboard to close on send
-        """
-        return self._cfg["closeKbdOnSend"]
-
-    @close_keyboard_on_send.setter
-    def close_keyboard_on_send(self, val: bool):
-        self._cfg["closeKbdOnSend"] = val

@@ -25,7 +25,7 @@ import datetime
 import json
 import dateutil.parser
 from ..constants import BAD_CHARS
-from .control import Control, ControlPosition, _get_title_position
+from .control import Control, ControlPosition, ControlConfig, _get_title_position
 from .enums import Color, TitlePosition
 from .ring_buffer import RingBuffer
 
@@ -76,6 +76,7 @@ class EventData:
         return header
 
 
+
 class EventLog(Control):
     """EventLog control
     """
@@ -103,7 +104,9 @@ class EventLog(Control):
             The EventLog usues a ring buffer for data entries this dfines the number of
             entries before over wrting older entires, by default 100
         """
-        super().__init__("LOG", control_id, title=title, control_position=control_position, title_position=title_position)
+        super().__init__("LOG", control_id)
+        self._cfg_columnar.append(ControlConfig(control_id, title, control_position, title_position))
+
         self.message_rx_event = self._get_log_from_timestamp
         self.log = RingBuffer(max_log_entries)
 

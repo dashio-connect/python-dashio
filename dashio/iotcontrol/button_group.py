@@ -23,9 +23,26 @@ SOFTWARE.
 """
 from ..constants import BAD_CHARS
 from .button import Button
-from .control import Control, ControlPosition, _get_icon, _get_title_position
+from .control import Control, ControlPosition, ControlConfig, _get_icon, _get_title_position
 from .enums import Icon, TitlePosition
 
+
+class ButtonGroupConfig(ControlConfig):
+    """ButtonGroupConfig"""
+    def __init__(
+        self,
+        control_id: str,
+        title: str,
+        text: str,
+        icon: Icon,
+        grid_view: bool,
+        control_position: ControlPosition,
+        title_position: TitlePosition
+    ) -> None:
+        super().__init__(control_id, title, control_position, title_position)
+        self._cfg["text"] = text.translate(BAD_CHARS)
+        self._cfg["iconName"] = icon.value
+        self._cfg["gridView"] = grid_view
 
 class ButtonGroup(Control):
     """ButtonGroup control that shows a popup of buttons.
@@ -74,10 +91,10 @@ class ButtonGroup(Control):
             control_position ([type], optional):
                 [description]. Defaults to None.
         """
-        super().__init__("BTGP", control_id, title=title, control_position=control_position, title_position=title_position)
-        self.icon_name = icon
-        self.text = text.translate(BAD_CHARS)
-        self.grid_view = grid_view
+        super().__init__("BTGP", control_id)
+
+        self._cfg_columnar.append(ButtonGroupConfig(control_id, title, text, icon, grid_view, control_position, title_position))
+
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict):
@@ -121,49 +138,3 @@ class ButtonGroup(Control):
             control.parent_id = self.control_id
         else:
             raise TypeError("Only buttons are allowed")
-
-    @property
-    def grid_view(self) -> bool:
-        """grid_view
-
-        Returns
-        -------
-        bool
-            Bool representing if to view the button group as a grid view
-        """
-        return self._cfg["gridView"]
-
-    @grid_view.setter
-    def grid_view(self, val: bool):
-        self._cfg["gridView"] = val
-
-    @property
-    def icon_name(self) -> Icon:
-        """icon_name
-
-        Returns
-        -------
-        Icon
-            The icon used to represent the ButtonGroup
-        """
-        return self._icon_name
-
-    @icon_name.setter
-    def icon_name(self, val: Icon):
-        self._icon_name = val
-        self._cfg["iconName"] = val.value
-
-    @property
-    def text(self) -> str:
-        """text
-
-        Returns
-        -------
-        str
-            text
-        """
-        return self._cfg["text"]
-
-    @text.setter
-    def text(self, val: str):
-        self._cfg["text"] = val.translate(BAD_CHARS)
