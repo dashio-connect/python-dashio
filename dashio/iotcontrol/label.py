@@ -71,8 +71,7 @@ class Label(Control):
             Style of label to be displayed, by default LabelStyle.BASIC
         """
         super().__init__("LBL", control_id)
-        self._cfg_columnar.append(
-            LabelConfig(
+        control_config = LabelConfig(
                 control_id,
                 title,
                 title_position,
@@ -80,7 +79,7 @@ class Label(Control):
                 style,
                 control_position
             )
-        )
+        self._cfg_columnar.append(control_config)
         self._state_str = ""
 
     @classmethod

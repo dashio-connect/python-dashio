@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 import json
-
+import logging
 from ..constants import BAD_CHARS
 from .enums import ColorPickerStyle, DeviceViewStyle, DialNumberPosition, DirectionStyle, GraphXAxisLabelsStyle, Keyboard, KnobStyle, Precision,\
     TextAlignment, TitlePosition, Icon, Color, TextFormat, LabelStyle, SliderBarStyle, DialStyle, TimeGraphPositionOfKey
@@ -126,7 +126,7 @@ class ControlPosition:
 
 class ControlConfig:
     """Base COntrolConfig"""
-    def get_cfg(self) -> str:
+    def get_cfg_json(self) -> str:
         """Returns the CFG str for the control called when the iotdashboard app asks for a CFG
 
         Parameters
@@ -140,6 +140,7 @@ class ControlConfig:
             The CFG for this control
         """
         cfg_str = json.dumps(self._cfg) + "\n"
+
         return cfg_str
 
     def get_cfg64(self) -> dict:
@@ -170,7 +171,7 @@ class ControlConfig:
             self._cfg["title"] = title.translate(BAD_CHARS)
         self._title_position = None
         if title_position is not None:
-            self._cfg["titlePosition"] = title_position
+            self._cfg["titlePosition"] = title_position.value
         if control_position is not None:
             self._cfg["xPositionRatio"] = control_position.x_position_ratio
             self._cfg["yPositionRatio"] = control_position.y_position_ratio
@@ -216,7 +217,7 @@ class Control:
         str
             The CFG for this control
         """
-        cfg_str = ""
+        cfg_list = []
         try:
             num_columns = int(data[3])
             dashboard_id = data[2]
@@ -224,11 +225,11 @@ class Control:
             return ""
         if num_columns >= self._cfg_full_page_no_columns and self._cfg_full_page:
             for cfg in self._cfg_full_page:
-                cfg_str += f"\tCFG\t{dashboard_id}\t" + self.cntrl_type + "\t" + cfg.get_cfg
+                cfg_list.append(f"\tCFG\t{dashboard_id}\t" + self.cntrl_type + "\t" + cfg.get_cfg_json())
         else:
-            for cfg in self._cfg_columnar:
-                cfg_str += f"\tCFG\t{dashboard_id}\t" + self.cntrl_type + "\t" + cfg.get_cfg
-        return cfg_str
+            for control_cfg in self._cfg_columnar:
+                cfg_list.append(f"\tCFG\t{dashboard_id}\t" + self.cntrl_type + "\t" + control_cfg.get_cfg_json())
+        return cfg_list
 
     def get_cfg64(self, data) -> dict:
         """Returns the CFG dict for the control called when the iotdashboard app asks for a CFG
