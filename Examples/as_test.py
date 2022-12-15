@@ -71,7 +71,7 @@ class ActionStationOnly:
         parser.add_argument("-d", "--device_id", dest="device_id", default="098876jzdcjh21312", help="IotDashboard Device ID.")
         parser.add_argument("-p", "--port", dest="port", type=int, default=5650, help="Port number")
         parser.add_argument(
-            "-n", "--device_name", dest="device_name", default="ActionStationTestt", help="Alias name for device."
+            "-n", "--device_name", dest="device_name", default="ActionStationTest", help="Alias name for device."
         )
         parser.add_argument("-l", "--logfile", dest="logfilename", default="", help="logfile location", metavar="FILE")
         args = parser.parse_args()

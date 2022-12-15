@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 import json
+import shortuuid
 from ..constants import BAD_CHARS
 from .enums import ColorPickerStyle, DeviceViewStyle, DialNumberPosition, DirectionStyle, GraphXAxisLabelsStyle, Keyboard, KnobStyle, Precision,\
     TextAlignment, TitlePosition, Icon, Color, TextFormat, LabelStyle, SliderBarStyle, DialStyle, TimeGraphPositionOfKey
@@ -162,7 +163,8 @@ class ControlConfig:
         control_id: str,
         title: str,
         control_position: ControlPosition,
-        title_position: TitlePosition
+        title_position: TitlePosition,
+        config_uuid: str=None
 
     ) -> None:
         self.cfg = {}
@@ -177,6 +179,10 @@ class ControlConfig:
             self.cfg["widthRatio"] = control_position.width_ratio
             self.cfg["heightRatio"] = control_position.height_ratio
         self.cfg["controlID"] = control_id.translate(BAD_CHARS)
+        if config_uuid is None:
+            self.cfg["uuid"] = shortuuid.uuid()
+        else:
+            self.cfg["uuid"] = config_uuid
 
     @property
     def parent_id(self) -> str:
