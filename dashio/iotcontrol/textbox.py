@@ -44,13 +44,13 @@ class TextBoxConfig(ControlConfig):
         control_position: ControlPosition
         ) -> None:
         super().__init__(control_id, title, control_position, title_position)
-        self._cfg["text"] = text.translate(BAD_CHARS)
-        self._cfg["textAlign"] = text_align.value
-        self._cfg["format"] = text_format.value
-        self._cfg["units"] = units.translate(BAD_CHARS)
-        self._cfg["precision"] = precision.value
-        self._cfg["kbdType"] = keyboard_type.value
-        self._cfg["closeKbdOnSend"] = close_keyboard_on_send
+        self.cfg["text"] = text.translate(BAD_CHARS)
+        self.cfg["textAlign"] = text_align.value
+        self.cfg["format"] = text_format.value
+        self.cfg["units"] = units.translate(BAD_CHARS)
+        self.cfg["precision"] = precision.value
+        self.cfg["kbdType"] = keyboard_type.value
+        self.cfg["closeKbdOnSend"] = close_keyboard_on_send
 
 
 class TextBox(Control):

@@ -35,7 +35,7 @@ from .action_station_services.timer_service import TimerService, make_timer_conf
 from .action_station_services.as_servicel import make_test_config
 from .action_station_services.modbus_service import ModbusService, make_modbus_config
 from .action_station_services.clock_servicel import ClockService, make_clock_config
-from .load_config import CONTROL_INSTANCE_DICT, decode_cfg64
+from .load_config import CONTROL_INSTANCE_DICT, decode_cfg64, encode_cfg64
 
 
 class ActionControl():
@@ -207,28 +207,32 @@ class ActionStation(threading.Thread):
             Dictionary of the control objects
         """
         controls_dict = {}
+        new_cfg_dict = {}
+        new_c64 = ""
+        result = False
         for control_type, control_list in cfg_dict.items():
             if isinstance(control_list, list):
                 for control in control_list:
-                    controls_dict[control["controlID"]] = CONTROL_INSTANCE_DICT[control_type].from_cfg_dict(control)
-                    controls_dict[control["controlID"]].message_rx_event = controls_dict[control["controlID"]].message_tx_event
-                    device.add_control(controls_dict[control["controlID"]])
-        return controls_dict
+                    g_control = CONTROL_INSTANCE_DICT[control_type].from_cfg_dict(control)
+                    result = device.add_control(g_control)
+                    if result:
+                        if control_type not in new_cfg_dict:
+                            new_cfg_dict[control_type] = []
+                        controls_dict[control["controlID"]] = g_control
+                        logging.debug("Added control: %s", control_type + ":" + control["controlID"])
+                        new_cfg_dict[control_type].append(control)
+        if new_cfg_dict:
+            new_c64 = encode_cfg64(new_cfg_dict)
+            self.device.inc_config_revision()
+        return controls_dict, new_c64
 
 
     def add_gui_controls(self, g_object: dict):
         """Add a GUI control"""
-        # control = CONTROL_INSTANCE_DICT[g_object['objectType']].from_cfg_dict(g_object['provisioning'])
-        # control.message_rx_event = control.message_tx_event
-        # if g_object['uuid'] in self.dash_controls:
-            # A version already there better remove it
-        #    self.device.remove_control(self.dash_controls[g_object['uuid']])
-        # self.device.add_control(control)
-        # self.device.inc_config_revision()
         cfg_dict = decode_cfg64(g_object["provisioning"])
-        logging.debug("CFG64:\n%s", json.dumps(cfg_dict, indent=4))
-        self.load_all_controls_from_config(self.device, cfg_dict)
-        self.dash_controls[g_object['uuid']] = cfg_dict # control
+        controls_dict, new_c64 = self.load_all_controls_from_config(self.device, cfg_dict)
+        self.dash_controls[g_object['uuid']] = controls_dict
+        g_object["provisioning"] = new_c64
 
     def rm_gui_controls(self, g_object: dict):
         """Remove a GUI control"""

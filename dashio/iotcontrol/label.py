@@ -37,8 +37,8 @@ class LabelConfig(ControlConfig):
         control_position: ControlPosition
         ) -> None:
         super().__init__(control_id, title, control_position, title_position)
-        self._cfg["style"] = style.value
-        self._cfg["color"] = str(color.value)
+        self.cfg["style"] = style.value
+        self.cfg["color"] = str(color.value)
 
 
 class Label(Control):

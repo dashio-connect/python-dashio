@@ -40,9 +40,9 @@ class ButtonGroupConfig(ControlConfig):
         title_position: TitlePosition
     ) -> None:
         super().__init__(control_id, title, control_position, title_position)
-        self._cfg["text"] = text.translate(BAD_CHARS)
-        self._cfg["iconName"] = icon.value
-        self._cfg["gridView"] = grid_view
+        self.cfg["text"] = text.translate(BAD_CHARS)
+        self.cfg["iconName"] = icon.value
+        self.cfg["gridView"] = grid_view
 
 class ButtonGroup(Control):
     """ButtonGroup control that shows a popup of buttons.

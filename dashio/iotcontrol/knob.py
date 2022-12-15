@@ -44,19 +44,34 @@ class KnobConfig(ControlConfig):
         control_position=None,
         ) -> None:
         super().__init__(control_id, title, control_position, title_position)
-        self._cfg["style"] = str(knob_style.value)
-        self._cfg["min"] = dial_min
-        self._cfg["max"] = dial_max
-        self._cfg["redValue"] = red_value
-        self._cfg["showMinMax"] = show_min_max
-        self._cfg["sendOnlyOnRelease"] = send_only_on_release
-        self._cfg["dialFollowsKnob"] = dial_follows_knob
-        self._cfg["dialColor"] = str(dial_color.value)
-        self._cfg["knobColor"] = str(knob_color.value)
+        self.cfg["style"] = str(knob_style.value)
+        self.cfg["min"] = dial_min
+        self.cfg["max"] = dial_max
+        self.cfg["redValue"] = red_value
+        self.cfg["showMinMax"] = show_min_max
+        self.cfg["sendOnlyOnRelease"] = send_only_on_release
+        self.cfg["dialFollowsKnob"] = dial_follows_knob
+        self.cfg["dialColor"] = str(dial_color.value)
+        self.cfg["knobColor"] = str(knob_color.value)
 
 class Knob(Control):
     """A Knob control
     """
+
+    def add_config_columnar(self, config: KnobConfig):
+        if isinstance(config, KnobConfig):
+            config.cfg["min"] = self.dial_min
+            config.cfg["max"] = self.dial_max
+            config.cfg["redValue"] = self.red_value
+            self._cfg_columnar.append(config)
+
+    def add_config_full_page(self, config: KnobConfig):
+        if isinstance(config, KnobConfig):
+            config.cfg["min"] = self.dial_min
+            config.cfg["max"] = self.dial_max
+            config.cfg["redValue"] = self.red_value
+            self._cfg_columnar.append(config)
+
     def __init__(
         self,
         control_id,

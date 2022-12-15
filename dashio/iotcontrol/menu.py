@@ -42,8 +42,8 @@ class MenuConfig(ControlConfig):
         control_position: ControlPosition
         ) -> None:
         super().__init__(control_id, title, control_position, title_position)
-        self._cfg["text"] = text.translate(BAD_CHARS)
-        self._cfg["iconName"] = icon_name.value
+        self.cfg["text"] = text.translate(BAD_CHARS)
+        self.cfg["iconName"] = icon_name.value
 
 class Menu(Control):
     """A Menu Control

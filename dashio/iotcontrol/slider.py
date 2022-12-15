@@ -45,20 +45,35 @@ class SliderConfig(ControlConfig):
         control_position: ControlPosition,
     ) -> None:
         super().__init__(control_id, title, control_position, title_position)
-        self._cfg["redValue"] = red_value
-        self._cfg["min"] = bar_min
-        self._cfg["max"] = bar_max
-        self._cfg["showMinMax"] = show_min_max
-        self._cfg["sliderEnabled"] = slider_enabled
-        self._cfg["sendOnlyOnRelease"] = send_only_on_release
-        self._cfg["barFollowsSlider"] = bar_follows_slider
-        self._cfg["barColor"] = str(bar_color.value)
-        self._cfg["knobColor"] = str(knob_color.value)
-        self._cfg["barStyle"] = bar_style.value
+        self.cfg["redValue"] = red_value
+        self.cfg["min"] = bar_min
+        self.cfg["max"] = bar_max
+        self.cfg["showMinMax"] = show_min_max
+        self.cfg["sliderEnabled"] = slider_enabled
+        self.cfg["sendOnlyOnRelease"] = send_only_on_release
+        self.cfg["barFollowsSlider"] = bar_follows_slider
+        self.cfg["barColor"] = str(bar_color.value)
+        self.cfg["knobColor"] = str(knob_color.value)
+        self.cfg["barStyle"] = bar_style.value
 
 class Slider(Control):
     """Single slider bar control
     """
+
+    def add_config_columnar(self, config: SliderConfig):
+        if isinstance(config, SliderConfig):
+            config.cfg["min"] = self.bar_min
+            config.cfg["max"] = self.bar_max
+            config.cfg["redValue"] = self.red_value
+            self._cfg_columnar.append(config)
+
+    def add_config_full_page(self, config: SliderConfig):
+        if isinstance(config, SliderConfig):
+            config.cfg["min"] = self.bar_min
+            config.cfg["max"] = self.bar_max
+            config.cfg["redValue"] = self.red_value
+            self._cfg_columnar.append(config)
+
     def __init__(
         self,
         control_id: str,
