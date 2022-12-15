@@ -41,11 +41,11 @@ class ButtonConfig(ControlConfig):
         control_position: ControlPosition
         ) -> None:
         super().__init__(control_id, title, control_position, title_position)
-        self._cfg["text"] = text.translate(BAD_CHARS)
-        self._cfg["iconName"] = icon_name.value
-        self._cfg["buttonEnabled"] = button_enabled
-        self._cfg["onColor"] = str(on_color.value)
-        self._cfg["offColor"] = str(off_color.value)
+        self.cfg["text"] = text.translate(BAD_CHARS)
+        self.cfg["iconName"] = icon_name.value
+        self.cfg["buttonEnabled"] = button_enabled
+        self.cfg["onColor"] = str(on_color.value)
+        self.cfg["offColor"] = str(off_color.value)
 
 class Button(Control):
     """A Button control.

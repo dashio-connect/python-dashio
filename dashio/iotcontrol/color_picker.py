@@ -39,8 +39,8 @@ class ColorPickerConfig(ControlConfig):
         control_position: ControlPosition
         ) -> None:
         super().__init__(control_id, title, control_position, title_position)
-        self._cfg["style"] = style.value
-        self._cfg["sendOnlyOnRelease"] = send_only_on_release
+        self.cfg["style"] = style.value
+        self.cfg["sendOnlyOnRelease"] = send_only_on_release
 
 
 class ColorPicker(Control):

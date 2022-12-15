@@ -48,30 +48,30 @@ class DeviceViewConfig(ControlConfig):
         num_grid_rows: int,
         ) -> None:
         super().__init__(control_id, title, control_position=None, title_position=None)
-        self._cfg["iconName"] = icon_name.value
-        self._cfg["style"] = str(style.value)
-        self._cfg["color"] = str(color.value)
-        self._cfg["shareColumn"] = share_column
+        self.cfg["iconName"] = icon_name.value
+        self.cfg["style"] = str(style.value)
+        self.cfg["color"] = str(color.value)
+        self.cfg["shareColumn"] = share_column
         if 1 <= num_columns <= 10:
-            self._cfg["numColumns"] = num_columns
+            self.cfg["numColumns"] = num_columns
         else:
             raise ValueError("num_columns must be in the range 1 to 10")
-        self._cfg["ctrlTitleBoxColor"] = str(control_title_box_color.value)
+        self.cfg["ctrlTitleBoxColor"] = str(control_title_box_color.value)
         if 0 <= control_title_box_transparency <= 100:
-            self._cfg["ctrlTitleBoxTransparency"] = control_title_box_transparency
+            self.cfg["ctrlTitleBoxTransparency"] = control_title_box_transparency
         else:
             raise ValueError("Value must be in the range 0 to 100")
-        self._cfg["ctrlColor"] = str(control_color.value)
-        self._cfg["ctrlBorderColor"] = str(control_border_color.value)
-        self._cfg["ctrlBkgndColor"] = str(control_background_color.value)
-        self._cfg["ctrlTitleFontSize"] = control_title_font_size
-        self._cfg["ctrlMaxFontSize"] = control_max_font_size
+        self.cfg["ctrlColor"] = str(control_color.value)
+        self.cfg["ctrlBorderColor"] = str(control_border_color.value)
+        self.cfg["ctrlBkgndColor"] = str(control_background_color.value)
+        self.cfg["ctrlTitleFontSize"] = control_title_font_size
+        self.cfg["ctrlMaxFontSize"] = control_max_font_size
         if 0 <= control_background_transparency <= 100:
-            self._cfg["ctrlBkgndTransparency"] = control_background_transparency
+            self.cfg["ctrlBkgndTransparency"] = control_background_transparency
         else:
             raise ValueError("Value must be in the range 0 to 100")
-        self._cfg["gridColumns"] = num_grid_columns
-        self._cfg["gridRows"] = num_grid_rows
+        self.cfg["gridColumns"] = num_grid_columns
+        self.cfg["gridRows"] = num_grid_rows
 
 class DeviceView(Control):
     """A DeviceView provides a control that descibes appearance and style of the group of controls

@@ -145,10 +145,10 @@ class TimeGraphConfig(ControlConfig):
         control_position: ControlPosition
     ) -> None:
         super().__init__(control_id, title, control_position, title_position)
-        self._cfg["yAxisLabel"] = y_axis_label.translate(BAD_CHARS)
-        self._cfg["yAxisMin"] = y_axis_min
-        self._cfg["yAxisMax"] = y_axis_max
-        self._cfg["yAxisNumBars"] = y_axis_num_bars
+        self.cfg["yAxisLabel"] = y_axis_label.translate(BAD_CHARS)
+        self.cfg["yAxisMin"] = y_axis_min
+        self.cfg["yAxisMax"] = y_axis_max
+        self.cfg["yAxisNumBars"] = y_axis_num_bars
 
 class TimeGraph(Control):
     """A TimeGraph control

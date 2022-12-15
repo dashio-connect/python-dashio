@@ -138,7 +138,7 @@ class ControlConfig:
         str
             The CFG for this control
         """
-        cfg_str = json.dumps(self._cfg) + "\n"
+        cfg_str = json.dumps(self.cfg) + "\n"
 
         return cfg_str
 
@@ -155,7 +155,7 @@ class ControlConfig:
         dict
             The CFG dict for this control
         """
-        return self._cfg
+        return self.cfg
 
     def __init__(
         self,
@@ -165,18 +165,18 @@ class ControlConfig:
         title_position: TitlePosition
 
     ) -> None:
-        self._cfg = {}
+        self.cfg = {}
         if title is not None:
-            self._cfg["title"] = title.translate(BAD_CHARS)
+            self.cfg["title"] = title.translate(BAD_CHARS)
         self._title_position = None
         if title_position is not None:
-            self._cfg["titlePosition"] = title_position.value
+            self.cfg["titlePosition"] = title_position.value
         if control_position is not None:
-            self._cfg["xPositionRatio"] = control_position.x_position_ratio
-            self._cfg["yPositionRatio"] = control_position.y_position_ratio
-            self._cfg["widthRatio"] = control_position.width_ratio
-            self._cfg["heightRatio"] = control_position.height_ratio
-        self._cfg["controlID"] = control_id.translate(BAD_CHARS)
+            self.cfg["xPositionRatio"] = control_position.x_position_ratio
+            self.cfg["yPositionRatio"] = control_position.y_position_ratio
+            self.cfg["widthRatio"] = control_position.width_ratio
+            self.cfg["heightRatio"] = control_position.height_ratio
+        self.cfg["controlID"] = control_id.translate(BAD_CHARS)
 
     @property
     def parent_id(self) -> str:
@@ -187,12 +187,12 @@ class ControlConfig:
         str
             The parent_id
         """
-        return self._cfg["parentID"]
+        return self.cfg["parentID"]
 
     @parent_id.setter
     def parent_id(self, val: str):
         _val = val.translate(BAD_CHARS)
-        self._cfg["parentID"] = _val
+        self.cfg["parentID"] = _val
 
 
 class Control:
@@ -252,13 +252,33 @@ class Control:
         return self._cfg_columnar
 
     def add_config_columnar(self, config):
+        """Add a duplicate Config for the columnar view"""
         self._cfg_columnar.append(config)
 
     def add_config_full_page(self, config):
+        """Add a duplicate Config for the full page view"""
         self._cfg_full_page.append(config)
 
-    def set_no_culumns_full_page(self, noColumns: int):
-        self._cfg_full_page_no_columns = noColumns
+    def set_no_culumns_full_page(self, no_columns: int):
+        """Set the number of columns that the full page view uses."""
+        self._cfg_full_page_no_columns = no_columns
+
+    def add_receive_message_callback(self, callback):
+        """Add a callback to receive incoming messages to the control."""
+        self._message_rx_event += callback
+
+    def remove_receive_message_callback(self, callback):
+        """Remaove a callback from receive incoming messages to the control."""
+        self._message_rx_event -= callback
+
+    def add_transmit_message_callback(self, callback):
+        """Add a callback for transmitted messages from the control."""
+        self._message_tx_event += callback
+
+    def remove_transmit_message_callback(self, callback):
+        """Remove a callback for transmitted messages from the control."""
+        self._message_tx_event -= callback
+
 
     def __init__(self, cntrl_type: str, control_id: str):
         """Control base type - all controls have these charactoristics and methods.
@@ -282,10 +302,29 @@ class Control:
         self._cfg_full_page_no_columns = 0
         self.cntrl_type = cntrl_type.translate(BAD_CHARS)
         self.control_id = control_id.translate(BAD_CHARS)
-        self.message_rx_event = Event()
-        self.message_tx_event = Event()
+        self._message_rx_event = Event()
+        self._message_tx_event = Event()
+        # This may break things but makes all controls able to be setup from tasks.
+        self._message_rx_event += self._message_tx_event
         self._control_hdr_str = f"\t{{device_id}}\t{self.cntrl_type}\t{self.control_id}\t"
 
+    @property
+    def message_rx_event(self):
+        """Returns the message_rx_event Set"""
+        return self._message_rx_event
+
+    @message_rx_event.setter
+    def message_rx_event(self, val):
+        self._message_rx_event += val
+
+    @property
+    def message_tx_event(self):
+        """Returns the message_tx_event Set"""
+        return self._message_tx_event
+
+    @message_tx_event.setter
+    def message_tx_event(self, val):
+        self._message_tx_event += val
 
     @property
     def state_str(self) -> str:
@@ -301,6 +340,7 @@ class Control:
     @state_str.setter
     def state_str(self, val):
         self.message_tx_event(val)
+
 
     # Use getter, setter properties to store the settings in the config dictionary
     @property

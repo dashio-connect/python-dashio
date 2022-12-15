@@ -205,13 +205,13 @@ class Device(threading.Thread):
         """
         try:
             if isinstance(iot_control, Alarm):
-                iot_control.message_tx_event += self._send_alarm
+                iot_control.message_tx_event = self._send_alarm
             else:
-                iot_control.message_tx_event += self._send_data
+                iot_control.message_tx_event = self._send_data
         except AttributeError:
             pass
         key = f"{iot_control.cntrl_type}\t{iot_control.control_id}"
-        
+
         if key not in self._control_dict:
             self.inc_config_revision()
             if isinstance(iot_control, DeviceView):
@@ -223,7 +223,9 @@ class Device(threading.Thread):
             elif isinstance(iot_control, Slider):
                 key = f"BAR_{iot_control.control_id}"
                 self._control_dict[key] = iot_control
-        
+            return True
+        return False
+
 
     def remove_control(self, iot_control):
         """Remove a control a control to the device.

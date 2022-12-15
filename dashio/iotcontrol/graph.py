@@ -67,15 +67,15 @@ class GraphConfig(ControlConfig):
         control_position: ControlPosition,
         ) -> None:
         super().__init__(control_id, title, control_position, title_position)
-        self._cfg["xAxisLabel"] = x_axis_label.translate(BAD_CHARS)
-        self._cfg["xAxisMin"] = x_axis_min
-        self._cfg["xAxisMax"] = x_axis_max
-        self._cfg["xAxisNumBars"] = x_axis_num_bars
-        self._cfg["xAxisLabelsStyle"] = x_axis_labels_style.value
-        self._cfg["yAxisLabel"] = y_axis_label.translate(BAD_CHARS)
-        self._cfg["yAxisMin"] = y_axis_min
-        self._cfg["yAxisMax"] = y_axis_max
-        self._cfg["yAxisNumBars"] = y_axis_num_bars
+        self.cfg["xAxisLabel"] = x_axis_label.translate(BAD_CHARS)
+        self.cfg["xAxisMin"] = x_axis_min
+        self.cfg["xAxisMax"] = x_axis_max
+        self.cfg["xAxisNumBars"] = x_axis_num_bars
+        self.cfg["xAxisLabelsStyle"] = x_axis_labels_style.value
+        self.cfg["yAxisLabel"] = y_axis_label.translate(BAD_CHARS)
+        self.cfg["yAxisMin"] = y_axis_min
+        self.cfg["yAxisMax"] = y_axis_max
+        self.cfg["yAxisNumBars"] = y_axis_num_bars
 
 
 class Graph(Control):
