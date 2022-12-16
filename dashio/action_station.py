@@ -38,102 +38,6 @@ from .action_station_services.clock_servicel import ClockService, make_clock_con
 from .load_config import CONTROL_INSTANCE_DICT, CONFIG_INSTANCE_DICT, decode_cfg64, encode_cfg64
 
 
-class ActionControl():
-    """A CFG control class to store Action information
-    """
-
-    def get_state(self) -> str:
-        """Returns controls state. Not used for this control
-
-        Returns
-        -------
-        str
-            Not used in this control
-        """
-        return ""
-
-    def get_cfg(self, data) -> str:
-        """Returns the CFG string for this TCP control
-
-        Returns
-        -------
-        str
-            The CFG string for this control
-        """
-        try:
-            dashboard_id = data[2]
-        except IndexError:
-            return ""
-        cfg_str = f"\tCFG\t{dashboard_id}\t{self.cntrl_type}\t{json.dumps(self._cfg)}\n"
-        return cfg_str
-
-    def get_cfg64(self, data) -> dict:
-        """Returns the CFG dict for this TCP control
-
-        Returns
-        -------
-        dict
-            The CFG string for this control
-        """
-        return self._cfg
-
-    def __init__(self, control_id, max_tasks: int, number_timers: int, memory_size: int):
-        self._cfg = {}
-        self.cntrl_type = "ACTN"
-        self._cfg['controlID'] = control_id
-        self.control_id = control_id
-        self.max_tasks = max_tasks
-        self.number_timers = number_timers
-        if memory_size > 0:
-            self.memory_storage_size = memory_size
-
-    @property
-    def max_tasks(self) -> int:
-        """max number of tasks
-
-        Returns
-        -------
-        int
-            The max number of tasks
-        """
-        return int(self._cfg["maxTasks"])
-
-    @max_tasks.setter
-    def max_tasks(self, val: int):
-        self._cfg["maxTasks"] = val
-
-    @property
-    def number_timers(self) -> int:
-        """number of Timers
-
-        Returns
-        -------
-        int
-            The number of timers
-        """
-        return int(self._cfg["numTimers"])
-
-    @number_timers.setter
-    def number_timers(self, val: int):
-        self._cfg["numTimers"] = val
-
-    @property
-    def memory_storage_size(self) -> int:
-        """Size of memory storage
-
-        Returns
-        -------
-        int
-            The number of timers
-        """
-        return int(self._cfg["memSize"])
-
-    @memory_storage_size.setter
-    def memory_storage_size(self, val: int):
-        self._cfg["memSize"] = val
-
-
-
 class ActionStation(threading.Thread):
     """_summary_
 
@@ -475,7 +379,7 @@ class ActionStation(threading.Thread):
     def run(self):
 
         self.zmq_service_pub = self.context.socket(zmq.PUB)
-    
+
         self.zmq_service_pub.bind(CONNECTION_PUB_URL.format(id=self.zmq_service_uuid))
 
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
@@ -545,7 +449,7 @@ class ActionStation(threading.Thread):
                         if msg_dict['deviceID'] not in self.remote_device_ids:
                             logging.debug("Added remote deviceID: %s", msg_dict['deviceID'])
                             self.remote_device_ids.append(msg_dict['deviceID'])
-            
+
             if memory_socket in socks:
                 message = memory_socket.recv_multipart()
                 logging.debug("MEM Rx: %s", message)
@@ -560,7 +464,7 @@ class ActionStation(threading.Thread):
                 #  Send error reply back to client
                 else:
                     memory_socket.send_multipart([b'ERROR',b'ERROR',b'ERROR'])
-            
+
 
         self.tx_zmq_pub.close()
         self.device_zmq_sub.close()

@@ -192,7 +192,7 @@ class TCPConnection(threading.Thread):
         if self.use_zeroconf:
             self.z_conf = ZeroconfService(self.zmq_connection_uuid, self.local_ip, self.local_port, self.context)
 
-        self.connection_control = TCPControl(self.zmq_connection_uuid, self.local_ip, self.local_port)
+        # self.connection_control = TCPControl(self.zmq_connection_uuid, self.local_ip, self.local_port)
         self.start()
 
     def close(self):

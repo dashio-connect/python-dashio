@@ -265,7 +265,7 @@ class DashConnection(threading.Thread):
         self._dash_c.on_disconnect = self._on_disconnect
         # self.dash_c.on_publish = self.__on_publish
         self._dash_c.on_subscribe = self._on_subscribe
-        self.connection_control = DashControl(self.zmq_connection_uuid, username, host)
+        # self.connection_control = DashControl(self.zmq_connection_uuid, username, host)
         if use_ssl:
             self._dash_c.tls_set(
                 ca_certs=None,

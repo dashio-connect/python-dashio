@@ -34,93 +34,6 @@ import zmq
 from .constants import CONNECTION_PUB_URL
 
 
-class MQTTControl():
-    """A CFG only control"""
-    def get_state(self):
-        """Not used by this class as its a CFG only control
-        """
-        return ""
-
-    def get_cfg(self, data):
-        """Returns the CFG string for this TCP control
-
-        Returns
-        -------
-        str
-            The CFG string for this control
-        """
-        try:
-            # num_columns = data[3]
-            dashboard_id = data[2]
-        except IndexError:
-            return ""
-        cfg_str = f"\tCFG\t{dashboard_id}\t{self.cntrl_type}\t" + json.dumps(self._cfg) + "\n"
-        return cfg_str
-
-    def get_cfg64(self, data) -> dict:
-        """Returns the CFG dict for this TCP control
-
-        Returns
-        -------
-        dict
-            The CFG string for this control
-        """
-        return self._cfg
-
-    def __init__(self, control_id: str, username="", password="", servername="", use_ssl=False):
-        self._cfg = {}
-        self.cntrl_type = "MQTT"
-        self._cfg["controlID"] = control_id
-        self.control_id = control_id
-        self.username = username
-        self.servername = servername
-        self.password = password
-        self.use_ssl = use_ssl
-
-    def set_mqtt(self, username: str, servername: str):
-        """Set the connection parameters for mqtt
-
-        Parameters
-        ----------
-        username : str
-            username
-        servername : [type]
-            servername
-        """
-        self.username = username
-        self.servername = servername
-
-    @property
-    def username(self) -> str:
-        """username
-
-        Returns
-        -------
-        str
-            username
-        """
-        return self._cfg["userName"]
-
-    @username.setter
-    def username(self, val: str):
-        self._cfg["userName"] = val
-
-    @property
-    def servername(self) -> str:
-        """servername
-
-        Returns
-        -------
-        str
-            servername
-        """
-        return self._cfg["hostURL"]
-
-    @servername.setter
-    def servername(self, val: str):
-        self._cfg["hostURL"] = val
-
-
 class MQTTConnection(threading.Thread):
     """Setups and manages a connection thread to the MQTT Server."""
 
@@ -172,7 +85,7 @@ class MQTTConnection(threading.Thread):
                 control_topic = f"{self.username}/{device.device_id}/control"
                 self.mqttc.subscribe(control_topic, 0)
                 self._send_dash_announce()
-    
+
     def _add_device_rx(self, msg_dict):
         """Connect to another device"""
         device_id = msg_dict["deviceID"]
@@ -229,7 +142,6 @@ class MQTTConnection(threading.Thread):
         self.zmq_connection_uuid = "MQTT:" + shortuuid.uuid()
         self.b_connection_id = self.zmq_connection_uuid.encode('utf-8')
 
-        self.connection_control = MQTTControl(self.zmq_connection_uuid, username, password, host, use_ssl)
         self._connected = False
         self._disconnected = True
         self.connection_topic_list = []

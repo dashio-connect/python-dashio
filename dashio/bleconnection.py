@@ -273,7 +273,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
         dashio_service_uuid = ble_uuid or str(uuid.uuid4())
 
-        self.connection_control = BLEControl(self.zmq_connection_uuid, dashio_service_uuid, str(uuid.uuid4()), str(uuid.uuid4()))
+        # self.connection_control = BLEControl(self.zmq_connection_uuid, dashio_service_uuid, str(uuid.uuid4()), str(uuid.uuid4()))
 
         GLib.threads_init()
         dbus.mainloop.glib.threads_init()

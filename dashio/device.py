@@ -31,8 +31,6 @@ import zmq
 from .constants import CONNECTION_PUB_URL, BAD_CHARS
 from .action_station import ActionStation
 from .iotcontrol.alarm import Alarm
-from .iotcontrol.knob import Knob
-from .iotcontrol.slider import Slider
 from .iotcontrol.device_view import DeviceView
 from .load_config import encode_cfg64
 
@@ -236,12 +234,6 @@ class Device(threading.Thread):
         key = f"{iot_control.cntrl_type}_{iot_control.control_id}"
         if key in self._control_dict:
             del self._control_dict[key]
-        if isinstance(iot_control, Knob):
-            key = f"KBDL_{iot_control.control_id}"
-            del self._control_dict[key]
-        elif isinstance(iot_control, Slider):
-            key = f"BAR_{iot_control.control_id}"
-            del self._control_dict[key]
 
     def _set_devicesetup(self, control_name: str, settable: bool):
         if settable:
@@ -416,13 +408,15 @@ class Device(threading.Thread):
         if self._add_actions:
             self.action_station.register_connection(connection)
 
-    def __init__(self,
-                 device_type: str,
-                 device_id: str,
-                 device_name: str,
-                 add_actions: bool = False,
-                 cfg_dict: dict = None,
-                 context: zmq.Context=None) -> None:
+    def __init__(
+        self,
+        device_type: str,
+        device_id: str,
+        device_name: str,
+        add_actions: bool = False,
+        cfg_dict: dict = None,
+        context: zmq.Context=None
+    ) -> None:
         """DashDevice
 
         Parameters
