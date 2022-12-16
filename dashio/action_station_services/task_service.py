@@ -119,7 +119,7 @@ class TaskService(threading.Thread):
         self._send_alarm(action['alarmID'], action['title'], action['body'])
 
     def _write_control_action(self, action, msg):
-        logging.debug("WRITE_CONTROL memType: %s", action["memType"])
+        logging.debug("WRITE_CONTROL: %s", msg.decode())
 
     def _read_mem_action(self, action, msg):
         logging.debug("READ_MEM memType: %s", action["memType"])
