@@ -27,7 +27,7 @@ from .enums import Color, DirectionStyle, Precision, TitlePosition
 
 
 class DirectionConfig(ControlConfig):
-    """ButtonGroupConfig"""
+    """DirectionConfig"""
     def __init__(
         self,
         control_id: str,
@@ -47,9 +47,37 @@ class DirectionConfig(ControlConfig):
         self.cfg["precision"] = precision.value
         self.cfg["calAngle"] = calibration_angle
 
+    @classmethod
+    def from_dict(cls, cfg_dict: dict):
+        """Instantiates DirectionConfig from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        DirectionConfig
+        """
+        tmp_cls = cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            _get_direction_style(cfg_dict["style"]),
+            _get_title_position(cfg_dict["titlePosition"]),
+            _get_color(cfg_dict["pointerColor"]),
+            cfg_dict["units"],
+            _get_precision(cfg_dict["precision"]),
+            cfg_dict["calAngle"],
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+        )
+        tmp_cls.parent_id = cfg_dict["parentID"]
+        return tmp_cls
+
 
 class Direction(Control):
     """Direction control"""
+
 
     def add_config_columnar(self, config: DirectionConfig):
         if isinstance(config, DirectionConfig):

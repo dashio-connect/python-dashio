@@ -49,7 +49,7 @@ class GraphLine:
 
 
 class GraphConfig(ControlConfig):
-    """ButtonGroupConfig"""
+    """GraphConfig"""
     def __init__(
         self,
         control_id,
@@ -78,6 +78,38 @@ class GraphConfig(ControlConfig):
         self.cfg["yAxisNumBars"] = y_axis_num_bars
 
 
+    @classmethod
+    def from_dict(cls, cfg_dict: dict):
+        """Instantiates GraphConfig from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        GraphConfig
+        """
+        tmp_cls = cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            _get_title_position(cfg_dict["titlePosition"]),
+            cfg_dict["xAxisLabel"],
+            cfg_dict["xAxisMin"],
+            cfg_dict["xAxisMax"],
+            cfg_dict["xAxisNumBars"],
+            _get_graph_x_axis_labels_style(cfg_dict["xAxisLabelsStyle"]),
+            cfg_dict["yAxisLabel"],
+            cfg_dict["yAxisMin"],
+            cfg_dict["yAxisMax"],
+            cfg_dict["yAxisNumBars"],
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+        )
+        tmp_cls.parent_id = cfg_dict["parentID"]
+        return tmp_cls
+
+
 class Graph(Control):
     """A Graph control
 
@@ -86,6 +118,7 @@ class Graph(Control):
     Control :
         The control base class
     """
+
     def get_state(self):
         """Called by iotdashboard"""
         state_str = ""
@@ -141,8 +174,6 @@ class Graph(Control):
             The position of the control on a DeviceView, by default None
         """
         super().__init__("GRPH", control_id)
-
-        super().__init__("BTTN", control_id)
         self._cfg_columnar.append(
             GraphConfig(
                 control_id,

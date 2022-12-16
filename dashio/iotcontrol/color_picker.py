@@ -28,7 +28,7 @@ from .enums import (ColorPickerStyle, TitlePosition)
 
 
 class ColorPickerConfig(ControlConfig):
-    """ButtonGroupConfig"""
+    """ColorPickerConfig"""
     def __init__(
         self,
         control_id: str,
@@ -42,10 +42,34 @@ class ColorPickerConfig(ControlConfig):
         self.cfg["style"] = style.value
         self.cfg["sendOnlyOnRelease"] = send_only_on_release
 
+    @classmethod
+    def from_dict(cls, cfg_dict: dict):
+        """Instantiates ColorPickerConfig from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        ColorPickerConfig
+        """
+        tmp_cls = cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            _get_title_position(cfg_dict["titlePosition"]),
+            _get_color_picker_style(cfg_dict["pickerStyle"]),
+            cfg_dict["sendOnlyOnRelease"],
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+        )
+        tmp_cls.parent_id = cfg_dict["parentID"]
+        return tmp_cls
 
 class ColorPicker(Control):
     """Color Picker Control
     """
+
     def __init__(
         self,
         control_id: str,

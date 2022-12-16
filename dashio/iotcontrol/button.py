@@ -47,6 +47,33 @@ class ButtonConfig(ControlConfig):
         self.cfg["onColor"] = str(on_color.value)
         self.cfg["offColor"] = str(off_color.value)
 
+    @classmethod
+    def from_dict(cls, cfg_dict: dict):
+        """Instantiates ButtonGroupConfig from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        ButtonGroupConfig
+        """
+        tmp_cls = cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            _get_title_position(cfg_dict["titlePosition"]),
+            cfg_dict["buttonEnabled"],
+            _get_icon(cfg_dict["iconName"]),
+            _get_color(cfg_dict["onColor"]),
+            _get_color(cfg_dict["offColor"]),
+            cfg_dict["text"],
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+        )
+        tmp_cls.parent_id = cfg_dict["parentID"]
+        return tmp_cls
+
 class Button(Control):
     """A Button control.
 
@@ -79,6 +106,7 @@ class Button(Control):
     from_cfg_dict(cfg_dict: dict) :
         Instatiates Button from cfg dictionary
     """
+
 
     def toggle_btn(self):
         """

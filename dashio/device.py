@@ -196,6 +196,11 @@ class Device(threading.Thread):
         logging.debug("ANNOUNCE: %s", payload)
         self.tx_zmq_pub.send_multipart([b"DASH", payload.encode('utf-8')])
 
+    def is_control_loaded(self, control_type, control_id) -> bool:
+        """Is the control loaded in the device?"""
+        key = f"{control_type}\t{control_id}"
+        return key in self._control_dict
+
     def add_control(self, iot_control):
         """Add a control to the device.
 
@@ -217,12 +222,6 @@ class Device(threading.Thread):
             if isinstance(iot_control, DeviceView):
                 self._cfg["numDeviceViews"] += 1
             self._control_dict[key] = iot_control
-            if isinstance(iot_control, Knob):
-                key = f"KBDL_{iot_control.control_id}"
-                self._control_dict[key] = iot_control
-            elif isinstance(iot_control, Slider):
-                key = f"BAR_{iot_control.control_id}"
-                self._control_dict[key] = iot_control
             return True
         return False
 

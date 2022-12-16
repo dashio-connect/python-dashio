@@ -24,9 +24,8 @@ SOFTWARE.
 from .control import Control, ControlConfig, _get_color, _get_icon, _get_device_view_style
 from .enums import Color, Icon, DeviceViewStyle
 
-
 class DeviceViewConfig(ControlConfig):
-    """ButtonGroupConfig"""
+    """DeviceViewConfig"""
     def __init__(
         self,
         control_id: str,
@@ -72,6 +71,43 @@ class DeviceViewConfig(ControlConfig):
             raise ValueError("Value must be in the range 0 to 100")
         self.cfg["gridColumns"] = num_grid_columns
         self.cfg["gridRows"] = num_grid_rows
+
+
+    @classmethod
+    def from_dict(cls, cfg_dict: dict):
+        """Instantiates DeviceViewConfig from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        DeviceViewConfig
+        """
+        tmp_cls = cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            _get_device_view_style(cfg_dict["style"]),
+            _get_icon(cfg_dict["iconName"]),
+            _get_color(cfg_dict["color"]),
+            cfg_dict["shareColumn"],
+            cfg_dict["numColumns"],
+            _get_color(cfg_dict["ctrlTitleBoxColor"]),
+            cfg_dict["ctrlTitleBoxTransparency"],
+            _get_color(cfg_dict["ctrlColor"]),
+            _get_color(cfg_dict["ctrlBorderColor"]),
+            _get_color(cfg_dict["ctrlBkgndColor"]),
+            cfg_dict["ctrlTitleFontSize"],
+            cfg_dict["ctrlMaxFontSize"],
+            cfg_dict["ctrlBkgndTransparency"],
+            cfg_dict["gridColumns"],
+            cfg_dict["gridRows"]
+        )
+        return tmp_cls
+
+
 
 class DeviceView(Control):
     """A DeviceView provides a control that descibes appearance and style of the group of controls
@@ -151,7 +187,7 @@ class DeviceView(Control):
                 control_title_font_size,
                 control_max_font_size,
                 control_background_transparency,
-                num_columns,
+                num_grid_columns,
                 num_grid_rows
             )
         )
@@ -180,8 +216,8 @@ class DeviceView(Control):
             cfg_dict["numColumns"],
             _get_color(cfg_dict["ctrlTitleBoxColor"]),
             cfg_dict["ctrlTitleBoxTransparency"],
-            _get_color(cfg_dict["ctrlBorderColor"]),
             _get_color(cfg_dict["ctrlColor"]),
+            _get_color(cfg_dict["ctrlBorderColor"]),
             _get_color(cfg_dict["ctrlBkgndColor"]),
             cfg_dict["ctrlTitleFontSize"],
             cfg_dict["ctrlMaxFontSize"],

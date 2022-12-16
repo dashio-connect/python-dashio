@@ -24,10 +24,10 @@ SOFTWARE.
 from .control import Control, ControlPosition, ControlConfig, _get_title_position
 from .enums import (TitlePosition)
 
-
 class AudioVisualDisplay(Control):
     """AudioVisualDisplay Control
     """
+
     def __init__(
         self,
         control_id: str,
@@ -74,6 +74,7 @@ class AudioVisualDisplay(Control):
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls
+
 
 
     def get_state(self):

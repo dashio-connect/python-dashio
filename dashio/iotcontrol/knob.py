@@ -24,9 +24,8 @@ SOFTWARE.
 from .control import Control, ControlPosition, ControlConfig, _get_color, _get_title_position, _get_knob_style
 from .enums import Color, KnobStyle, TitlePosition
 
-
 class KnobConfig(ControlConfig):
-    """ButtonGroupConfig"""
+    """KnobConfig"""
     def __init__(
         self,
         control_id: str,
@@ -53,6 +52,37 @@ class KnobConfig(ControlConfig):
         self.cfg["dialFollowsKnob"] = dial_follows_knob
         self.cfg["dialColor"] = str(dial_color.value)
         self.cfg["knobColor"] = str(knob_color.value)
+
+    @classmethod
+    def from_dict(cls, cfg_dict: dict):
+        """Instantiates KnobConfig from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        KnobConfig
+        """
+        tmp_cls = cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            _get_title_position(cfg_dict["titlePosition"]),
+            _get_knob_style(cfg_dict["style"]),
+            cfg_dict["min"],
+            cfg_dict["max"],
+            cfg_dict["redValue"],
+            cfg_dict["showMinMax"],
+            cfg_dict["sendOnlyOnRelease"],
+            cfg_dict["dialFollowsKnob"],
+            _get_color(cfg_dict["dialColor"]),
+            _get_color(cfg_dict["knobColor"]),
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+        )
+        tmp_cls.parent_id = cfg_dict["parentID"]
+        return tmp_cls
 
 class Knob(Control):
     """A Knob control

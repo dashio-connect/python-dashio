@@ -35,7 +35,7 @@ from .action_station_services.timer_service import TimerService, make_timer_conf
 from .action_station_services.as_servicel import make_test_config
 from .action_station_services.modbus_service import ModbusService, make_modbus_config
 from .action_station_services.clock_servicel import ClockService, make_clock_config
-from .load_config import CONTROL_INSTANCE_DICT, decode_cfg64, encode_cfg64
+from .load_config import CONTROL_INSTANCE_DICT, CONFIG_INSTANCE_DICT, decode_cfg64, encode_cfg64
 
 
 class ActionControl():
@@ -209,21 +209,39 @@ class ActionStation(threading.Thread):
         controls_dict = {}
         new_cfg_dict = {}
         new_c64 = ""
-        result = False
+        modified = False
         for control_type, control_list in cfg_dict.items():
             if isinstance(control_list, list):
                 for control in control_list:
-                    g_control = CONTROL_INSTANCE_DICT[control_type].from_cfg_dict(control)
-                    result = device.add_control(g_control)
-                    if result:
+                    key = f"{control_type}\t{control['controlID']}"
+                    if device.is_control_loaded(control_type, control['controlID']):
+                        modified = True
+                        logging.debug("Deleting layouts: %s, %s", control_type, control['controlID'])
+                        device._control_dict[key].del_configs_columnar()
+
+        for control_type, control_list in cfg_dict.items():
+            if isinstance(control_list, list):
+                for control in control_list:
+                    key = f"{control_type}\t{control['controlID']}"
+                    if device.is_control_loaded(control_type, control['controlID']):
+                        # load new config into control
+                        logging.debug("Adding layouts: %s, %s", control_type, control['controlID'])
+                        cfg = CONFIG_INSTANCE_DICT[control_type].from_dict(control)
+                        device._control_dict[key].add_config_columnar(cfg)
+                        modified = True
+                    else:
+                        g_control = CONTROL_INSTANCE_DICT[control_type].from_cfg_dict(control)
+                        device.add_control(g_control)
                         if control_type not in new_cfg_dict:
                             new_cfg_dict[control_type] = []
                         controls_dict[control["controlID"]] = g_control
                         logging.debug("Added control: %s", control_type + ":" + control["controlID"])
                         new_cfg_dict[control_type].append(control)
+                        modified = True
+        if modified:
+            device.inc_config_revision()
         if new_cfg_dict:
             new_c64 = encode_cfg64(new_cfg_dict)
-            self.device.inc_config_revision()
         return controls_dict, new_c64
 
 
