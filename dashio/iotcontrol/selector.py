@@ -29,6 +29,7 @@ from .enums import TitlePosition
 class Selector(Control):
     """A Selector control
     """
+
     def __init__(self, control_id: str, title="A Selector", title_position=TitlePosition.BOTTOM, control_position=None):
         """A Selector control
 

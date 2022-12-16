@@ -24,7 +24,6 @@ SOFTWARE.
 from .control import Control, ControlPosition, ControlConfig, _get_color, _get_title_position, _get_label_style
 from .enums import Color, LabelStyle, TitlePosition
 
-
 class LabelConfig(ControlConfig):
     """LabelConfig"""
     def __init__(
@@ -39,6 +38,30 @@ class LabelConfig(ControlConfig):
         super().__init__(control_id, title, control_position, title_position)
         self.cfg["style"] = style.value
         self.cfg["color"] = str(color.value)
+
+    @classmethod
+    def from_dict(cls, cfg_dict: dict):
+        """Instantiates LabelConfig from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        LabelConfig
+        """
+        tmp_cls = cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            _get_title_position(cfg_dict["titlePosition"]),
+            _get_color(cfg_dict["color"]),
+            _get_label_style(cfg_dict["style"]),
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+        )
+        tmp_cls.parent_id = cfg_dict["parentID"]
+        return tmp_cls
 
 
 class Label(Control):

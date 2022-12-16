@@ -45,6 +45,30 @@ class MenuConfig(ControlConfig):
         self.cfg["text"] = text.translate(BAD_CHARS)
         self.cfg["iconName"] = icon_name.value
 
+    @classmethod
+    def from_dict(cls, cfg_dict: dict):
+        """Instantiates MenuConfig from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        MenuConfig
+        """
+        tmp_cls = cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            _get_title_position(cfg_dict["titlePosition"]),
+            cfg_dict["text"],
+            _get_icon(cfg_dict["iconName"]),
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+        )
+        tmp_cls.parent_id = cfg_dict["parentID"]
+        return tmp_cls
+
 class Menu(Control):
     """A Menu Control
     """

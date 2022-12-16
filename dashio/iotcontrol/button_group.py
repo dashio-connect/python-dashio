@@ -44,6 +44,31 @@ class ButtonGroupConfig(ControlConfig):
         self.cfg["iconName"] = icon.value
         self.cfg["gridView"] = grid_view
 
+    @classmethod
+    def from_dict(cls, cfg_dict: dict):
+        """Instantiates ButtonGroupConfig from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        ButtonGroupConfig
+        """
+        tmp_cls = cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            cfg_dict["text"],
+            _get_icon(cfg_dict["iconName"]),
+            cfg_dict["gridView"],
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
+            _get_title_position(cfg_dict["titlePosition"])
+        )
+        tmp_cls.parent_id = cfg_dict["parentID"]
+        return tmp_cls
+
 class ButtonGroup(Control):
     """ButtonGroup control that shows a popup of buttons.
 
@@ -92,10 +117,8 @@ class ButtonGroup(Control):
                 [description]. Defaults to None.
         """
         super().__init__("BTGP", control_id)
-
         self._cfg_columnar.append(ButtonGroupConfig(control_id, title, text, icon, grid_view, control_position, title_position))
-
-
+        
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict):
         """Instatiates ButtonGroup from cfg dictionary

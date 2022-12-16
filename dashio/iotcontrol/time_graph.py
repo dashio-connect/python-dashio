@@ -132,7 +132,7 @@ class TimeGraphLine:
         return data_str
 
 class TimeGraphConfig(ControlConfig):
-    """ButtonGroupConfig"""
+    """TimeGraphConfig"""
     def __init__(
         self,
         control_id: str,
@@ -150,9 +150,36 @@ class TimeGraphConfig(ControlConfig):
         self.cfg["yAxisMax"] = y_axis_max
         self.cfg["yAxisNumBars"] = y_axis_num_bars
 
+    @classmethod
+    def from_dict(cls, cfg_dict: dict):
+        """Instantiates TimeGraphConfig from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        SliderConfig
+        """
+        tmp_cls = cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            _get_title_position(cfg_dict["titlePosition"]),
+            cfg_dict["yAxisLabel"],
+            cfg_dict["yAxisMin"],
+            cfg_dict["yAxisMax"],
+            cfg_dict["yAxisNumBars"],
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+        )
+        tmp_cls.parent_id = cfg_dict["parentID"]
+        return tmp_cls
+
 class TimeGraph(Control):
     """A TimeGraph control
     """
+
     def __init__(
         self,
         control_id: str,
@@ -199,7 +226,6 @@ class TimeGraph(Control):
             )
         )
         self.message_rx_event = self._get_lines_from_timestamp
-        
         self._y_axis_min = y_axis_min
         self._y_axis_max = y_axis_max
         self._y_axis_num_bars = y_axis_num_bars

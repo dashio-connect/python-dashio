@@ -28,7 +28,7 @@ from .enums import (Keyboard, Precision, TextAlignment, TextFormat,
 
 
 class TextBoxConfig(ControlConfig):
-    """ButtonGroupConfig"""
+    """TextBoxConfig"""
     def __init__(
         self,
         control_id: str,
@@ -52,10 +52,39 @@ class TextBoxConfig(ControlConfig):
         self.cfg["kbdType"] = keyboard_type.value
         self.cfg["closeKbdOnSend"] = close_keyboard_on_send
 
+    @classmethod
+    def from_dict(cls, cfg_dict: dict):
+        """Instantiates TextBoxConfig from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        SliderConfig
+        """
+        tmp_cls = cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            _get_title_position(cfg_dict["titlePosition"]),
+            "",
+            _get_text_align(cfg_dict["textAlign"]),
+            _get_text_format(cfg_dict["format"]),
+            cfg_dict["units"],
+            _get_precision(cfg_dict["precision"]),
+            _get_keyboard_type(cfg_dict["kbdType"]),
+            cfg_dict["closeKbdOnSend"],
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+        )
+        tmp_cls.parent_id = cfg_dict["parentID"]
+        return tmp_cls
 
 class TextBox(Control):
     """A TextBox control
     """
+
     def __init__(
         self,
         control_id: str,

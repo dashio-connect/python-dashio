@@ -22,12 +22,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 import json
-import shortuuid
 from ..constants import BAD_CHARS
 from .enums import ColorPickerStyle, DeviceViewStyle, DialNumberPosition, DirectionStyle, GraphXAxisLabelsStyle, Keyboard, KnobStyle, Precision,\
     TextAlignment, TitlePosition, Icon, Color, TextFormat, LabelStyle, SliderBarStyle, DialStyle, TimeGraphPositionOfKey
 from .event import Event
-
 
 def _get_icon(icon_str: str) -> Icon:
     icon_name = icon_str.upper().replace(" ", "")
@@ -163,8 +161,7 @@ class ControlConfig:
         control_id: str,
         title: str,
         control_position: ControlPosition,
-        title_position: TitlePosition,
-        config_uuid: str=None
+        title_position: TitlePosition
 
     ) -> None:
         self.cfg = {}
@@ -179,10 +176,32 @@ class ControlConfig:
             self.cfg["widthRatio"] = control_position.width_ratio
             self.cfg["heightRatio"] = control_position.height_ratio
         self.cfg["controlID"] = control_id.translate(BAD_CHARS)
-        if config_uuid is None:
-            self.cfg["uuid"] = shortuuid.uuid()
-        else:
-            self.cfg["uuid"] = config_uuid
+        self.cfg["parentID"] = ""
+
+
+    @classmethod
+    def from_dict(cls, cfg_dict: dict):
+        """Instatiates Dial from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        ControlConfig
+        """
+
+        tmp_cls = cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
+            _get_title_position(cfg_dict["titlePosition"])
+            )
+        tmp_cls.parent_id = cfg_dict["parentID"]
+        return tmp_cls
+
 
     @property
     def parent_id(self) -> str:
@@ -201,10 +220,9 @@ class ControlConfig:
         self.cfg["parentID"] = _val
 
 
-class Control:
-    """Base class for controls.
-    """
-
+class Control():
+    """Base class for controls. """
+        
     def get_state(self) -> str:
         """This is called by iotdashboard app. Controls need to implement their own version."""
         return ""
@@ -313,6 +331,13 @@ class Control:
         # This may break things but makes all controls able to be setup from tasks.
         self._message_rx_event += self._message_tx_event
         self._control_hdr_str = f"\t{{device_id}}\t{self.cntrl_type}\t{self.control_id}\t"
+
+
+    def del_configs_columnar(self):
+        self._cfg_columnar = []
+
+    def del_configs_full_page(self):
+        self._cfg_columnar = []
 
     @property
     def message_rx_event(self):

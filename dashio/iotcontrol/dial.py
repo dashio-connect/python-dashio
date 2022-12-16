@@ -26,9 +26,8 @@ from .enums import (Color, DialNumberPosition, DialStyle, Precision,
                     TitlePosition)
 
 
-
 class DialConfig(ControlConfig):
-    """ButtonGroupConfig"""
+    """DialConfig"""
     def __init__(
         self,
         control_id: str,
@@ -58,10 +57,41 @@ class DialConfig(ControlConfig):
         self.cfg["precision"] = precision.value
         self.cfg["units"] = units
 
+    @classmethod
+    def from_dict(cls, cfg_dict: dict):
+        """Instantiates DialConfig from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        DialConfig
+        """
+        tmp_cls = cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            _get_title_position(cfg_dict["titlePosition"]),
+            cfg_dict["min"],
+            cfg_dict["max"],
+            cfg_dict["redValue"],
+            _get_color(cfg_dict["dialFillColor"]),
+            _get_color(cfg_dict["pointerColor"]),
+            _get_dial_number_position(cfg_dict["numberPosition"]),
+            cfg_dict["showMinMax"],
+            _get_dial_style(cfg_dict["style"]),
+            _get_precision(cfg_dict["precision"]),
+            cfg_dict["units"],
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+        )
+        tmp_cls.parent_id = cfg_dict["parentID"]
+        return tmp_cls
+
 
 class Dial(Control):
-    """Dial Control
-    """
+    """Dial Control"""
 
     def add_config_columnar(self, config: DialConfig):
         if isinstance(config, DialConfig):

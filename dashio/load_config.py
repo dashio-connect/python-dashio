@@ -25,7 +25,24 @@ import json
 import base64
 import zlib
 
-from .iotcontrol import Label, DeviceView, Menu, ButtonGroup, Button, TextBox, Graph, Dial, ColorPicker, TimeGraph, Selector, Slider, Direction, EventLog, Knob, AudioVisualDisplay
+from .iotcontrol import (
+    Label,
+    DeviceView, DeviceViewConfig,
+    Menu, MenuConfig,
+    ButtonGroup, ButtonGroupConfig,
+    Button, ButtonConfig,
+    TextBox, TextBoxConfig,
+    Graph, GraphConfig,
+    Dial, DialConfig,
+    ColorPicker, ColorPickerConfig,
+    TimeGraph, TimeGraphConfig,
+    Selector,
+    Slider, SliderConfig,
+    Direction, DirectionConfig,
+    EventLog,
+    Knob, KnobConfig,
+    AudioVisualDisplay, ControlConfig
+)
 
 
 CONTROL_INSTANCE_DICT = {
@@ -47,6 +64,24 @@ CONTROL_INSTANCE_DICT = {
     "LBL": Label
 }
 
+CONFIG_INSTANCE_DICT = {
+    "AVD": ControlConfig,
+    "DVVW": DeviceViewConfig,
+    "MENU": MenuConfig,
+    "BTGP": ButtonGroupConfig,
+    "BTTN": ButtonConfig,
+    "TEXT": TextBoxConfig,
+    "GRPH": GraphConfig,
+    "DIAL": DialConfig,
+    "CLR": ColorPickerConfig,
+    "TGRPH": TimeGraphConfig,
+    "KNOB": KnobConfig,
+    "SLCTR": ControlConfig,
+    "SLDR": SliderConfig,
+    "DIR": DirectionConfig,
+    "LOG": ControlConfig,
+    "LBL": ControlConfig
+}
 
 def decode_cfg64(cfg: str) -> dict:
     """decodes a CFG from iotdasboard app
@@ -61,7 +96,8 @@ def decode_cfg64(cfg: str) -> dict:
     dict
         A dictionary representing the cfg.
     """
-
+    if not cfg:
+        return {}
     ztmp_b = base64.b64decode(cfg)
     tmp_b = zlib.decompress(ztmp_b, wbits=-9)  # Deal with missing header
     try:
