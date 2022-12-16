@@ -207,7 +207,7 @@ class ZMQConnection(threading.Thread):
         self.host_name = f"{host_list[0]}.local"
 
         self.local_ip = ip.get_local_ip_address()
-        self.connection_control = ZMQControl(zmq_out_url, pub_port, sub_port)
+        #self.connection_control = ZMQControl(zmq_out_url, pub_port, sub_port)
         self.zeroconf = Zeroconf(ip_version=IPVersion.V4Only)
         self._zconf_publish_zmq(sub_port, pub_port)
         self.start()

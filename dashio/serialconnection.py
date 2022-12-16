@@ -154,7 +154,7 @@ class SerialConnection(threading.Thread):
         self.host_name = f"{host_list[0]}.local"
         self.serial_com = serial.Serial(serial_port, baud_rate, timeout=1.0)
         self.serial_com.flush()
-        self.connection_control = SerialControl(self.zmq_connection_uuid, serial_port, baud_rate)
+        # self.connection_control = SerialControl(self.zmq_connection_uuid, serial_port, baud_rate)
         self.start()
         time.sleep(1)
 
