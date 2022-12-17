@@ -94,8 +94,60 @@ class ActionStation(threading.Thread):
             connection.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
             self._connect_all_ext_devices()
 
+    def _rm_old_action_station_gui_controls(self):
+        old_controls = self._action_station_layout
+        if old_controls is not None:
+            old_cfg_dict = decode_cfg64(old_controls["provisioning"])
+            for control_type, control_list in old_cfg_dict.items():
+                if isinstance(control_list, list):
+                    for control in control_list:
+                        logging.debug("Deleting: %s, %s", control_type, control['controlID'])
+                        key = f"{control_type}\t{control['controlID']}"
+                        try:
+                            del self.device._control_dict[key]
+                        except KeyError:
+                            logging.debug("Key Error deleting: %s, %s", control_type, control['controlID'])
 
-    def load_all_controls_from_config(self, device, cfg_dict) -> dict:
+    def _delete_gui_configs(self, cfg_dict: dict):
+        modified = False
+        for control_type, control_list in cfg_dict.items():
+            if isinstance(control_list, list):
+                for control in control_list:
+                    key = f"{control_type}\t{control['controlID']}"
+                    if self.device.is_control_loaded(control_type, control['controlID']):
+                        modified = True
+                        logging.debug("Deleting layouts: %s, %s", control_type, control['controlID'])
+                        try:
+                            self.device._control_dict[key].del_configs_columnar()
+                        except KeyError:
+                            logging.debug("Key Error deleting layout: %s, %s", control_type, control['controlID'])
+                        
+        return modified
+
+    def _update_gui_controls(self, cfg_dict: dict):
+        new_cfg_dict = {}
+        modified = False
+        for control_type, control_list in cfg_dict.items():
+            if isinstance(control_list, list):
+                for control in control_list:
+                    key = f"{control_type}\t{control['controlID']}"
+                    if self.device.is_control_loaded(control_type, control['controlID']):
+                        # load new config into control
+                        logging.debug("Adding layouts: %s, %s", control_type, control['controlID'])
+                        cfg = CONFIG_INSTANCE_DICT[control_type].from_dict(control)
+                        self.device._control_dict[key].add_config_columnar(cfg)
+                        modified = True
+                    else:
+                        g_control = CONTROL_INSTANCE_DICT[control_type].from_cfg_dict(control)
+                        self.device.add_control(g_control)
+                        if control_type not in new_cfg_dict:
+                            new_cfg_dict[control_type] = []
+                        logging.debug("Added control: %s", control_type + ":" + control["controlID"])
+                        new_cfg_dict[control_type].append(control)
+                        modified = True
+        return modified, new_cfg_dict
+
+    def load_all_controls_from_config(self, cfg_dict) -> dict:
         """Loads all the controls in cfg_dict into device and returns a dictionary of the control objects
 
         Parameters
@@ -110,59 +162,27 @@ class ActionStation(threading.Thread):
         dict
             Dictionary of the control objects
         """
-        controls_dict = {}
-        new_cfg_dict = {}
+        
         new_c64 = ""
         modified = False
-        for control_type, control_list in cfg_dict.items():
-            if isinstance(control_list, list):
-                for control in control_list:
-                    key = f"{control_type}\t{control['controlID']}"
-                    if device.is_control_loaded(control_type, control['controlID']):
-                        modified = True
-                        logging.debug("Deleting layouts: %s, %s", control_type, control['controlID'])
-                        device._control_dict[key].del_configs_columnar()
-
-        for control_type, control_list in cfg_dict.items():
-            if isinstance(control_list, list):
-                for control in control_list:
-                    key = f"{control_type}\t{control['controlID']}"
-                    if device.is_control_loaded(control_type, control['controlID']):
-                        # load new config into control
-                        logging.debug("Adding layouts: %s, %s", control_type, control['controlID'])
-                        cfg = CONFIG_INSTANCE_DICT[control_type].from_dict(control)
-                        device._control_dict[key].add_config_columnar(cfg)
-                        modified = True
-                    else:
-                        g_control = CONTROL_INSTANCE_DICT[control_type].from_cfg_dict(control)
-                        device.add_control(g_control)
-                        if control_type not in new_cfg_dict:
-                            new_cfg_dict[control_type] = []
-                        controls_dict[control["controlID"]] = g_control
-                        logging.debug("Added control: %s", control_type + ":" + control["controlID"])
-                        new_cfg_dict[control_type].append(control)
-                        modified = True
+        modified = self._delete_gui_configs(cfg_dict)
+        self._rm_old_action_station_gui_controls()
+        modified, new_cfg_dict = self._update_gui_controls(cfg_dict)
         if modified:
-            device.inc_config_revision()
+            self.device.inc_config_revision()
         if new_cfg_dict:
+            logging.debug("New C64:\n%s", json.dumps(new_cfg_dict, indent=4))
             new_c64 = encode_cfg64(new_cfg_dict)
-        return controls_dict, new_c64
+        return new_c64
 
 
     def add_gui_controls(self, g_object: dict):
         """Add a GUI control"""
         cfg_dict = decode_cfg64(g_object["provisioning"])
-        controls_dict, new_c64 = self.load_all_controls_from_config(self.device, cfg_dict)
-        self.dash_controls[g_object['uuid']] = controls_dict
+        new_c64 = self.load_all_controls_from_config(cfg_dict)
         g_object["provisioning"] = new_c64
-
-    def rm_gui_controls(self, g_object: dict):
-        """Remove a GUI control"""
-        if g_object['uuid'] in self.dash_controls:
-            # control = self.dash_controls[g_object['uuid']]
-            # self.device.remove_control(control)
-            # self.device.inc_config_revision()
-            del self.dash_controls[g_object['uuid']]
+        self._action_station_layout = g_object
+        # there can only be one C64
 
     def close(self):
         """Close the action_station json filename
@@ -273,11 +293,13 @@ class ActionStation(threading.Thread):
                 self.thread_dicts[payload['uuid']].close()
                 time.sleep(0.1)
                 del self.thread_dicts[payload['uuid']]
-            if store_obj['objectType'] in self.dash_controls:
-                self.rm_gui_controls(payload)
+            if store_obj['objectType'] == "DVCE_CONFIG":
+                self._rm_old_action_station_gui_controls()
             del self.configured_services[payload["uuid"]]
+
             result['result'] = True
-        except KeyError:
+        except KeyError as error:
+            logging.debug("Key Error: %s", error)
             result['result'] = False
         reply = f"\t{self.device_id}\tACTN\tDELETE\t{json.dumps(result)}\n"
         self.save_action(self._json_filename,  self.action_station_dict)
@@ -299,9 +321,9 @@ class ActionStation(threading.Thread):
                 self.configured_services[payload['uuid']] = payload
                 result['result'] = self._start_control(payload)
             if payload['objectType'] == 'DVCE_CONFIG':
-                self.configured_services[payload['uuid']] = payload
                 result['result'] = True
                 self.add_gui_controls(payload)
+                self.configured_services[payload['uuid']] = payload
         except KeyError:
             msg = "UPDATE: payload has no objectType"
             logging.debug(msg)
@@ -325,11 +347,11 @@ class ActionStation(threading.Thread):
         self._json_filename = f"{self.device_id}_Actions.json"
 
         self.configured_services = {}
-        self.dash_controls = {}
         self.configs = {}
         self.memory_tasks = {}
         self.remote_device_ids = []
         self.connections_list = []
+        self._action_station_layout = None
         self.remote_connections_device_id = {}
         self.action_station_dict = self.load_action(self._json_filename)
         self.max_actions = max_actions
