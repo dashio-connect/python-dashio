@@ -33,101 +33,6 @@ from . import ip
 from .constants import CONNECTION_PUB_URL
 
 
-class ZMQControl():
-    """A CFG control class to store ZMQ connection information
-    """
-
-    def get_state(self) -> str:
-        """Returns controls state. Not used for this control
-
-        Returns
-        -------
-        str
-            Not used in this control
-        """
-        return ""
-
-    def get_cfg(self, data) -> str:
-        """Returns the CFG string for this ZMQ control
-
-        Returns
-        -------
-        str
-            The CFG string for this control
-        """
-        try:
-            dashboard_id = data[2]
-        except IndexError:
-            return ""
-        cfg_str = f"\tCFG\t{dashboard_id}\t" + self.cntrl_type + "\t" + json.dumps(self._cfg) + "\n"
-        return cfg_str
-
-    def get_cfg64(self, data) -> dict:
-        """Returns the CFG dict for this ZMQ control
-
-        Returns
-        -------
-        dict
-            The CFG string for this control
-        """
-        return self._cfg
-
-    def __init__(self, control_id, zmq_url="*", pub_port=5555, sub_port=5556):
-        self._cfg = {}
-        self.cntrl_type = "TCP"
-        self._cfg["controlID"] = control_id
-        self.control_id = control_id
-        self.zmq_url = zmq_url
-        self.pub_port = pub_port
-        self.sub_port = sub_port
-
-    @property
-    def zmq_url(self) -> str:
-        """IP address of current connection
-
-        Returns
-        -------
-        str
-            IP address
-        """
-        return self._cfg["url"]
-
-    @zmq_url.setter
-    def zmq_url(self, val: str):
-        self._cfg["url"] = val
-
-    @property
-    def pub_port(self) -> int:
-        """The pub_port of the current connection
-
-        Returns
-        -------
-        int
-            The pub_port number used by the current connection
-        """
-        return self._cfg["pubPort"]
-
-    @pub_port.setter
-    def pub_port(self, val: int):
-        self._cfg["pubPort"] = val
-
-    @property
-    def sub_port(self) -> int:
-        """The sub_port of the current connection
-
-        Returns
-        -------
-        int
-            The sub_port number used by the current connection
-        """
-        return self._cfg["subPort"]
-
-    @sub_port.setter
-    def sub_port(self, val: int):
-        self._cfg["subPort"] = val
-
-
-
 class ZMQConnection(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via ZMQ."""
 
@@ -207,7 +112,6 @@ class ZMQConnection(threading.Thread):
         self.host_name = f"{host_list[0]}.local"
 
         self.local_ip = ip.get_local_ip_address()
-        #self.connection_control = ZMQControl(zmq_out_url, pub_port, sub_port)
         self.zeroconf = Zeroconf(ip_version=IPVersion.V4Only)
         self._zconf_publish_zmq(sub_port, pub_port)
         self.start()
