@@ -226,7 +226,8 @@ class ActionStation(threading.Thread):
             action_pair = {
                 "name": j_object['name'],
                 "uuid": j_object['uuid'],
-                "objectType": j_object['objectType']
+                "objectType": j_object['objectType'],
+                "revision": j_object.get('revision', 1)
             }
             j_object_list.append(action_pair)
         # TODO delete this for loop
@@ -234,7 +235,8 @@ class ActionStation(threading.Thread):
             action_pair = {
                 "name": j_object['name'],
                 "uuid": j_object['uuid'],
-                "objectType": j_object['objectType']
+                "objectType": j_object['objectType'],
+                "revision": j_object.get('revision', 1)
             }
             j_object_list.append(action_pair)
         result = {
@@ -263,7 +265,8 @@ class ActionStation(threading.Thread):
                 action_pair = {
                     "name": j_object['name'],
                     "uuid": j_object['uuid'],
-                    "objectType": j_object['objectType']
+                    "objectType": j_object['objectType'],
+                    "revision": j_object.get('revision', 1)
                 }
                 j_object_list.append(action_pair)
         result = {

@@ -82,11 +82,12 @@ class SliderParameterSpec(BaseParameter):
 
 class ActionServiceCFG:
     """Action Control CFG"""
-    def __init__(self, control_type: str, name: str, text: str, control_id: str, num_avail: int, is_trigger: bool, is_io: bool, provisioning_list: list, param_in_list: list) -> None:
+    def __init__(self, control_type: str, name: str, text: str, control_id: str, num_avail: int, is_trigger: bool, is_io: bool, provisioning_list: list, param_in_list: list, revision=1) -> None:
         self.uuid = shortuuid.uuid()
         self._config_def = {
             'objectType': "CONFIG",
             'objectName': control_type,
+            'revision': revision,
             'uuid': self.uuid,
             'name': name,
             'text': text,
