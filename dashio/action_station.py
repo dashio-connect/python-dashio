@@ -121,7 +121,6 @@ class ActionStation(threading.Thread):
                             self.device._control_dict[key].del_configs_columnar()
                         except KeyError:
                             logging.debug("Key Error deleting layout: %s, %s", control_type, control['controlID'])
-                        
         return modified
 
     def _update_gui_controls(self, cfg_dict: dict):
@@ -298,6 +297,7 @@ class ActionStation(threading.Thread):
                 del self.thread_dicts[payload['uuid']]
             if store_obj['objectType'] == "DVCE_CONFIG":
                 self._rm_old_action_station_gui_controls()
+                self._action_station_layout = None
             del self.configured_services[payload["uuid"]]
 
             result['result'] = True
