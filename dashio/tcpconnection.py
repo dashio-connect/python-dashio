@@ -35,84 +35,6 @@ from .constants import CONNECTION_PUB_URL
 from .device import Device
 from .zeroconf_service import ZeroconfService
 
-class TCPControl():
-    """A CFG control class to store TCP connection information
-    """
-
-    def get_state(self) -> str:
-        """Returns controls state. Not used for this control
-
-        Returns
-        -------
-        str
-            Not used in this control
-        """
-        return ""
-
-    def get_cfg(self, data) -> str:
-        """Returns the CFG string for this TCP control
-
-        Returns
-        -------
-        str
-            The CFG string for this control
-        """
-        try:
-            dashboard_id = data[2]
-        except IndexError:
-            return ""
-        cfg_str = f"\tCFG\t{dashboard_id}\t" + self.cntrl_type + "\t" + json.dumps(self._cfg) + "\n"
-        return cfg_str
-
-    def get_cfg64(self, data) -> dict:
-        """Returns the CFG dict for this TCP control
-
-        Returns
-        -------
-        dict
-            The CFG string for this control
-        """
-        return self._cfg
-
-    def __init__(self, control_id, ip_address="", port=5650):
-        self._cfg = {}
-        self.cntrl_type = "TCP"
-        self._cfg["controlID"] = control_id
-        self.control_id = control_id
-        self.ip_address = ip_address
-        self.port = port
-
-    @property
-    def ip_address(self) -> str:
-        """IP address of current connection
-
-        Returns
-        -------
-        str
-            IP address
-        """
-        return self._cfg["ipAddress"]
-
-    @ip_address.setter
-    def ip_address(self, val: str):
-        self._cfg["ipAddress"] = val
-
-    @property
-    def port(self) -> int:
-        """The port of the current connection
-
-        Returns
-        -------
-        int
-            The port number used by the current connection
-        """
-        return self._cfg["port"]
-
-    @port.setter
-    def port(self, val: int):
-        self._cfg["port"] = val
-
-
 class TCPConnection(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via TCP."""
 
@@ -192,7 +114,6 @@ class TCPConnection(threading.Thread):
         if self.use_zeroconf:
             self.z_conf = ZeroconfService(self.zmq_connection_uuid, self.local_ip, self.local_port, self.context)
 
-        # self.connection_control = TCPControl(self.zmq_connection_uuid, self.local_ip, self.local_port)
         self.start()
 
     def close(self):
