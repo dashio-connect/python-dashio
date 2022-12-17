@@ -231,7 +231,7 @@ class Device(threading.Thread):
         ----------
             iot_control : iotControl
         """
-        key = f"{iot_control.cntrl_type}_{iot_control.control_id}"
+        key = f"{iot_control.cntrl_type}\t{iot_control.control_id}"
         if key in self._control_dict:
             del self._control_dict[key]
 
