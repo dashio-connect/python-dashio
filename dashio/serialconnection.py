@@ -34,83 +34,6 @@ import serial
 from .constants import CONNECTION_PUB_URL
 from .device import Device
 
-class SerialControl():
-    """A CFG control class to store SerialCFG connection information
-    """
-
-    def get_state(self) -> str:
-        """Returns controls state. Not used for this control
-
-        Returns
-        -------
-        str
-            Not used in this control
-        """
-        return ""
-
-    def get_cfg(self, data) -> str:
-        """Returns the CFG string for this Serial control
-
-        Returns
-        -------
-        str
-            The CFG string for this control
-        """
-        try:
-            dashboard_id = data[2]
-        except IndexError:
-            return ""
-        cfg_str = f"\tCFG\t{dashboard_id}\t" + self.cntrl_type + "\t" + json.dumps(self._cfg) + "\n"
-        return cfg_str
-
-    def get_cfg64(self, data) -> dict:
-        """Returns the CFG dict for this SerialCFG control
-
-        Returns
-        -------
-        dict
-            The CFG string for this control
-        """
-        return self._cfg
-
-    def __init__(self, control_id, serial_port, baud_rate):
-        self._cfg = {}
-        self.cntrl_type = "Serial"
-        self._cfg["controlID"] = control_id
-        self.control_id = control_id
-        self.serial_port = serial_port
-        self.baud_rate = baud_rate
-
-    @property
-    def serial_port(self) -> str:
-        """serial_port of serial connection
-
-        Returns
-        -------
-        str
-            The serial port
-        """
-        return self._cfg["serialPort"]
-
-    @serial_port.setter
-    def serial_port(self, val: str):
-        self._cfg["serialPort"] = val
-
-    @property
-    def baud_rate(self) -> int:
-        """The baud rate of the current connection
-
-        Returns
-        -------
-        int
-            The baud rate used by the serial connection
-        """
-        return self._cfg["baudRate"]
-
-    @baud_rate.setter
-    def baud_rate(self, val: int):
-        self._cfg["baudRate"] = val
-
 
 class SerialConnection(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via TCP."""
@@ -154,7 +77,6 @@ class SerialConnection(threading.Thread):
         self.host_name = f"{host_list[0]}.local"
         self.serial_com = serial.Serial(serial_port, baud_rate, timeout=1.0)
         self.serial_com.flush()
-        # self.connection_control = SerialControl(self.zmq_connection_uuid, serial_port, baud_rate)
         self.start()
         time.sleep(1)
 
