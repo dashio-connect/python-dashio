@@ -109,7 +109,7 @@ class Device(threading.Thread):
         if cntrl_type in self._device_commands_dict:
             return self._device_commands_dict[cntrl_type](data_array)
         try:
-            reply = self._control_dict[cntrl_type + "\t" + data_array[2]].message_rx_event(data_array)
+            reply = self.control_dict[cntrl_type + "\t" + data_array[2]].message_rx_event(data_array)
             if reply:
                 return reply.replace("{device_id}", self.device_id)
         except (KeyError, IndexError):
@@ -121,7 +121,7 @@ class Device(threading.Thread):
 
     def _make_status(self, _):
         reply = f"\t{self.device_id}\tNAME\t{self._device_name}\n"
-        for value in self._control_dict.values():
+        for value in self.control_dict.values():
             try:
                 reply += value.get_state().format(device_id=self.device_id)
             except (TypeError, KeyError):
@@ -137,7 +137,7 @@ class Device(threading.Thread):
         reply = self._device_id_str + f"\tCFG\t{dashboard_id}\tC64\t"
         cfg = {}
         cfg["CFG"] = self._cfg
-        for control in self._control_dict.values():
+        for control in self.control_dict.values():
             if control.cntrl_type == "ALM":
                 continue
             if control.cntrl_type in ("TCP", "MQTT", "BLE", "ACTN"):
@@ -158,7 +158,7 @@ class Device(threading.Thread):
             return ""
         reply = self._device_id_str + f"\tCFG\t{dashboard_id}\tDVCE\t{json.dumps(self._cfg)}\n"
         dvvw_str = ""
-        for control in self._control_dict.values():
+        for control in self.control_dict.values():
             if control.cntrl_type == "ALM":
                 continue
             if control.cntrl_type == "DVVW":
@@ -197,7 +197,7 @@ class Device(threading.Thread):
     def is_control_loaded(self, control_type, control_id) -> bool:
         """Is the control loaded in the device?"""
         key = f"{control_type}\t{control_id}"
-        return key in self._control_dict
+        return key in self.control_dict
 
     def add_control(self, iot_control):
         """Add a control to the device.
@@ -215,11 +215,11 @@ class Device(threading.Thread):
             pass
         key = f"{iot_control.cntrl_type}\t{iot_control.control_id}"
 
-        if key not in self._control_dict:
+        if key not in self.control_dict:
             self.inc_config_revision()
             if isinstance(iot_control, DeviceView):
                 self._cfg["numDeviceViews"] += 1
-            self._control_dict[key] = iot_control
+            self.control_dict[key] = iot_control
             return True
         return False
 
@@ -232,8 +232,8 @@ class Device(threading.Thread):
             iot_control : iotControl
         """
         key = f"{iot_control.cntrl_type}\t{iot_control.control_id}"
-        if key in self._control_dict:
-            del self._control_dict[key]
+        if key in self.control_dict:
+            del self.control_dict[key]
 
     def _set_devicesetup(self, control_name: str, settable: bool):
         if settable:
@@ -454,7 +454,7 @@ class Device(threading.Thread):
         self._device_commands_dict['CONNECT'] = self._make_connect
         self._device_commands_dict['STATUS'] = self._make_status
         self._device_commands_dict['CFG'] = self._make_cfg
-        self._control_dict = {}
+        self.control_dict = {}
         self._cfg = {}
         self._device_id_str = f"\t{device_id}"
         if cfg_dict is not None:
