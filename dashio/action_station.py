@@ -104,9 +104,9 @@ class ActionStation(threading.Thread):
                         logging.debug("Deleting: %s, %s", control_type, control['controlID'])
                         key = f"{control_type}\t{control['controlID']}"
                         try:
-                            del self.device._control_dict[key]
+                            del self.device.control_dict[key]
                         except KeyError:
-                            logging.debug("Key Error deleting: %s, %s", control_type, control['controlID'])
+                            logging.debug("Error deleting control: %s, %s", control_type, control['controlID'])
 
     def _delete_gui_configs(self, cfg_dict: dict):
         modified = False
@@ -118,9 +118,9 @@ class ActionStation(threading.Thread):
                         modified = True
                         logging.debug("Deleting layouts: %s, %s", control_type, control['controlID'])
                         try:
-                            self.device._control_dict[key].del_configs_columnar()
+                            self.device.control_dict[key].del_configs_columnar()
                         except KeyError:
-                            logging.debug("Key Error deleting layout: %s, %s", control_type, control['controlID'])
+                            logging.debug("Error deleting layout: %s, %s", control_type, control['controlID'])
         return modified
 
     def _update_gui_controls(self, cfg_dict: dict):
@@ -134,7 +134,7 @@ class ActionStation(threading.Thread):
                         # load new config into control
                         logging.debug("Adding layouts: %s, %s", control_type, control['controlID'])
                         cfg = CONFIG_INSTANCE_DICT[control_type].from_dict(control)
-                        self.device._control_dict[key].add_config_columnar(cfg)
+                        self.device.control_dict[key].add_config_columnar(cfg)
                         modified = True
                     else:
                         g_control = CONTROL_INSTANCE_DICT[control_type].from_cfg_dict(control)
