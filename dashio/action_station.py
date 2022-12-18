@@ -161,7 +161,7 @@ class ActionStation(threading.Thread):
         dict
             Dictionary of the control objects
         """
-        
+
         new_c64 = ""
         modified = False
         modified = self._delete_gui_configs(cfg_dict)
@@ -355,7 +355,6 @@ class ActionStation(threading.Thread):
         self.remote_device_ids = []
         self.connections_list = []
         self._action_station_layout = None
-        self.remote_connections_device_id = {}
         self.action_station_dict = self.load_action(self._json_filename)
         self.max_actions = max_actions
 
