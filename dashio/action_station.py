@@ -125,6 +125,7 @@ class ActionStation(threading.Thread):
 
     def _update_gui_controls(self, cfg_dict: dict):
         new_cfg_dict = {}
+        new_cfg_dict["CFG"] = self.device._cfg
         modified = False
         for control_type, control_list in cfg_dict.items():
             if isinstance(control_list, list):
