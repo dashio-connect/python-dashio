@@ -22,21 +22,6 @@ class TestButtonGroup(unittest.TestCase):
         test_str_list = test_control._control_hdr_str.split('\t')
         self.assertEqual(test_str_list[3], 'BGROUPID', "control type should be BGROUPID")
 
-    def test_time_graph_cfg_grid_view(self):
-        test_control = ButtonGroup("BGROUPID", grid_view=True)
-        cfg_dict = _get_cfg_dict(test_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
-        self.assertEqual(cfg_dict['gridView'], True, "CFG gridView should be True")
-
-    def test_time_graph_cfg_icon_name(self):
-        test_control = ButtonGroup("BGROUPID", icon=Icon.BEDROOM)
-        cfg_dict = _get_cfg_dict(test_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
-        self.assertEqual(Icon(cfg_dict['iconName']), Icon.BEDROOM, "CFG icon_name should be BEDROOM")
-
-    def test_time_graph_cfg_text(self):
-        test_control = ButtonGroup("BGROUPID", text="TEXT")
-        cfg_dict = _get_cfg_dict(test_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
-        self.assertEqual(cfg_dict['text'], "TEXT", "CFG text should be TEXT")
-
 
 if __name__ == '__main__':
     unittest.main()
