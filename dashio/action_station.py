@@ -138,6 +138,7 @@ class ActionStation(threading.Thread):
                         self.device.control_dict[key].add_config_columnar(cfg)
                         modified = True
                     else:
+                        # Create a new control.
                         g_control = CONTROL_INSTANCE_DICT[control_type].from_cfg_dict(control)
                         self.device.add_control(g_control)
                         if control_type not in new_cfg_dict:
@@ -171,7 +172,7 @@ class ActionStation(threading.Thread):
         if modified:
             self.device.inc_config_revision()
         if new_cfg_dict:
-            logging.debug("New C64:\n%s", json.dumps(new_cfg_dict, indent=4))
+            # logging.debug("New C64:\n%s", json.dumps(new_cfg_dict, indent=4))
             new_c64 = encode_cfg64(new_cfg_dict)
         return new_c64
 

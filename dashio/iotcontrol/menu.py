@@ -40,7 +40,7 @@ class MenuConfig(ControlConfig):
         text: str,
         icon_name: Icon,
         control_position: ControlPosition
-        ) -> None:
+    ) -> None:
         super().__init__(control_id, title, control_position, title_position)
         self.cfg["text"] = text.translate(BAD_CHARS)
         self.cfg["iconName"] = icon_name.value

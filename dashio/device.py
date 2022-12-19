@@ -140,7 +140,7 @@ class Device(threading.Thread):
         for control in self.control_dict.values():
             if control.cntrl_type == "ALM":
                 continue
-            if control.cntrl_type in ("TCP", "MQTT", "BLE", "ACTN"):
+            if control.cntrl_type in ("BLE"):
                 cfg[control.cntrl_type] = control.get_cfg64(data)
                 continue
             if control.cntrl_type not in cfg:

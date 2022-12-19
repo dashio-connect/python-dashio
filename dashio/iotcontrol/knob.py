@@ -93,6 +93,7 @@ class Knob(Control):
             config.cfg["min"] = self.dial_min
             config.cfg["max"] = self.dial_max
             config.cfg["redValue"] = self.red_value
+            config.cfg["ControlID"] = self.control_id
             self._cfg_columnar.append(config)
 
     def add_config_full_page(self, config: KnobConfig):
@@ -100,6 +101,7 @@ class Knob(Control):
             config.cfg["min"] = self.dial_min
             config.cfg["max"] = self.dial_max
             config.cfg["redValue"] = self.red_value
+            config.cfg["ControlID"] = self.control_id
             self._cfg_columnar.append(config)
 
     def __init__(

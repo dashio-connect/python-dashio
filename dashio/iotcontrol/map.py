@@ -140,11 +140,13 @@ class Map(Control):
     """A Map control
     """
 
-    def __init__(self,
-                 control_id,
-                 title="A Map",
-                 title_position=TitlePosition.BOTTOM,
-                 control_position=None):
+    def __init__(
+        self,
+        control_id,
+        title="A Map",
+        title_position=TitlePosition.BOTTOM,
+        control_position=None
+    ):
         """A Map control
 
         Parameters

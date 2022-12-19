@@ -82,11 +82,13 @@ class Direction(Control):
     def add_config_columnar(self, config: DirectionConfig):
         if isinstance(config, DirectionConfig):
             config.cfg["calAngle"] = self.cal_angle
+            config.cfg["ControlID"] = self.control_id
             self._cfg_columnar.append(config)
 
     def add_config_full_page(self, config: DirectionConfig):
         if isinstance(config, DirectionConfig):
             config.cfg["calAngle"] = self.cal_angle
+            config.cfg["ControlID"] = self.control_id
             self._cfg_full_page.append(config)
 
 

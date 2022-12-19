@@ -9,31 +9,6 @@ class TestButton(unittest.TestCase):
         json_str = cfg_str.rpartition('\t')[2]
         return json.loads(json_str)
 
-    def test_button_button_enabled(self):
-        test_control = Button("BUTTONID", button_enabled=True)
-        cfg_dict = self._get_cfg_dict(test_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
-        self.assertEqual(cfg_dict['buttonEnabled'], True, "CFG buttonEnabled Should be True")
-
-    def test_button_icon_name(self):
-        test_control = Button("BUTTONID", icon_name=Icon.PAD)
-        cfg_dict = self._get_cfg_dict(test_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
-        self.assertEqual(cfg_dict['iconName'], "Pad", "CFG iconName Should be Pad")
-
-    def test_button_on_color(self):
-        test_control = Button("BUTTONID", on_color=Color.GREEN)
-        cfg_dict = self._get_cfg_dict(test_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
-        self.assertEqual(cfg_dict['onColor'], '10', "CFG onColor Should be '10'")
-
-    def test_button_off_color(self):
-        test_control = Button("BUTTONID", off_color=Color.GREEN)
-        cfg_dict = self._get_cfg_dict(test_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
-        self.assertEqual(cfg_dict['offColor'], '10', "CFG onColor Should be '10'")
-
-    def test_button_text(self):
-        test_control = Button("BUTTONID", text="TEXT")
-        cfg_dict = self._get_cfg_dict(test_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
-        self.assertEqual(cfg_dict['text'], 'TEXT', "CFG text Should be 'TEXT'")
-
     def test_button_state_on(self):
         test_control = Button("BUTTONID")
         test_control.btn_state = ButtonState.ON
