@@ -359,7 +359,7 @@ class Control():
 
     @state_str.setter
     def state_str(self, val):
-        self.message_tx_event(val)
+        self._message_tx_event(val)
 
 
     # Use getter, setter properties to store the settings in the config dictionary

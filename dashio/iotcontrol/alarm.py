@@ -63,4 +63,4 @@ class Alarm(Control):
             body : str
                 Alarm body
         """
-        self.message_tx_event(self.control_id, header, body)
+        self._message_tx_event(self.control_id, header, body)

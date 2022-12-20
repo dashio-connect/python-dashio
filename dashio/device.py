@@ -109,7 +109,7 @@ class Device(threading.Thread):
         if cntrl_type in self._device_commands_dict:
             return self._device_commands_dict[cntrl_type](data_array)
         try:
-            reply = self.control_dict[cntrl_type + "\t" + data_array[2]].message_rx_event(data_array)
+            reply = self.control_dict[cntrl_type + "\t" + data_array[2]]._message_rx_event(data_array)
             if reply:
                 return reply.replace("{device_id}", self.device_id)
         except (KeyError, IndexError):
@@ -208,9 +208,9 @@ class Device(threading.Thread):
         """
         try:
             if isinstance(iot_control, Alarm):
-                iot_control.message_tx_event = self._send_alarm
+                iot_control.add_transmit_message_callback(self._send_alarm)
             else:
-                iot_control.message_tx_event = self._send_data
+                iot_control.add_transmit_message_callback(self._send_data)
         except AttributeError:
             pass
         key = f"{iot_control.cntrl_type}\t{iot_control.control_id}"
