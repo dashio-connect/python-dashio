@@ -239,7 +239,7 @@ class BBB_Temperature:
             t = datetime.datetime.now()
 
             seconds_left = t.second + t.microsecond / 1000000.0
-            div, sleep_time = divmod(seconds_left, LOGGER_PERIOD)
+            _, sleep_time = divmod(seconds_left, LOGGER_PERIOD)
             sleep_time = LOGGER_PERIOD - sleep_time
             time.sleep(sleep_time)
         device.close()
