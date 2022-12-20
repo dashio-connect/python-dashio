@@ -222,12 +222,12 @@ class ControlConfig:
 
 class Control():
     """Base class for controls. """
-        
+
     def get_state(self) -> str:
         """This is called by iotdashboard app. Controls need to implement their own version."""
         return ""
 
-    def get_cfg(self, data) -> str:
+    def get_cfg(self, data) -> list:
         """Returns the CFG str for the control called when the iotdashboard app asks for a CFG
 
         Parameters
@@ -267,13 +267,18 @@ class Control():
         dict
             The CFG dict for this control
         """
+        cfg_list = []
         try:
             num_columns = int(data[3])
         except (IndexError, ValueError):
             return ""
         if num_columns >= self._cfg_full_page_no_columns and self._cfg_full_page:
-            return self._cfg_full_page
-        return self._cfg_columnar
+            for cfg in self._cfg_full_page:
+                cfg_list.append(cfg.get_cfg64())
+        else:
+            for cfg in self._cfg_columnar:
+                cfg_list.append(cfg.get_cfg64())
+        return cfg_list
 
     def add_config_columnar(self, config):
         """Add a duplicate Config for the columnar view"""

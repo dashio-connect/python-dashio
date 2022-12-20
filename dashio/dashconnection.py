@@ -287,7 +287,10 @@ class DashConnection(threading.Thread):
             except mqtt.socket.gaierror as error:
                 logging.debug("No connection to internet: %s", str(error))
         # Start subscribe, with QoS level 0
+        self.rx_zmq_sub = self.context.socket(zmq.SUB)
         self.disconnect_timeout = 15.0
+
+       
         self.start()
 
     def close(self):
@@ -307,8 +310,7 @@ class DashConnection(threading.Thread):
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
         self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
 
-        self.rx_zmq_sub = self.context.socket(zmq.SUB)
-
+        
         # Subscribe on ALL, and my connection
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "DASH")
