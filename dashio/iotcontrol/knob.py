@@ -245,7 +245,7 @@ class Knob(Control):
     def knob_value(self, val: float):
         self._knob_value = val
         self._state_str_knob = self._control_hdr_str + f"{val}\n"
-        self.message_tx_event(self._state_str_knob)
+        self._message_tx_event(self._state_str_knob)
         self._knob_dial_state_str = self._state_str_knob + self._state_str_dial
 
     @property
@@ -263,5 +263,5 @@ class Knob(Control):
     def knob_dial_value(self, val: float):
         self._knob_dial_value = val
         self._state_str_dial = self._control_id_dial + f"{val}\n"
-        self.message_tx_event(self._state_str_dial)
+        self._message_tx_event(self._state_str_dial)
         self._knob_dial_state_str = self._state_str_knob + self._state_str_dial

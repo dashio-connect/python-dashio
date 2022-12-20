@@ -28,7 +28,6 @@ import signal
 import time
 
 import dashio
-from dashio.iotcontrol.enums import SoundName
 
 
 class TestControls:
