@@ -116,62 +116,77 @@ class BBB_Temperature:
         device = dashio.Device(args.device_type, args.device_id, args.device_name)
         dash_con.add_device(device)
 
-        gph_15_minutes = dashio.TimeGraph("Temperature15M")
-        gph_15_minutes.title = f"Temp15M:{args.device_name}"
-        gph_15_minutes.y_axis_label = "Degrees C"
-        gph_15_minutes.y_axis_min = 0.0
-        gph_15_minutes.y_axis_max = 50.0
-        gph_15_minutes.y_axis_num_bars = 5
+        gph_15_minutes = dashio.TimeGraph(
+            "Temperature15M",
+            title = f"Temp15M:{args.device_name}",
+            y_axis_label = "Degrees C",
+            y_axis_min = 0.0,
+            y_axis_max = 50.0,
+            y_axis_num_bars = 5
+        )
         line_15_minutes = dashio.TimeGraphLine(
-            "DegC", dashio.TimeGraphLineType.LINE, color=dashio.Color.BLACK, max_data_points=15 * 60 / LOGGER_PERIOD
+            "DegC",
+            dashio.TimeGraphLineType.LINE,
+            color=dashio.Color.BLACK,
+            max_data_points=15 * 60 / LOGGER_PERIOD
         )
         gph_15_minutes.add_line("DegC", line_15_minutes)
 
-        gph_1_day = dashio.TimeGraph("Temperature1D")
-        gph_1_day.title = f"Temp1D:{args.device_name}"
-        gph_1_day.y_axis_label = "Degrees C"
-        gph_1_day.y_axis_min = 0.0
-        gph_1_day.y_axis_max = 50.0
-        gph_1_day.y_axis_num_bars = 5
+        gph_1_day = dashio.TimeGraph(
+            "Temperature1D",
+            title = f"Temp1D:{args.device_name}",
+            y_axis_label = "Degrees C",
+            y_axis_min = 0.0,
+            y_axis_max = 50.0,
+            y_axis_num_bars = 5
+        )
         line_1_day = dashio.TimeGraphLine(
             "DegC", dashio.TimeGraphLineType.LINE, color=dashio.Color.BLACK, max_data_points=24 * 4
         )
         gph_1_day.add_line("DegC", line_1_day)
 
-        gph_1_week = dashio.TimeGraph("Temperature1W")
-        gph_1_week.title = f"Temp1W:{args.device_name}"
-        gph_1_week.y_axis_label = "Degrees C"
-        gph_1_week.y_axis_min = 0.0
-        gph_1_week.y_axis_max = 50.0
-        gph_1_week.y_axis_num_bars = 5
+        gph_1_week = dashio.TimeGraph(
+            "Temperature1W",
+            title = f"Temp1W:{args.device_name}",
+            y_axis_label = "Degrees C",
+            y_axis_min = 0.0,
+            y_axis_max = 50.0,
+            y_axis_num_bars = 5
+        )
         line_1_week = dashio.TimeGraphLine(
             "DegC", dashio.TimeGraphLineType.LINE, color=dashio.Color.BLACK, max_data_points=24 * 4 * 7
         )
         gph_1_week.add_line("DegC", line_1_week)
 
-        gph_1_year = dashio.TimeGraph("Temperature1Y")
-        gph_1_year.title = f"Temp1Y:{args.device_name}"
-        gph_1_year.y_axis_label = "Degrees C"
-        gph_1_year.y_axis_min = 0.0
-        gph_1_year.y_axis_max = 50.0
-        gph_1_year.y_axis_num_bars = 5
+        gph_1_year = dashio.TimeGraph(
+            "Temperature1Y",
+            title = f"Temp1Y:{args.device_name}",
+            y_axis_label = "Degrees C",
+            y_axis_min = 0.0,
+            y_axis_max = 50.0,
+            y_axis_num_bars = 5
+        )
         line_1_year = dashio.TimeGraphLine(
             "DegC", dashio.TimeGraphLineType.LINE, color=dashio.Color.BLACK, max_data_points=360
         )
         gph_1_year.add_line("DegC", line_1_year)
 
-        dl_temperature_ctrl = dashio.Dial("TemperatureDial")
-        dl_temperature_ctrl.title = "Temperature"
-        dl_temperature_ctrl.dial_max = 50
+        dl_temperature_ctrl = dashio.Dial(
+            "TemperatureDial",
+            title = "Temperature",
+            dial_max = 50
+        )
+        dl_daily_max_ctrl = dashio.Dial(
+            "TemperatureMaxDial",
+            title = "Daily Max",
+            dial_max = 50
+        )
 
-        dl_daily_max_ctrl = dashio.Dial("TemperatureMaxDial")
-        dl_daily_max_ctrl.title = "Daily Max"
-        dl_daily_max_ctrl.dial_max = 50
-
-        dl_daily_min_ctrl = dashio.Dial("TemperatureMinDial")
-        dl_daily_min_ctrl.title = "Daily Min"
-        dl_daily_min_ctrl.dial_max = 50
-
+        dl_daily_min_ctrl = dashio.Dial(
+            "TemperatureMinDial",
+            title = "Daily Min",
+            dial_max = 50
+        )
         self.page = dashio.DeviceView("tmppage", "Temperatures", 1)
         device.add_control(self.page)
         device.add_control(dl_temperature_ctrl)

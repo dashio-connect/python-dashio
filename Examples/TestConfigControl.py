@@ -109,47 +109,54 @@ class TestControls:
         self.test_page = dashio.DeviceView("TestCFG", "Test the Menus")
         device.add_control(self.test_page)
 
-        self.up_btn = dashio.Button("UP_BTN")
-        self.up_btn.btn_state = dashio.ButtonState.OFF
-        self.up_btn.icon_name = dashio.Icon.UP
-        self.up_btn.on_color = dashio.Color.GREEN
+        self.up_btn = dashio.Button(
+            "UP_BTN",
+            icon_name=dashio.Icon.UP,
+            on_color=dashio.Color.GREEN,
+            title="Up"
+        )
         self.up_btn.text = "Up Button"
-        self.up_btn.title = "Up"
         device.add_control(self.up_btn)
         self.test_menu.add_control(self.up_btn)
 
-        self.down_btn = dashio.Button("DOWN_BTN")
+        self.down_btn = dashio.Button(
+            "DOWN_BTN",
+            title="Down",
+            icon_name=dashio.Icon.DOWN,
+            on_color=dashio.Color.GREEN
+        )
         self.down_btn.btn_state = dashio.ButtonState.OFF
-        self.down_btn.icon_name = dashio.Icon.DOWN
-        self.down_btn.on_color = dashio.Color.GREEN
-        self.down_btn.text = ""
-        self.down_btn.title = "Down"
         device.add_control(self.down_btn)
         self.test_menu.add_control(self.down_btn)
 
-        self.sldr_cntrl = dashio.Slider("SLDR")
-        self.sldr_cntrl.title = "Slider"
-        self.sldr_cntrl.bar_max = 10
-        self.sldr_cntrl.slider_enabled = True
+        self.sldr_cntrl = dashio.Slider(
+            "SLDR",
+            title="Slider",
+            bar_min=0,
+            bar_max=10,
+            slider_enabled=True
+        )
         device.add_control(self.sldr_cntrl)
         self.test_menu.add_control(self.sldr_cntrl)
 
-        self.text_cntrl1 = dashio.TextBox("TXT1")
-        self.text_cntrl1.text = "Test box1"
-        self.text_cntrl1.title = "TextBx1"
-        self.text_cntrl1.keyboard_type = dashio.Keyboard.ALL
+        self.text_cntrl1 = dashio.TextBox(
+            "TXT1",
+            text = "Test box1",
+            keyboard_type=dashio.Keyboard.ALL,
+        )
         device.add_control(self.text_cntrl1)
         self.test_menu.add_control(self.text_cntrl1)
 
-        self.text_cntrl2 = dashio.TextBox("TXT2")
-        self.text_cntrl2.text = "Test box2"
-        self.text_cntrl2.title = "TextBx2"
-        self.text_cntrl2.keyboard_type = dashio.Keyboard.ALL
+        self.text_cntrl2 = dashio.TextBox(
+            "TXT2",
+            text="Test box2",
+            title="TextBx2"
+        )
         device.add_control(self.text_cntrl2)
         self.test_menu.add_control(self.text_cntrl2)
 
         self.selector_ctrl = dashio.Selector("TestSelector", "A Selector")
-        self.selector_ctrl.message_rx_event += self.selector_ctrl_handler
+        self.selector_ctrl.add_receive_message_callback(self.selector_ctrl_handler)
         self.selector_ctrl.add_selection("First")
         self.selector_ctrl.add_selection("Second")
         self.selector_ctrl.add_selection("Third")

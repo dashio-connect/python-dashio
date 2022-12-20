@@ -138,26 +138,30 @@ def main():
     up_button = dashio.Button(
         'up',
         'UP',
+        title_position = dashio.TitlePosition.NONE,
         icon_name=dashio.Icon.UP,
         control_position=dashio.ControlPosition(0.4, 0.22, 0.2, 0.2)
     )
-    up_button.title_position = dashio.TitlePosition.NONE
-    up_button.message_rx_event = up_btn_event_handler
+    up_button.add_receive_message_callback(up_btn_event_handler)
     up_button.btn_state = dashio.ButtonState.OFF
     down_button = dashio.Button(
         'down',
         'DOWN',
+        title_position = dashio.TitlePosition.NONE,
         icon_name=dashio.Icon.DOWN,
         control_position=dashio.ControlPosition(0.4, 0.53, 0.2, 0.2)
     )
-    down_button.title_position = dashio.TitlePosition.NONE
-    down_button.message_rx_event = down_btn_event_handler
+    down_button.add_receive_message_callback(down_btn_event_handler)
     down_button.btn_state = dashio.ButtonState.OFF
 
-    txt_box = dashio.TextBox('txtbox1', 'Counter', control_position=dashio.ControlPosition(0.0, 0.43, 1.0, 0.1))
-    txt_box.keyboard_type = dashio.Keyboard.NONE
-    txt_box.text_align = dashio.TextAlignment.CENTER
-    txt_box.text = f"{COUNTER}"
+    txt_box = dashio.TextBox(
+        'txtbox1',
+        'Counter',
+        keyboard_type = dashio.Keyboard.NONE,
+        text_align = dashio.TextAlignment.CENTER,
+        text = f"{COUNTER}",
+        control_position=dashio.ControlPosition(0.0, 0.43, 1.0, 0.1)
+    )
 
     dview.add_control(up_button)
     dview.add_control(down_button)
