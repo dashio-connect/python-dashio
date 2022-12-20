@@ -467,6 +467,7 @@ class Device(threading.Thread):
             time.sleep(0.5)
             self.action_station.device_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
         self.running = True
+        time.sleep(0.5)
         self.start()
 
     def use_cfg64(self):
@@ -566,7 +567,7 @@ class Device(threading.Thread):
                     [data, msg_from] = self.rx_zmq_sub.recv_multipart()
                 except ValueError:
                     logging.debug("Device value error")
-                #logging.debug("DEVICE RX: %s ,%s", msg_from, data)
+                logging.debug("DEVICE RX: %s ,%s", msg_from, data)
                 if data == b"COMMAND":
                     msg_dict = json.loads(msg_from)
                     self._local_command(msg_dict)
