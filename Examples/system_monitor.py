@@ -142,16 +142,9 @@ def main():
     )
     dash_conn.add_device(device)
 
-    device.dashio_setable = False
-    dash_conn.add_device(device)
-
     monitor_page = dashio.DeviceView("monpg", "Dash Server Monitor")
-    gph_network = dashio.TimeGraph("NETWORKGRAPH", control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.45))
+    gph_network = dashio.TimeGraph("NETWORKGRAPH", y_axis_label= "Kbytes", y_axis_min=0.0, y_axis_max=100000.0, y_axis_num_bars=9, control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.45))
     gph_network.title = f"Server Network Traffic: {args.device_name}"
-    gph_network.y_axis_label = "Kbytes"
-    gph_network.y_axis_min = 0.0
-    gph_network.y_axis_max = 100000.0
-    gph_network.y_axis_num_bars = 9
     network_rx = dashio.TimeGraphLine(
         "RX", dashio.TimeGraphLineType.LINE, color=dashio.Color.FUSCIA, max_data_points=no_datapoints, break_data=True
     )
@@ -163,12 +156,15 @@ def main():
     gph_network.add_line("NET_TX", network_tx)
     last_tx, last_rx = get_network_rx_tx()
 
-    gph_cpu = dashio.TimeGraph("CPULOAD", control_position=dashio.ControlPosition(0.0, 0.45, 1.0, 0.45))
-    gph_cpu.title = f"CPU load: {args.device_name}"
-    gph_cpu.y_axis_label = "Percent"
-    gph_cpu.y_axis_max = 100
-    gph_cpu.y_axis_min = 0
-    gph_cpu.y_axis_num_bars = 9
+    gph_cpu = dashio.TimeGraph(
+        "CPULOAD",
+        title=f"CPU load: {args.device_name}",
+        y_axis_label="Percent",
+        y_axis_max=100,
+        y_axis_min=0,
+        y_axis_num_bars=9,
+        control_position=dashio.ControlPosition(0.0, 0.45, 1.0, 0.45)
+    )
     monitor_page.add_control(gph_network)
     monitor_page.add_control(gph_cpu)
     device.add_control(gph_network)
@@ -188,13 +184,16 @@ def main():
         cpu_core_line_array.append(line)
         gph_cpu.add_line(f"CPU:{cpu}", line)
 
-    hd_dial = dashio.Dial("HD_USAGE", control_position=dashio.ControlPosition(0.0, 0.9, 1.0, 0.1))
-    hd_dial.title = "Disk Usage"
+    hd_dial = dashio.Dial(
+        "HD_USAGE",
+        title="Disk Usage",
+        dial_min=0.0,
+        dial_max=100.0,
+        red_value=95.0,
+        show_min_max=True,
+        control_position=dashio.ControlPosition(0.0, 0.9, 1.0, 0.1)
+    )
     hd_dial.dial_value = psutil.disk_usage("/").percent
-    hd_dial.dial_min = 0.0
-    hd_dial.dial_max = 100.0
-    hd_dial.red_value = 95.0
-    hd_dial.show_min_max = True
     disk_usage = 0
     device.add_control(hd_dial)
     monitor_page.add_control(hd_dial)

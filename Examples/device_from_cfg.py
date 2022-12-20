@@ -179,13 +179,13 @@ def main():
 
     try:
         controls = dashio.load_all_controls_from_config(device, config_dict)
-        controls['UP_BTN'].message_rx_event = up_btn_event_handler
-        controls['DOWN_BTN'].message_rx_event = down_btn_event_handler
-        controls['SLDR'].message_rx_event = slider_event_handler
-        controls['SLDR_DBL'].message_rx_event = slider_dbl_event_handler
-        controls['KNB'].message_rx_event = knob_event_handler
-        controls['TXT1'].message_rx_event = text_cntrl_message_handler
-        controls['TestSelector'].message_rx_event = selector_ctrl_handler
+        controls['UP_BTN'].add_receive_message_callback(up_btn_event_handler)
+        controls['DOWN_BTN'].add_receive_message_callback(down_btn_event_handler)
+        controls['SLDR'].add_receive_message_callback(slider_event_handler)
+        controls['SLDR_DBL'].add_receive_message_callback(slider_dbl_event_handler)
+        controls['KNB'].add_receive_message_callback(knob_event_handler)
+        controls['TXT1'].add_receive_message_callback(text_cntrl_message_handler)
+        controls['TestSelector'].add_receive_message_callback(selector_ctrl_handler)
     except KeyError:
         logging.debug("%s", controls)
     device.config_revision = 1

@@ -347,24 +347,6 @@ class Control():
         self._cfg_columnar = []
 
     @property
-    def message_rx_event(self):
-        """Returns the message_rx_event Set"""
-        return self._message_rx_event
-
-    @message_rx_event.setter
-    def message_rx_event(self, val):
-        self._message_rx_event += val
-
-    @property
-    def message_tx_event(self):
-        """Returns the message_tx_event Set"""
-        return self._message_tx_event
-
-    @message_tx_event.setter
-    def message_tx_event(self, val):
-        self._message_tx_event += val
-
-    @property
     def state_str(self) -> str:
         """The current state of the control
 

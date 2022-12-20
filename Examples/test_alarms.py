@@ -118,30 +118,33 @@ class TestControls:
         dash_conn.add_device(device)
 
         self.tadevice_view = dashio.DeviceView("testAlarm", "Test Alarm")
-        self.alarm_btn1 = dashio.Button("ALARM_BTN1")
+        self.alarm_btn1 = dashio.Button(
+            "ALARM_BTN1",
+            title="A1",
+            icon_name=dashio.Icon.BELL,
+            on_color=dashio.Color.RED
+        )
         self.tadevice_view.add_control(self.alarm_btn1)
-        self.alarm_btn1.title = "A1"
-        self.alarm_btn1.btn_state = dashio.ButtonState.OFF
-        self.alarm_btn1.icon_name = dashio.Icon.BELL
-        self.alarm_btn1.on_color = dashio.Color.RED
-        self.alarm_btn1.message_rx_event += self.alarm_btn1_handler
+        self.alarm_btn1.add_receive_message_callback(self.alarm_btn1_handler)
         device.add_control(self.alarm_btn1)
 
-        self.alarm_btn2 = dashio.Button("ALARM_BTN2")
-        self.alarm_btn2.title = "A2"
-        self.alarm_btn2.btn_state = dashio.ButtonState.OFF
-        self.alarm_btn2.icon_name = dashio.Icon.BELL
-        self.alarm_btn2.on_color = dashio.Color.RED
-        self.alarm_btn2.message_rx_event += self.alarm_btn2_handler
+        self.alarm_btn2 = dashio.Button(
+            "ALARM_BTN2",
+            title="A2",
+            icon_name=dashio.Icon.BELL,
+            on_color=dashio.Color.RED
+        )
+        self.alarm_btn2.add_receive_message_callback(self.alarm_btn2_handler)
         device.add_control(self.alarm_btn2)
         self.tadevice_view.add_control(self.alarm_btn2)
 
-        self.alarm_btn3 = dashio.Button("ALARM_BTN3")
-        self.alarm_btn3.title = "A3"
-        self.alarm_btn3.btn_state = dashio.ButtonState.OFF
-        self.alarm_btn3.icon_name = dashio.Icon.BELL
-        self.alarm_btn3.on_color = dashio.Color.RED
-        self.alarm_btn3.message_rx_event += self.alarm_btn3_handler
+        self.alarm_btn3 = dashio.Button(
+            "ALARM_BTN3",
+            title="A3",
+            icon_name=dashio.Icon.BELL,
+            on_color=dashio.Color.RED
+        )
+        self.alarm_btn3.add_receive_message_callback(self.alarm_btn3_handler)
         device.add_control(self.alarm_btn3)
         self.tadevice_view.add_control(self.alarm_btn3)
 
@@ -151,9 +154,6 @@ class TestControls:
         device.add_control(self.alarm1_ctrl)
         device.add_control(self.alarm2_ctrl)
         device.add_control(self.alarm3_ctrl)
-        self.tadevice_view.add_control(self.alarm1_ctrl)
-        self.tadevice_view.add_control(self.alarm2_ctrl)
-        self.tadevice_view.add_control(self.alarm3_ctrl)
         device.add_control(self.tadevice_view)
 
         while not self.shutdown:
