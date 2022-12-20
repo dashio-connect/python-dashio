@@ -138,92 +138,98 @@ class TestControls:
         self.page_name = "TestBLE: " + platform.node()
 
         self.page_test = dashio.DeviceView("TestBLE", self.page_name)
-        self.up_btn = dashio.Button("UP_BTN", control_position=dashio.ControlPosition(0.02, 0.01, 0.22, 0.12))
-        self.up_btn.btn_state = dashio.ButtonState.OFF
-        self.up_btn.icon_name = dashio.Icon.UP
-        self.up_btn.on_color = dashio.Color.GREEN
-        self.up_btn.text = ""
-        self.up_btn.title = "Up"
-        self.up_btn.message_rx_event = self.up_btn_event_handler
+        self.up_btn = dashio.Button(
+            "UP_BTN",
+            title = "Up",
+            icon_name = dashio.Icon.UP,
+            on_color = dashio.Color.GREEN,
+            text = "",
+            control_position=dashio.ControlPosition(0.02, 0.01, 0.22, 0.12)
+        )
+        self.up_btn.add_receive_message_callback(self.up_btn_event_handler)
         self.page_test.add_control(self.up_btn)
 
         self.down_btn = dashio.Button(
-            "DOWN_BTN", control_position=dashio.ControlPosition(0.02, 0.86, 0.22, 0.12)
+            "DOWN_BTN",
+            title = "Down",
+            icon_name = dashio.Icon.DOWN,
+            on_color = dashio.Color.GREEN,
+            text = "",
+            control_position=dashio.ControlPosition(0.02, 0.86, 0.22, 0.12)
         )
-        self.down_btn.btn_state = dashio.ButtonState.OFF
-        self.down_btn.icon_name = dashio.Icon.DOWN
-        self.down_btn.on_color = dashio.Color.GREEN
-        self.down_btn.text = ""
-        self.down_btn.title = "Down"
-        self.down_btn.message_rx_event = self.down_btn_event_handler
+        self.down_btn.add_receive_message_callback(self.down_btn_event_handler)
         self.page_test.add_control(self.down_btn)
 
         self.sldr_cntrl = dashio.Slider(
-            "SLDR", control_position=dashio.ControlPosition(0.02, 0.13, 0.22, 0.73)
+            "SLDR",
+            title = "Slider",
+            bar_max = 10,
+            slider_enabled = True,
+            red_value = 10,
+            control_position=dashio.ControlPosition(0.02, 0.13, 0.22, 0.73)
         )
-        self.sldr_cntrl.title = "Slider"
-        self.sldr_cntrl.bar_max = 10
-        self.sldr_cntrl.slider_enabled = True
-        self.sldr_cntrl.red_value = 10
-        self.sldr_cntrl.message_rx_event += self.slider_event_handler
+        self.sldr_cntrl.add_receive_message_callback(self.slider_event_handler)
         self.page_test.add_control(self.sldr_cntrl)
 
         self.sldr_dbl_cntrl = dashio.Slider(
-            "SLDR_DBL", control_position=dashio.ControlPosition(0.78, 0.01, 0.2, 0.98)
+            "SLDR_DBL",
+            title = "Slider Double",
+            bar_max = 5,
+            slider_enabled = True,
+            red_value = 5,
+            control_position=dashio.ControlPosition(0.78, 0.01, 0.2, 0.98)
         )
-        self.sldr_dbl_cntrl.title = "Slider Double"
-        self.sldr_dbl_cntrl.bar_max = 5
-        self.sldr_dbl_cntrl.slider_enabled = True
-        self.sldr_dbl_cntrl.red_value = 5
-        self.sldr_dbl_cntrl.message_rx_event += self.slider_dbl_event_handler
+        self.sldr_dbl_cntrl.add_receive_message_callback(self.slider_dbl_event_handler)
         self.page_test.add_control(self.sldr_dbl_cntrl)
 
-        self.knb_control = dashio.Knob("KNB", control_position=dashio.ControlPosition(0.24, 0.14, 0.54, 0.21))
-        self.knb_control.title = "A Knob"
-        self.knb_control.dial_max = 10
-        self.knb_control.red_value = 10
-        self.knb_control.message_rx_event += self.knob_event_handler
+        self.knb_control = dashio.Knob(
+            "KNB",
+            title = "A Knob",
+            dial_max = 10,
+            red_value = 10,
+            control_position=dashio.ControlPosition(0.24, 0.14, 0.54, 0.21)
+        )
+        self.knb_control.add_receive_message_callback(self.knob_event_handler)
         self.page_test.add_control(self.knb_control)
 
         self.dl_control = dashio.Dial(
             "DIAL1",
+            title = "A Dial",
+            dial_max = 10,
             style=DialStyle.BAR,
             units="m/s",
             number_position=DialNumberPosition.CENTER,
             precision=Precision.TWO,
             control_position=dashio.ControlPosition(0.24, 0.63, 0.54, 0.21)
         )
-        self.dl_control.title = "A Dial"
-        self.dl_control.dial_max = 10
         self.page_test.add_control(self.dl_control)
 
         self.text_cntrl = dashio.TextBox(
-            "TXT1", control_position=dashio.ControlPosition(0.24, 0.84, 0.54, 0.12)
+            "TXT1",
+            text = "Hello",
+            title = "A text control",
+            keyboard_type = dashio.Keyboard.ALL,
+            close_keyboard_on_send = True,
+            control_position=dashio.ControlPosition(0.24, 0.84, 0.54, 0.12)
         )
-        self.text_cntrl.text = "Hello"
-        self.text_cntrl.title = "A text control"
-        self.text_cntrl.keyboard_type = dashio.Keyboard.ALL
-        self.text_cntrl.close_keyboard_on_send = True
-        self.text_cntrl.message_rx_event += self.text_cntrl_message_handler
+        self.text_cntrl.add_receive_message_callback(self.text_cntrl_message_handler)
         self.page_test.add_control(self.text_cntrl)
 
-        self.alarm_ctrl = dashio.Alarm("TestingAlarms", "Test Alarms")
-        self.device.add_control(self.alarm_ctrl)
         self.comp_control = dashio.Direction(
             "COMP1",
+            title = "A Direction control",
             style=DirectionStyle.DEGPS,
             units="nm",
             precision=Precision.TWO,
             control_position=dashio.ControlPosition(0.24, 0.38, 0.54, 0.22)
         )
-        self.comp_control.title = "A Direction control"
         self.comp_control.direction_text = "00"
         self.page_test.add_control(self.comp_control)
 
         self.selector_ctrl = dashio.Selector(
             "TestSelector", "A Selector", control_position=dashio.ControlPosition(0.24, 0.01, 0.54, 0.13)
         )
-        self.selector_ctrl.message_rx_event += self.selector_ctrl_handler
+        self.selector_ctrl.add_receive_message_callback(self.selector_ctrl_handler)
         self.selector_ctrl.add_selection("First")
         self.selector_ctrl.add_selection("Second")
         self.selector_ctrl.add_selection("Third")

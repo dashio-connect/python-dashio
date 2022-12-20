@@ -123,7 +123,7 @@ class TestColorPicker:
 
         self.page_test = dashio.DeviceView("Color Picker", self.page_name)
         self.c_picker = dashio.ColorPicker("CPKR1",control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.45))
-        self.c_picker.message_rx_event += self.color_picker_handler
+        self.c_picker.add_receive_message_callback(self.color_picker_handler)
         self.page_test.add_control(self.c_picker)
         self.device.add_control(self.c_picker)
         self.device.add_control(self.page_test)
