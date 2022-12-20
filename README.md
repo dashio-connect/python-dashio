@@ -156,7 +156,7 @@ def knob_event_handler(msg):
     aknob.knob_dial_value = float(msg[3])
     first_dial_control.dial_value = float(msg[3])
 
-aknob.message_rx_event += knob_event_handler
+aknob.add_receive_message_callback(knob_event_handler)
 
 while True:
     time.sleep(1)
@@ -201,13 +201,15 @@ These callbacks are used to setup and configure connections by the **DashIO** ap
 
 ### Controls
 
-Controls are objects that represent actions and widgets in the DashIO application. All controls have a ControlID, Title, and TitlePosition. The ControlID should be a string that can uniquely identifiy that control per device. The control Title is text that is displayed on **DashIO** with the Contol. The TitlePosition can be either `TitlePosition.TOP`, `TitlePosition.BOTTOM`, or `TitlePosition.NONE`. Controls that are displayed have a `dashio.ControlPosition` that is composed of four size and position variables: x_position_ratio, y_position_ratio, width_ratio, height_ratio. The first two are position ratios that place the top left corner of the widget on the DeviceView. The last two are ratios that govern the size of the widget. The ratios are propertional to the size of the screen with the full size of the screen representing 1.0. All controls have a `message_rx_event` callback that is used to return messages from the **DashIO** app.
+Controls are objects that represent actions and widgets in the DashIO application. All controls have a ControlID, Title, and TitlePosition. The ControlID should be a string that can uniquely identifiy that control per device. The control Title is text that is displayed on **DashIO** with the Contol. The TitlePosition can be either `TitlePosition.TOP`, `TitlePosition.BOTTOM`, or `TitlePosition.NONE`. Controls that are displayed have a `dashio.ControlPosition` that is composed of four size and position variables: x_position_ratio, y_position_ratio, width_ratio, height_ratio. The first two are position ratios that place the top left corner of the widget on the DeviceView. The last two are ratios that govern the size of the widget. The ratios are propertional to the size of the screen with the full size of the screen representing 1.0. All controls have a callback that is used to return messages from the **DashIO** app. Controls on the **DashIO** app can have a graphical duplicate that may have a different set of *Config* attributes. This is achieved by adding that controls ControlControl with add_config_columnar(ControlControl).
 
 Controls have two main types of attributes.
 
-1) *Config Attributes*. These attributes define the look and placement of the control. They are used to generate the config information sent to the **DashIO** app when it issues a CFG command to the device.
+1) *Config Attributes*. These attributes define the look and placement of the control. They are used to generate the config information sent to the **DashIO** app when it issues a CFG command to the device, these are set in *init*.
 
 2) *Messaging Atttributes*. Setting these attributes send messages to the **DashIO** app controlling the visable appearance of the control.
+
+When controls are instantiated they create a ControlControl to add to its layout. More layouts can be added by creating a ControlConfig for that control and adding it with add_config_columnar(ControlConfig) or add_config_full_page(ControlConfig). This allows you to have two layouts - a columnar layout for phones and another for tablets. If you use a add_config_full_page layout then you will need to set the number of columns it uses with set_no_culumns_full_page().
 
 #### DeviceView
 

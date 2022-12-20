@@ -341,9 +341,11 @@ class Control():
 
 
     def del_configs_columnar(self):
+        """Deletes all the columnar config layout entries"""
         self._cfg_columnar = []
 
     def del_configs_full_page(self):
+        """Deletes all the full page config layout entries"""
         self._cfg_columnar = []
 
     @property
