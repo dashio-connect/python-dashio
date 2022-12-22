@@ -105,6 +105,8 @@ class ActionStation(threading.Thread):
                         key = f"{control_type}\t{control['controlID']}"
                         try:
                             del self.device.control_dict[key]
+                            if control_type == 'DVVW':
+                                self.device.number_of_device_views = self.device.number_of_device_views - 1
                         except KeyError:
                             logging.debug("Error deleting control: %s, %s", control_type, control['controlID'])
 

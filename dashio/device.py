@@ -167,6 +167,7 @@ class Device(threading.Thread):
                     dvvw_str += self._device_id_str + cfg
             else:
                 cfg_list = control.get_cfg(data)
+                #logging.debug("CFG: %s", cfg_list)
                 for cfg in cfg_list:
                     reply += self._device_id_str + cfg
         reply += dvvw_str
@@ -231,9 +232,12 @@ class Device(threading.Thread):
         ----------
             iot_control : iotControl
         """
+        if isinstance(iot_control, DeviceView):
+            self._cfg["numDeviceViews"] -= 1
         key = f"{iot_control.cntrl_type}\t{iot_control.control_id}"
         if key in self.control_dict:
             del self.control_dict[key]
+        
 
     def _set_devicesetup(self, control_name: str, settable: bool):
         if settable:
