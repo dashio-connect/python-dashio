@@ -176,11 +176,13 @@ class TaskService(threading.Thread):
         self.actions = task_config_dict['actions']
         self.name = task_config_dict['name']
         self.sub_msg = None
-        if len(self.actions) > 0:
-            rx_device_id = self.actions[0]["deviceID"]
-            rx_control_type = self.actions[0]["controlType"]
-            rx_control_id = self.actions[0]["controlID"]
-            self.sub_msg = f"\t{rx_device_id}\t{rx_control_type}\t{rx_control_id}"
+        rx_device_id = ""
+        if len(self.actions) == 0:
+            return
+        rx_device_id = self.actions[0]["deviceID"]
+        rx_control_type = self.actions[0]["controlType"]
+        rx_control_id = self.actions[0]["controlID"]
+        self.sub_msg = f"\t{rx_device_id}\t{rx_control_type}\t{rx_control_id}"
         self.push_url = TASK_PULL.format(id=action_station_id)
         self.sub_url = CONNECTION_PUB_URL.format(id=action_station_id)
 
@@ -192,8 +194,7 @@ class TaskService(threading.Thread):
 
         if rx_device_id != device_id:
             self._connect_device_id(rx_device_id)
-        if self.sub_msg is not None:
-            self.start()
+        self.start()
 
     # Do a simple test case to check messaging.
     def _do_actions(self, msg):
