@@ -126,7 +126,7 @@ class TestControls:
         context = zmq.Context.instance()
         #self.serial_con = dashio.SerialConnection('/dev/cu.usbserial-14130', baud_rate=9600)
         self.device = dashio.Device("ControlTest", args.device_id, args.device_name, add_actions=True, context=context)
-        self.device.use_cfg64()
+        #self.device.use_cfg64()
         
         self.tcp_con = dashio.TCPConnection(context=context)
         self.device.config_revision = 2
