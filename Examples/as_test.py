@@ -103,9 +103,6 @@ class ActionStationOnly:
         self.device.close()
 
 
-def main():
-    tc = ActionStationOnly()
-
 
 if __name__ == "__main__":
-    main()
+    ActionStationOnly()
