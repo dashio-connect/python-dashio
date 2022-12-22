@@ -284,12 +284,12 @@ class Control():
 
     def add_config_columnar(self, config):
         """Add a duplicate Config for the columnar view"""
-        config.cfg["ControlID"] = self.control_id
+        config.cfg["controlID"] = self.control_id
         self._cfg_columnar.append(config)
 
     def add_config_full_page(self, config):
         """Add a duplicate Config for the full page view"""
-        config.cfg["ControlID"] = self.control_id
+        config.cfg["controlID"] = self.control_id
         self._cfg_full_page.append(config)
 
     def set_no_culumns_full_page(self, no_columns: int):
