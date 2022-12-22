@@ -128,6 +128,7 @@ class ActionStation(threading.Thread):
     def _update_gui_controls(self, cfg_dict: dict):
         new_cfg_dict = {}
         new_cfg_dict["CFG"] = self.device._cfg
+        added_control_ids = []
         modified = False
         for control_type, control_list in cfg_dict.items():
             if isinstance(control_list, list):
@@ -139,10 +140,14 @@ class ActionStation(threading.Thread):
                         cfg = CONFIG_INSTANCE_DICT[control_type].from_dict(control)
                         self.device.control_dict[key].add_config_columnar(cfg)
                         modified = True
+                        if control['controlID'] in added_control_ids:
+                            # Add the next config to the control
+                            new_cfg_dict[control_type].append(control)
                     else:
                         # Create a new control.
                         g_control = CONTROL_INSTANCE_DICT[control_type].from_cfg_dict(control)
                         self.device.add_control(g_control)
+                        added_control_ids.append(control['controlID'])
                         if control_type not in new_cfg_dict:
                             new_cfg_dict[control_type] = []
                         logging.debug("Added control: %s", control_type + ":" + control["controlID"])
