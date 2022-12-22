@@ -179,9 +179,12 @@ class TaskService(threading.Thread):
         rx_device_id = ""
         if len(self.actions) == 0:
             return
-        rx_device_id = self.actions[0]["deviceID"]
-        rx_control_type = self.actions[0]["controlType"]
-        rx_control_id = self.actions[0]["controlID"]
+        try:
+            rx_device_id = self.actions[0]["deviceID"]
+            rx_control_type = self.actions[0]["controlType"]
+            rx_control_id = self.actions[0]["controlID"]
+        except KeyError:
+            return
         self.sub_msg = f"\t{rx_device_id}\t{rx_control_type}\t{rx_control_id}"
         self.push_url = TASK_PULL.format(id=action_station_id)
         self.sub_url = CONNECTION_PUB_URL.format(id=action_station_id)
