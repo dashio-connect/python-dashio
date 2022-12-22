@@ -329,9 +329,9 @@ class ActionStation(threading.Thread):
                 result['result'] = True
                 self.add_gui_controls(payload)
                 self.configured_services[payload['uuid']] = payload
-        except KeyError:
+        except KeyError as error:
             msg = "UPDATE: payload has no objectType"
-            logging.debug(msg)
+            logging.debug("%s, %s", msg, error)
             result['message'] = msg
         if result['result']:
             self.save_action(self._json_filename,  self.action_station_dict)
