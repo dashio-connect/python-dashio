@@ -245,13 +245,13 @@ class Control():
             num_columns = int(data[3])
             dashboard_id = data[2]
         except (IndexError, ValueError):
-            return ""
+            return cfg_list
         if num_columns >= self._cfg_full_page_no_columns and self._cfg_full_page:
             for cfg in self._cfg_full_page:
-                cfg_list.append(f"\tCFG\t{dashboard_id}\t" + self.cntrl_type + "\t" + cfg.get_cfg_json())
+                cfg_list.append(f"\tCFG\t{dashboard_id}\t{self.cntrl_type}\t{cfg.get_cfg_json()}")
         else:
             for control_cfg in self._cfg_columnar:
-                cfg_list.append(f"\tCFG\t{dashboard_id}\t" + self.cntrl_type + "\t" + control_cfg.get_cfg_json())
+                cfg_list.append(f"\tCFG\t{dashboard_id}\t{self.cntrl_type}\t{control_cfg.get_cfg_json()}")
         return cfg_list
 
     def get_cfg64(self, data) -> dict:
