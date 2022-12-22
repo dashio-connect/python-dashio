@@ -207,9 +207,5 @@ class AllControls:
         self.device.close()
 
 
-def main():
-    ac = AllControls()
-
-
 if __name__ == "__main__":
-    main()
+    AllControls()

@@ -269,9 +269,5 @@ class TestEventLog:
         device.close()
 
 
-def main():
-    tc = TestEventLog()
-
-
 if __name__ == "__main__":
-    main()
+    TestEventLog()

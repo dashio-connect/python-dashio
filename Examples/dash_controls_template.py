@@ -106,9 +106,5 @@ class TestControls:
         device.close()
 
 
-def main():
-    tc = TestControls()
-
-
 if __name__ == "__main__":
-    main()
+    TestControls()

@@ -23,13 +23,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import time
-import datetime
 import argparse
-import signal
-import dashio
+import datetime
 import logging
+import signal
+import time
+
 import Adafruit_BBIO.ADC as ADC
+
+import dashio
 
 
 class BBB_Temperature:
@@ -219,35 +221,32 @@ class BBB_Temperature:
             dl_temperature_ctrl.dial_value = temperature
             line_15_minutes.add_data_point(temperature)
             gph_15_minutes.send_data()
-            t = datetime.datetime.now()
-            if (t.minute == 0 or t.minute == 15 or t.minute == 30 or t.minute == 45) and (t.second < 5):
+            t_now = datetime.datetime.now()
+            if (t_now.minute == 0 or t_now.minute == 15 or t_now.minute == 30 or t_now.minute == 45) and (t_now.second < 5):
                 total = 0
                 for d in line_15_minutes.data.data:
                     temps = d.data_point
                     total += float(temps)
                 avg = total / len(line_15_minutes.data)
-                avg_str = "{:.2f}".format(avg)
+                avg_str = f"{avg:.2f}"
                 line_1_day.add_data_point(avg_str)
                 line_1_week.add_data_point(avg_str)
                 gph_1_day.send_data()
                 gph_1_week.send_data()
-                if t.hour == 12 and t.minute == 0 and t.second < 10:
+                if t_now.hour == 12 and t_now.minute == 0 and t_now.second < 10:
                     daily_temperature_max = temperature
                     daily_temperature_min = temperature
                     line_1_year.add_data_point(avg_str)
                     gph_1_year.send_data()
-            t = datetime.datetime.now()
+            t_now = datetime.datetime.now()
 
-            seconds_left = t.second + t.microsecond / 1000000.0
+            seconds_left = t_now.second + t_now.microsecond / 1000000.0
             _, sleep_time = divmod(seconds_left, LOGGER_PERIOD)
             sleep_time = LOGGER_PERIOD - sleep_time
             time.sleep(sleep_time)
         device.close()
 
 
-def main():
-    tc = BBB_Temperature()
-
 
 if __name__ == "__main__":
-    main()
+    BBB_Temperature()
