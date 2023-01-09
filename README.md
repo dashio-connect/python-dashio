@@ -138,19 +138,14 @@ cfg64 = "pVNdr5pAEP0rN/tMjHCrbXnjQ60RxQD1Nmn6wIVVN8IuXZar1vjfOwuLeNWmTfo2OztzZnL
 "8ysUbzSOHrv1X61VUSKkS9C1y6JO/XYULdpoouzijCfScGnNVIhFVQAAheNoe7ImmkiKZteOSqXl9SbAbxCez78B"
 
 config_dict = dashio.decode_cfg64(cfg64)
-device = dashio.Device("aDeviceType", "aDeviceID", "aDeviceName", config_dict)
+device = dashio.Device("aDeviceType", "aDeviceID", "aDeviceName", cfg_dict=config_dict)
 tcp_con = dashio.TCPConnection()
 tcp_con.add_device(device)
 
-dv = dashio.get_control_from_config("aDeviceViewID", config_dict)
-first_dial_control = dashio.get_control_from_config("FirstDial", config_dict)
-aknob = dashio.get_control_from_config("aKNB", config_dict)
-
-dv.add_control(first_dial_control)
-dv.add_control(aknob)
-device.add_control(first_dial_control)
-device.add_control(dv)
-device.add_control(aknob)
+aknob: dashio.Knob
+aknob = device.get_control("KNOB", "aKNB")
+first_dial_control: dashio.Dial
+first_dial_control = device.get_control("DIAL", "FirstDial")
 
 def knob_event_handler(msg):
     aknob.knob_dial_value = float(msg[3])
