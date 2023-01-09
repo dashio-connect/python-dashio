@@ -6,8 +6,8 @@ from dashio.iotcontrol.enums import Color, LabelStyle
 
 
 class TestLabel(unittest.TestCase):
-    def _get_cfg_dict(self, cfg_str):
-        json_str = cfg_str.rpartition('\t')[2]
+    def _get_cfg_dict(self, cfg_list: list):
+        json_str = cfg_list[0].rpartition('\t')[2]
         return json.loads(json_str)
 
     def test_label_control_type(self):

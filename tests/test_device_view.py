@@ -5,8 +5,8 @@ from dashio import DeviceView
 from dashio.iotcontrol.enums import Color, Icon
 
 
-def _get_cfg_dict(cfg_str):
-    json_str = cfg_str.rpartition('\t')[2]
+def _get_cfg_dict(cfg_list: list):
+    json_str = cfg_list[0].rpartition('\t')[2]
     return json.loads(json_str)
 
 
@@ -51,8 +51,6 @@ class TestDeviceView(unittest.TestCase):
         test_control = DeviceView("DVIEWID", control_border_color=Color.TURQUOISE)
         cfg_dict = _get_cfg_dict(test_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
         self.assertEqual(Color(int(cfg_dict['ctrlBorderColor'])), Color.TURQUOISE, "CFG ctrlBorderColor should be TURQUOISE")
-
-
 
     def test_device_view_control_background_color(self):
         test_control = DeviceView("DVIEWID", control_background_color=Color.BISQUE)
