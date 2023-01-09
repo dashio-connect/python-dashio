@@ -104,7 +104,7 @@ class ActionStation(threading.Thread):
                         logging.debug("Deleting: %s, %s", control_type, control['controlID'])
                         key = f"{control_type}\t{control['controlID']}"
                         try:
-                            del self.device.control_dict[key]
+                            del self.device.controls_dict[key]
                             if control_type == 'DVVW':
                                 self.device.number_of_device_views = self.device.number_of_device_views - 1
                         except KeyError:
@@ -120,7 +120,7 @@ class ActionStation(threading.Thread):
                         modified = True
                         logging.debug("Deleting layouts: %s, %s", control_type, control['controlID'])
                         try:
-                            self.device.control_dict[key].del_configs_columnar()
+                            self.device.controls_dict[key].del_configs_columnar()
                         except KeyError:
                             logging.debug("Error deleting layout: %s, %s", control_type, control['controlID'])
         return modified
@@ -138,16 +138,16 @@ class ActionStation(threading.Thread):
                         # load new config into control
                         logging.debug("Adding layouts: %s, %s", control_type, control['controlID'])
                         cfg = CONFIG_INSTANCE_DICT[control_type].from_dict(control)
-                        self.device.control_dict[key].add_config_columnar(cfg)
+                        self.device.controls_dict[key].add_config_columnar(cfg)
                         modified = True
-                        if control['controlID'] in added_control_ids:
+                        if key in added_control_ids:
                             # Add the next config to the control
                             new_cfg_dict[control_type].append(control)
                     else:
                         # Create a new control.
                         g_control = CONTROL_INSTANCE_DICT[control_type].from_cfg_dict(control)
                         self.device.add_control(g_control)
-                        added_control_ids.append(control['controlID'])
+                        added_control_ids.append(key)
                         if control_type not in new_cfg_dict:
                             new_cfg_dict[control_type] = []
                         logging.debug("Added control: %s", control_type + ":" + control["controlID"])

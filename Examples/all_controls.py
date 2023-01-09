@@ -153,7 +153,7 @@ class AllControls:
         self.tcp_con.add_device(self.device)
 
         self.page_name = "All Controls: " + platform.node()
-        self.page_test = dashio.get_control_from_config("AllControls", config_dict)
+        self.page_test = dashio.get_control_from_config("DVVW", "AllControls", config_dict)
         self.avd = dashio.get_control_from_config("AV1", config_dict)
         self.avd.url = "https://bit.ly/swswift"
         self.btn_group = dashio.get_control_from_config("BGRP1", config_dict)
