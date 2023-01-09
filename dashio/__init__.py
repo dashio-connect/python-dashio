@@ -49,7 +49,8 @@ from .iotcontrol.enums import (
     GraphXAxisLabelsStyle,
     TextFormat,
     DirectionStyle,
-    ColorPickerStyle
+    ColorPickerStyle,
+    ControlName
 )
 from .iotcontrol.audio_visual_display import AudioVisualDisplay
 from .iotcontrol.graph import Graph, GraphLine

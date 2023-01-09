@@ -32,8 +32,10 @@ from .constants import CONNECTION_PUB_URL, BAD_CHARS
 from .action_station import ActionStation
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.device_view import DeviceView
+from .iotcontrol.enums import ControlName
 from .load_config import encode_cfg64
 from .load_config import CONTROL_INSTANCE_DICT, CONFIG_INSTANCE_DICT
+
 
 class Device(threading.Thread):
     """Dashio Device
@@ -254,17 +256,17 @@ class Device(threading.Thread):
             return True
         return False
 
-    def get_control(self, control_type: str, control_id: str):
+    def get_control(self, control_type: ControlName, control_id: str):
         """Get the control instance.
 
         Parameters
         ----------
-            control_type : str
+            control_type : ControlName
                 The type of control
             control_id : str
                 The controlID of the control
         """
-        key = f"{control_type}\t{control_id}"
+        key = f"{control_type.value}\t{control_id}"
         return self.controls_dict.get(key, None)
 
     def remove_control(self, iot_control):

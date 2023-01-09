@@ -23,6 +23,26 @@ SOFTWARE.
 """
 from enum import Enum
 
+class ControlName(Enum):
+    """
+    All the control names
+    """
+    AVD = "AVD"
+    DVVW = "DVVW"
+    MENU = "MENU"
+    BTGP = "BTGP"
+    BTTN = "BTTN"
+    TEXT = "TEXT"
+    GRPH = "GRPH"
+    DIAL = "DIAL"
+    CLR = "CLR"
+    TGRPH = "TGRPH"
+    KNOB = "KNOB"
+    SLCTR = "SLCTR"
+    SLDR = "SLDR"
+    DIR = "DIR"
+    LOG = "LOG"
+    LBL = "LBL"
 
 class Icon(Enum):
     """
