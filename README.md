@@ -49,6 +49,7 @@ So what is **DashIO**? It is a quick effortless way to connect your IoT device t
 Show me some code.
 
 ```python
+# Examples/ex01.py
 import dashio
 import random
 import time
@@ -69,6 +70,7 @@ This is about the fewest lines of code to get talking to the app. There is a lot
 Though this device is discoverable by the app it would be nice to have the DashIO app automatically setup a new DeviceView and place your control on the new DeviceView. To do that we need to add a few more lines of code:
 
 ```python
+# Examples/ex02.py
 import dashio
 import random
 import time
@@ -93,6 +95,7 @@ First we altered the instantiation of a Dial by including a control_position. Th
 The next piece of the puzzle to consider is how do we get data from the DashIO app? Lets add a Knob and connect it to the Dial:
 
 ```python
+# Examples/ex03.py
 import dashio
 import time
 
@@ -125,6 +128,7 @@ First we added a function that sets the dial value. Next we added a Knob control
 The **Dash** app can generate a CFG64 text string that defines the controls, the controls layout, and device parameters for the Device. The CFG64 string can be used in a number of ways. If we run the example above and using the **Dash** app to export a layout we can use the layout to setup the device and controls.
 
 ```python
+# Examples/ex04.py
 import dashio
 import time
 

@@ -24,7 +24,6 @@ SOFTWARE.
 """
 import argparse
 import logging
-import platform
 import random
 import signal
 import time
@@ -144,60 +143,23 @@ class AllControls:
         logging.info("   Serving on: %s:%s", args.url, str(args.port))
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
-        
+
         config_dict = dashio.decode_cfg64(DEVICE_CFG64)
         logging.debug("CFG: %s", json.dumps(config_dict, indent=4))
-        
+
         self.tcp_con = dashio.TCPConnection()
-        self.device = dashio.Device("AllControlsTest", args.device_id, args.device_name, config_dict)
+        self.device = dashio.Device("AllControlsTest", args.device_id, args.device_name, cfg_dict=config_dict)
         self.tcp_con.add_device(self.device)
 
-        self.page_name = "All Controls: " + platform.node()
-        self.page_test = dashio.get_control_from_config("DVVW", "AllControls", config_dict)
-        self.avd = dashio.get_control_from_config("AV1", config_dict)
+        self.avd: dashio.AudioVisualDisplay = self.device.get_control(dashio.ControlName.AVD, "AV1")
         self.avd.url = "https://bit.ly/swswift"
-        self.btn_group = dashio.get_control_from_config("BGRP1", config_dict)
-        self.group_btn = dashio.get_control_from_config("BTN_GRP", config_dict)
-        self.btn = dashio.get_control_from_config("BTN", config_dict)
-        self.clr_picker = dashio.get_control_from_config("C_PKR", config_dict)
-        self.comp_control = dashio.get_control_from_config("COMP1", config_dict)
-        self.dl_control = dashio.get_control_from_config("DIAL1", config_dict)
-        self.event_log = dashio.get_control_from_config("ELOG", config_dict)
-        self.graph = dashio.get_control_from_config("GRPH", config_dict)
-        self.knb_control = dashio.get_control_from_config("KNB", config_dict)
-        self.label_ctrl = dashio.get_control_from_config("Label", config_dict)
-        self.menu = dashio.get_control_from_config("MENU", config_dict)
-        self.menu_btn = dashio.get_control_from_config("MenuBTN", config_dict)
-        self.selector_ctrl = dashio.get_control_from_config("TestSelector", config_dict)
+        self.comp_control: dashio.Direction = self.device.get_control(dashio.ControlName.DIR, "COMP1")
+        self.selector_ctrl: dashio.Selector = self.device.get_control(dashio.ControlName.SLCTR, "TestSelector")
         self.selector_ctrl.add_selection("First")
         self.selector_ctrl.add_selection("Second")
         self.selector_ctrl.add_selection("Third")
         self.selector_ctrl.add_selection("Forth")
         self.selector_ctrl.add_selection("Fifth")
-
-        self.sldr_cntrl = dashio.get_control_from_config("SLDR", config_dict)
-        self.text_cntrl = dashio.get_control_from_config("TXT1", config_dict)
-        self.t_graph = dashio.get_control_from_config("TGRPH", config_dict)
-
-        self.device.add_control(self.avd)
-        self.device.add_control(self.btn_group)
-        self.device.add_control(self.group_btn)
-        self.device.add_control(self.btn)
-        self.device.add_control(self.clr_picker)
-        self.device.add_control(self.dl_control)
-        self.device.add_control(self.comp_control)
-        self.device.add_control(self.event_log)
-        self.device.add_control(self.graph)
-        self.device.add_control(self.knb_control)
-        self.device.add_control(self.label_ctrl)
-        self.device.add_control(self.menu)
-        self.device.add_control(self.menu_btn)
-        self.device.add_control(self.selector_ctrl)
-        self.device.add_control(self.sldr_cntrl)
-        self.device.add_control(self.text_cntrl)
-        self.device.add_control(self.t_graph)
-
-        self.device.add_control(self.page_test)
 
         while not self.shutdown:
             time.sleep(5)
