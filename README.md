@@ -142,9 +142,10 @@ device = dashio.Device("aDeviceType", "aDeviceID", "aDeviceName", cfg_dict=confi
 tcp_con = dashio.TCPConnection()
 tcp_con.add_device(device)
 
-aknob: dashio.Knob
+
+aknob: dashio.Knob # Type hinting so that the IDE knows what's what
 aknob = device.get_control("KNOB", "aKNB")
-first_dial_control: dashio.Dial
+first_dial_control: dashio.Dial # Type hinting so that the IDE knows what's what
 first_dial_control = device.get_control("DIAL", "FirstDial")
 
 def knob_event_handler(msg):

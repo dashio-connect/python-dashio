@@ -52,6 +52,15 @@ class Device(threading.Thread):
     add_control(iot_control) :
         Add a control to the device.
 
+    remove_control(iot_control) :
+        Remove a control from the device.
+
+    get_control(control_type: str, control_id: str):
+        returns the instance of a controla leaded into the device.
+
+    add_all_c64_controls(c64_dict: dict):
+        Adds all controls defined in c64_dict into the device.
+
     set_wifi_callback(callback) :
         Set a callback function that is called when the DashIO app provides wifi provisioning information.
 
@@ -435,7 +444,7 @@ class Device(threading.Thread):
         return ""
 
     def register_connection(self, connection):
-        """Cennections register here"""
+        """Connections registered here"""
         if connection.zmq_connection_uuid not in self.connections_list:
             logging.debug("DEVICE REG CONECTION")
             self.connections_list.append(connection.zmq_connection_uuid)
@@ -465,7 +474,7 @@ class Device(threading.Thread):
             device_name : str
                 The name for this device
             cfg_dict : dict optional
-                Setup dict to cfgRev, defaults None
+                Setup dict to cfgRev and adds controls defined in cfg_dict, defaults None
             add_actions : boolean
                 To include actions or not, defaults false
             context : optional
