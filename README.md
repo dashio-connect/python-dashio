@@ -142,8 +142,8 @@ device = dashio.Device("aDeviceType", "aDeviceID", "aDeviceName", cfg_dict=confi
 tcp_con = dashio.TCPConnection()
 tcp_con.add_device(device)
 
-aknob: dashio.Knob = device.get_control("KNOB", "aKNB")
-first_dial_control: dashio.Dial = device.get_control("DIAL", "FirstDial")
+aknob: dashio.Knob = device.get_control(dashio.ControlName.KNOB, "aKNB")
+first_dial_control: dashio.Dial = device.get_control(dashio.ControlName.DIAL, "FirstDial")
 
 def knob_event_handler(msg):
     aknob.knob_dial_value = float(msg[3])
