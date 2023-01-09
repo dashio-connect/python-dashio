@@ -122,11 +122,13 @@ def encode_cfg64(cfg: dict) -> str:
     tmp_z += compress.flush()
     return base64.b64encode(tmp_z).decode()
 
-def get_control_from_config(control_id: str, cfg_dict: dict):
+def get_control_from_config(control_type: str, control_id: str, cfg_dict: dict):
     """Returns a control object instantiated from cfg_dict
 
     Parameters
     ----------
+    control_type : str
+        The control type of the control within the dict to return
     control_id : str
         The control_id of the control within the dict to instantiate
     cfg_dict : dict
@@ -136,19 +138,21 @@ def get_control_from_config(control_id: str, cfg_dict: dict):
     -------
         A control object.
     """
-    for control_type, control_list in cfg_dict.items():
-        if isinstance(control_list, list):
-            for control in control_list:
-                if control["controlID"] == control_id:
-                    return CONTROL_INSTANCE_DICT[control_type].from_cfg_dict(control)
+    control_list = cfg_dict[control_type]
+    if isinstance(control_list, list):
+        for control in control_list:
+            if control["controlID"] == control_id:
+                return CONTROL_INSTANCE_DICT[control_type].from_cfg_dict(control)
     raise Exception(f"Control with control_id: {control_id} not found")
 
 
-def get_control_dict_from_config(control_id: str, cfg_dict: dict) -> dict:
+def get_control_dict_from_config(control_type: str, control_id: str, cfg_dict: dict) -> dict:
     """Returns a control config dictionary from cfg_dict
 
     Parameters
     ----------
+    control_type : str
+        The control type of the control within the dict to return
     control_id : str
         The control_id of the control within the dict to return
     cfg_dict : dict
@@ -158,16 +162,16 @@ def get_control_dict_from_config(control_id: str, cfg_dict: dict) -> dict:
     -------
         A dictionary for a control.
     """
-    for _, control_list in cfg_dict.items():
-        if isinstance(control_list, list):
-            for control in control_list:
-                if control["controlID"] == control_id:
-                    return control
+    control_list = cfg_dict[control_type]
+    if isinstance(control_list, list):
+        for control in control_list:
+            if control["controlID"] == control_id:
+                return control
     raise Exception(f"Control with control_id: {control_id} not found")
 
 
-def load_all_controls_from_config(device, cfg_dict) -> dict:
-    """Loads all the controls in cfg_dict into device and returns a dictionary of the control objects
+def load_all_controls_from_config(device, cfg_dict):
+    """Loads all the controls in cfg_dict into device.
 
     Parameters
     ----------
@@ -176,15 +180,14 @@ def load_all_controls_from_config(device, cfg_dict) -> dict:
     cfg_dict : Dict
         dictionary of the CFG loaded by decode_cfg from a CFG64 or json
 
-    Returns
-    -------
-    dict
-        Dictionary of the control objects
     """
-    controls_dict = {}
     for control_type, control_list in cfg_dict.items():
         if isinstance(control_list, list):
             for control in control_list:
-                controls_dict[control["controlID"]] = CONTROL_INSTANCE_DICT[control_type].from_cfg_dict(control)
-                device.add_control(controls_dict[control["controlID"]])
-    return controls_dict
+                key = f"{control_type}\t{control['controlID']}"
+                if device.is_control_loaded(control_type, control['controlID']):
+                    cfg = CONFIG_INSTANCE_DICT[control_type].from_dict(control)
+                    device.control_dict[key].add_config_columnar(cfg)
+                else:
+                    new_control = CONTROL_INSTANCE_DICT[control_type].from_cfg_dict(control)
+                    device.add_control(new_control)
