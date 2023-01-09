@@ -12,7 +12,7 @@ See <https://github.com/dashio-connect/python-dashio>
 
 ```bash
 cd Examples
-python3 system_monitor.py -s dash.dashio.io -p 8883 -u user -w password -c`hostname`
+python3 system_monitor.py -s dash.dashio.io -p 8883 -u user -w password -n`hostname`
 ```
 
 Will create a graph of network traffic with a connection_id of your hostname. The control and data topics are hostname_data and hostname_control.
