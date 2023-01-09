@@ -897,6 +897,6 @@ Returns a control object instantiated from cfg_dict with the given control_id.
 
 Returns a control config dictionary from cfg_dict with the given control_id
 
-#### **load_all_controls_from_config(device, cfg_dict) -> dict:**
+#### **load_all_controls_from_config(device, cfg_dict)**
 
-Loads all the controls in cfg_dict into the given device and returns a dictionary of the control objects
+Loads all the controls in cfg_dict into the given device.
