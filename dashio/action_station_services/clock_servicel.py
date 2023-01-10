@@ -52,7 +52,7 @@ def make_clock_config(num_tests):
         True,
         provisioning_list,
         parameter_list
-        #parameter_list_out
+        #  parameter_list_out
     )
     return clock_cfg.__json__()
 
@@ -122,7 +122,7 @@ class ClockService(threading.Thread):
         longitude = provision_list[1]['value']
         self.location_info = LocationInfo('name', 'region', 'timezone/name', latitude, longitude)
         tstamp = datetime.datetime.now()
-        self.day =  tstamp.day
+        self.day = tstamp.day
         self.sun_time = sun(self.location_info.observer, date=datetime.datetime.now(tz=tz.tzlocal()))
 
         self.push_url = TASK_PULL.format(id=action_station_id)

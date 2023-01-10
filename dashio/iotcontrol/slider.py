@@ -24,6 +24,7 @@ SOFTWARE.
 from .control import Control, ControlPosition, ControlConfig, _get_title_position, _get_color, _get_bar_style
 from .enums import Color, SliderBarStyle, TitlePosition
 
+
 class SliderConfig(ControlConfig):
     """SliderConfig"""
     def __init__(
@@ -86,6 +87,7 @@ class SliderConfig(ControlConfig):
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls
+
 
 class Slider(Control):
     """Single slider bar control
@@ -177,7 +179,6 @@ class Slider(Control):
             )
         )
 
-
         self._control_id_bar = f"\t{{device_id}}\tBAR\t{control_id}\t"
 
         self._bar1_value = 0.0
@@ -188,9 +189,9 @@ class Slider(Control):
         self._bar_state_str = self._control_id_bar + f"{self._bar1_value}\n"
         self._bar_slider_state_str = self._slider_state_str + self._bar_state_str
 
-        self._bar_min=bar_min
-        self._bar_max=bar_max
-        self._red_value=red_value
+        self._bar_min = bar_min
+        self._bar_max = bar_max
+        self._red_value = red_value
 
     @property
     def bar_min(self):

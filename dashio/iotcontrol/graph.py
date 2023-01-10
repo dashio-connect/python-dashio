@@ -25,6 +25,7 @@ from ..constants import BAD_CHARS
 from .control import Control, ControlPosition, ControlConfig, _get_title_position, _get_graph_x_axis_labels_style
 from .enums import Color, GraphLineType, GraphXAxisLabelsStyle, TitlePosition
 
+
 class GraphLine:
     """GraphLine class
     """
@@ -65,7 +66,7 @@ class GraphConfig(ControlConfig):
         y_axis_max: float,
         y_axis_num_bars: int,
         control_position: ControlPosition,
-        ) -> None:
+    ) -> None:
         super().__init__(control_id, title, control_position, title_position)
         self.cfg["xAxisLabel"] = x_axis_label.translate(BAD_CHARS)
         self.cfg["xAxisMin"] = x_axis_min
@@ -76,7 +77,6 @@ class GraphConfig(ControlConfig):
         self.cfg["yAxisMin"] = y_axis_min
         self.cfg["yAxisMax"] = y_axis_max
         self.cfg["yAxisNumBars"] = y_axis_num_bars
-
 
     @classmethod
     def from_dict(cls, cfg_dict: dict):
@@ -228,7 +228,6 @@ class Graph(Control):
     def y_axis_num_bars(self):
         """Returns the y axis number of bars"""
         return self.y_axis_num_bars
-
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict):

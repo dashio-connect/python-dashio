@@ -22,4 +22,3 @@ from .control import Control, ControlPosition, ControlConfig
 from .button_group import ButtonGroup, ButtonGroupConfig
 from .event_log import EventLog, EventData
 from .color_picker import ColorPicker, ColorPickerConfig
-from .audio_visual_display import AudioVisualDisplay

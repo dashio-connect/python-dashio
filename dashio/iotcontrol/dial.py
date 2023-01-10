@@ -44,7 +44,7 @@ class DialConfig(ControlConfig):
         precision: Precision,
         units: str,
         control_position: ControlPosition
-        ) -> None:
+    ) -> None:
         super().__init__(control_id, title, control_position, title_position)
         self.cfg["min"] = dial_min
         self.cfg["max"] = dial_max
@@ -211,7 +211,7 @@ class Dial(Control):
         -------
         Dial
         """
-        
+
         tmp_cls = cls(
             cfg_dict["controlID"],
             cfg_dict["title"],

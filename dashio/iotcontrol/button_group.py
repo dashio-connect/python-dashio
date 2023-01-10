@@ -69,6 +69,7 @@ class ButtonGroupConfig(ControlConfig):
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls
 
+
 class ButtonGroup(Control):
     """ButtonGroup control that shows a popup of buttons.
 
@@ -118,7 +119,7 @@ class ButtonGroup(Control):
         """
         super().__init__("BTGP", control_id)
         self._cfg_columnar.append(ButtonGroupConfig(control_id, title, text, icon, grid_view, control_position, title_position))
-        
+
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict):
         """Instatiates ButtonGroup from cfg dictionary

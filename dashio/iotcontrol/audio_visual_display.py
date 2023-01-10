@@ -24,6 +24,7 @@ SOFTWARE.
 from .control import Control, ControlPosition, ControlConfig, _get_title_position
 from .enums import (TitlePosition)
 
+
 class AudioVisualDisplay(Control):
     """AudioVisualDisplay Control
     """
@@ -75,8 +76,6 @@ class AudioVisualDisplay(Control):
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls
 
-
-
     def get_state(self):
         """get_state is called by iotdashboard
 
@@ -88,7 +87,7 @@ class AudioVisualDisplay(Control):
         if self.url:
             return self._control_hdr_str + f"{self.url}\n"
         return ""
-        
+
     @property
     def url(self) -> str:
         """URL

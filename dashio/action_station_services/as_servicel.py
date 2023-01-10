@@ -17,7 +17,7 @@ from .action_station_service_config import (ActionServiceCFG,
 def make_test_config(num_tests):
     """Make a timer config"""
     provisioning_list = [
-        SelectorParameterSpec( "A Selector",["Selection 1", "Selection2", "Selection3"], "Selection 1"),
+        SelectorParameterSpec("A Selector", ["Selection 1", "Selection2", "Selection3"], "Selection 1"),
         IntParameterSpec("An Int", 0, 100, "jiggers", 42),
         StringParameterSpec("A String", "Little Bo Peep...."),
         FloatParameterSpec("A Float", 2.71828, 299792458.0, "jiffies", 1.4142),
@@ -46,7 +46,7 @@ def make_test_config(num_tests):
                         "Yertle the Turtle",
                         "Lord Droon"
                     ],
-                     "Horton",
+                    "Horton",
                 )
             ]
         )
@@ -64,9 +64,10 @@ def make_test_config(num_tests):
         True,
         provisioning_list,
         parameter_list
-        #parameter_list_out
+        #  parameter_list_out
     )
     return timer_cfg.__json__()
+
 
 class ASService(threading.Thread):
     """Action Station Template Class"""
@@ -101,7 +102,6 @@ class ASService(threading.Thread):
 
         self.start()
 
-
     def run(self):
         receiver = self.context.socket(zmq.SUB)
         receiver.connect(self.sub_url)
@@ -118,7 +118,6 @@ class ASService(threading.Thread):
                 message, _ = receiver.recv()
                 if message:
                     logging.debug("%s\t%s RX:\n%s", self.control_type, self.control_id, message.decode())
-
 
         self.task_sender.close()
         receiver.close()

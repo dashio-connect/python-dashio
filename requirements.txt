@@ -1,0 +1,7 @@
+paho-mqtt
+pyzmq
+python-dateutil
+zeroconf
+shortuuid
+pyserial
+astral

@@ -36,25 +36,31 @@ def num(s_num: str):
     except ValueError:
         return float(s_num)
 
+
 def _read_control_task(data, task):
     logging.debug("READ_CONTROL: %s", data)
     return data[+3]
+
 
 def _if_task(data, task):
     logging.debug("IF: %s", data)
     return ""
 
+
 def _endif_task(data, task):
     logging.debug("ENDIF: %s", data)
-    return  ''
+    return ''
+
 
 def _send_alarm_task(data, task):
     logging.debug("SEND_ALARM: %s", data)
-    return  ''
+    return ''
+
 
 def _write_control_task(data, task):
     logging.debug("WRITE_CONTROL: %s", data)
     return ""
+
 
 MESSAGE_FORMAT_INPUTS = {
     "AVD": ["url"],
@@ -83,12 +89,13 @@ MESSAGE_FORMAT_OUTPUTS = {
     "TGRPH": "\t{device_id}\tTGRPH\t{control_id}\t{url}",
     "KNOB": "\t{device_id}\tKNOB\t{control_id}\t{url}",
     "KBDL": "\t{device_id}\tKBDL\t{control_id}\t{url}",
-    "SLCTR":"\t{device_id}\tSLCTR\t{control_id}\t{url}",
+    "SLCTR": "\t{device_id}\tSLCTR\t{control_id}\t{url}",
     "SLDR": "\t{device_id}\tSLDR\t{control_id}\t{url}",
     "DIR": "\t{device_id}\tDIR\t{control_id}\t{url}",
     "LOG": "\t{device_id}\tLOG\t{control_id}\t{url}",
     "LBL": "\t{device_id}\tLBL\t{control_id}\t{url}",
 }
+
 
 class TaskService(threading.Thread):
     """Task Class"""
@@ -203,7 +210,6 @@ class TaskService(threading.Thread):
     def _do_actions(self, msg):
         for action in self.actions:
             self.action_function_dict[action['objectType']](action, msg)
-
 
     def run(self):
         task_receiver = self.context.socket(zmq.SUB)

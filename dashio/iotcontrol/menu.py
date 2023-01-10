@@ -69,6 +69,7 @@ class MenuConfig(ControlConfig):
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls
 
+
 class Menu(Control):
     """A Menu Control
     """

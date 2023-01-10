@@ -23,6 +23,7 @@ SOFTWARE.
 """
 from enum import Enum
 
+
 class ControlName(Enum):
     """
     All the control names
@@ -43,6 +44,7 @@ class ControlName(Enum):
     DIR = "DIR"
     LOG = "LOG"
     LBL = "LBL"
+
 
 class Icon(Enum):
     """
@@ -177,6 +179,7 @@ class ButtonState(Enum):
     """Button states"""
     ON = "ON"
     OFF = "OFF"
+
 
 class Keyboard(Enum):
     """Keyboards"""

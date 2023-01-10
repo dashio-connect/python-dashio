@@ -114,6 +114,7 @@ GATT_MANAGER_IFACE = "org.bluez.GattManager1"
 GATT_SERVICE_IFACE = "org.bluez.GattService1"
 GATT_DESC_IFACE = "org.bluez.GattDescriptor1"
 
+
 class DashIOAdvertisement(dbus.service.Object):
     """BLE Advertisement
     """
@@ -184,13 +185,16 @@ class InvalidArgsException(dbus.exceptions.DBusException):
     """DBUS errors"""
     _dbus_error_name = "org.freedesktop.DBus.Error.InvalidArgs"
 
+
 class NotSupportedException(dbus.exceptions.DBusException):
     """DBUS errors"""
     _dbus_error_name = "org.bluez.Error.NotSupported"
 
+
 class NotPermittedException(dbus.exceptions.DBusException):
     """DBUS errors"""
     _dbus_error_name = "org.bluez.Error.NotPermitted"
+
 
 class BLEConnection(dbus.service.Object, threading.Thread):
     """BLEConnection
@@ -243,7 +247,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
     def _ble_rx(self, msg: str):
         self.tx_zmq_pub.send_multipart([self.b_connection_id, b'1', msg.encode('utf-8')])
 
-    def __init__(self, ble_uuid=None, context: zmq.Context=None):
+    def __init__(self, ble_uuid=None, context: zmq.Context = None):
         """BLE Connection
 
         Parameters
@@ -381,6 +385,7 @@ class DashIOService(dbus.service.Object):
         if iface != GATT_SERVICE_IFACE:
             raise InvalidArgsException()
         return self.get_properties()[GATT_SERVICE_IFACE]
+
 
 class DashConCharacteristic(dbus.service.Object):
     """

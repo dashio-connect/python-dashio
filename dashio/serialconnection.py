@@ -49,8 +49,7 @@ class SerialConnection(threading.Thread):
             device.register_connection(self)
             self.local_device_id_list.append(device.device_id)
 
-
-    def __init__(self, serial_port='/dev/ttyUSB0', baud_rate=38400, context: zmq.Context=None):
+    def __init__(self, serial_port='/dev/ttyUSB0', baud_rate=38400, context: zmq.Context = None):
         """TCP Connection
 
         Parameters
@@ -104,9 +103,9 @@ class SerialConnection(threading.Thread):
                 break
             if self.rx_zmq_sub in socks:
                 try:
-                    [_, data]= self.rx_zmq_sub.recv_multipart()
+                    [_, data] = self.rx_zmq_sub.recv_multipart()
                 except ValueError:
-                    # If there aren't two parts continue.
+                    #  If there aren't two parts continue.
                     continue
                 if not data:
                     continue

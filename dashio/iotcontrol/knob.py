@@ -24,6 +24,7 @@ SOFTWARE.
 from .control import Control, ControlPosition, ControlConfig, _get_color, _get_title_position, _get_knob_style
 from .enums import Color, KnobStyle, TitlePosition
 
+
 class KnobConfig(ControlConfig):
     """KnobConfig"""
     def __init__(
@@ -41,7 +42,7 @@ class KnobConfig(ControlConfig):
         dial_color: Color,
         knob_color: Color,
         control_position=None,
-        ) -> None:
+    ) -> None:
         super().__init__(control_id, title, control_position, title_position)
         self.cfg["style"] = str(knob_style.value)
         self.cfg["min"] = dial_min
@@ -83,6 +84,7 @@ class KnobConfig(ControlConfig):
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls
+
 
 class Knob(Control):
     """A Knob control

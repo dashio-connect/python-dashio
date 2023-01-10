@@ -39,7 +39,7 @@ class DirectionConfig(ControlConfig):
         precision: Precision,
         calibration_angle: float,
         control_position: ControlPosition
-        ) -> None:
+    ) -> None:
         super().__init__(control_id, title, control_position, title_position)
         self.cfg["style"] = str(style.value)
         self.cfg["pointerColor"] = str(pointer_color.value)
@@ -78,7 +78,6 @@ class DirectionConfig(ControlConfig):
 class Direction(Control):
     """Direction control"""
 
-
     def add_config_columnar(self, config: DirectionConfig):
         if isinstance(config, DirectionConfig):
             config.cfg["calAngle"] = self.cal_angle
@@ -90,7 +89,6 @@ class Direction(Control):
             config.cfg["calAngle"] = self.cal_angle
             config.cfg["ControlID"] = self.control_id
             self._cfg_full_page.append(config)
-
 
     def __init__(
         self,
@@ -150,7 +148,6 @@ class Direction(Control):
         """Retturns the calibration angle"""
         return self._cal_angle
 
-
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict):
         """Instatiates Direction from cfg dictionary
@@ -177,8 +174,6 @@ class Direction(Control):
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls
-
-
 
     def get_state(self):
         if self._direction_text:
