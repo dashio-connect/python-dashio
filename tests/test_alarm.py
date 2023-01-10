@@ -9,8 +9,6 @@ class TestControl(unittest.TestCase):
         json_str = cfg_str.rpartition('\t')[2]
         return json.loads(json_str)
 
-       
-
 
 if __name__ == '__main__':
     unittest.main()
