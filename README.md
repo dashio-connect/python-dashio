@@ -113,7 +113,7 @@ def knob_event_handler(msg):
     first_dial_control.dial_value = float(msg[3])
 
 aknob = dashio.Knob("aKNB", control_position=dashio.ControlPosition(0.24, 0.14, 0.54, 0.26))
-aknob.message_rx_event += knob_event_handler
+aknob.add_receive_message_callback += knob_event_handler
 dv.add_control(aknob)
 device.add_control(aknob)
 
@@ -310,7 +310,7 @@ When these attributes are set the button control will transmit the new value to 
 
 ##### Button Callbacks
 
-* *message_rx_event(msg: list):* Call callback with msg from **Dash** app. The msg is a list formed by splitting the message from the **Dash** app on the tab character.
+* *add_receive_message_callback(callback):* Add callback to handle the message from the **Dash** app. The callback recieves a list formed by splitting the message from the **Dash** app on the tab character.
 
 #### Button Group
 
@@ -355,7 +355,7 @@ be shown as either a spectrum or as a colour wheel and brightness slider.
 
 ##### Color Picker Callbacks
 
-* *message_rx_event(msg: list):* Call callback with msg from **Dash** app. The msg is a list formed by splitting the message from the **Dash** app on the tab character.
+* *add_receive_message_callback(callback):* Add callback to handle the message from the **Dash** app. The callback recieves a list formed by splitting the message from the **Dash** app on the tab character.
 
 #### Direction
 
@@ -386,7 +386,7 @@ A Direction display is used to graphically present a decimal direction value fro
 
 ##### Direction Callbacks
 
-* *message_rx_event(msg: list):* Call callback with msg from **Dash** app. The msg is a list formed by splitting the message from the **Dash** app on the tab character.
+* *add_receive_message_callback(callback):* Add callback to handle the message from the **Dash** app. The callback recieves a list formed by splitting the message from the **Dash** app on the tab character.
 
 #### Dial
 
@@ -421,7 +421,7 @@ A Dial display is used to present a numerical value in a graphical circular dial
 
 ##### Dial Callbacks
 
-* *message_rx_event(msg: list):* Call callback with msg from **Dash** app. The msg is a list formed by splitting the message from the **Dash** app on the tab character.
+* *add_receive_message_callback(callback):* Add callback to handle the message from the **Dash** app. The callback recieves a list formed by splitting the message from the **Dash** app on the tab character.
 
 #### Event Log
 
@@ -541,7 +541,7 @@ The IoT device may send messages to update both the dial and knob positions.
 
 ##### Knob Callbacks
 
-* *message_rx_event(msg: list):* Call callback with msg from **Dash** app. The msg is a list formed by splitting the message from the **Dash** app on the tab character.
+* *add_receive_message_callback(callback):* Add callback to handle the message from the **Dash** app. The callback recieves a list formed by splitting the message from the **Dash** app on the tab character.
 
 #### Label
 
@@ -619,7 +619,7 @@ Feedback to the user of the dashboard is achieved when the IoT device responds t
 
 ##### Selector Callbacks
 
-* *message_rx_event(msg: list):* Call callback with msg from **Dash** app. The msg is a list formed by splitting the message from the **Dash** app on the tab character.
+* *add_receive_message_callback(callback):* Add callback to handle the message from the **Dash** app. The callback recieves a list formed by splitting the message from the **Dash** app on the tab character.
 
 #### Slider
 
@@ -660,7 +660,7 @@ The knob of the slider may be disabled so that the slider becomes a simple bar g
 
 ##### Slider Callbacks
 
-* *message_rx_event(msg: list):* Call callback with msg from **Dash** app. The msg is a list formed by splitting the message from the **Dash** app on the tab character.
+* *add_receive_message_callback(callback):* Add callback to handle the message from the **Dash** app. The callback recieves a list formed by splitting the message from the **Dash** app on the tab character.
 
 #### Text Box
 
@@ -694,7 +694,7 @@ The Text Box may also allow the user to input text. Touching the control will pr
 
 ##### Text Box Callbacks
 
-* *message_rx_event(msg: list):* Call callback with msg from **Dash** app. The msg is a list formed by splitting the message from the **Dash** app on the tab character.
+* *add_receive_message_callback(callback):* Add callback to handle the message from the **Dash** app. The callback recieves a list formed by splitting the message from the **Dash** app on the tab character.
 
 #### Time Graph
 
