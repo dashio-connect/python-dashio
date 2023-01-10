@@ -44,7 +44,6 @@ from .iotcontrol import (
     AudioVisualDisplay, ControlConfig
 )
 
-
 CONTROL_INSTANCE_DICT = {
     "AVD": AudioVisualDisplay,
     "DVVW": DeviceView,
@@ -82,6 +81,7 @@ CONFIG_INSTANCE_DICT = {
     "LOG": ControlConfig,
     "LBL": ControlConfig
 }
+
 
 def decode_cfg64(cfg: str) -> dict:
     """decodes a CFG from iotdasboard app
@@ -121,6 +121,7 @@ def encode_cfg64(cfg: dict) -> str:
     tmp_z = compress.compress(cfg_json.encode())
     tmp_z += compress.flush()
     return base64.b64encode(tmp_z).decode()
+
 
 def get_control_from_config(control_type: str, control_id: str, cfg_dict: dict):
     """Returns a control object instantiated from cfg_dict

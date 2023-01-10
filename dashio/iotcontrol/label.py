@@ -24,6 +24,7 @@ SOFTWARE.
 from .control import Control, ControlPosition, ControlConfig, _get_color, _get_title_position, _get_label_style
 from .enums import Color, LabelStyle, TitlePosition
 
+
 class LabelConfig(ControlConfig):
     """LabelConfig"""
     def __init__(
@@ -34,7 +35,7 @@ class LabelConfig(ControlConfig):
         color: Color,
         style: LabelStyle,
         control_position: ControlPosition
-        ) -> None:
+    ) -> None:
         super().__init__(control_id, title, control_position, title_position)
         self.cfg["style"] = style.value
         self.cfg["color"] = str(color.value)
@@ -95,13 +96,13 @@ class Label(Control):
         """
         super().__init__("LBL", control_id)
         control_config = LabelConfig(
-                control_id,
-                title,
-                title_position,
-                color,
-                style,
-                control_position
-            )
+            control_id,
+            title,
+            title_position,
+            color,
+            style,
+            control_position
+        )
         self._cfg_columnar.append(control_config)
         self._state_str = ""
 

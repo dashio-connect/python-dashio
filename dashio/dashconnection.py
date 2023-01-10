@@ -42,7 +42,7 @@ class DashControl():
         """
         return ""
 
-    def get_cfg(self, data) -> str:
+    def get_cfg(self, data: list) -> str:
         """Returns the CFG info for the Dash connection. Called by iotdashboard app
 
         Parameters
@@ -60,10 +60,10 @@ class DashControl():
             dashboard_id = data[2]
         except IndexError:
             return ""
-        cfg_str =f"\tCFG\t{dashboard_id}\t" + self.cntrl_type + "\t" + json.dumps(self._cfg) + "\n"
+        cfg_str = f"\tCFG\t{dashboard_id}\t" + self.cntrl_type + "\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
 
-    def get_cfg64(self, data) -> dict:
+    def get_cfg64(self, data: list) -> dict:
         """Returns the CFG dict for this TCP control
 
         Returns
@@ -202,7 +202,6 @@ class DashConnection(threading.Thread):
         logging.debug("DASH SEND ANNOUNCE: %s", msg)
         self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg).encode()])
 
-
     def set_connection(self, username: str, password: str):
         """Changes the connection to the DashIO server
 
@@ -225,7 +224,7 @@ class DashConnection(threading.Thread):
         host='dash.dashio.io',
         port=8883,
         use_ssl=True,
-        context: zmq.Context=None
+        context: zmq.Context = None
     ):
         """
         Setups and manages a connection thread to the Dash Server.
@@ -289,8 +288,6 @@ class DashConnection(threading.Thread):
         # Start subscribe, with QoS level 0
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         self.disconnect_timeout = 15.0
-
-       
         self.start()
 
     def close(self):
@@ -310,8 +307,7 @@ class DashConnection(threading.Thread):
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
         self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
 
-        
-        # Subscribe on ALL, and my connection
+        #  Subscribe on ALL, and my connection
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "DASH")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.zmq_connection_uuid)

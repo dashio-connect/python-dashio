@@ -24,9 +24,7 @@ SOFTWARE.
 import json
 import socket
 import threading
-import shortuuid
 import zmq
-import time
 import logging
 from zeroconf import ServiceBrowser, ServiceInfo, Zeroconf
 
@@ -62,7 +60,7 @@ class ZeroConfDashTCPListener:
 
     def remove_service(self, zeroconf, service_type, name):
         """Remove service"""
-        connection_uuid  = name.split("._", 1)[0]
+        connection_uuid = name.split("._", 1)[0]
         if service_type == self.service_type and connection_uuid != self.connection_uuid:
             msg = {
                 'objectType': 'zeroConfDisconnect',
@@ -72,7 +70,7 @@ class ZeroConfDashTCPListener:
 
     def add_service(self, zeroconf, service_type, name):
         """add service"""
-        connection_uuid  =name.split(".", 1)[0]
+        connection_uuid = name.split(".", 1)[0]
         if service_type == self.service_type and connection_uuid != self.connection_uuid:
             info = zeroconf.get_service_info(service_type, name)
             if info:
@@ -80,7 +78,7 @@ class ZeroConfDashTCPListener:
 
     def update_service(self, zeroconf, service_type, name):
         """update service"""
-        connection_uuid  =name.split(".", 1)[0]
+        connection_uuid = name.split(".", 1)[0]
         if service_type == self.service_type and connection_uuid != self.connection_uuid:
             info = zeroconf.get_service_info(service_type, name)
             if info:
@@ -88,7 +86,6 @@ class ZeroConfDashTCPListener:
 
 
 class ZeroconfService(threading.Thread):
-
 
     def _get_ext_ip_address(self):
         """Find the external IP address."""
@@ -102,7 +99,6 @@ class ZeroconfService(threading.Thread):
         finally:
             test_s.close()
         return i_address
-
 
     def _zconf_update_zmq(self):
         zconf_desc = {
@@ -136,7 +132,7 @@ class ZeroconfService(threading.Thread):
         self.zeroconf.unregister_all_services()
         self.zeroconf.close()
 
-    def __init__(self, connection_uuid: str, ip_address: str, port: int, context=None):
+    def __init__(self, connection_uuid: str, ip_address: str, port: int, context: zmq.Context = None):
         threading.Thread.__init__(self, daemon=True)
         self.context = context or zmq.Context.instance()
         self.connection_uuid = connection_uuid

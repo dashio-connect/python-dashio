@@ -8,10 +8,12 @@ import serial
 import zmq
 
 from ..constants import TASK_PULL, CONNECTION_PUB_URL
-from .action_station_service_config import (ActionServiceCFG, IntParameterSpec,
-                                    ListParameterSpec, SelectorParameterSpec)
-
-
+from .action_station_service_config import (
+    ActionServiceCFG,
+    IntParameterSpec,
+    ListParameterSpec,
+    SelectorParameterSpec
+)
 
 
 def serial_ports():
@@ -76,7 +78,7 @@ def make_modbus_config(num_tests):
                         "int_64",
                         "uint_64"
                     ],
-                     "uint_16",
+                    "uint_16",
                 ),
                 IntParameterSpec(
                     "Number of register to read from base address (Optional).",
@@ -121,14 +123,13 @@ def make_modbus_config(num_tests):
         True,
         provisioning_list,
         parameter_list_in
-        #parameter_list_out
+        #  parameter_list_out
     )
     return timer_cfg.__json__()
 
+
 class ModbusService(threading.Thread):
     """Action Station Template Class"""
-
-
 
     def send_message(self, out_message=""):
         """Send the message"""
@@ -161,7 +162,6 @@ class ModbusService(threading.Thread):
 
         self.start()
 
-
     def run(self):
         receiver = self.context.socket(zmq.SUB)
         receiver.connect(self.sub_url)
@@ -178,7 +178,6 @@ class ModbusService(threading.Thread):
                 message, _ = receiver.recv()
                 if message:
                     logging.debug("%s\t%s RX:\n%s", self.control_type, self.control_id, message.decode())
-
 
         self.task_sender.close()
         receiver.close()

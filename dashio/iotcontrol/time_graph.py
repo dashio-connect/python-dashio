@@ -131,6 +131,7 @@ class TimeGraphLine:
         data_str = "\t" + str(self.data.get_latest()) + "\n"
         return data_str
 
+
 class TimeGraphConfig(ControlConfig):
     """TimeGraphConfig"""
     def __init__(
@@ -175,6 +176,7 @@ class TimeGraphConfig(ControlConfig):
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls
+
 
 class TimeGraph(Control):
     """A TimeGraph control

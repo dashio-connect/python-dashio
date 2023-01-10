@@ -29,6 +29,7 @@ from .control import Control, ControlPosition, ControlConfig, _get_title_positio
 from .enums import Color, TitlePosition
 from .ring_buffer import RingBuffer
 
+
 class EventData:
     """Event log data point
     """
@@ -76,7 +77,6 @@ class EventData:
         return header
 
 
-
 class EventLog(Control):
     """EventLog control
     """
@@ -109,7 +109,6 @@ class EventLog(Control):
 
         self.message_rx_event = self._get_log_from_timestamp
         self.log = RingBuffer(max_log_entries)
-
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict):
@@ -148,7 +147,6 @@ class EventLog(Control):
                 has_data = True
         if has_data:
             return data_str
-
 
     def add_event_data(self, data: EventData):
         """Add a data point to the log and send it to any connected iotdashboard app

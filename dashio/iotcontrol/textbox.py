@@ -42,7 +42,7 @@ class TextBoxConfig(ControlConfig):
         keyboard_type: Keyboard,
         close_keyboard_on_send: bool,
         control_position: ControlPosition
-        ) -> None:
+    ) -> None:
         super().__init__(control_id, title, control_position, title_position)
         self.cfg["text"] = text.translate(BAD_CHARS)
         self.cfg["textAlign"] = text_align.value
@@ -80,6 +80,7 @@ class TextBoxConfig(ControlConfig):
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls
+
 
 class TextBox(Control):
     """A TextBox control
@@ -146,7 +147,6 @@ class TextBox(Control):
 
     def get_state(self):
         return self._control_hdr_str + f"{self.text}\n"
-
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict):

@@ -179,7 +179,7 @@ class Device(threading.Thread):
                     dvvw_str += self._device_id_str + cfg
             else:
                 cfg_list = control.get_cfg(data)
-                #logging.debug("CFG: %s", cfg_list)
+                #  logging.debug("CFG: %s", cfg_list)
                 for cfg in cfg_list:
                     reply += self._device_id_str + cfg
         reply += dvvw_str
@@ -231,7 +231,6 @@ class Device(threading.Thread):
                         new_control = CONTROL_INSTANCE_DICT[control_type].from_cfg_dict(control)
                         self.add_control(new_control)
 
-
     def add_control(self, iot_control):
         """Add a control to the device.
 
@@ -281,7 +280,6 @@ class Device(threading.Thread):
         key = f"{iot_control.cntrl_type}\t{iot_control.control_id}"
         if key in self.controls_dict:
             del self.controls_dict[key]
-        
 
     def _set_devicesetup(self, control_name: str, settable: bool):
         if settable:
@@ -463,7 +461,7 @@ class Device(threading.Thread):
         device_name: str,
         add_actions: bool = False,
         cfg_dict: dict = None,
-        context: zmq.Context=None
+        context: zmq.Context = None
     ) -> None:
         """DashDevice
 
@@ -509,7 +507,7 @@ class Device(threading.Thread):
         if cfg_dict is not None:
             self._cfg["cfgRev"] = cfg_dict['CFG']['cfgRev']
             self.add_all_c64_controls(cfg_dict)
-        
+
         self._add_actions = add_actions
         if self._add_actions:
             self._add_action_device_setup(True)
@@ -617,7 +615,7 @@ class Device(threading.Thread):
                     [data, msg_from] = self.rx_zmq_sub.recv_multipart()
                 except ValueError:
                     logging.debug("Device value error")
-                #logging.debug("DEVICE RX: %s ,%s", msg_from, data)
+                #  logging.debug("DEVICE RX: %s ,%s", msg_from, data)
                 if data == b"COMMAND":
                     msg_dict = json.loads(msg_from)
                     self._local_command(msg_dict)

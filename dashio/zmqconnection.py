@@ -53,7 +53,6 @@ class ZMQConnection(threading.Thread):
         )
         self.zeroconf.update_service(zconf_info)
 
-
     def add_device(self, device):
         """Add a Device to the connextion
 
@@ -67,7 +66,6 @@ class ZMQConnection(threading.Thread):
             device.register_connection(self)
             self._send_dash_announce()
 
-
     def _send_dash_announce(self):
         msg = {
             'msgType': 'send_announce',
@@ -76,7 +74,6 @@ class ZMQConnection(threading.Thread):
         logging.debug("ZMQ SEND ANNOUNCE: %s", msg)
         self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg).encode()])
 
-
     def close(self):
         """Close the connection."""
 
@@ -84,7 +81,7 @@ class ZMQConnection(threading.Thread):
         self.zeroconf.close()
         self.running = False
 
-    def __init__(self, zmq_out_url="*", pub_port=5555, sub_port=5556, context: zmq.Context=None):
+    def __init__(self, zmq_out_url="*", pub_port=5555, sub_port=5556, context: zmq.Context = None):
         """ZMQConnection
 
         Parameters
@@ -116,17 +113,16 @@ class ZMQConnection(threading.Thread):
         self._zconf_publish_zmq(sub_port, pub_port)
         self.start()
 
-
     def _add_device_rx(self, msg_dict):
         """Connect to another device"""
         device_id = msg_dict["deviceID"]
         logging.debug("ZMQ DEVICE CONNECT: %s", device_id)
-        # TODO finish this
+        #  TODO finish this
 
     def _del_device_rx(self, msg_dict):
         device_id = msg_dict["deviceID"]
         logging.debug("TCP DEVICE_DISCONNECT: %s", device_id)
-         # TODO finish this
+        #  TODO finish this
 
     def _zmq_command(self, msg_dict: dict):
         logging.debug("TCP CMD: %s", msg_dict)

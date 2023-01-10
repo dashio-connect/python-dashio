@@ -26,7 +26,6 @@ from .control import Control, ControlPosition, ControlConfig, _get_title_positio
 from .enums import (ColorPickerStyle, TitlePosition)
 
 
-
 class ColorPickerConfig(ControlConfig):
     """ColorPickerConfig"""
     def __init__(
@@ -37,7 +36,7 @@ class ColorPickerConfig(ControlConfig):
         style: ColorPickerStyle,
         send_only_on_release: bool,
         control_position: ControlPosition
-        ) -> None:
+    ) -> None:
         super().__init__(control_id, title, control_position, title_position)
         self.cfg["style"] = style.value
         self.cfg["sendOnlyOnRelease"] = send_only_on_release
@@ -65,6 +64,7 @@ class ColorPickerConfig(ControlConfig):
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls
+
 
 class ColorPicker(Control):
     """Color Picker Control
@@ -110,7 +110,6 @@ class ColorPicker(Control):
         )
         self._color_value = "#4F5GA2"
 
-
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict):
         """Instatiates ColorPicker from cfg dictionary
@@ -135,23 +134,19 @@ class ColorPicker(Control):
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls
 
-
     def get_state(self):
         return self._control_hdr_str + f"{self._color_value}\n"
-
 
     def send_color_rgb(self, red: int, green: int, blue: int):
         """Send color as #rrggbb for the given color values."""
         self._color_value = f"#{red:02x}{green:02x}{blue:02x}"
         self.state_str = self._control_hdr_str + f"{self._color_value}\n"
 
-
-    def color_to_rgb(self, color_value:str) -> tuple:
+    def color_to_rgb(self, color_value: str) -> tuple:
         """Return (red, green, blue) for the color_value."""
         clr = color_value.lstrip('#')
         len_v = len(clr)
         return tuple(int(clr[i:i + len_v // 3], 16) for i in range(0, len_v, len_v // 3))
-
 
     @property
     def color_value(self) -> str:

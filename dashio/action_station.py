@@ -183,7 +183,6 @@ class ActionStation(threading.Thread):
             new_c64 = encode_cfg64(new_cfg_dict)
         return new_c64
 
-
     def add_gui_controls(self, g_object: dict):
         """Add a GUI control"""
         cfg_dict = decode_cfg64(g_object["provisioning"])
@@ -314,7 +313,7 @@ class ActionStation(threading.Thread):
             logging.debug("Key Error: %s", error)
             result['result'] = False
         reply = f"\t{self.device_id}\tACTN\tDELETE\t{json.dumps(result)}\n"
-        self.save_action(self._json_filename,  self.action_station_dict)
+        self.save_action(self._json_filename, self.action_station_dict)
         return reply
 
     def _rx_command(self, msg):
@@ -341,7 +340,7 @@ class ActionStation(threading.Thread):
             logging.debug("%s, %s", msg, error)
             result['message'] = msg
         if result['result']:
-            self.save_action(self._json_filename,  self.action_station_dict)
+            self.save_action(self._json_filename, self.action_station_dict)
         reply = f"\t{self.device_id}\tACTN\tUPDATE\t{json.dumps(result)}\n"
         return reply
 
@@ -350,7 +349,7 @@ class ActionStation(threading.Thread):
         reply = ""
         return reply
 
-    def __init__(self, device, max_actions=100, number_timers=10, memory_storage_size=0, context: zmq.Context=None):
+    def __init__(self, device, max_actions=100, number_timers=10, memory_storage_size=0, context: zmq.Context = None):
         """Action Station"""
         threading.Thread.__init__(self, daemon=True)
         self.context = context or zmq.Context.instance()
@@ -373,7 +372,7 @@ class ActionStation(threading.Thread):
             'MDBS': ModbusService,
             'CLK': ClockService
         }
-        self.thread_dicts = {} # For the Instantiated control and task objects.
+        self.thread_dicts = {}  # For the Instantiated control and task objects.
 
         self._action_station_commands = {
             "LIST": self._list_command,
@@ -392,7 +391,7 @@ class ActionStation(threading.Thread):
         self.configs[test_cfg['uuid']] = test_cfg
         self.configs[modbus_cfg['uuid']] = modbus_cfg
         self.configs[clock_cfg['uuid']] = clock_cfg
-        self.zmq_service_uuid =  "SRVC:" + shortuuid.uuid()
+        self.zmq_service_uuid = "SRVC:" + shortuuid.uuid()
         if not self.action_station_dict:
             self.zmq_connection_uuid = "ACTN:" + shortuuid.uuid()
             self.action_station_dict['actionStationID'] = self.zmq_connection_uuid
@@ -419,16 +418,16 @@ class ActionStation(threading.Thread):
         self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
 
         self.device_zmq_sub = self.context.socket(zmq.SUB)
-        # Subscribe on ALL, and my connection
+        #  Subscribe on ALL, and my connection
         self.device_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")
         self.device_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.zmq_connection_uuid)
 
-        # rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
+        #  rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
         self.connection_zmq_sub = self.context.socket(zmq.SUB)
         self.connection_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "COMMAND")
-        self.connection_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "\t") # - All valid DashIO messaging
+        self.connection_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "\t")  # - All valid DashIO messaging
 
-        # Socket to receive messages on
+        #  Socket to receive messages on
         task_receiver = self.context.socket(zmq.PULL)
         task_receiver.bind(TASK_PULL.format(id=self.zmq_service_uuid))
 
@@ -488,7 +487,7 @@ class ActionStation(threading.Thread):
                 logging.debug("MEM Rx: %s", message)
                 if len(message) == 3:
                     if message[0] == b'SET':
-                        self.memory_tasks[message[1].decode()]=message[2].decode()
+                        self.memory_tasks[message[1].decode()] = message[2].decode()
                         logging.debug("MEM Tx: SET: %s, TO: %s", message[1], message[2])
                         memory_socket.send_multipart([message[0], message[1], message[2]])
                     if message[0] == b'GET':
@@ -496,8 +495,7 @@ class ActionStation(threading.Thread):
                         memory_socket.send_multipart([message[0], message[1], self.memory_tasks[message[1].decode()].encode()])
                 #  Send error reply back to client
                 else:
-                    memory_socket.send_multipart([b'ERROR',b'ERROR',b'ERROR'])
-
+                    memory_socket.send_multipart([b'ERROR', b'ERROR', b'ERROR'])
 
         self.tx_zmq_pub.close()
         self.device_zmq_sub.close()

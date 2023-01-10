@@ -89,6 +89,7 @@ class MapLocation:
         """
         return f"\t{self.latitude},{self.longitude}\n"
 
+
 class MapTrack:
     """A Map track
     """
@@ -133,7 +134,6 @@ class MapTrack:
         """
         reply = f"{self.track_id}" + self.locations[-1].get_simple_format()
         return reply
-
 
 
 class Map(Control):
@@ -198,7 +198,7 @@ class Map(Control):
         if self.tracks:
             for _, value in self.tracks:
                 if value.track_start_time > from_timestamp:
-                    reply =+ self._control_hdr_str + dashboard_id + value.get_track() + "\n"
+                    reply = + self._control_hdr_str + dashboard_id + value.get_track() + "\n"
         return reply
 
     def add_location_to_track(self, location: MapLocation, track_id: str) -> None:

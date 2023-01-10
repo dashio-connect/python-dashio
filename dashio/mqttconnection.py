@@ -43,15 +43,14 @@ class MQTTConnection(threading.Thread):
             self._disconnected = False
             for device_id in self._device_id_list:
                 control_topic = f"{self.username}/{device_id}/control"
-                self._dash_c.subscribe(control_topic, 0)
+                self.mqttc.subscribe(control_topic, 0)
             for device_id in self._device_id_rx_list:
                 data_topic = f"{self.username}/{device_id}/data"
-                self._dash_c.subscribe(data_topic, 0)
+                self.mqttc.subscribe(data_topic, 0)
             self._send_dash_announce()
             logging.debug("connected OK")
         else:
             logging.debug("Bad connection Returned code=%s", msg)
-
 
     def _on_disconnect(self, client, userdata, msg):
         logging.debug("disconnecting reason  %s", msg)
@@ -61,8 +60,7 @@ class MQTTConnection(threading.Thread):
     def _on_message(self, client, obj, msg):
         data = str(msg.payload, "utf-8").strip()
         logging.debug("MQTT RX:\n%s", data)
-        self.tx_zmq_pub.send_multipart([msg.payload, self._b_zmq_connection_uuid])
-
+        self.tx_zmq_pub.send_multipart([msg.payload, self.b_connection_id])
 
     def _on_subscribe(self, client, obj, mid, granted_qos):
         logging.debug("Subscribed: %s %s", str(mid), str(granted_qos))
@@ -115,7 +113,7 @@ class MQTTConnection(threading.Thread):
         """Close the connection."""
         self.running = False
 
-    def __init__(self, host, port, username="", password="", use_ssl=False, context: zmq.Context=None):
+    def __init__(self, host, port, username="", password="", use_ssl=False, context: zmq.Context = None):
         """
         Setups and manages a connection thread to the MQTT Server.
 
@@ -200,8 +198,7 @@ class MQTTConnection(threading.Thread):
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
 
-
-        # Subscribe on ALL, and my connection
+        #  Subscribe on ALL, and my connection
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"MQTT")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.zmq_connection_uuid)

@@ -39,7 +39,7 @@ class ButtonConfig(ControlConfig):
         off_color: Color,
         text: str,
         control_position: ControlPosition
-        ) -> None:
+    ) -> None:
         super().__init__(control_id, title, control_position, title_position)
         self.cfg["text"] = text.translate(BAD_CHARS)
         self.cfg["iconName"] = icon_name.value
@@ -74,6 +74,7 @@ class ButtonConfig(ControlConfig):
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls
 
+
 class Button(Control):
     """A Button control.
 
@@ -106,7 +107,6 @@ class Button(Control):
     from_cfg_dict(cfg_dict: dict) :
         Instatiates Button from cfg dictionary
     """
-
 
     def toggle_btn(self):
         """
@@ -185,12 +185,11 @@ class Button(Control):
             The controls state
         """
         text = self._text
-        if (not text) and ( self.icon_name == Icon.NONE):
+        if (not text) and (self.icon_name == Icon.NONE):
             return self._control_hdr_str + f"{self._btn_state.value}\n"
         if (not text) and self.icon_name != Icon.NONE:
             return self._control_hdr_str + f"{self._btn_state.value}\t{self._icon_name.value}\n"
         return self._control_hdr_str + f"{self._btn_state.value}\t{self._icon_name.value}\t{text}\n"
-
 
     @property
     def icon_name(self) -> Icon:

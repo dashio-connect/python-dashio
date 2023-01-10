@@ -27,19 +27,22 @@ import threading
 import zmq
 
 from ..constants import CONNECTION_PUB_URL, TASK_PULL
-from .action_station_service_config import (ActionServiceCFG, IntParameterSpec,
-                                            SelectorParameterSpec)
+from .action_station_service_config import (
+    ActionServiceCFG,
+    IntParameterSpec,
+    SelectorParameterSpec
+)
 
 
 # This defines the provisioning for the TIMER
 def make_timer_config(num_timers):
     """Make a timer config"""
     provisioning_list = [
-        SelectorParameterSpec("Timer Type",["Repeat", "OneShot"], "Repeat"),
+        SelectorParameterSpec("Timer Type", ["Repeat", "OneShot"], "Repeat"),
         IntParameterSpec("Timeout", 100, 600000, "ms", 1000)
     ]
     parameter_in_list = []
-    #parameter_out_list = []
+    #  parameter_out_list = []
 
     timer_cfg = ActionServiceCFG(
         "TMR",
@@ -51,7 +54,7 @@ def make_timer_config(num_timers):
         True,
         provisioning_list,
         parameter_in_list
-        #parameter_out_list
+        #  parameter_out_list
     )
     return timer_cfg.__json__()
 
@@ -68,7 +71,7 @@ class RepeatTimer(threading.Timer):
 # THe device knows the rest (device_id, push_url, context)
 
 # parameter_in_list would be used by the TIMER to parse the incoming message.
-# paramiter_out_list is how to format the output message 
+# paramiter_out_list is how to format the output message
 class TimerService(threading.Thread):
     """Timer Class"""
 
@@ -95,25 +98,24 @@ class TimerService(threading.Thread):
         self.name = control_config_dict['name']
         self.control_type = control_config_dict['objectType']
         provision_list = control_config_dict['provisioning']
-        
+
         self.sub_url = CONNECTION_PUB_URL.format(id=action_station_id)
 
         self.push_url = TASK_PULL.format(id=action_station_id)
         self.task_sender = self.context.socket(zmq.PUSH)
         self.task_sender.connect(self.push_url)
 
-        self.timer_time = int(provision_list[1]['value'])/1000.0
+        self.timer_time = int(provision_list[1]['value']) / 1000.0
         self.timer_type = provision_list[0]['value']
 
         self.control_msg = f"\t{device_id}\t{self.control_type}\t{self.control_id}"
-        
+
         logging.debug("Init Class: %s, %s", self.control_type, self.name)
 
         if self.timer_type == 'Repeat':
             self.timer_type = RepeatTimer(self.timer_time, self.timer_message)
             self.timer_type.start()
         self.start()
-
 
     def run(self):
         receiver = self.context.socket(zmq.SUB)

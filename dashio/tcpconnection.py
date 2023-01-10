@@ -35,6 +35,7 @@ from .constants import CONNECTION_PUB_URL
 from .device import Device
 from .zeroconf_service import ZeroconfService
 
+
 class TCPConnection(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via TCP."""
 
@@ -45,7 +46,6 @@ class TCPConnection(threading.Thread):
         }
         # logging.debug("TCP SEND ANNOUNCE: %s", msg)
         self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg).encode()])
-
 
     def add_device(self, device: Device):
         """Add a device to the connection
@@ -65,7 +65,7 @@ class TCPConnection(threading.Thread):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as port_s:
             return port_s.connect_ex((ip_address, port)) == 0
 
-    def __init__(self, ip_address="*", port=5650, use_zero_conf=True, context: zmq.Context=None):
+    def __init__(self, ip_address="*", port=5650, use_zero_conf=True, context: zmq.Context = None):
         """TCP Connection
 
         Parameters
@@ -85,7 +85,7 @@ class TCPConnection(threading.Thread):
         self.zmq_connection_uuid = "TCP:" + shortuuid.uuid()
         self.b_zmq_connection_uuid = self.zmq_connection_uuid.encode('utf-8')
         self.use_zeroconf = use_zero_conf
-        
+
         if ip_address == "*":
             self.local_ip = ip.get_local_ip_address()
         else:
@@ -95,7 +95,7 @@ class TCPConnection(threading.Thread):
             # increment port until we find one that is free.
             self.local_port += 1
         self.ext_url = "tcp://" + self.local_ip + ":" + str(self.local_port)
-        
+
         self.socket_ids = []
         self.local_device_id_list = []
         self.remote_connection_dict = {}
@@ -234,7 +234,7 @@ class TCPConnection(threading.Thread):
                 self.tcpsocket.send(data, zmq.NOBLOCK)
             except zmq.error.ZMQError as zmq_e:
                 logging.debug("Sending TX Error: %s", zmq_e)
-                #self.socket_ids.remove(tcp_id)
+                #  self.socket_ids.remove(tcp_id)
             except OSError as exc:
                 logging.debug("Socket assignment error: %s", exc)
 
@@ -266,7 +266,7 @@ class TCPConnection(threading.Thread):
             logging.debug("Added Socket ID: %s", tcp_id.hex())
             self.socket_ids.append(tcp_id)
         if message:
-            logging.debug("TCP RX: %s\n%s",tcp_id.hex(), message.decode().rstrip())
+            logging.debug("TCP RX: %s\n%s", tcp_id.hex(), message.decode().rstrip())
             msg_from = self.b_zmq_connection_uuid + b":" + tcp_id
             tx_zmq_pub.send_multipart([message, msg_from])
         else:
