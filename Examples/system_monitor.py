@@ -82,14 +82,14 @@ def parse_commandline_arguments():
                         0 = only warnings, 1 = info, 2 = debug.
                         No number means info. Default is no verbosity.""",
     )
-    parser.add_argument("-s", "--server", help="Server URL.", dest="server", default="localhost")
+    parser.add_argument("-s", "--server", help="Server URL.", dest="server", default="dash.dashio.io")
     parser.add_argument(
-        "-p", "--port", type=int, help="Port number.", default=1883, dest="port",
+        "-p", "--port", type=int, help="Port number.", default=8883, dest="port",
     )
-    parser.add_argument("-d", "--device_id", dest="device_id", default="00001", help="IotDashboard Device ID.")
+    parser.add_argument("-d", "--device_id", dest="device_id", default="3141592654", help="IotDashboard Device ID.")
     parser.add_argument("-n", "--device_name", dest="device_name", default="SystemMon", help="IotDashboard Device name alias.")
-    parser.add_argument("-u", "--username", help="mqtt Username", dest="username", default="")
-    parser.add_argument("-w", "--password", help="MQTT Password", default="")
+    parser.add_argument("-u", "--username", help="DashIO Username", dest="username", default="")
+    parser.add_argument("-w", "--password", help="DashIO Password", default="")
     parser.add_argument("-f", "--inifile", help="ini filename", dest="ini_file", default="system_monitor.ini")
     parser.add_argument("-l", "--logfile", dest="logfilename", default="", help="logfile location", metavar="FILE")
     args = parser.parse_args()
