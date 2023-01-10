@@ -1,5 +1,7 @@
 # DashIO
 
+![Tests](https://github.com/dashio-connect/python-dashio/actions/workflows/tests.yml/badge.svg)
+
 [**DashIO**](http://dashio.io) - a python library to connect and display widgets on the **Dash** app.
 
 ## Beta Testers
