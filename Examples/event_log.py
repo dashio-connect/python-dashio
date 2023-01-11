@@ -29,6 +29,7 @@ import time
 import random
 import dashio
 
+
 class random_insults:
     def __init__(self) -> None:
         self.insult_c1 = [
@@ -129,7 +130,7 @@ class random_insults:
             "unchin-snouted",
             "weather-bitten"
         ]
-        self.insult_c3= [
+        self.insult_c3 = [
             "apple-john",
             "baggage",
             "barnacle",
@@ -178,7 +179,6 @@ class random_insults:
             "vartlot",
             "vassal"
         ]
-
 
     def get_insult(self):
         word1 = random.choice(self.insult_c1)
@@ -246,8 +246,8 @@ class TestEventLog:
         args = self.parse_commandline_arguments()
         self.init_logging(args.logfilename, args.verbose)
         logging.info("       Connection ID: %s", args.device_type)
-        logging.info("       Control topic: %s/%s/control", args.username,  args.device_id)
-        logging.info("          Data topic: %s/%s/data", args.username,  args.device_id)
+        logging.info("       Control topic: %s/%s/control", args.username, args.device_id)
+        logging.info("          Data topic: %s/%s/data", args.username, args.device_id)
 
         device = dashio.Device(args.device_type, args.device_id, args.device_name)
         dash_conn = dashio.DashConnection(args.username, args.password)

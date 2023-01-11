@@ -21,16 +21,16 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-#!/bin/python3
-import time
 import argparse
-import signal
-import dashio
-import platform
-import logging
 import datetime
+import logging
+import platform
+import signal
+import time
+
 from sense_hat import SenseHat
 
+import dashio
 
 
 class TestColorPicker:
@@ -85,20 +85,17 @@ class TestColorPicker:
 
     def color_picker_handler(self, msg):
         print(msg)
-        self.c_picker.color_value=msg[3]
+        self.c_picker.color_value = msg[3]
         try:
             self.sense.clear(self.color_to_rgb(msg[3]))
         except ValueError:
             pass
-
-    
 
     def color_to_rgb(self, color_value):
         """Return (red, green, blue) for the color."""
         clr = color_value.lstrip('#')
         lv = len(clr)
         return tuple(int(clr[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
-
 
     def __init__(self):
 
@@ -122,7 +119,7 @@ class TestColorPicker:
         self.page_name = "Color Picker: " + platform.node()
 
         self.page_test = dashio.DeviceView("Color Picker", self.page_name)
-        self.c_picker = dashio.ColorPicker("CPKR1",control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.45))
+        self.c_picker = dashio.ColorPicker("CPKR1", control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.45))
         self.c_picker.add_receive_message_callback(self.color_picker_handler)
         self.page_test.add_control(self.c_picker)
         self.device.add_control(self.c_picker)
@@ -134,21 +131,23 @@ class TestColorPicker:
             "Temperature",
             dial_max=50,
             red_value=50,
-            units="C")
-        
+            units="C"
+        )
+
         self.humidity_dial = dashio.Dial(
             "Hum",
             "Humidity",
             dial_max=100,
             red_value=100,
-            units="%")
+            units="%"
+        )
         self.pressure_dial = dashio.Dial(
             "pres",
             "Pressure",
             dial_max=1100,
             red_value=1100,
-            units="mb")
-
+            units="mb"
+        )
 
         self.page_thp.add_control(self.temperature_dial)
         self.page_thp.add_control(self.humidity_dial)
@@ -157,7 +156,6 @@ class TestColorPicker:
         self.device.add_control(self.humidity_dial)
         self.device.add_control(self.pressure_dial)
         self.device.add_control(self.page_thp)
-
 
         INTERVAL = 10
         time_now = datetime.datetime.utcnow()
@@ -175,9 +173,5 @@ class TestColorPicker:
         self.device.close()
 
 
-def main():
-    tc = TestColorPicker()
-
-
 if __name__ == "__main__":
-    main()
+    TestColorPicker()

@@ -21,7 +21,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-#!/bin/python3
 from dashio.iotcontrol.enums import DialNumberPosition, DialStyle, DirectionStyle, Precision
 import time
 import random
@@ -129,7 +128,7 @@ class TestControls:
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
         self.context = zmq.Context.instance()
-        
+
         self.ble_con = BLEConnection(context=self.context)
         self.device = dashio.Device(args.connection, args.device_id, args.device_name, context=self.context)
         self.ble_con.add_device(self.device)
@@ -140,10 +139,10 @@ class TestControls:
         self.page_test = dashio.DeviceView("TestBLE", self.page_name)
         self.up_btn = dashio.Button(
             "UP_BTN",
-            title = "Up",
-            icon_name = dashio.Icon.UP,
-            on_color = dashio.Color.GREEN,
-            text = "",
+            title="Up",
+            icon_name=dashio.Icon.UP,
+            on_color=dashio.Color.GREEN,
+            text="",
             control_position=dashio.ControlPosition(0.02, 0.01, 0.22, 0.12)
         )
         self.up_btn.add_receive_message_callback(self.up_btn_event_handler)
@@ -151,10 +150,10 @@ class TestControls:
 
         self.down_btn = dashio.Button(
             "DOWN_BTN",
-            title = "Down",
-            icon_name = dashio.Icon.DOWN,
-            on_color = dashio.Color.GREEN,
-            text = "",
+            title="Down",
+            icon_name=dashio.Icon.DOWN,
+            on_color=dashio.Color.GREEN,
+            text="",
             control_position=dashio.ControlPosition(0.02, 0.86, 0.22, 0.12)
         )
         self.down_btn.add_receive_message_callback(self.down_btn_event_handler)
@@ -162,10 +161,10 @@ class TestControls:
 
         self.sldr_cntrl = dashio.Slider(
             "SLDR",
-            title = "Slider",
-            bar_max = 10,
-            slider_enabled = True,
-            red_value = 10,
+            title="Slider",
+            bar_max=10,
+            slider_enabled=True,
+            red_value=10,
             control_position=dashio.ControlPosition(0.02, 0.13, 0.22, 0.73)
         )
         self.sldr_cntrl.add_receive_message_callback(self.slider_event_handler)
@@ -173,10 +172,10 @@ class TestControls:
 
         self.sldr_dbl_cntrl = dashio.Slider(
             "SLDR_DBL",
-            title = "Slider Double",
-            bar_max = 5,
-            slider_enabled = True,
-            red_value = 5,
+            title="Slider Double",
+            bar_max=5,
+            slider_enabled=True,
+            red_value=5,
             control_position=dashio.ControlPosition(0.78, 0.01, 0.2, 0.98)
         )
         self.sldr_dbl_cntrl.add_receive_message_callback(self.slider_dbl_event_handler)
@@ -184,9 +183,9 @@ class TestControls:
 
         self.knb_control = dashio.Knob(
             "KNB",
-            title = "A Knob",
-            dial_max = 10,
-            red_value = 10,
+            title="A Knob",
+            dial_max=10,
+            red_value=10,
             control_position=dashio.ControlPosition(0.24, 0.14, 0.54, 0.21)
         )
         self.knb_control.add_receive_message_callback(self.knob_event_handler)
@@ -194,8 +193,8 @@ class TestControls:
 
         self.dl_control = dashio.Dial(
             "DIAL1",
-            title = "A Dial",
-            dial_max = 10,
+            title="A Dial",
+            dial_max=10,
             style=DialStyle.BAR,
             units="m/s",
             number_position=DialNumberPosition.CENTER,
@@ -206,10 +205,10 @@ class TestControls:
 
         self.text_cntrl = dashio.TextBox(
             "TXT1",
-            text = "Hello",
-            title = "A text control",
-            keyboard_type = dashio.Keyboard.ALL,
-            close_keyboard_on_send = True,
+            text="Hello",
+            title="A text control",
+            keyboard_type=dashio.Keyboard.ALL,
+            close_keyboard_on_send=True,
             control_position=dashio.ControlPosition(0.24, 0.84, 0.54, 0.12)
         )
         self.text_cntrl.add_receive_message_callback(self.text_cntrl_message_handler)
@@ -217,7 +216,7 @@ class TestControls:
 
         self.comp_control = dashio.Direction(
             "COMP1",
-            title = "A Direction control",
+            title="A Direction control",
             style=DirectionStyle.DEGPS,
             units="nm",
             precision=Precision.TWO,
@@ -267,9 +266,5 @@ class TestControls:
         self.device.close()
 
 
-def main():
-    tc = TestControls()
-
-
 if __name__ == "__main__":
-    main()
+    TestControls()
