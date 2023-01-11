@@ -232,11 +232,12 @@ class BLEConnection(dbus.service.Object, threading.Thread):
 
         while self.rx_zmq_sub.getsockopt(zmq.EVENTS) & zmq.POLLIN:
             try:
-                [_, _, data] = self.rx_zmq_sub.recv_multipart()
+                [msg_to, data] = self.rx_zmq_sub.recv_multipart()
             except ValueError:
                 continue
             if not data:
                 continue
+            
             data_str = data.decode('utf-8')
             # TODO: need to set this for the negitiated MTU
             # 160 seems to work with iPhone
