@@ -204,7 +204,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
             'msgType': 'send_announce',
             'connectionUUID': self.zmq_connection_uuid
         }
-        logging.debug("TCP SEND ANNOUNCE: %s", msg)
+        #  logging.debug("TCP SEND ANNOUNCE: %s", msg)
         self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg).encode()])
 
     def add_device(self, device: Device):
@@ -237,7 +237,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
                 continue
             if not data:
                 continue
-            
+
             data_str = data.decode('utf-8')
             # TODO: need to set this for the negitiated MTU
             # 160 seems to work with iPhone
@@ -254,7 +254,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
 
     def _ble_rx(self, msg: str):
         msg_from = self.b_connection_id
-        logging.debug("BLE ZMQ TX: %s", msg)
+        #  logging.debug("BLE ZMQ TX: %s", msg)
         self.tx_zmq_pub.send_multipart([msg.encode(), msg_from])
 
     def __init__(self, ble_uuid=None, context: zmq.Context = None):
