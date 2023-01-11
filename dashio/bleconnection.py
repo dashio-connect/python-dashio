@@ -199,6 +199,13 @@ class NotPermittedException(dbus.exceptions.DBusException):
 class BLEConnection(dbus.service.Object, threading.Thread):
     """BLEConnection
     """
+    def _send_announce(self):
+        msg = {
+            'msgType': 'send_announce',
+            'connectionUUID': self.zmq_connection_uuid
+        }
+        logging.debug("TCP SEND ANNOUNCE: %s", msg)
+        self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg).encode()])
 
     def add_device(self, device: Device):
         """Add a device to the connection
@@ -332,6 +339,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         service_manager.RegisterApplication(self.get_path(), {}, reply_handler=self._register_app_callback, error_handler=self._register_app_error_callback)
 
     def run(self):
+        self._send_announce()
         self.mainloop.run()
 
 
