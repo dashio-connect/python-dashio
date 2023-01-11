@@ -107,7 +107,7 @@ class TestControls:
         self.knb_control.knob_value = float(msg[3])
         self.dl_control.dial_value = float(msg[3])
         self.sldr_dbl_cntrl.bar2_value = float(msg[3])
-        self.comp_control.direction_text = float(msg[3])
+        self.comp_control.direction_text = msg[3]
 
     def text_cntrl_message_handler(self, msg):
         logging.info(msg)
