@@ -36,7 +36,7 @@ from gi.repository import GLib
 
 from dashio.device import Device
 
-from .constants import CONNECTION_PUB_URL, DEVICE_PUB_URL
+from .constants import CONNECTION_PUB_URL
 
 
 class BLEControl():
@@ -205,12 +205,12 @@ class BLEConnection(dbus.service.Object, threading.Thread):
 
         Parameters
         ----------
-        device : Device
-            The device to add
+        device : dashio.Device
+            Add a device to the connection.
         """
-        device._add_connection(self)
-        self.rx_zmq_sub.connect(DEVICE_PUB_URL.format(id=device.zmq_connection_uuid))
-        # self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, device.zmq_pub_id)
+        if device.device_id not in self.local_device_id_list:
+            device.register_connection(self)
+            self.local_device_id_list.append(device.device_id)
 
     def close(self):
         """Close the connection
@@ -261,7 +261,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
 
         self.zmq_connection_uuid = "BLE:" + shortuuid.uuid()
         self.b_connection_id = self.zmq_connection_uuid.encode('utf-8')
-
+        self.local_device_id_list = []
         self.context = context or zmq.Context.instance()
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
