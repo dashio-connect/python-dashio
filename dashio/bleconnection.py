@@ -328,7 +328,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
     def _register(self):
         adapter = self._find_adapter(self.bus)
         service_manager = dbus.Interface(self.bus.get_object(BLUEZ_SERVICE_NAME, adapter), GATT_MANAGER_IFACE)
-        service_manager.RegisterApplication(self._get_path(), {}, reply_handler=self._register_app_callback, error_handler=self._register_app_error_callback)
+        service_manager.RegisterApplication(self.get_path(), {}, reply_handler=self._register_app_callback, error_handler=self._register_app_error_callback)
 
     def run(self):
         self.mainloop.run()
