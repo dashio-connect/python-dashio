@@ -28,7 +28,6 @@ class TestEventLog(unittest.TestCase):
         test_str_list = test_control._control_hdr_str.split('\t')
         self.assertEqual(test_str_list[3], 'EVENTLOGID', "control_id type should be EVENTLOGID")
 
-    
 
 if __name__ == '__main__':
     unittest.main()

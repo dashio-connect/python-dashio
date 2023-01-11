@@ -2,11 +2,11 @@ import json
 import unittest
 
 from dashio import Direction
-from dashio.iotcontrol.enums import Color, DialStyle, DirectionStyle, Precision
+from dashio.iotcontrol.enums import Color, DirectionStyle, Precision
 
 
 class TestDial(unittest.TestCase):
-    
+
     def _get_cfg_dict(self, cfg_list: list):
         json_str = cfg_list[0].rpartition('\t')[2]
         return json.loads(json_str)
@@ -45,6 +45,7 @@ class TestDial(unittest.TestCase):
         test_control = Direction("DIRECTIONID", precision=Precision.FIVE)
         cfg_dict = self._get_cfg_dict(test_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
         self.assertEqual(cfg_dict['precision'], 5, "CFG precision should be 5")
+
 
 if __name__ == '__main__':
     unittest.main()

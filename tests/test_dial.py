@@ -1,8 +1,7 @@
 import json
 import unittest
 
-from dashio import Color, Dial, DialNumberPosition
-from dashio.iotcontrol.enums import Color, DialStyle, Precision
+from dashio import Color, Dial, DialNumberPosition, DialStyle, Precision
 
 
 class TestDial(unittest.TestCase):
@@ -10,7 +9,6 @@ class TestDial(unittest.TestCase):
     def _get_cfg_dict(self, cfg_list: list):
         json_str = cfg_list[0].rpartition('\t')[2]
         return json.loads(json_str)
-
 
     def test_dial(self):
         test_control = Dial("DIALID")

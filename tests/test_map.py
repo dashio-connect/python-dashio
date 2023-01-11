@@ -1,14 +1,11 @@
 import json
 import unittest
-from datetime import datetime
-
-import dateutil
-from dashio import Map, MapLocation
 
 
 def _get_cfg_dict(cfg_list: list):
     json_str = cfg_list[0].rpartition('\t')[2]
     return json.loads(json_str)
+
 
 """
 class TestMapLocation(unittest.TestCase):
@@ -72,5 +69,7 @@ class TestMap(unittest.TestCase):
         self.assertEqual(test_str_list[3], 'MAPID', "control type should be MAPID")
 
 """
+
+
 if __name__ == '__main__':
     unittest.main()

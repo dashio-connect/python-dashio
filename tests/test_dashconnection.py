@@ -2,7 +2,6 @@ import json
 import unittest
 
 from dashio import DashConnection
-from dashio.iotcontrol.enums import Color
 
 
 class TestDashConnection(unittest.TestCase):

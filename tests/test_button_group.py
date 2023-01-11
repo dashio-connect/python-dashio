@@ -2,7 +2,6 @@ import json
 import unittest
 
 from dashio import ButtonGroup
-from dashio.iotcontrol.enums import Icon
 
 
 def _get_cfg_dict(cfg_str):

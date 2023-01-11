@@ -1,7 +1,7 @@
 import json
 import unittest
 
-from dashio import Button, ButtonState, Color, Icon, TitlePosition
+from dashio import Button, ButtonState, Icon
 
 
 class TestButton(unittest.TestCase):
@@ -38,6 +38,7 @@ class TestButton(unittest.TestCase):
         test_control = Button("BUTTONID")
         test_control.send_button(ButtonState.ON, Icon.PAD, "HELLO")
         self.assertEqual(test_control.get_state(), '\t{device_id}\tBTTN\tBUTTONID\tON\tPad\tHELLO\n', "icon Should be Pad")
+
 
 if __name__ == '__main__':
     unittest.main()
