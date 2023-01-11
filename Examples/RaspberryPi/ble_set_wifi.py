@@ -21,15 +21,16 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-#!/bin/python3
 import argparse
 import configparser
 import logging
+import os
 import signal
 import time
-import os
 import uuid
+
 import shortuuid
+
 import dashio
 from dashio import bleconnection
 
@@ -109,6 +110,7 @@ def set_wifi_callback(msg):
         return False
     return True
 
+
 def main():
     # Catch CNTRL-C signel
     global shutdown
@@ -162,6 +164,7 @@ def main():
         time.sleep(1)
     dash_conn.close()
     device.close()
+
 
 if __name__ == "__main__":
     main()

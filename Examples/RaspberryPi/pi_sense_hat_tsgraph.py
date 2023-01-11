@@ -26,14 +26,14 @@ import configparser
 import logging
 import platform
 import signal
-from datetime import datetime
 import time
+from datetime import datetime
 
-import dashio
 import shortuuid
 import zmq
-from dashio.iotcontrol.enums import Precision
 from sense_hat import SenseHat
+
+import dashio
 
 
 class SenseGraphTS:
@@ -166,9 +166,11 @@ SHUTDOWN = False
 _graph = False
 _dial = False
 
+
 def signal_cntrl_c(os_signal, os_frame):
     global SHUTDOWN
     SHUTDOWN = True
+
 
 def init_logging(logfilename, level):
     log_level = logging.WARN
@@ -252,6 +254,7 @@ def parse_config(filename: str) -> dict:
     config_dict['DEFAULT'] = default
     return config_dict
 
+
 def main():
 
     # Catch CNTRL-C signel
@@ -291,20 +294,18 @@ def main():
     # Start the background thread
     now = datetime.now()
     while not SHUTDOWN:
-        delta = datetime.now()-now
+        delta = datetime.now() - now
         _, minute_remainder = divmod(delta.seconds, 60)
         if minute_remainder == 0:
             minute_counter += 1
             logging.debug("Sending Dial data")
-            _graph = False
-            h,t,p =_get_data()
-            send_dial_data(h,t,p)
+            h, t, p = _get_data()
+            send_dial_data(h, t, p)
 
             if minute_counter == 15:
                 minute_counter = 0
                 logging.debug("Sending Graph data")
-                _dial = False
-                get_graph_data(h,t,p)
+                get_graph_data(h, t, p)
                 _send_graph_data()
 
         tstamp = datetime.now()
@@ -316,6 +317,7 @@ def main():
     # Stop the background thread
     dash_sense_hat.tcp_con.close()
     dash_sense_hat.device.close()
+
 
 if __name__ == "__main__":
     main()

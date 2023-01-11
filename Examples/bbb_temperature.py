@@ -99,7 +99,6 @@ class BBB_Temperature:
 
     def __init__(self):
         LOGGER_PERIOD = 15
-        DIV = 1.0
 
         ADC.setup()
 
@@ -120,11 +119,11 @@ class BBB_Temperature:
 
         gph_15_minutes = dashio.TimeGraph(
             "Temperature15M",
-            title = f"Temp15M:{args.device_name}",
-            y_axis_label = "Degrees C",
-            y_axis_min = 0.0,
-            y_axis_max = 50.0,
-            y_axis_num_bars = 5
+            title=f"Temp15M:{args.device_name}",
+            y_axis_label="Degrees C",
+            y_axis_min=0.0,
+            y_axis_max=50.0,
+            y_axis_num_bars=5
         )
         line_15_minutes = dashio.TimeGraphLine(
             "DegC",
@@ -136,11 +135,11 @@ class BBB_Temperature:
 
         gph_1_day = dashio.TimeGraph(
             "Temperature1D",
-            title = f"Temp1D:{args.device_name}",
-            y_axis_label = "Degrees C",
-            y_axis_min = 0.0,
-            y_axis_max = 50.0,
-            y_axis_num_bars = 5
+            title=f"Temp1D:{args.device_name}",
+            y_axis_label="Degrees C",
+            y_axis_min=0.0,
+            y_axis_max=50.0,
+            y_axis_num_bars=5
         )
         line_1_day = dashio.TimeGraphLine(
             "DegC", dashio.TimeGraphLineType.LINE, color=dashio.Color.BLACK, max_data_points=24 * 4
@@ -149,11 +148,11 @@ class BBB_Temperature:
 
         gph_1_week = dashio.TimeGraph(
             "Temperature1W",
-            title = f"Temp1W:{args.device_name}",
-            y_axis_label = "Degrees C",
-            y_axis_min = 0.0,
-            y_axis_max = 50.0,
-            y_axis_num_bars = 5
+            title=f"Temp1W:{args.device_name}",
+            y_axis_label="Degrees C",
+            y_axis_min=0.0,
+            y_axis_max=50.0,
+            y_axis_num_bars=5
         )
         line_1_week = dashio.TimeGraphLine(
             "DegC", dashio.TimeGraphLineType.LINE, color=dashio.Color.BLACK, max_data_points=24 * 4 * 7
@@ -162,11 +161,11 @@ class BBB_Temperature:
 
         gph_1_year = dashio.TimeGraph(
             "Temperature1Y",
-            title = f"Temp1Y:{args.device_name}",
-            y_axis_label = "Degrees C",
-            y_axis_min = 0.0,
-            y_axis_max = 50.0,
-            y_axis_num_bars = 5
+            title=f"Temp1Y:{args.device_name}",
+            y_axis_label="Degrees C",
+            y_axis_min=0.0,
+            y_axis_max=50.0,
+            y_axis_num_bars=5
         )
         line_1_year = dashio.TimeGraphLine(
             "DegC", dashio.TimeGraphLineType.LINE, color=dashio.Color.BLACK, max_data_points=360
@@ -175,19 +174,19 @@ class BBB_Temperature:
 
         dl_temperature_ctrl = dashio.Dial(
             "TemperatureDial",
-            title = "Temperature",
-            dial_max = 50
+            title="Temperature",
+            dial_max=50
         )
         dl_daily_max_ctrl = dashio.Dial(
             "TemperatureMaxDial",
-            title = "Daily Max",
-            dial_max = 50
+            title="Daily Max",
+            dial_max=50
         )
 
         dl_daily_min_ctrl = dashio.Dial(
             "TemperatureMinDial",
-            title = "Daily Min",
-            dial_max = 50
+            title="Daily Min",
+            dial_max=50
         )
         self.page = dashio.DeviceView("tmppage", "Temperatures", 1)
         device.add_control(self.page)
@@ -245,7 +244,6 @@ class BBB_Temperature:
             sleep_time = LOGGER_PERIOD - sleep_time
             time.sleep(sleep_time)
         device.close()
-
 
 
 if __name__ == "__main__":

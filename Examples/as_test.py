@@ -25,8 +25,9 @@ import argparse
 import logging
 import signal
 import time
-import zmq 
+import zmq
 import dashio
+
 
 class ActionStationOnly:
     def signal_cntrl_c(self, os_signal, os_frame):
@@ -89,19 +90,17 @@ class ActionStationOnly:
         logging.info("  Device Name: %s", args.device_name)
         context = zmq.Context.instance()
         self.device = dashio.Device("ActionStationTest", args.device_id, args.device_name, add_actions=True, context=context)
-        #self.device.use_cfg64()
+        #  self.device.use_cfg64()
 
         self.tcp_con = dashio.TCPConnection(context=context)
         self.device.config_revision = 1
         self.tcp_con.add_device(self.device)
-
 
         while not self.shutdown:
             time.sleep(1)
 
         self.tcp_con.close()
         self.device.close()
-
 
 
 if __name__ == "__main__":

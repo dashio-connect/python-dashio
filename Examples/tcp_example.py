@@ -27,7 +27,9 @@ import platform
 import random
 import signal
 import time
-import zmq 
+
+import zmq
+
 import dashio
 from dashio.iotcontrol.enums import (DialNumberPosition, DialStyle,
                                      DirectionStyle, Precision)
@@ -124,13 +126,11 @@ class TestControls:
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
         context = zmq.Context.instance()
-        #self.serial_con = dashio.SerialConnection('/dev/cu.usbserial-14130', baud_rate=9600)
         self.device = dashio.Device("ControlTest", args.device_id, args.device_name, add_actions=True, context=context)
         self.device.use_cfg64()
-        
+
         self.tcp_con = dashio.TCPConnection(context=context)
         self.device.config_revision = 2
-        #self.serial_con.add_device(self.device)
         self.tcp_con.add_device(self.device)
 
         self.page_name = "TestTCP: " + platform.node()
@@ -152,7 +152,7 @@ class TestControls:
         self.page_test.add_control(self.down_btn)
 
         self.sldr_cntrl = dashio.Slider(
-            "SLDR", title = "Slider", bar_max=10, slider_enabled=True, red_value=10, control_position=dashio.ControlPosition(0.02, 0.13, 0.22, 0.73)
+            "SLDR", title="Slider", bar_max=10, slider_enabled=True, red_value=10, control_position=dashio.ControlPosition(0.02, 0.13, 0.22, 0.73)
         )
         self.sldr_cntrl.add_receive_message_callback(self.slider_event_handler)
         self.page_test.add_control(self.sldr_cntrl)
@@ -164,14 +164,14 @@ class TestControls:
         self.sldr_dbl_cntrl.add_receive_message_callback(self.slider_dbl_event_handler)
         self.page_test.add_control(self.sldr_dbl_cntrl)
 
-        self.knb_control = dashio.Knob("KNB",title="A Knob", dial_max=10, red_value=10, control_position=dashio.ControlPosition(0.24, 0.14, 0.54, 0.21))
+        self.knb_control = dashio.Knob("KNB", title="A Knob", dial_max=10, red_value=10, control_position=dashio.ControlPosition(0.24, 0.14, 0.54, 0.21))
         self.knb_control.add_receive_message_callback(self.knob_event_handler)
         self.page_test.add_control(self.knb_control)
 
         self.dl_control = dashio.Dial(
             "DIAL1",
-            title = "A Dial",
-            dial_max = 10,
+            title="A Dial",
+            dial_max=10,
             style=DialStyle.BAR,
             units="m/s",
             number_position=DialNumberPosition.CENTER,
@@ -181,7 +181,12 @@ class TestControls:
         self.page_test.add_control(self.dl_control)
 
         self.text_cntrl = dashio.TextBox(
-            "TXT1", title = "A text control", keyboard_type=dashio.Keyboard.ALL, text="Hello", close_keyboard_on_send = True, control_position=dashio.ControlPosition(0.24, 0.84, 0.54, 0.12)
+            "TXT1",
+            title="A text control",
+            keyboard_type=dashio.Keyboard.ALL,
+            text="Hello",
+            close_keyboard_on_send=True,
+            control_position=dashio.ControlPosition(0.24, 0.84, 0.54, 0.12)
         )
         self.text_cntrl.add_receive_message_callback(self.text_cntrl_message_handler)
         self.page_test.add_control(self.text_cntrl)
@@ -235,11 +240,10 @@ class TestControls:
 
         while not self.shutdown:
             time.sleep(1)
-            #self.comp_control.direction_value = random.random() * 360
+            self.comp_control.direction_value = random.random() * 360
 
         self.tcp_con.close()
         self.device.close()
-
 
 
 if __name__ == "__main__":

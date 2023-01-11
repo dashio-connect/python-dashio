@@ -105,8 +105,7 @@ def main():
 
     args = parse_commandline_arguments()
     init_logging(args.logfilename, args.verbose)
-    
-    
+
     new_ini_file = False
     ini_file = args.ini_file
     config_file_parser = configparser.ConfigParser()
@@ -143,8 +142,15 @@ def main():
     dash_conn.add_device(device)
 
     monitor_page = dashio.DeviceView("monpg", "Dash Server Monitor")
-    gph_network = dashio.TimeGraph("NETWORKGRAPH", y_axis_label= "Kbytes", y_axis_min=0.0, y_axis_max=100000.0, y_axis_num_bars=9, control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.45))
-    gph_network.title = f"Server Network Traffic: {args.device_name}"
+    gph_network = dashio.TimeGraph(
+        "NETWORKGRAPH",
+        title=f"Server Network Traffic: {args.device_name}",
+        y_axis_label="Kbytes",
+        y_axis_min=0.0,
+        y_axis_max=100000.0,
+        y_axis_num_bars=9,
+        control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.45)
+    )
     network_rx = dashio.TimeGraphLine(
         "RX", dashio.TimeGraphLineType.LINE, color=dashio.Color.FUSCIA, max_data_points=no_datapoints, break_data=True
     )

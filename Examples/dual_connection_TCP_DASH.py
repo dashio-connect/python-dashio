@@ -25,6 +25,7 @@ SOFTWARE.
 import argparse
 import logging
 import platform
+import random
 import signal
 import time
 
@@ -121,7 +122,7 @@ class TestControls:
 
     def name_handler(self, msg):
         print(msg)
-        return  msg[2]
+        return msg[2]
 
     def wifi_handler(self, msg):
         print(msg)
@@ -170,9 +171,9 @@ class TestControls:
         self.page_test = dashio.DeviceView("TestTCP", self.page_name)
         self.up_btn = dashio.Button(
             "UP_BTN",
-            title = "Up",
-            icon_name = dashio.Icon.UP,
-            on_color = dashio.Color.GREEN,
+            title="Up",
+            icon_name=dashio.Icon.UP,
+            on_color=dashio.Color.GREEN,
             control_position=dashio.ControlPosition(0.02, 0.01, 0.22, 0.12)
         )
         self.up_btn.btn_state = dashio.ButtonState.OFF
@@ -181,10 +182,10 @@ class TestControls:
 
         self.down_btn = dashio.Button(
             "DOWN_BTN",
-            on_color = dashio.Color.GREEN,
-            title = "Down",
-            text = "",
-            icon_name = dashio.Icon.DOWN,
+            on_color=dashio.Color.GREEN,
+            title="Down",
+            text="",
+            icon_name=dashio.Icon.DOWN,
             control_position=dashio.ControlPosition(0.02, 0.86, 0.22, 0.12)
         )
         self.down_btn.add_receive_message_callback(self.down_btn_event_handler)
@@ -192,10 +193,10 @@ class TestControls:
 
         self.sldr_cntrl = dashio.Slider(
             "SLDR",
-            title = "Slider",
-            bar_max = 10,
-            slider_enabled = True,
-            red_value = 10,
+            title="Slider",
+            bar_max=10,
+            slider_enabled=True,
+            red_value=10,
             control_position=dashio.ControlPosition(0.02, 0.13, 0.22, 0.73)
         )
         self.sldr_cntrl.add_receive_message_callback(self.slider_event_handler)
@@ -203,10 +204,10 @@ class TestControls:
 
         self.sldr_dbl_cntrl = dashio.Slider(
             "SLDR_DBL",
-            bar_max = 5,
-            slider_enabled = True,
-            red_value = 5,
-            title = "Slider Double",
+            bar_max=5,
+            slider_enabled=True,
+            red_value=5,
+            title="Slider Double",
             control_position=dashio.ControlPosition(0.78, 0.01, 0.2, 0.98)
         )
         self.sldr_dbl_cntrl.add_receive_message_callback(self.slider_dbl_event_handler)
@@ -215,9 +216,9 @@ class TestControls:
 
         self.knb_control = dashio.Knob(
             "KNB",
-            title = "A Knob",
-            dial_max = 10,
-            red_value = 10,
+            title="A Knob",
+            dial_max=10,
+            red_value=10,
             control_position=dashio.ControlPosition(0.24, 0.14, 0.54, 0.21)
         )
         self.knb_control.add_receive_message_callback(self.knob_event_handler)
@@ -225,18 +226,18 @@ class TestControls:
 
         self.dl_control = dashio.Dial(
             "DIAL1",
-            title = "A Dial",
-            dial_max = 10,
+            title="A Dial",
+            dial_max=10,
             control_position=dashio.ControlPosition(0.24, 0.63, 0.54, 0.21)
         )
         self.page_test.add_control(self.dl_control)
 
         self.text_cntrl = dashio.TextBox(
             "TXT1",
-            title = "A text control",
-            text = "Hello",
-            keyboard_type = dashio.Keyboard.ALL,
-            close_keyboard_on_send = True,
+            title="A text control",
+            text="Hello",
+            keyboard_type=dashio.Keyboard.ALL,
+            close_keyboard_on_send=True,
             control_position=dashio.ControlPosition(0.24, 0.84, 0.54, 0.12)
         )
         self.text_cntrl.add_receive_message_callback(self.text_cntrl_message_handler)
@@ -246,7 +247,7 @@ class TestControls:
         self.device.add_control(self.alarm_ctrl)
         self.comp_control = dashio.Direction(
             "COMP1",
-            title = "A Direction control",
+            title="A Direction control",
             control_position=dashio.ControlPosition(0.24, 0.38, 0.54, 0.22)
         )
         self.page_test.add_control(self.comp_control)
@@ -289,12 +290,10 @@ class TestControls:
 
         while not self.shutdown:
             time.sleep(5)
-
-            #self.comp_control.direction_value = random.random() * 360
+            self.comp_control.direction_value = random.random() * 360
 
         self.device.close()
 
 
 if __name__ == "__main__":
     TestControls()
-

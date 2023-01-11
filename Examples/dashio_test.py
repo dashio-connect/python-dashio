@@ -138,7 +138,7 @@ def main():
     up_button = dashio.Button(
         'up',
         'UP',
-        title_position = dashio.TitlePosition.NONE,
+        title_position=dashio.TitlePosition.NONE,
         icon_name=dashio.Icon.UP,
         control_position=dashio.ControlPosition(0.4, 0.22, 0.2, 0.2)
     )
@@ -147,7 +147,7 @@ def main():
     down_button = dashio.Button(
         'down',
         'DOWN',
-        title_position = dashio.TitlePosition.NONE,
+        title_position=dashio.TitlePosition.NONE,
         icon_name=dashio.Icon.DOWN,
         control_position=dashio.ControlPosition(0.4, 0.53, 0.2, 0.2)
     )
@@ -157,9 +157,9 @@ def main():
     txt_box = dashio.TextBox(
         'txtbox1',
         'Counter',
-        keyboard_type = dashio.Keyboard.NONE,
-        text_align = dashio.TextAlignment.CENTER,
-        text = f"{COUNTER}",
+        keyboard_type=dashio.Keyboard.NONE,
+        text_align=dashio.TextAlignment.CENTER,
+        text=f"{COUNTER}",
         control_position=dashio.ControlPosition(0.0, 0.43, 1.0, 0.1)
     )
 
