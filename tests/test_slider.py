@@ -4,9 +4,11 @@ import unittest
 from dashio import Slider
 from dashio.iotcontrol.enums import Color, SliderBarStyle
 
+
 def _get_cfg_dict(cfg_list: list):
-        json_str = cfg_list[0].rpartition('\t')[2]
-        return json.loads(json_str)
+    json_str = cfg_list[0].rpartition('\t')[2]
+    return json.loads(json_str)
+
 
 class TestSlider(unittest.TestCase):
 
@@ -69,6 +71,7 @@ class TestSlider(unittest.TestCase):
         test_control = Slider("SLIDERID", knob_color=Color.CORAL)
         cfg_dict = _get_cfg_dict(test_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
         self.assertEqual(Color(int(cfg_dict['knobColor'])), Color.CORAL, "CFG barStyle should be CORAL")
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -72,5 +72,6 @@ class TestDeviceView(unittest.TestCase):
         cfg_dict = _get_cfg_dict(test_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
         self.assertEqual(cfg_dict['ctrlBkgndTransparency'], 50, "CFG ctrlBkgndTransparency should be 50")
 
+
 if __name__ == '__main__':
     unittest.main()

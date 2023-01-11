@@ -1,14 +1,14 @@
 import json
 import unittest
-from datetime import datetime
 
-import dateutil
 from dashio import Menu
 from dashio.iotcontrol.enums import Icon
+
 
 def _get_cfg_dict(cfg_list: list):
     json_str = cfg_list[0].rpartition('\t')[2]
     return json.loads(json_str)
+
 
 class TestMenu(unittest.TestCase):
 
@@ -31,6 +31,7 @@ class TestMenu(unittest.TestCase):
         test_control = Menu("MENUID", text="TEXT")
         cfg_dict = _get_cfg_dict(test_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
         self.assertEqual(cfg_dict['text'], "TEXT", "CFG text should be TEXT")
+
 
 if __name__ == '__main__':
     unittest.main()

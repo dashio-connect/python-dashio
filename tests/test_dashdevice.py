@@ -2,7 +2,6 @@ import json
 import unittest
 
 from dashio import Device
-from dashio.iotcontrol.enums import Color
 
 
 class TestDashDevice(unittest.TestCase):
