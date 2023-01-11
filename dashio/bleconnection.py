@@ -274,6 +274,8 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         self.context = context or zmq.Context.instance()
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"ALL")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "COMMAND")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "BLE")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.zmq_connection_uuid)
         # TODO: Need to figure out why this doesn't work
         # GLib.io_add_watch(
