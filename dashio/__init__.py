@@ -40,20 +40,20 @@ from .iotcontrol.enums import (
     SliderBarStyle,
     DialNumberPosition,
     DialStyle,
-    GraphLineType,
+    ChartLineType,
     TimeGraphLineType,
     TimeGraphPositionOfKey,
     ButtonState,
     LabelStyle,
     KnobStyle,
-    GraphXAxisLabelsStyle,
+    ChartXAxisLabelsStyle,
     TextFormat,
     DirectionStyle,
     ColorPickerStyle,
     ControlName
 )
 from .iotcontrol.audio_visual_display import AudioVisualDisplay
-from .iotcontrol.graph import Graph, GraphLine
+from .iotcontrol.chart import Chart, ChartLine
 from .iotcontrol.slider import Slider
 from .iotcontrol.textbox import TextBox
 from .iotcontrol.button import Button
