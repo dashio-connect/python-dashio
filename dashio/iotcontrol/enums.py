@@ -238,7 +238,7 @@ class DirectionStyle(Enum):
     DEGPS = "degps"
 
 
-class GraphLineType(Enum):
+class ChartLineType(Enum):
     """Graph line types"""
     LINE = "LINE"
     BAR = "BAR"
@@ -247,7 +247,7 @@ class GraphLineType(Enum):
     DELETE = "DEL"
 
 
-class GraphXAxisLabelsStyle(Enum):
+class ChartXAxisLabelsStyle(Enum):
     """Graph X axis label styles"""
     ON = "on"
     BETWEEN = "between"

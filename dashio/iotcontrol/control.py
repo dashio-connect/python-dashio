@@ -24,7 +24,7 @@ SOFTWARE.
 import json
 import logging
 from ..constants import BAD_CHARS
-from .enums import ColorPickerStyle, DeviceViewStyle, DialNumberPosition, DirectionStyle, GraphXAxisLabelsStyle, Keyboard, KnobStyle, Precision,\
+from .enums import ColorPickerStyle, DeviceViewStyle, DialNumberPosition, DirectionStyle, ChartXAxisLabelsStyle, Keyboard, KnobStyle, Precision,\
     TextAlignment, TitlePosition, Icon, Color, TextFormat, LabelStyle, SliderBarStyle, DialStyle, TimeGraphPositionOfKey
 from .event import Event
 
@@ -83,9 +83,9 @@ def _get_direction_style(dir_style_str: str) -> DirectionStyle:
     return DirectionStyle[ds_name]
 
 
-def _get_graph_x_axis_labels_style(gxal_style_str: str) -> GraphXAxisLabelsStyle:
+def _get_chart_x_axis_labels_style(gxal_style_str: str) -> ChartXAxisLabelsStyle:
     ds_name = gxal_style_str.upper().replace(" ", "")
-    return GraphXAxisLabelsStyle[ds_name]
+    return ChartXAxisLabelsStyle[ds_name]
 
 
 def _get_knob_style(knob_style_str: str) -> KnobStyle:
