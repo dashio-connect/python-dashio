@@ -175,6 +175,19 @@ class ControlConfig:
         """
         return self.cfg
 
+    def update_position(self, control_position: ControlPosition):
+        """Updates the controls position from control_position
+
+        Parameters
+        ----------
+        control_position : ControlPosition
+            The position to use to update the control
+        """
+        self.cfg["xPositionRatio"] = control_position.x_position_ratio
+        self.cfg["yPositionRatio"] = control_position.y_position_ratio
+        self.cfg["widthRatio"] = control_position.width_ratio
+        self.cfg["heightRatio"] = control_position.height_ratio
+
     def __init__(
         self,
         control_id: str,
@@ -337,12 +350,6 @@ class Control():
             The type of control to implement
         control_id : str
             An unique control identity string. The control identity string must be a unique string for each control per device
-        title : str, optional
-            Title of the control, by default None
-        control_position : ControlPosition, optional
-            The position of the control on a DeviceView this sets for number of columns = 1, by default None
-        title_position : TitlePosition, optional
-            Position of the title when displayed on the iotdashboard app, by default None
         """
         # Dictionary to store CFG json
         self._cfg_columnar = []
