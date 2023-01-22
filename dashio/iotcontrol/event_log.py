@@ -107,7 +107,7 @@ class EventLog(Control):
         super().__init__("LOG", control_id)
         self._cfg_columnar.append(ControlConfig(control_id, title, control_position, title_position))
 
-        self.message_rx_event = self._get_log_from_timestamp
+        self._message_rx_event = self._get_log_from_timestamp
         self.log = RingBuffer(max_log_entries)
 
     @classmethod
