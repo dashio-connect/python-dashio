@@ -99,7 +99,7 @@ class TimeGraphLine:
         data_list = self.data.get()
         for data_p in data_list:
             if data_p.timestamp > d_stamp:
-                if first and self.break_data:
+                if first and self.break_data and len(data_list) > 1:
                     data_str += "\t" + f"{data_p.timestamp.isoformat()},b"
                 data_str += "\t" + str(data_p)
                 valid_data = True
@@ -310,7 +310,6 @@ class TimeGraph(Control):
         for key, line in self.line_dict.items():
             if line.data:
                 line_data = line.get_latest_data()
-                line_data_split = line_data.split(',')
-                if line_data and len(line_data_split) == 2:
+                if line_data:
                     state_str += self._control_hdr_str + key + line_data
         self.state_str = state_str
