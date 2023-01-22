@@ -297,7 +297,7 @@ class TimeGraph(Control):
         except IndexError:
             return ""
         for key, line in self.line_dict.items():
-            if not line.data.empty():
+            if line.data:
                 line_data = line.get_line_from_timestamp(from_timestamp)
                 if line_data != "":
                     state_str += self._control_hdr_str + dashboard_id + "\t" + key + line_data
