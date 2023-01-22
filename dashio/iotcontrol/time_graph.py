@@ -308,8 +308,7 @@ class TimeGraph(Control):
         """
         state_str = ""
         for key, line in self.line_dict.items():
-            if line.data:
-                line_data = line.get_latest_data()
-                if line_data:
-                    state_str += self._control_hdr_str + key + line_data
+            line_data = line.get_latest_data()
+            if line_data:
+                state_str += self._control_hdr_str + key + line_data
         self.state_str = state_str
