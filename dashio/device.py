@@ -622,7 +622,7 @@ class Device(threading.Thread):
                     continue
                 reply = self._on_message(data)
                 if reply != "":
-                    #  logging.debug("DEVICE TX: %s ,%s", msg_from, data)
+                    logging.debug("DEVICE TX: %s ,%s", msg_from, data)
                     self.tx_zmq_pub.send_multipart([msg_from, reply.encode('utf-8')])
         self.tx_zmq_pub.close()
         self.rx_zmq_sub.close()
