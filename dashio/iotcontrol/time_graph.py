@@ -45,8 +45,10 @@ class DataPoint:
         """
         self.timestamp = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
         if isinstance(data, str):
-            data = data.translate(BAD_CHARS)
-        self.data_point = data
+            data_trans = data.translate(BAD_CHARS)
+        if data_trans == "":
+            return
+        self.data_point = data_trans
 
     def __str__(self):
         return f"{self.timestamp.isoformat()},{self.data_point}"
@@ -308,6 +310,7 @@ class TimeGraph(Control):
         for key, line in self.line_dict.items():
             if line.data:
                 line_data = line.get_latest_data()
-                if line_data:
+                line_data_split = line_data.split(',')
+                if line_data and len(line_data_split) == 2:
                     state_str += self._control_hdr_str + key + line_data
         self.state_str = state_str
