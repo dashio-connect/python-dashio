@@ -285,7 +285,7 @@ class Control():
                 cfg_list.append(f"\tCFG\t{dashboard_id}\t{self.cntrl_type}\t{control_cfg.get_cfg_json()}")
         return cfg_list
 
-    def get_cfg64(self, data) -> dict:
+    def get_cfg64(self, data) -> list:
         """Returns the CFG dict for the control called when the iotdashboard app asks for a CFG
 
         Parameters
@@ -302,7 +302,7 @@ class Control():
         try:
             num_columns = int(data[3])
         except (IndexError, ValueError):
-            return ""
+            return []
         if num_columns >= self._cfg_full_page_no_columns and self._cfg_full_page:
             for cfg in self._cfg_full_page:
                 cfg_list.append(cfg.get_cfg64())

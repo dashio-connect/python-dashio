@@ -129,7 +129,7 @@ class Button(Control):
         on_color=Color.BLUE,
         off_color=Color.RED,
         text="",
-        control_position=None
+        control_position: ControlPosition = None
     ):
         super().__init__("BTTN", control_id)
         self._cfg_columnar.append(

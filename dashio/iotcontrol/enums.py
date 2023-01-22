@@ -179,6 +179,7 @@ class ButtonState(Enum):
     """Button states"""
     ON = "ON"
     OFF = "OFF"
+    FLASH = "FLASH"
 
 
 class Keyboard(Enum):
