@@ -29,6 +29,7 @@ from ..constants import BAD_CHARS
 from .control import Control, ControlPosition, ControlConfig, _get_title_position
 from .enums import Color, TimeGraphLineType, TitlePosition
 from .ring_buffer import RingBuffer
+from .event import Event
 
 
 class DataPoint:
@@ -227,7 +228,8 @@ class TimeGraph(Control):
                 control_position
             )
         )
-        self._message_rx_event = self._get_lines_from_timestamp
+        self._message_rx_event = Event()
+        self._message_rx_event += self._get_lines_from_timestamp
         self._y_axis_min = y_axis_min
         self._y_axis_max = y_axis_max
         self._y_axis_num_bars = y_axis_num_bars

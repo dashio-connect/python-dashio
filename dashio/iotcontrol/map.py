@@ -28,7 +28,7 @@ import json
 from ..constants import BAD_CHARS
 from .control import Control, ControlPosition, ControlConfig, _get_title_position
 from .enums import TitlePosition, Color
-
+from .event import Event
 
 class MapLocation:
     """
@@ -164,7 +164,9 @@ class Map(Control):
         self._cfg_columnar.append(ControlConfig(control_id, title, control_position, title_position))
         self.tracks = {}
         self.tracks["DEFAULT"] = self.default_track
-        self._message_rx_event = self._get_tracks_from_timestamp
+
+        self._message_rx_event = Event()
+        self._message_rx_event += self._get_tracks_from_timestamp
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict):
