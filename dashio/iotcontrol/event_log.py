@@ -28,7 +28,7 @@ from ..constants import BAD_CHARS
 from .control import Control, ControlPosition, ControlConfig, _get_title_position
 from .enums import Color, TitlePosition
 from .ring_buffer import RingBuffer
-
+from .event import Event
 
 class EventData:
     """Event log data point
@@ -107,7 +107,8 @@ class EventLog(Control):
         super().__init__("LOG", control_id)
         self._cfg_columnar.append(ControlConfig(control_id, title, control_position, title_position))
 
-        self._message_rx_event = self._get_log_from_timestamp
+        self._message_rx_event = Event()
+        self._message_rx_event += self._get_log_from_timestamp
         self.log = RingBuffer(max_log_entries)
 
     @classmethod
