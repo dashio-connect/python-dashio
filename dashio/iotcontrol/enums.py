@@ -81,6 +81,8 @@ class Icon(Enum):
     CIRCLE = "Circle"
     SQUARE = "Square"
     TRIANGLE = "Triangle"
+    TICK = "Tick"
+    CROSS = "Cross"
     MAIL = "Mail"
     BOAT = "Boat"
     SAILBOAT = "Sailboat"
@@ -107,6 +109,7 @@ class Icon(Enum):
     LOCATION = "Location"
     DIRECTION = "Direction"
     SWITCH = "Switch"
+
 
 
 class SoundName(Enum):
