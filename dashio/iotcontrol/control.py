@@ -280,7 +280,6 @@ class Control():
             for cfg in self._cfg_full_page:
                 cfg_list.append(f"\tCFG\t{dashboard_id}\t{self.cntrl_type}\t{cfg.get_cfg_json()}")
         else:
-            logging.debug("Len: %s", len(self._cfg_columnar))
             for control_cfg in self._cfg_columnar:
                 cfg_list.append(f"\tCFG\t{dashboard_id}\t{self.cntrl_type}\t{control_cfg.get_cfg_json()}")
         return cfg_list
