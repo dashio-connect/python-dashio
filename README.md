@@ -22,8 +22,9 @@ There are plenty of examples in the github repository under the Examples directo
 
 The **Dash** app is free and available for both Apple and Android devices. Use it to create beautiful and powerful user interfaces to you IoT devices.
 
-<img src="https://dashio.io/wp-content/uploads/2020/11/IMG_4154.jpeg" width="150" />
-<img src="https://dashio.io/wp-content/uploads/2020/12/IMG_4203.jpeg" width="450" />
+Dashio Phone             |  Dashio Tablet 
+:-------------------------:|:-------------------------:
+!<img src="https://dashio.io/wp-content/uploads/2020/11/IMG_4154.jpeg" width="150" /> | !<img src="https://dashio.io/wp-content/uploads/2020/12/IMG_4203.jpeg" width="450" />
 
 ## Requirements
 
