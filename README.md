@@ -16,7 +16,7 @@ For the **DashIO** Python library documentation: <a href="https://dashio.io/guid
 
 ## Examples
 
-There are plentu of examples in the github repository under the Examples directory.
+There are plenty of examples in the github repository under the Examples directory.
 
 ## Dash IoT Application
 
