@@ -24,7 +24,7 @@ The **Dash** app is free and available for both Apple and Android devices. Use i
 
 Dashio Phone             |  Dashio Tablet 
 :-------------------------:|:-------------------------:
-!<img src="https://dashio.io/wp-content/uploads/2020/11/IMG_4154.jpeg" width="150" /> | !<img src="https://dashio.io/wp-content/uploads/2020/12/IMG_4203.jpeg" width="450" />
+<img src="https://dashio.io/wp-content/uploads/2020/11/IMG_4154.jpeg" width="150" /> | <img src="https://dashio.io/wp-content/uploads/2020/12/IMG_4203.jpeg" width="450" />
 
 ## Requirements
 
