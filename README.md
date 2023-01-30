@@ -44,7 +44,7 @@ Dashio Phone               |  Dashio Tablet
 Or
 
 ```sh
-git clone git@github.com/dashio-connect/python-dashio
+git clone https://github.com/dashio-connect/python-dashio.git
 cd python-dashio
 pip3 install .
 ```
