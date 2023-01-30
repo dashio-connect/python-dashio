@@ -12,7 +12,9 @@ For the big picture on **DashIO**, take a look at our website: <a href="https://
 
 For all documentation and software guides: <a href="https://dashio.io/documents">dashio.io/documents</a>
 
-For the **DashIO** Python library documentation: <a href="https://dashio.io/guide-python">dashio.io/guide-python</a>
+For the **DashIO** Python guide: <a href="https://dashio.io/guide-python">dashio.io/guide-python</a>
+
+For the **DashIO** Python library: <a href="https://dashio.io/python-library/">dashio.io/python-library</a>
 
 ## Examples
 
@@ -74,7 +76,15 @@ while True:
     time.sleep(5)
 ```
 
-This is about the fewest lines of code to get talking to the app. There is a lot happening under the hood to make this work. After the import we create a device with three attributes. These attributes describe the device to the app and allow you to distinguish one of your devices from another. The next two lines create a TCP connection and then add the device to the connection. The connection will be created with the default setting of port 5000 and will also advertise the service using zeroconf, also known as bonjour. This allows the **Dash** app to find your device. After that we create a dial add it to the device and then every five seconds send a randomly generated dial value to the DashIO app.
+This is about the fewest lines of code to get talking to the app. There is a lot happening under the hood to make this work. After the import we create a device with three attributes:
+
+* "aDeviceType": a common name device_type for all IoT devices using this code which is used for device discovery
+* "aDeviceID": a device_ID to uniquely identify this device, preferably a UUID.
+* "aDeviceName": The name of this device, which can be changed at any time.
+
+These attributes describe the device to the app and allow you to distinguish one of your devices from another.
+
+The next two lines create a TCP connection and then add the device to the connection. This device is discoverable by the Dash app. You can also discover your IoT device using a third party Bonjour/Zeroconf discovery tool. The mDNS service will be "DashIO.tcp."
 
 Though this device is discoverable by the app it would be nice to have the DashIO app automatically setup a new DeviceView and place your control on the new DeviceView. To do that we need to add a few more lines of code:
 
