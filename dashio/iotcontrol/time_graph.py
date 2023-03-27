@@ -89,6 +89,9 @@ class TimeGraphLine:
         if right_axis:
             self.axis_side = 'right'
 
+    def get_line_format(self):
+        return f"\t{self.name}\t{self.line_type.value}\t{self.color.value}\t{self.axis_side}\n"
+
     def get_line_from_timestamp(self, timestamp: str) -> str:
         """Converts data from timestamp to a string formatted for the iotdashboard app
 
@@ -316,6 +319,14 @@ class TimeGraph(Control):
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls
+
+    def get_state(self):
+        state_str = ""
+        for key, line in self.line_dict.items():
+            line_format = line.get_line_format()
+            if line_format:
+                state_str += self._control_hdr_str + "BRDCST\t" + key + line_format
+        return state_str
 
     def add_line(self, line_id: str, gline: TimeGraphLine):
         """Add a line to the TimeGraph
