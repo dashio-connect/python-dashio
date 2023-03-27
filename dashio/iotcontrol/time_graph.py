@@ -309,9 +309,9 @@ class TimeGraph(Control):
             cfg_dict["yAxisMin"],
             cfg_dict["yAxisMax"],
             cfg_dict["yAxisNumBars"],
-            cfg_dict["yAxisLabelRt"],
-            cfg_dict["yAxisMinRt"],
-            cfg_dict["yAxisMaxRt"],
+            cfg_dict.get("yAxisLabelRt", ''),
+            cfg_dict.get("yAxisMinRt", 0.0),
+            cfg_dict.get("yAxisMaxRt", 1000.0),
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
