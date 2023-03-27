@@ -133,6 +133,7 @@ class DashConnection(threading.Thread):
         if msg == 0:
             self._connected = True
             self._disconnected = False
+            self._connecting = False
             for device_id in self._device_id_list:
                 control_topic = f"{self.username}/{device_id}/control"
                 self._dash_c.subscribe(control_topic, 0)
@@ -147,6 +148,7 @@ class DashConnection(threading.Thread):
     def _on_disconnect(self, client, userdata, msg):
         logging.debug("disconnecting reason  %s", msg)
         self._connected = False
+        self._connecting = False
         self._disconnected = True
         self.disconnect_timeout = 1.0
 
@@ -248,6 +250,7 @@ class DashConnection(threading.Thread):
         self.context = context or zmq.Context.instance()
         self._connected = False
         self._disconnected = True
+        self._connecting = True
         self.zmq_connection_uuid = "DASH:" + shortuuid.uuid()
         self._b_zmq_connection_uuid = self.zmq_connection_uuid.encode('utf-8')
         self._device_id_list = []
@@ -283,6 +286,7 @@ class DashConnection(threading.Thread):
             self._dash_c.username_pw_set(username, password)
             try:
                 self._dash_c.connect(host, port)
+                self._connecting = True
             except mqtt.socket.gaierror as error:
                 logging.debug("No connection to internet: %s", str(error))
         # Start subscribe, with QoS level 0
@@ -352,11 +356,12 @@ class DashConnection(threading.Thread):
                 if self._connected and data_topic:
                     logging.debug("DASH TX:\n%s", data.decode().rstrip())
                     self._dash_c.publish(data_topic, data.decode())
-            if self._disconnected:
+            if self._disconnected and not self._connecting:
                 self.disconnect_timeout = min(self.disconnect_timeout, 900)
                 time.sleep(self.disconnect_timeout)
                 try:
                     self._dash_c.connect(self.host, self.port)
+                    self._connecting = True
                 except mqtt.socket.gaierror as error:
                     logging.debug("No connection to internet: %s", str(error))
                 self.disconnect_timeout = self.disconnect_timeout * 2
