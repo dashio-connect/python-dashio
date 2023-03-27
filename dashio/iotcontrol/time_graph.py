@@ -164,7 +164,7 @@ class TimeGraphConfig(ControlConfig):
         self.cfg["yAxisMin"] = y_axis_min
         self.cfg["yAxisMax"] = y_axis_max
         self.cfg["yAxisNumBars"] = y_axis_num_bars
-        self.cfg["yAxisLabelRt"] = y_axis_label_rt
+        self.cfg["yAxisLabelRt"] = y_axis_label_rt.translate(BAD_CHARS)
         self.cfg["yAxisMinRt"] = y_axis_min_rt
         self.cfg["yAxisMaxRt"] = y_axis_max_rt
 

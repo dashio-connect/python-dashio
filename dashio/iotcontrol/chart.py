@@ -29,11 +29,14 @@ from .enums import Color, ChartLineType, ChartXAxisLabelsStyle, TitlePosition
 class ChartLine:
     """ChartLine class
     """
-    def __init__(self, name="", line_type=ChartLineType.LINE, color=Color.BLACK):
+    def __init__(self, name="", line_type=ChartLineType.LINE, color=Color.BLACK, right_axis=False):
         self.name = name.translate(BAD_CHARS)
         self.line_type = line_type
         self.color = color
         self.data = []
+        self.axis_side = 'left'
+        if right_axis:
+            self.axis_side = 'right'
 
     def get_line_data(self):
         """Returns the line data formated for the iotdashboard app
@@ -43,7 +46,7 @@ class ChartLine:
         str
             The formatted line data
         """
-        data_str = f"\t{self.name}\t{self.line_type.value}\t{self.color.value}\t"
+        data_str = f"\t{self.name}\t{self.line_type.value}\t{self.color.value}\t{self.axis_side}\t"
         data_str += "\t".join(map(str, self.data))
         data_str += "\n"
         return data_str
@@ -65,6 +68,9 @@ class ChartConfig(ControlConfig):
         y_axis_min: float,
         y_axis_max: float,
         y_axis_num_bars: int,
+        y_axis_label_rt: str,
+        y_axis_min_rt: float,
+        y_axis_max_rt: float,
         control_position: ControlPosition,
     ) -> None:
         super().__init__(control_id, title, control_position, title_position)
@@ -77,6 +83,9 @@ class ChartConfig(ControlConfig):
         self.cfg["yAxisMin"] = y_axis_min
         self.cfg["yAxisMax"] = y_axis_max
         self.cfg["yAxisNumBars"] = y_axis_num_bars
+        self.cfg["yAxisLabelRt"] = y_axis_label_rt.translate(BAD_CHARS)
+        self.cfg["yAxisMinRt"] = y_axis_min_rt
+        self.cfg["yAxisMaxRt"] = y_axis_max_rt
 
     @classmethod
     def from_dict(cls, cfg_dict: dict):
@@ -104,6 +113,9 @@ class ChartConfig(ControlConfig):
             cfg_dict["yAxisMin"],
             cfg_dict["yAxisMax"],
             cfg_dict["yAxisNumBars"],
+            cfg_dict["yAxisLabelRt"],
+            cfg_dict["yAxisMinRt"],
+            cfg_dict["yAxisMaxRt"],
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
@@ -138,8 +150,11 @@ class Chart(Control):
         x_axis_labels_style=ChartXAxisLabelsStyle.ON,
         y_axis_label="",
         y_axis_min=0.0,
-        y_axis_max=100.0,
+        y_axis_max=1000.0,
         y_axis_num_bars=5,
+        y_axis_label_rt="",
+        y_axis_min_rt=0.0,
+        y_axis_max_rt=1000.0,
         control_position=None,
     ):
         """A Chart Control
@@ -188,6 +203,9 @@ class Chart(Control):
                 y_axis_min,
                 y_axis_max,
                 y_axis_num_bars,
+                y_axis_label_rt,
+                y_axis_min_rt,
+                y_axis_max_rt,
                 control_position
             )
         )
@@ -198,6 +216,8 @@ class Chart(Control):
         self._y_axis_min = y_axis_min
         self._y_axis_max = y_axis_max
         self._y_axis_num_bars = y_axis_num_bars
+        self._y_axis_min_rt = y_axis_min_rt
+        self._y_axis_max_rt = y_axis_max_rt
 
     @property
     def x_axis_min(self):
@@ -223,6 +243,16 @@ class Chart(Control):
     def y_axis_max(self):
         """Returns the Y axis maximum value"""
         return self._y_axis_max
+
+    @property
+    def y_axis_min_rt(self):
+        """Returns the Y axis minimum value right side"""
+        return self._y_axis_min_rt
+
+    @property
+    def y_axis_max_rt(self):
+        """Returns the Y axis maximum value right side"""
+        return self._y_axis_max_rt
 
     @property
     def y_axis_num_bars(self):
@@ -255,6 +285,9 @@ class Chart(Control):
             cfg_dict["yAxisMin"],
             cfg_dict["yAxisMax"],
             cfg_dict["yAxisNumBars"],
+            cfg_dict["yAxisLabelRt"],
+            cfg_dict["yAxisMinRt"],
+            cfg_dict["yAxisMaxRt"],
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
