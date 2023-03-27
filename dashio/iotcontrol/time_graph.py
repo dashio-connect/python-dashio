@@ -57,7 +57,13 @@ class TimeGraphLine:
     """A TimeGraphLine for a TimeGraph control
     """
     def __init__(
-        self, name="", line_type=TimeGraphLineType.LINE, color=Color.BLACK, max_data_points=60, break_data=False
+        self,
+        name: str = "",
+        line_type: TimeGraphLineType = TimeGraphLineType.LINE,
+        color: Color = Color.BLACK,
+        max_data_points: int = 60,
+        break_data: bool = False,
+        right_axis: bool = False
     ):
         """A TimeGraphLine for a TimeGraph control
 
@@ -79,6 +85,9 @@ class TimeGraphLine:
         self.color = color
         self.break_data = break_data
         self.data = RingBuffer(max_data_points)
+        self.axis_side = 'left'
+        if right_axis:
+            self.axis_side = 'right'
 
     def get_line_from_timestamp(self, timestamp: str) -> str:
         """Converts data from timestamp to a string formatted for the iotdashboard app
@@ -88,7 +97,8 @@ class TimeGraphLine:
         str
             Formatted line data
         """
-        data_str = f"\t{self.name}\t{self.line_type.value}\t{self.color.value}"
+        data_str = f"\t{self.name}\t{self.line_type.value}\t{self.color.value}\t{self.axis_side}"
+
         try:
             d_stamp = dateutil.parser.isoparse(timestamp)
         except ValueError:
@@ -144,6 +154,9 @@ class TimeGraphConfig(ControlConfig):
         y_axis_min: float,
         y_axis_max: float,
         y_axis_num_bars: int,
+        y_axis_label_rt: str,
+        y_axis_min_rt: float,
+        y_axis_max_rt: float,
         control_position: ControlPosition
     ) -> None:
         super().__init__(control_id, title, control_position, title_position)
@@ -151,6 +164,9 @@ class TimeGraphConfig(ControlConfig):
         self.cfg["yAxisMin"] = y_axis_min
         self.cfg["yAxisMax"] = y_axis_max
         self.cfg["yAxisNumBars"] = y_axis_num_bars
+        self.cfg["yAxisLabelRt"] = y_axis_label_rt
+        self.cfg["yAxisMinRt"] = y_axis_min_rt
+        self.cfg["yAxisMaxRt"] = y_axis_max_rt
 
     @classmethod
     def from_dict(cls, cfg_dict: dict):
@@ -173,6 +189,9 @@ class TimeGraphConfig(ControlConfig):
             cfg_dict["yAxisMin"],
             cfg_dict["yAxisMax"],
             cfg_dict["yAxisNumBars"],
+            cfg_dict["yAxisLabelRt"],
+            cfg_dict["yAxisMinRt"],
+            cfg_dict["yAxisMaxRt"],
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
@@ -190,8 +209,11 @@ class TimeGraph(Control):
         title_position=TitlePosition.BOTTOM,
         y_axis_label="Y axis",
         y_axis_min=0.0,
-        y_axis_max=100.0,
+        y_axis_max=1000.0,
         y_axis_num_bars=5,
+        y_axis_label_rt='',
+        y_axis_min_rt=0.0,
+        y_axis_max_rt=1000.0,
         control_position=None,
     ):
         """A Timegraph control
@@ -225,6 +247,9 @@ class TimeGraph(Control):
                 y_axis_min,
                 y_axis_max,
                 y_axis_num_bars,
+                y_axis_label_rt,
+                y_axis_min_rt,
+                y_axis_max_rt,
                 control_position
             )
         )
@@ -233,6 +258,8 @@ class TimeGraph(Control):
         self._y_axis_min = y_axis_min
         self._y_axis_max = y_axis_max
         self._y_axis_num_bars = y_axis_num_bars
+        self._y_axis_min_rt = y_axis_min_rt
+        self._y_axis_max_rt = y_axis_max_rt
 
         self.line_dict = {}
 
@@ -245,6 +272,16 @@ class TimeGraph(Control):
     def y_axis_max(self):
         """Returns the Y axis maximum value"""
         return self._y_axis_max
+
+    @property
+    def y_axis_min_rt(self):
+        """Returns the Y axis minimum value"""
+        return self._y_axis_min_rt
+
+    @property
+    def y_axis_max_rt(self):
+        """Returns the Y axis maximum value"""
+        return self._y_axis_max_rt
 
     @property
     def y_axis_num_bars(self):
@@ -272,6 +309,9 @@ class TimeGraph(Control):
             cfg_dict["yAxisMin"],
             cfg_dict["yAxisMax"],
             cfg_dict["yAxisNumBars"],
+            cfg_dict["yAxisLabelRt"],
+            cfg_dict["yAxisMinRt"],
+            cfg_dict["yAxisMaxRt"],
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
