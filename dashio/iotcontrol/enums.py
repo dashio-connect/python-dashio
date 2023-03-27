@@ -111,7 +111,6 @@ class Icon(Enum):
     SWITCH = "Switch"
 
 
-
 class SoundName(Enum):
     """Sound names"""
     DEFAULT = "Default"
