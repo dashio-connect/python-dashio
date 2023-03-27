@@ -64,9 +64,8 @@ class SenseGraphTS:
 
         self.page_name = "SenseHat: " + platform.node()
         self.page1_thp = dashio.DeviceView("SHDials", "SenseHat Dials", icon=dashio.Icon.WEATHER)
-        self.page2_thp = dashio.DeviceView("SHTemperature", "SenseHat Temperature", icon=dashio.Icon.TEMPERATURE)
-        self.page3_thp = dashio.DeviceView("SHHumidity", "SenseHat Humidity", icon=dashio.Icon.CLOUD)
-        self.page4_thp = dashio.DeviceView("SHPressure", "SenseHat Pressure", icon=dashio.Icon.FAN)
+        self.page2_thp = dashio.DeviceView("SHTemperature", "Temperature Humidity", icon=dashio.Icon.TEMPERATURE)
+        self.page3_thp = dashio.DeviceView("SHPressure", "SenseHat Pressure", icon=dashio.Icon.FAN)
         self.temperature_dial = dashio.Dial(
             "tempC",
             "Temperature",
@@ -105,31 +104,29 @@ class SenseGraphTS:
             color=dashio.Color.RED,
             max_data_points=100
         )
-        self.temp_graph = dashio.TimeGraph(
-            "shtemp_graph",
-            "SenseHat Temperature",
+        self.temp_hum = dashio.TimeGraph(
+            "temp_hum",
+            "Temperature Humidity",
             control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.4),
-            y_axis_min=0,
-            y_axis_max=60
+            y_axis_label='Temperature',
+            y_axis_label_rt='Humidity',
+            y_axis_min=10,
+            y_axis_max=40,
+            y_axis_min_rt=0,
+            y_axis_max_rt=100,
+
         )
-        self.temp_graph.add_line("temp_line", self.g_line_temperature)
+        self.temp_hum.add_line("temp_line", self.g_line_temperature)
         self.page2_thp.add_control(self.temp_graph)
 
         self.g_line_humidity = dashio.TimeGraphLine(
             "Humidity",
             dashio.TimeGraphLineType.LINE,
             color=dashio.Color.RED,
-            max_data_points=100
+            max_data_points=100,
+            right_axis=True
         )
-        self.humidity_graph = dashio.TimeGraph(
-            "shhum_graph",
-            "SenseHat Humidity",
-            control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.4),
-            y_axis_min=0,
-            y_axis_max=100
-        )
-        self.humidity_graph.add_line("humidity_line", self.g_line_humidity)
-        self.page3_thp.add_control(self.humidity_graph)
+        self.temp_hum.add_line("humidity_line", self.g_line_humidity)
 
         self.g_line_pressure = dashio.TimeGraphLine(
             "Pressure",
@@ -151,14 +148,12 @@ class SenseGraphTS:
         self.device.add_control(self.humidity_dial)
         self.device.add_control(self.pressure_dial)
 
-        self.device.add_control(self.temp_graph)
-        self.device.add_control(self.humidity_graph)
+        self.device.add_control(self.temp_hum)
         self.device.add_control(self.pressure_graph)
 
         self.device.add_control(self.page1_thp)
         self.device.add_control(self.page2_thp)
         self.device.add_control(self.page3_thp)
-        self.device.add_control(self.page4_thp)
 
 
 SHUTDOWN = False
@@ -276,9 +271,8 @@ def main():
         return humidity, temperature, pressure
 
     def _send_graph_data():
-        dash_sense_hat.humidity_graph.send_data()
         dash_sense_hat.pressure_graph.send_data()
-        dash_sense_hat.temp_graph.send_data()
+        dash_sense_hat.temp_hum.send_data()
 
     def get_graph_data(humidity, temperature, pressure):
         dash_sense_hat.g_line_humidity.add_data_point(humidity)
