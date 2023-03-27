@@ -117,7 +117,7 @@ class SenseGraphTS:
 
         )
         self.temp_hum.add_line("temp_line", self.g_line_temperature)
-        self.page2_thp.add_control(self.temp_graph)
+        self.page2_thp.add_control(self.temp_hum)
 
         self.g_line_humidity = dashio.TimeGraphLine(
             "Humidity",
@@ -142,7 +142,7 @@ class SenseGraphTS:
             y_axis_max=1100
         )
         self.pressure_graph.add_line("pressure_line", self.g_line_pressure)
-        self.page4_thp.add_control(self.pressure_graph)
+        self.page3_thp.add_control(self.pressure_graph)
 
         self.device.add_control(self.temperature_dial)
         self.device.add_control(self.humidity_dial)
