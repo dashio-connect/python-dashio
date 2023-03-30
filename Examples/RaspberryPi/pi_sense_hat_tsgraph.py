@@ -122,7 +122,7 @@ class SenseGraphTS:
         self.g_line_humidity = dashio.TimeGraphLine(
             "Humidity",
             dashio.TimeGraphLineType.LINE,
-            color=dashio.Color.RED,
+            color=dashio.Color.BLUE,
             max_data_points=100,
             right_axis=True
         )
