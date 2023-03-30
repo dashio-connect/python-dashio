@@ -15,6 +15,9 @@ A Device is a collection of [Controls](#controls) and [DeviceViews](#deviceview)
 ### Device Methods
 
 * *add_control(iot_control).* Add a control to the device.
+* *get_control(control_type, control_id).* Returns control loaded into the device.
+* *remove_control(control_type, control_id).* Removes the control from the device.
+* *is_control_loaded(iot_control).* Returns boolean if the control is loaded in the device.
 * *use_cfg64().* Generate a CFG64 formated CFG message.
 * *use_cfg().* Generate JSON formated CFG messages.
 * *close().* Close the device.
@@ -50,7 +53,7 @@ When controls are instantiated they create a ControlControl to add to its layout
 
 A DeviceView provides a control that descibes appearance and style of the group of controls that are displayed on this DeviceView by the iotdashboard app.
 
-##### DeviceView Attributes
+#### DeviceView Attributes
 
 All of these attributes are config attributes.
 
@@ -332,8 +335,11 @@ An GraphLine object represents a line for a Chart.
 * *x_axis_labels_style : ChartXAxisLabelsStyle, optional.* The style for the X axis, by default ChartXAxisLabelsStyle.ON.
 * *y_axis_label : str, optional.* The label for the Y axis,, by default "".
 * *y_axis_min : float, optional.* Min value for the Y axis, by default 0.0.
-* *y_axis_max : float, optional.* Max value for the Y axis, by default 100.0.
+* *y_axis_max : float, optional.* Max value for the Y axis, by default 1000.0.
 * *y_axis_num_bars : int, optional.* Number of bars on the Y axis, by default 5.
+* *y_axis_label_rt : str, optional.* Label for the Y axis right side, by default ''.
+* *y_axis_min_rt. : float, optional.*  Min value for the right Y axis, by default 0.0.
+* *y_axis_max_rt : float, optional.* Max value for the right Y axis, by default 1000.0.
 * *control_position : ControlPosition, optional.* The position of the control on a DeviceView, by default None.
 
 #### Chart Methods
@@ -563,6 +569,7 @@ A TimeGraphLine for a TimeGraph control.
 * *color : Color, optional.* The color of the line, by default Color.BLACK.
 * *max_data_points : int, optional.* The data is stored in a ring buffer this sets the ring buffer size, by default 60
 * *break_data : bool, optional.* If true draws the line with breaks between missing data, by default False
+* *right_axis : bool, optional.* If true use the right axis, by default False.
 
 ##### Time Graph Line Methods
 
@@ -575,9 +582,12 @@ A TimeGraphLine for a TimeGraph control.
 * *control_position : ControlPosition, optional.* The position of the control on a DeviceView, by default None.
 * *title_position : TitlePosition, optional.* Position of the title when displayed on the iotdashboard app, by default None.
 * *y_axis_label : str, optional.* Label for the Y axis, by default "Y axis".
-* *y_axis_min.* Min value for the Y axis, by default 0.0.
-* *y_axis_max : float, optional.* Max value for the Y axis, by default 100.0.
+* *y_axis_min. : float , optional.* Min value for the Y axis, by default 0.0.
+* *y_axis_max : float, optional.* Max value for the Y axis, by default 1000.0.
 * *y_axis_num_bars : int, optional.* The number of bars to display on the graph, by default 5.
+* *y_axis_label_rt : str, optional.* Label for the Y axis right side, by default ''.
+* *y_axis_min_rt. : float, optional.*  Min value for the right Y axis, by default 0.0.
+* *y_axis_max_rt : float, optional.* Max value for the right Y axis, by default 1000.0.
 
 #### Time Graph Methods
 

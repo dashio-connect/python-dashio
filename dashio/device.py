@@ -60,6 +60,12 @@ class Device(threading.Thread):
     get_control(control_type: str, control_id: str):
         returns the instance of a controla leaded into the device.
 
+    remove_control(control_type, control_id) :
+        Removes the control from the device.
+
+    is_control_loaded(iot_control) :
+         Returns boolean if the control is loaded in the device.
+
     add_all_c64_controls(c64_dict: dict):
         Adds all controls defined in c64_dict into the device.
 
@@ -207,12 +213,12 @@ class Device(threading.Thread):
         logging.debug("ANNOUNCE: %s", payload)
         self.tx_zmq_pub.send_multipart([b"DASH", payload.encode('utf-8')])
 
-    def is_control_loaded(self, control_type, control_id) -> bool:
+    def is_control_loaded(self, control_type, control_id: str) -> bool:
         """Is the control loaded in the device?"""
         key = f"{control_type}\t{control_id}"
         return key in self.controls_dict
 
-    def add_all_c64_controls(self, c64_dict):
+    def add_all_c64_controls(self, c64_dict: dict):
         """Loads all the controls in cfg_dict into the device.
 
         Parameters
