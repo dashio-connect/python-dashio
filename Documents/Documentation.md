@@ -319,8 +319,9 @@ An GraphLine object represents a line for a Chart.
 ##### Chart Line Attributes
 
 * *name : str.* The name of the line.
-* *line_type : ChartLineType.* The format of the line: LINE, BAR, SEGBAR, PEAKBAR, DEL. Sending DEL removes the line from the chart.
-* *color : Color*. The color of the ChartLine.
+* *line_type : ChartLineType. optional.* The format of the line: LINE, BAR, SEGBAR, PEAKBAR, DEL. Sending DEL removes the line from the chart. Default ChartLineType.LINE.
+* *color : Color, optional.* The color of the ChartLine. Default Color.BLACK.
+* *right_axis : bool, optional.* If True use the right axis of graph. Default False
 * *data. : list.* The list containing data values to display on the Chart.
 
 #### Chart Config Attributes
