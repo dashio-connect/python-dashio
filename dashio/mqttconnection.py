@@ -148,7 +148,6 @@ class MQTTConnection(threading.Thread):
         self.running = True
         self.username = username
         self.mqttc = mqtt.Client()
-        self.disconnect_timeout = 15.0
         # Assign event callbacks
         self.mqttc.on_message = self._on_message
         self.mqttc.on_connect = self._on_connect
@@ -177,7 +176,7 @@ class MQTTConnection(threading.Thread):
         except mqtt.socket.gaierror as error:
             logging.debug("No connection to internet: %s", str(error))
         # Start subscribe, with QoS level 0
-        self.disconnect_timeout = 15.0
+        self._disconnect_timeout = 1.0
         self.start()
 
     def _mqtt_command(self, msg_dict: dict):
@@ -233,14 +232,14 @@ class MQTTConnection(threading.Thread):
                     logging.debug("MQTT TX:\n%s", data.decode().rstrip())
                     self.mqttc.publish(data_topic, data.decode())
             if self._connection_state == ConnectionState.DISCONNECTED:
-                self.disconnect_timeout = min(self.disconnect_timeout, 900)
-                time.sleep(self.disconnect_timeout)
+                self._disconnect_timeout = min(self._disconnect_timeout, 900)
+                time.sleep(self._disconnect_timeout)
                 try:
                     self.mqttc.connect(self.host, self.port)
                     self._connection_state = ConnectionState.CONNECTING
                 except mqtt.socket.gaierror as error:
                     logging.debug("No connection to internet: %s", str(error))
-                self.disconnect_timeout = self.disconnect_timeout * 2
+                self._disconnect_timeout = self._disconnect_timeout * 2
 
         self.mqttc.loop_stop()
         self.tx_zmq_pub.close()

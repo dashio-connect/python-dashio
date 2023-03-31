@@ -146,7 +146,7 @@ class DashConnection(threading.Thread):
     def _on_disconnect(self, client, userdata, msg):
         logging.debug("disconnecting reason  %s", msg)
         self._connection_state = ConnectionState.DISCONNECTED
-        self.disconnect_timeout = 1.0
+        self._disconnect_timeout = 1.0
 
     def _on_message(self, client, obj, msg):
         data = str(msg.payload, "utf-8").strip()
@@ -285,7 +285,7 @@ class DashConnection(threading.Thread):
                 logging.debug("No connection to internet: %s", str(error))
         # Start subscribe, with QoS level 0
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
-        self.disconnect_timeout = 15.0
+        self._disconnect_timeout = 1.0
         self.start()
 
     def close(self):
@@ -351,14 +351,14 @@ class DashConnection(threading.Thread):
                     logging.debug("DASH TX:\n%s", data.decode().rstrip())
                     self._dash_c.publish(data_topic, data.decode())
             if self._connection_state == ConnectionState.DISCONNECTED:
-                self.disconnect_timeout = min(self.disconnect_timeout, 900)
-                time.sleep(self.disconnect_timeout)
+                self._disconnect_timeout = min(self._disconnect_timeout, 900)
+                time.sleep(self._disconnect_timeout)
                 try:
                     self._dash_c.connect(self.host, self.port)
                     self._connection_state = ConnectionState.CONNECTING
                 except mqtt.socket.gaierror as error:
                     logging.debug("No connection to internet: %s", str(error))
-                self.disconnect_timeout = self.disconnect_timeout * 2
+                self._disconnect_timeout = self._disconnect_timeout * 2
 
         self._dash_c.loop_stop()
         self.tx_zmq_pub.close()
