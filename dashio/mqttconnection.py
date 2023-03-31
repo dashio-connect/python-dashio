@@ -33,14 +33,14 @@ import zmq
 
 from .constants import CONNECTION_PUB_URL
 
+from .iotcontrol.enums import ConnectionState
 
 class MQTTConnection(threading.Thread):
     """Setups and manages a connection thread to the MQTT Server."""
 
     def _on_connect(self, client, userdata, flags, msg):
         if msg == 0:
-            self._connected = True
-            self._disconnected = False
+            self._connection_state = ConnectionState.CONNECTED
             for device_id in self._device_id_list:
                 control_topic = f"{self.username}/{device_id}/control"
                 self.mqttc.subscribe(control_topic, 0)
@@ -54,8 +54,7 @@ class MQTTConnection(threading.Thread):
 
     def _on_disconnect(self, client, userdata, msg):
         logging.debug("disconnecting reason  %s", msg)
-        self._connected = False
-        self._disconnected = True
+        self._connection_state = ConnectionState.DISCONNECTED
 
     def _on_message(self, client, obj, msg):
         data = str(msg.payload, "utf-8").strip()
@@ -79,7 +78,7 @@ class MQTTConnection(threading.Thread):
         if device.device_id not in self._device_id_list:
             self._device_id_list.append(device.device_id)
             device.register_connection(self)
-            if self._connected:
+            if self._connection_state == ConnectionState.CONNECTED:
                 control_topic = f"{self.username}/{device.device_id}/control"
                 self.mqttc.subscribe(control_topic, 0)
                 self._send_dash_announce()
@@ -139,9 +138,7 @@ class MQTTConnection(threading.Thread):
         self.context = context or zmq.Context.instance()
         self.zmq_connection_uuid = "MQTT:" + shortuuid.uuid()
         self.b_connection_id = self.zmq_connection_uuid.encode('utf-8')
-
-        self._connected = False
-        self._disconnected = True
+        self._connection_state = ConnectionState.DISCONNECTED
         self.connection_topic_list = []
         self._device_id_list = []
         self._device_id_rx_list = []
@@ -176,6 +173,7 @@ class MQTTConnection(threading.Thread):
             self.mqttc.username_pw_set(username, password)
         try:
             self.mqttc.connect(self.host, self.port)
+            self._connection_state = ConnectionState.CONNECTING
         except mqtt.socket.gaierror as error:
             logging.debug("No connection to internet: %s", str(error))
         # Start subscribe, with QoS level 0
@@ -231,14 +229,15 @@ class MQTTConnection(threading.Thread):
                 except IndexError:
                     continue
                 data_topic = f"{self.username}/{device_id}/data"
-                if self._connected:
+                if self._connection_state == ConnectionState.CONNECTED:
                     logging.debug("MQTT TX:\n%s", data.decode().rstrip())
                     self.mqttc.publish(data_topic, data.decode())
-            if self._disconnected:
+            if self._connection_state == ConnectionState.DISCONNECTED:
                 self.disconnect_timeout = min(self.disconnect_timeout, 900)
                 time.sleep(self.disconnect_timeout)
                 try:
                     self.mqttc.connect(self.host, self.port)
+                    self._connection_state = ConnectionState.CONNECTING
                 except mqtt.socket.gaierror as error:
                     logging.debug("No connection to internet: %s", str(error))
                 self.disconnect_timeout = self.disconnect_timeout * 2
