@@ -24,6 +24,15 @@ SOFTWARE.
 from enum import Enum
 
 
+class ConnectionState(Enum):
+    """
+    Used Internally for MQTT and DashConntections
+    """
+    CONNECTED = 0
+    CONNECTING = 1
+    DISCONNECTED = 2
+
+
 class ControlName(Enum):
     """
     All the control names
