@@ -121,7 +121,8 @@ class TestControls:
             "ALARM_BTN1",
             title="A1",
             icon_name=dashio.Icon.BELL,
-            on_color=dashio.Color.RED
+            on_color=dashio.Color.RED,
+            control_position=dashio.ControlPosition(0.0, 0.03125, 0.2727272727272, 0.1875)
         )
         self.tadevice_view.add_control(self.alarm_btn1)
         self.alarm_btn1.add_receive_message_callback(self.alarm_btn1_handler)
@@ -131,7 +132,8 @@ class TestControls:
             "ALARM_BTN2",
             title="A2",
             icon_name=dashio.Icon.BELL,
-            on_color=dashio.Color.RED
+            on_color=dashio.Color.RED,
+            control_position=dashio.ControlPosition(0.3636363636363636, 0.03125, 0.2727272727272, 0.1875)
         )
         self.alarm_btn2.add_receive_message_callback(self.alarm_btn2_handler)
         device.add_control(self.alarm_btn2)
@@ -141,7 +143,8 @@ class TestControls:
             "ALARM_BTN3",
             title="A3",
             icon_name=dashio.Icon.BELL,
-            on_color=dashio.Color.RED
+            on_color=dashio.Color.RED,
+            control_position=dashio.ControlPosition(0.7272727272727, 0.03125, 0.2727272727272, 0.1875)
         )
         self.alarm_btn3.add_receive_message_callback(self.alarm_btn3_handler)
         device.add_control(self.alarm_btn3)
