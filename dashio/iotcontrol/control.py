@@ -142,7 +142,7 @@ class ControlPosition:
 
 
 class ControlConfig:
-    """Base COntrolConfig"""
+    """Base ControlConfig"""
     def get_cfg_json(self) -> str:
         """Returns the CFG str for the control called when the iotdashboard app asks for a CFG
 
@@ -356,6 +356,8 @@ class Control():
         self._cfg_full_page_no_columns = 0
         self.cntrl_type = cntrl_type.translate(BAD_CHARS)
         self.control_id = control_id.translate(BAD_CHARS)
+        if not self.control_id:
+            raise ValueError('control_id cannot be an empty string')
         self._message_rx_event = Event()
         self._message_tx_event = Event()
         # This may break things but makes all controls able to be setup from tasks.
