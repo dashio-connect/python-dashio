@@ -185,7 +185,6 @@ class Device(threading.Thread):
                     dvvw_str += self._device_id_str + cfg
             else:
                 cfg_list = control.get_cfg(data)
-                #  logging.debug("CFG: %s", cfg_list)
                 for cfg in cfg_list:
                     reply += self._device_id_str + cfg
         reply += dvvw_str
