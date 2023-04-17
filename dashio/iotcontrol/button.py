@@ -45,7 +45,7 @@ class ButtonConfig(ControlConfig):
         self.cfg["text"] = text.translate(BAD_CHARS)
         self.cfg["iconName"] = icon_name.value
         self.cfg["buttonEnabled"] = button_enabled
-        self.cfg["style"] = style
+        self.cfg["style"] = str(style.value)
         self.cfg["onColor"] = str(on_color.value)
         self.cfg["offColor"] = str(off_color.value)
 
@@ -67,6 +67,7 @@ class ButtonConfig(ControlConfig):
             cfg_dict["title"],
             _get_title_position(cfg_dict["titlePosition"]),
             cfg_dict["buttonEnabled"],
+            _get_button_style(cfg_dict["style"]),
             _get_icon(cfg_dict["iconName"]),
             _get_color(cfg_dict["onColor"]),
             _get_color(cfg_dict["offColor"]),
