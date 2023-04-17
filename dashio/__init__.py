@@ -50,7 +50,8 @@ from .iotcontrol.enums import (
     TextFormat,
     DirectionStyle,
     ColorPickerStyle,
-    ControlName
+    ControlName,
+    ButtonStyle
 )
 from .iotcontrol.audio_visual_display import AudioVisualDisplay
 from .iotcontrol.chart import Chart, ChartLine

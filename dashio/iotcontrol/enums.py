@@ -143,6 +143,12 @@ class SoundName(Enum):
     BOING = "Boing"
 
 
+class ButtonStyle(Enum):
+    """Button Styles"""
+    BASIC = "basic"
+    HIGHLIGHT = "highlight"
+
+
 class DeviceViewStyle(Enum):
     """DeciveView Styles"""
     BASIC = "BASIC"
