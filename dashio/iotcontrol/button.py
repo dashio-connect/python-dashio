@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from ..constants import BAD_CHARS
-from .control import Control, ControlPosition, ControlConfig, _get_color, _get_icon, _get_title_position
-from .enums import ButtonState, Color, Icon, TitlePosition
+from .control import Control, ControlPosition, ControlConfig, _get_color, _get_icon, _get_title_position, _get_button_style
+from .enums import ButtonState, Color, Icon, TitlePosition, ButtonStyle
 
 
 class ButtonConfig(ControlConfig):
@@ -34,6 +34,7 @@ class ButtonConfig(ControlConfig):
         title: str,
         title_position: TitlePosition,
         button_enabled: bool,
+        style: ButtonStyle,
         icon_name: Icon,
         on_color: Color,
         off_color: Color,
@@ -44,6 +45,7 @@ class ButtonConfig(ControlConfig):
         self.cfg["text"] = text.translate(BAD_CHARS)
         self.cfg["iconName"] = icon_name.value
         self.cfg["buttonEnabled"] = button_enabled
+        self.cfg["style"] = style
         self.cfg["onColor"] = str(on_color.value)
         self.cfg["offColor"] = str(off_color.value)
 
@@ -90,6 +92,8 @@ class Button(Control):
         Can be TitlePosition.BOTTOM, TitlePosition.TOP, TitlePosition.OFF
     button_enabled : boolean
         True allows the app to send button events. False disables button pushes
+    stype : ButtonStyle
+        The style of the button. Options are ButtonStyle.BASIC, ButtonStyle.HIGHLIGHT
     icon_name : Icon
         Set the icon for the button
     off_color : Color
@@ -125,6 +129,7 @@ class Button(Control):
         title="A Button",
         title_position=TitlePosition.BOTTOM,
         button_enabled=True,
+        style=ButtonStyle.BASIC,
         icon_name=Icon.NONE,
         on_color=Color.BLUE,
         off_color=Color.RED,
@@ -138,6 +143,7 @@ class Button(Control):
                 title,
                 title_position,
                 button_enabled,
+                style,
                 icon_name,
                 on_color,
                 off_color,
@@ -167,6 +173,7 @@ class Button(Control):
             cfg_dict["title"],
             _get_title_position(cfg_dict["titlePosition"]),
             cfg_dict["buttonEnabled"],
+            _get_button_style(cfg_dict.get("style", 'basic')),
             _get_icon(cfg_dict["iconName"]),
             _get_color(cfg_dict["onColor"]),
             _get_color(cfg_dict["offColor"]),
