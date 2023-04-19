@@ -2,7 +2,8 @@
 """
 from .enums import Color, Icon, Precision, Keyboard, TextAlignment, SliderBarStyle, DialNumberPosition, DialStyle,\
     SoundName, ChartLineType, TimeGraphLineType, TimeGraphPositionOfKey, ButtonState, LabelStyle, KnobStyle,\
-    TitlePosition, ChartXAxisLabelsStyle, TextFormat, DirectionStyle, ColorPickerStyle, ControlName, ButtonStyle
+    TitlePosition, ChartXAxisLabelsStyle, TextFormat, DirectionStyle, ColorPickerStyle, ControlName, ButtonStyle,\
+    MenuStyle, ButtonGroupStyle
 from .audio_visual_display import AudioVisualDisplay
 from .chart import Chart, ChartLine, ChartConfig
 from .slider import Slider, SliderConfig

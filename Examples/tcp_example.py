@@ -126,7 +126,7 @@ class TestControls:
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
         context = zmq.Context.instance()
-        self.device = dashio.Device("ControlTest", args.device_id, args.device_name, add_actions=True, context=context)
+        self.device = dashio.Device("ControlTest", args.device_id, args.device_name, context=context)
         self.device.use_cfg64()
 
         self.tcp_con = dashio.TCPConnection(context=context)
@@ -136,7 +136,7 @@ class TestControls:
         self.page_name = "TestTCP: " + platform.node()
 
         self.page_test = dashio.DeviceView("TestTCP", self.page_name)
-        self.up_btn = dashio.Button("UP_BTN", title="Up", control_position=dashio.ControlPosition(0.02, 0.01, 0.22, 0.12))
+        self.up_btn = dashio.Button("UP_BTN", title="Up", icon_name=dashio.Icon.UP, control_position=dashio.ControlPosition(0.02, 0.01, 0.22, 0.12))
         self.up_btn.btn_state = dashio.ButtonState.OFF
         self.up_btn.icon_name = dashio.Icon.UP
         self.up_btn.text = ""
@@ -144,9 +144,8 @@ class TestControls:
         self.page_test.add_control(self.up_btn)
 
         self.down_btn = dashio.Button(
-            "DOWN_BTN", title="Down", control_position=dashio.ControlPosition(0.02, 0.86, 0.22, 0.12)
+            "DOWN_BTN", title="Down", icon_name=dashio.Icon.DOWN, control_position=dashio.ControlPosition(0.02, 0.86, 0.22, 0.12)
         )
-        self.down_btn.btn_state = dashio.ButtonState.OFF
         self.down_btn.icon_name = dashio.Icon.DOWN
         self.down_btn.add_receive_message_callback(self.down_btn_event_handler)
         self.page_test.add_control(self.down_btn)

@@ -23,8 +23,8 @@ SOFTWARE.
 """
 from ..constants import BAD_CHARS
 from .button import Button
-from .control import Control, ControlPosition, ControlConfig, _get_icon, _get_title_position
-from .enums import Icon, TitlePosition
+from .control import Control, ControlPosition, ControlConfig, _get_icon, _get_title_position, _get_button_group_style
+from .enums import Icon, TitlePosition, ButtonGroupStyle
 
 
 class ButtonGroupConfig(ControlConfig):
@@ -34,6 +34,7 @@ class ButtonGroupConfig(ControlConfig):
         control_id: str,
         title: str,
         text: str,
+        style: ButtonGroupStyle,
         icon: Icon,
         grid_view: bool,
         control_position: ControlPosition,
@@ -43,6 +44,7 @@ class ButtonGroupConfig(ControlConfig):
         self.cfg["text"] = text.translate(BAD_CHARS)
         self.cfg["iconName"] = icon.value
         self.cfg["gridView"] = grid_view
+        self.cfg["style"] = str(style.value)
 
     @classmethod
     def from_dict(cls, cfg_dict: dict):
@@ -59,10 +61,11 @@ class ButtonGroupConfig(ControlConfig):
         """
         tmp_cls = cls(
             cfg_dict["controlID"],
-            cfg_dict["title"],
-            cfg_dict["text"],
-            _get_icon(cfg_dict["iconName"]),
-            cfg_dict["gridView"],
+            cfg_dict.get("title", ""),
+            cfg_dict.get("text", ""),
+            _get_button_group_style(cfg_dict.get("style", 'basic')),
+            _get_icon(cfg_dict.get("iconName", 'none')),
+            cfg_dict.get("gridView", True),
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
             _get_title_position(cfg_dict["titlePosition"])
         )
@@ -94,6 +97,7 @@ class ButtonGroup(Control):
         title="A Button Group",
         text="A Button group with Text",
         title_position=TitlePosition.BOTTOM,
+        style=ButtonGroupStyle.BASIC,
         icon=Icon.MENU,
         grid_view=True,
         control_position=None,
@@ -108,17 +112,19 @@ class ButtonGroup(Control):
                 [description]. Defaults to "A Button Group".
             text (str, optional):
                 [description]. Defaults to "A Button group with Text".
-            title_position ([type], optional):
+            title_position (TitlePosition, optional):
                 [description]. Defaults to TitlePosition.BOTTOM.
-            icon ([type], optional):
+            style (ButtonGroupStyle, optional)
+                The style of the ButtonGroup.
+            icon (Icon, optional):
                 [description]. Defaults to Icon.MENU.
             grid_view (bool, optional):
                 [description]. Defaults to True.
-            control_position ([type], optional):
+            control_position (ControlPosition, optional):
                 [description]. Defaults to None.
         """
         super().__init__("BTGP", control_id)
-        self._cfg_columnar.append(ButtonGroupConfig(control_id, title, text, icon, grid_view, control_position, title_position))
+        self._cfg_columnar.append(ButtonGroupConfig(control_id, title, text, style, icon, grid_view, control_position, title_position))
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict):
@@ -135,11 +141,12 @@ class ButtonGroup(Control):
         """
         tmp_cls = cls(
             cfg_dict["controlID"],
-            cfg_dict["title"],
-            cfg_dict["text"],
-            _get_title_position(cfg_dict["titlePosition"]),
-            _get_icon(cfg_dict["iconName"]),
-            cfg_dict["gridView"],
+            cfg_dict.get("title", ""),
+            cfg_dict.get("text", ""),
+            _get_title_position(cfg_dict.get("titlePosition", "Bottom")),
+            _get_button_group_style(cfg_dict.get("style", "basic")),
+            _get_icon(cfg_dict.get("iconName", "None")),
+            cfg_dict.get("gridView", True),
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
         )
         tmp_cls.parent_id = cfg_dict["parentID"]

@@ -23,8 +23,8 @@ SOFTWARE.
 """
 from ..constants import BAD_CHARS
 from .button import Button
-from .control import Control, ControlPosition, ControlConfig, _get_icon, _get_title_position
-from .enums import Icon, TitlePosition
+from .control import Control, ControlPosition, ControlConfig, _get_icon, _get_title_position, _get_menu_style
+from .enums import Icon, TitlePosition, MenuStyle
 from .selector import Selector
 from .slider import Slider
 from .textbox import TextBox
@@ -38,12 +38,14 @@ class MenuConfig(ControlConfig):
         title: str,
         title_position: TitlePosition,
         text: str,
+        style: MenuStyle,
         icon_name: Icon,
         control_position: ControlPosition
     ) -> None:
         super().__init__(control_id, title, control_position, title_position)
         self.cfg["text"] = text.translate(BAD_CHARS)
         self.cfg["iconName"] = icon_name.value
+        self.cfg["style"] = str(style.value)
 
     @classmethod
     def from_dict(cls, cfg_dict: dict):
@@ -60,10 +62,11 @@ class MenuConfig(ControlConfig):
         """
         tmp_cls = cls(
             cfg_dict["controlID"],
-            cfg_dict["title"],
-            _get_title_position(cfg_dict["titlePosition"]),
-            cfg_dict["text"],
-            _get_icon(cfg_dict["iconName"]),
+            cfg_dict.get("title", ""),
+            _get_title_position(cfg_dict.get("titlePosition", "Bottom")),
+            cfg_dict.get("text", ""),
+            _get_menu_style(cfg_dict.get("style", "basic")),
+            _get_icon(cfg_dict.get("iconName", "None")),
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
@@ -80,6 +83,7 @@ class Menu(Control):
         title="A Menu",
         title_position=TitlePosition.BOTTOM,
         text="A Menu with Text",
+        style=MenuStyle.BASIC,
         icon_name=Icon.MENU,
         control_position=None
     ):
@@ -107,6 +111,7 @@ class Menu(Control):
                 title,
                 title_position,
                 text,
+                style,
                 icon_name,
                 control_position
             )
@@ -127,10 +132,11 @@ class Menu(Control):
         """
         tmp_cls = cls(
             cfg_dict["controlID"],
-            cfg_dict["title"],
-            _get_title_position(cfg_dict["titlePosition"]),
-            cfg_dict["text"],
-            _get_icon(cfg_dict["iconName"]),
+            cfg_dict.get("title", ""),
+            _get_title_position(cfg_dict.get("titlePosition", "Bottom")),
+            cfg_dict.get("text", ""),
+            _get_menu_style(cfg_dict.get("style", "basic")),
+            _get_icon(cfg_dict.get("iconName", "None")),
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
