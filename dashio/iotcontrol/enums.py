@@ -149,6 +149,18 @@ class ButtonStyle(Enum):
     HIGHLIGHT = "highlight"
 
 
+class MenuStyle(Enum):
+    """Menu Styles"""
+    BASIC = "basic"
+    HIGHLIGHT = "highlight"
+
+
+class ButtonGroupStyle(Enum):
+    """Button Group Styles"""
+    BASIC = "basic"
+    HIGHLIGHT = "highlight"
+
+
 class DeviceViewStyle(Enum):
     """DeciveView Styles"""
     BASIC = "BASIC"

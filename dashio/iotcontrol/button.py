@@ -64,19 +64,18 @@ class ButtonConfig(ControlConfig):
         """
         tmp_cls = cls(
             cfg_dict["controlID"],
-            cfg_dict["title"],
-            _get_title_position(cfg_dict["titlePosition"]),
-            cfg_dict["buttonEnabled"],
-            _get_button_style(cfg_dict["style"]),
-            _get_icon(cfg_dict["iconName"]),
-            _get_color(cfg_dict["onColor"]),
-            _get_color(cfg_dict["offColor"]),
-            cfg_dict["text"],
+            cfg_dict.get("title", ''),
+            _get_title_position(cfg_dict.get("titlePosition", 'bottom')),
+            cfg_dict.get("buttonEnabled", True),
+            _get_button_style(cfg_dict.get("style", 'basic')),
+            _get_icon(cfg_dict.get("iconName", 'none')),
+            _get_color(cfg_dict.get("onColor", 'blue')),
+            _get_color(cfg_dict.get("offColor", 'red')),
+            cfg_dict.get("text", ""),
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls
-
 
 class Button(Control):
     """A Button control.
