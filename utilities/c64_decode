@@ -1,26 +1,47 @@
 #!/usr/bin/env python3
 import dashio
 import json
-import sys
 import os
+import argparse
 
-c64_filename = sys.argv[1]
-json_filename = os.path.splitext(c64_filename)[0] + ".json"
-try:
-    with open(c64_filename, mode="r") as fp:
-        cfg64 = fp.read()
 
-except FileNotFoundError:
-    print("File not found")
+def parse_commandline_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('file', help="Input file name.")
+    parser.add_argument("-p", "--print", dest="print", action='store_true', help="Print output.")
+    parser.add_argument("-o", "--out", dest="out_file", default="", help="output filename.")
+    parser.add_argument("-i", "--indent", dest="indent", type=int, default=4, help="Indent depth (Default 4).")
 
-# Remove formatting for different languages
-cfg64 = cfg64.translate({ord(i): None for i in '"\n \\;'})
+    args = parser.parse_args()
+    return args
 
-print(cfg64)
-config_dict = dashio.decode_cfg64(cfg64)
-cfg_json = json.dumps(config_dict, indent=4)
-print(cfg_json)
+def main():
+    args = parse_commandline_arguments()
 
-json_file = open(json_filename, "w")
-json_file.write(cfg_json)
-json_file.close()
+    c64_filename = args.file
+    json_filename = os.path.splitext(c64_filename)[0] + ".json"
+
+    if args.out_file:
+        json_filename = args.out_file
+    try:
+        with open(c64_filename, mode="r") as fp:
+            cfg64 = fp.read()
+    except FileNotFoundError:
+        print("File not found")
+
+    # Remove formatting for different languages
+    cfg64 = cfg64.translate({ord(i): None for i in '"\n \\;'})
+
+    config_dict = dashio.decode_cfg64(cfg64)
+    cfg_json = json.dumps(config_dict, indent=args.indent)
+
+    if args.print:
+        print(cfg_json)
+
+    json_file = open(json_filename, "w")
+    json_file.write(cfg_json)
+    json_file.close()
+
+
+if __name__ == "__main__":
+    main()
