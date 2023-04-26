@@ -30,6 +30,7 @@ from .enums import Color, TitlePosition
 from .ring_buffer import RingBuffer
 from .event import Event
 
+
 class EventData:
     """Event log data point
     """

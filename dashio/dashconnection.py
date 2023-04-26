@@ -34,6 +34,7 @@ import zmq
 from .constants import CONNECTION_PUB_URL
 from .iotcontrol.enums import ConnectionState
 
+
 class DashControl():
     """Class to stare dash connection info
     """
