@@ -61,7 +61,6 @@ class Icon(Enum):
     """
     NONE = "None"
     DOT = "Dot"
-    PAD = "Pad"
     UP = "Up"
     DOWN = "Down"
     LEFT = "Left"
