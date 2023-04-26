@@ -77,6 +77,7 @@ class ButtonConfig(ControlConfig):
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls
 
+
 class Button(Control):
     """A Button control.
 

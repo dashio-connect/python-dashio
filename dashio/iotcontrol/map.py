@@ -30,6 +30,7 @@ from .control import Control, ControlPosition, ControlConfig, _get_title_positio
 from .enums import TitlePosition, Color
 from .event import Event
 
+
 class MapLocation:
     """
     A json version of a map location.

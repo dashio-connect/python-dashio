@@ -37,7 +37,7 @@ class TestButton(unittest.TestCase):
     def test_button_text_icon(self):
         test_control = Button("BUTTONID")
         test_control.send_button(ButtonState.ON, Icon.SQUARE, "HELLO")
-        self.assertEqual(test_control.get_state(), '\t{device_id}\tBTTN\tBUTTONID\tON\tPad\tHELLO\n', "icon Should be Pad")
+        self.assertEqual(test_control.get_state(), '\t{device_id}\tBTTN\tBUTTONID\tON\tSquare\tHELLO\n', "icon Should be Square")
 
 
 if __name__ == '__main__':

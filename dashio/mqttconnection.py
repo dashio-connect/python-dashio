@@ -35,6 +35,7 @@ from .constants import CONNECTION_PUB_URL
 
 from .iotcontrol.enums import ConnectionState
 
+
 class MQTTConnection(threading.Thread):
     """Setups and manages a connection thread to the MQTT Server."""
 
