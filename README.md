@@ -179,3 +179,40 @@ while True:
 ```
 
 We've added the cfg64 string. Then decoded it with *dashio.decode_cfg64(cfg64)*. This function returns a dictionary that we can pass into Device so that it can to instantiate and add the controls.
+
+Included in the library are two commandline utilities to encode and decode cfg64 files.
+
+```sh
+$ c64_decode -h
+usage: c64_decode [-h] [-p] [-o OUT_FILE] [-i INDENT] file
+
+positional arguments:
+  file                  Input file name.
+
+options:
+  -h, --help            show this help message and exit
+  -p, --print           Print output.
+  -o OUT_FILE, --out OUT_FILE
+                        output filename.
+  -i INDENT, --indent INDENT
+                        Indent depth (Default 4).
+```
+
+And
+
+```sh
+$ c64_encode -h
+usage: c64_encode [-h] [-f FORMAT] [-o OUT_FILE] [-w WIDTH] file
+
+positional arguments:
+  file                  Input file name.
+
+options:
+  -h, --help            show this help message and exit
+  -f FORMAT, --format FORMAT
+                        Format output. Options: 'None', 'C', 'Python'.
+  -o OUT_FILE, --out OUT_FILE
+                        output filename.
+  -w WIDTH, --width WIDTH
+                        Width of formatted output (Default 80).
+```
