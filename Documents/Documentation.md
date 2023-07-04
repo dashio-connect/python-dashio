@@ -164,6 +164,7 @@ A ButtonGroup control is used to present a popup grid or table of Button control
 
 * *control_id : str.* A unique identity string. The identity string must be a unique string for each ButtonGroup per device
 * *title: str.* A short title for the button group
+* *style : ButtonGroupStyle*. Can be ButtonGroupStyle.BASIC, ButtonGroupStyle.HIGHLIGHT.
 * *text : str.* The text that appears on the ButtonGroup
 
 #### Button Group Methods
@@ -428,6 +429,7 @@ Controls that can be included in a Menu control are Text Boxes, Sliders, Selecto
 
 * *control_id : str.* An unique control identity string. The control identity string must be a unique string for each control per device.
 * *title : str, optional.* Title of the control, by default "A Menu"
+* *style : MenuStyle*. Can be MenuStyle.BASIC, MenuStyle.HIGHLIGHT.
 * *control_position : ControlPosition, optional.* The position of the control on a DeviceView, by default None.
 * *title_position : TitlePosition, optional.* Position of the title when displayed on the iotdashboard app, by default None.
 * *text : str, optional.* Menu text, by default "A Menu with Text".
