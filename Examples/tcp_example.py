@@ -127,7 +127,7 @@ class TestControls:
         logging.info("  Device Name: %s", args.device_name)
         context = zmq.Context.instance()
         self.device = dashio.Device("ControlTest", args.device_id, args.device_name, context=context)
-        self.device.use_cfg64()
+        # self.device.use_cfg64()
 
         self.tcp_con = dashio.TCPConnection(context=context)
         self.device.config_revision = 2
