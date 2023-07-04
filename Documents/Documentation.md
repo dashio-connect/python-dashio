@@ -393,7 +393,7 @@ The IoT device may send messages to update both the dial and knob positions.
 
 A Label is a simple control to add structure to your layout on the dashboard. Labels do not transfer information with IoT devices.
 
-<img src="Documents/Label.jpeg" width="200"/>
+<img src="https://raw.githubusercontent.com/dashio-connect/python-dashio/master/Documents/Label.jpeg" width="200"/>
 
 #### Label Config Attributes
 
