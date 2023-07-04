@@ -166,6 +166,10 @@ A ButtonGroup control is used to present a popup grid or table of Button control
 * *title: str.* A short title for the button group
 * *style : ButtonGroupStyle*. Can be ButtonGroupStyle.BASIC, ButtonGroupStyle.HIGHLIGHT.
 * *text : str.* The text that appears on the ButtonGroup
+* *control_position : ControlPosition, optional.* The position of the control on a DeviceView, by default None.
+* *title_position : TitlePosition, optional.* Position of the title when displayed on the iotdashboard app, by default None
+* *icon : Icon*. Set the icon for the button.
+* *grid_view : Bool*. Defaults to True.
 
 #### Button Group Methods
 
