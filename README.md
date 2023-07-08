@@ -8,6 +8,8 @@
 
 For the big picture on **DashIO**, take a look at our website: <a href="https://dashio.io">dashio.io</a>
 
+Get the App:
+
 [<img src=https://raw.githubusercontent.com/dashio-connect/python-dashio/master/Documents/download-on-the-app-store.svg>](<https://apps.apple.com/us/app/dash-iot/id1574116689>)
 
 ## Documentation
