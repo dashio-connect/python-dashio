@@ -13,6 +13,7 @@
 * Get the App:
 
 [<img src=https://raw.githubusercontent.com/dashio-connect/python-dashio/master/Documents/download-on-the-app-store.svg>](<https://apps.apple.com/us/app/dash-iot/id1574116689>)
+![Coming soon](https://raw.githubusercontent.com/dashio-connect/python-dashio/master/Documents/Google_Play_Store_badge_EN.svg)
 
 ## Documentation
 
