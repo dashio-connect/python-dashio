@@ -2,7 +2,7 @@
 
 ![Tests](https://github.com/dashio-connect/python-dashio/actions/workflows/tests.yml/badge.svg)
 
-[**python-dashio**](http://dashio.io) - Create beautiful mobile dashboards for your python project. It is a quick effortless way to connect your python code to your phone, tablet or iPad using the free [**Dash**](https://apps.apple.com/us/app/dash-iot/id1574116689) app. It allows easy setup of controls such as Dials, Text Boxes, Charts, Graphs, Notifications..., from your IoT device. You can define the look and layout of the controls on your phone from your IoT device. There are three methods to connect to your phone; Bluetooth Low Energy (BLE), TCP, and MQTT via the dash.dashio.io server.
+[**python-dashio**](http://dashio.io) - Create beautiful mobile dashboards for your python project. It is a quick effortless way to connect your python code to your phone, tablet or iPad using the free [**Dash**](https://apps.apple.com/us/app/dash-iot/id1574116689) app. It allows easy setup of controls such as Dials, Text Boxes, Charts, Graphs, Notifications..., from your IoT device. You can define the look and layout of the controls on your phone from your python code. There are three methods to connect to your phone; Bluetooth Low Energy (BLE), TCP, and MQTT via the dash.dashio.io server.
 
 ## Getting Started
 
