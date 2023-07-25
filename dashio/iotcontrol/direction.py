@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from ..constants import BAD_CHARS
-from .control import Control, ControlPosition, ControlConfig, _get_color, _get_title_position, _get_direction_style, _get_precision
+from .control import Control, ControlPosition, ControlConfig, _get_color, _get_title_position, _get_direction_style, _get_precision, _get_color_str
 from .enums import Color, DirectionStyle, Precision, TitlePosition
 
 
@@ -42,7 +42,7 @@ class DirectionConfig(ControlConfig):
     ) -> None:
         super().__init__(control_id, title, control_position, title_position)
         self.cfg["style"] = str(style.value)
-        self.cfg["pointerColor"] = str(pointer_color.value)
+        self.cfg["pointerColor"] = _get_color_str(pointer_color)
         self.cfg["units"] = units
         self.cfg["precision"] = precision.value
         self.cfg["calAngle"] = calibration_angle

@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from ..constants import BAD_CHARS
-from .control import Control, ControlPosition, ControlConfig, _get_color, _get_icon, _get_title_position, _get_button_style
+from .control import Control, ControlPosition, ControlConfig, _get_color, _get_icon, _get_title_position, _get_button_style, _get_color_str
 from .enums import ButtonState, Color, Icon, TitlePosition, ButtonStyle
 
 
@@ -46,8 +46,8 @@ class ButtonConfig(ControlConfig):
         self.cfg["iconName"] = icon_name.value
         self.cfg["buttonEnabled"] = button_enabled
         self.cfg["style"] = str(style.value)
-        self.cfg["onColor"] = str(on_color.value)
-        self.cfg["offColor"] = str(off_color.value)
+        self.cfg["onColor"] = _get_color_str(on_color)
+        self.cfg["offColor"] = _get_color_str(off_color)
 
     @classmethod
     def from_dict(cls, cfg_dict: dict):

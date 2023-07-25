@@ -21,7 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-from .control import Control, ControlPosition, ControlConfig, _get_title_position, _get_color, _get_bar_style
+from .control import Control, ControlPosition, ControlConfig, _get_title_position, _get_color, _get_bar_style, _get_color_str
 from .enums import Color, SliderBarStyle, TitlePosition
 
 
@@ -52,8 +52,8 @@ class SliderConfig(ControlConfig):
         self.cfg["sliderEnabled"] = slider_enabled
         self.cfg["sendOnlyOnRelease"] = send_only_on_release
         self.cfg["barFollowsSlider"] = bar_follows_slider
-        self.cfg["barColor"] = str(bar_color.value)
-        self.cfg["knobColor"] = str(knob_color.value)
+        self.cfg["barColor"] = _get_color_str(bar_color)
+        self.cfg["knobColor"] = _get_color_str(knob_color)
         self.cfg["barStyle"] = bar_style.value
 
     @classmethod
