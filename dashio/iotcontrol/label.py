@@ -21,7 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-from .control import Control, ControlPosition, ControlConfig, _get_color, _get_title_position, _get_label_style
+from .control import Control, ControlPosition, ControlConfig, _get_color, _get_title_position, _get_label_style, _get_color_str
 from .enums import Color, LabelStyle, TitlePosition
 
 
@@ -38,7 +38,7 @@ class LabelConfig(ControlConfig):
     ) -> None:
         super().__init__(control_id, title, control_position, title_position)
         self.cfg["style"] = style.value
-        self.cfg["color"] = str(color.value)
+        self.cfg["color"] = _get_color_str(color)
 
     @classmethod
     def from_dict(cls, cfg_dict: dict):

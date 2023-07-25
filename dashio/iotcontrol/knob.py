@@ -21,7 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-from .control import Control, ControlPosition, ControlConfig, _get_color, _get_title_position, _get_knob_style
+from .control import Control, ControlPosition, ControlConfig, _get_color, _get_title_position, _get_knob_style, _get_color_str
 from .enums import Color, KnobStyle, TitlePosition
 
 
@@ -51,8 +51,8 @@ class KnobConfig(ControlConfig):
         self.cfg["showMinMax"] = show_min_max
         self.cfg["sendOnlyOnRelease"] = send_only_on_release
         self.cfg["dialFollowsKnob"] = dial_follows_knob
-        self.cfg["dialColor"] = str(dial_color.value)
-        self.cfg["knobColor"] = str(knob_color.value)
+        self.cfg["dialColor"] = _get_color_str(dial_color)
+        self.cfg["knobColor"] = _get_color_str(knob_color)
 
     @classmethod
     def from_dict(cls, cfg_dict: dict):

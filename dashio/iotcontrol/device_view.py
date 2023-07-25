@@ -21,7 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-from .control import Control, ControlConfig, _get_color, _get_icon, _get_device_view_style
+from .control import Control, ControlConfig, _get_color, _get_icon, _get_device_view_style, _get_color_str
 from .enums import Color, Icon, DeviceViewStyle
 
 
@@ -50,20 +50,20 @@ class DeviceViewConfig(ControlConfig):
         super().__init__(control_id, title, control_position=None, title_position=None)
         self.cfg["iconName"] = icon_name.value
         self.cfg["style"] = str(style.value)
-        self.cfg["color"] = str(color.value)
+        self.cfg["color"] = _get_color_str(color)
         self.cfg["shareColumn"] = share_column
         if 1 <= num_columns <= 10:
             self.cfg["numColumns"] = num_columns
         else:
             raise ValueError("num_columns must be in the range 1 to 10")
-        self.cfg["ctrlTitleBoxColor"] = str(control_title_box_color.value)
+        self.cfg["ctrlTitleBoxColor"] = _get_color_str(control_title_box_color)
         if 0 <= control_title_box_transparency <= 100:
             self.cfg["ctrlTitleBoxTransparency"] = control_title_box_transparency
         else:
             raise ValueError("Value must be in the range 0 to 100")
-        self.cfg["ctrlColor"] = str(control_color.value)
-        self.cfg["ctrlBorderColor"] = str(control_border_color.value)
-        self.cfg["ctrlBkgndColor"] = str(control_background_color.value)
+        self.cfg["ctrlColor"] = _get_color_str(control_color)
+        self.cfg["ctrlBorderColor"] = _get_color_str(control_border_color)
+        self.cfg["ctrlBkgndColor"] = _get_color_str(control_background_color)
         self.cfg["ctrlTitleFontSize"] = control_title_font_size
         self.cfg["ctrlMaxFontSize"] = control_max_font_size
         if 0 <= control_background_transparency <= 100:
