@@ -35,10 +35,11 @@ def _get_icon(icon_str: str) -> Icon:
     return Icon[icon_name]
 
 
-def _get_color_str(color_str) -> str:
-    if color_str[0] == '#':
-        return color_str
-    return str(color_str.value)
+def _get_color_str(color) -> str:
+    if isinstance(color, str):
+        if color[0] == '#':
+            return color
+    return str(color.value)
 
 def _get_color(color_str: str) -> Color:
     if color_str[0] == '#':
