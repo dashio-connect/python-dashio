@@ -48,9 +48,11 @@ class ZeroConfDashTCPListener:
             device_ids = info.properties[b'deviceID'].decode()
         except KeyError:
             device_ids = ''
+        logging.debug("Zcon INFO: %s", info)
         for address in info.addresses:
             msg = {
                 'objectType': 'zeroConfUpdate',
+                'server': str(info.server),
                 'address': socket.inet_ntoa(address),
                 'deviceID': device_ids,
                 'connectionID': connection_uuid,

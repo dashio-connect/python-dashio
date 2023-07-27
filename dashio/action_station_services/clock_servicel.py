@@ -24,7 +24,7 @@ import datetime
 import logging
 import threading
 import time
-
+import shortuuid
 import zmq
 from astral import LocationInfo
 from astral.sun import sun
@@ -37,24 +37,25 @@ from .action_station_service_config import ActionServiceCFG, FloatParameterSpec
 def make_clock_config(num_tests):
     """Make a timer config"""
     provisioning_list = [
-        FloatParameterSpec("Latitude", -90.0, 90.0, "degs", -43.5256),
-        FloatParameterSpec("Longitude", -180.0, 180.0, "degs", 172.6398),
+        FloatParameterSpec(name="Latitude", min=-90.0, max=90.0, units="degs", value=-43.5256, uuid=shortuuid.uuid()),
+        FloatParameterSpec(name="Longitude", min=-180.0, max=180.0, units="degs", value=172.6398, uuid=shortuuid.uuid()),
     ]
     parameter_list = []
 
     clock_cfg = ActionServiceCFG(
-        "CLK",
-        "Local Clock",
-        "Send local time and SunUp or SunDown every minute.",
-        "CLK1",
-        num_tests,
-        True,
-        True,
-        provisioning_list,
-        parameter_list
+        objectName="CLK",
+        name="Local Clock",
+        uuid=shortuuid.uuid(),
+        text="Send local time and SunUp or SunDown every minute.",
+        controlID="CLK1",
+        numAvail=num_tests,
+        isTrigger=True,
+        isIO=True,
+        provisioning=provisioning_list,
+        parameters=parameter_list
         #  parameter_list_out
     )
-    return clock_cfg.__json__()
+    return clock_cfg
 
 
 class ClockThread(threading.Thread):

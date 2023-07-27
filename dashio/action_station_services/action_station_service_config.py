@@ -1,110 +1,81 @@
 import shortuuid
+from pydantic import BaseModel
 
 
-class BaseParameter:
-    """Base class for Parameter"""
-    def __init__(self, param_type: str, name: str):
-        self._param = {
-            'objectType': param_type,
-            'name': name,
-            'uuid': shortuuid.uuid()
-        }
+def to_camel(string: str) -> str:
+    string_split = string.split("_")
+    return string_split[0] + "".join(word.capitalize() for word in string_split[1:])
 
-    def __json__(self, **options):
-        return self._param
+class BaseParameter(BaseModel):
+    objectType: str
+    name: str
+    uuid: str
 
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
 
 class ListParameterSpec(BaseParameter):
     """List Parameter"""
-    def __init__(self, name: str, text: str, param_list: list):
-        super().__init__("LIST_PARAM", name)
-        self._param['text'] = text
-        self._param["list"] = param_list
-
+    text: str
+    param_list: list
+    objectType = "LIST_PARAM"
 
 class StringParameterSpec(BaseParameter):
     """String Parameter"""
-    def __init__(self, name: str, existing_value: int):
-        super().__init__("STRING_PARAM", name)
-        self._param['value'] = existing_value
-
+    objectType = "STRING_PARAM"
+    value: str
 
 class FloatParameterSpec(BaseParameter):
     """Float Parameter"""
-    def __init__(self, name: str, param_min: float, param_max: float, units: str, existing_value: float):
-        super().__init__("FLOAT_PARAM", name)
-        self._param['min'] = param_min
-        self._param['max'] = param_max
-        self._param['units'] = units
-        self._param['value'] = existing_value
-
+    objectType = "FLOAT_PARAM"
+    min: float
+    max: float
+    units: str
+    value: float
 
 class IntParameterSpec(BaseParameter):
     """Int Parameter"""
-    def __init__(self, name: str, param_min: int, param_max: int, units: str, existing_value: int):
-        super().__init__("INT_PARAM", name)
-        self._param['min'] = param_min
-        self._param['max'] = param_max
-        self._param['units'] = units
-        self._param['value'] = existing_value
-
+    objectType = "INT_PARAM"
+    min: int
+    max: int
+    units: str
+    value: int
 
 class BoolParameterSpec(BaseParameter):
     """Bool Parameter"""
-    def __init__(self, name: str, existing_value: bool):
-        super().__init__("BOOL_PARAM", name)
-        self._param['value'] = existing_value
-
+    objectType = "BOOL_PARAM"
+    value: bool
 
 class SelectorParameterSpec(BaseParameter):
     """Selection Parameter"""
-    def __init__(self, name: str, selection: list, existing_value: str):
-        super().__init__("SELECTION_PARAM", name)
-        self._param['selection'] = selection
-        self._param['value'] = existing_value
+    objectType = "SELECTION_PARAM"
+    selection: list[str]
+    value: str
 
 
 class SliderParameterSpec(BaseParameter):
     """Slider Parameter"""
-    def __init__(self, name: str, param_min: float, param_max: float, step: float, existing_value: str):
-        super().__init__("SLIDER_PARAM", name)
-        self._param['min'] = param_min
-        self._param['max'] = param_max
-        self._param['step'] = step
-        self._param['value'] = existing_value
+    objectType = "SLIDER_PARAM"
+    min: float
+    max: float
+    step: float
+    value: float
 
+class ActionServiceCFG(BaseModel):
+    objectType: str = "CONFIG"
+    objectName: str
+    revision: int = 1
+    uuid: str
+    name: str
+    text: str
+    controlID: str
+    numAvail: int
+    isTrigger: bool
+    isIO: bool
+    provisioning: list
+    parameters: list
 
-class ActionServiceCFG:
-    """Action Control CFG"""
-    def __init__(
-        self,
-        control_type: str,
-        name: str,
-        text: str,
-        control_id: str,
-        num_avail: int,
-        is_trigger: bool,
-        is_io: bool,
-        provisioning_list: list,
-        param_in_list: list,
-        revision=1
-    ) -> None:
-        self.uuid = shortuuid.uuid()
-        self._config_def = {
-            'objectType': "CONFIG",
-            'objectName': control_type,
-            'revision': revision,
-            'uuid': self.uuid,
-            'name': name,
-            'text': text,
-            'controlID': control_id,
-            'numAvail': num_avail,
-            'isTrigger': is_trigger,
-            'isIO': is_io,
-            'provisioning': provisioning_list,
-            'parameters': param_in_list,
-            #  'parametersOut': param_out_list
-        }
-
-    def __json__(self, **options):
-        return self._config_def
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True

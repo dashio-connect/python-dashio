@@ -2,6 +2,7 @@
 import logging
 import threading
 import zmq
+import shortuuid
 
 from ..constants import CONNECTION_PUB_URL, TASK_PULL
 from .action_station_service_config import (ActionServiceCFG,
@@ -17,25 +18,28 @@ from .action_station_service_config import (ActionServiceCFG,
 def make_test_config(num_tests):
     """Make a timer config"""
     provisioning_list = [
-        SelectorParameterSpec("A Selector", ["Selection 1", "Selection2", "Selection3"], "Selection 1"),
-        IntParameterSpec("An Int", 0, 100, "jiggers", 42),
-        StringParameterSpec("A String", "Little Bo Peep...."),
-        FloatParameterSpec("A Float", 2.71828, 299792458.0, "jiffies", 1.4142),
-        BoolParameterSpec("A bool", True),
-        SliderParameterSpec("A Slider", 1.0, 10.0, 1.0, 5.0),
+        SelectorParameterSpec(name="A Selector", selection=["Selection1", "Selection2", "Selection3"], value="Selection1", uuid=shortuuid.uuid()),
+        IntParameterSpec(name="An Int", min=0, max=100, units="jiggers", value=42, uuid=shortuuid.uuid()),
+        StringParameterSpec(name="A String", value="Little Bo Peep....", uuid=shortuuid.uuid()),
+        FloatParameterSpec(name="A Float", min=2.71828, max=299792458.0, units="jiffies", value=1.4142, uuid=shortuuid.uuid()),
+        BoolParameterSpec(name="A bool", value=True, uuid=shortuuid.uuid()),
+        SliderParameterSpec(name="A Slider", min=1.0, max=10.0, step=1.0, value=5.0, uuid=shortuuid.uuid()),
         ListParameterSpec(
-            "List of Things",
-            "Create a list",
-            [
+            name="List of Things",
+            text="Create a list",
+            uuid=shortuuid.uuid(),
+            param_list=[
                 IntParameterSpec(
-                    "Add a uint_16",
-                    0,
-                    65535,
-                    "",
-                    0
+                    name="Add a uint_16",
+                    min=0,
+                    max=65535,
+                    units="",
+                    value=0,
+                    uuid=shortuuid.uuid()
                 ),
                 SelectorParameterSpec(
-                    "Choose a thing", [
+                    name="Choose a thing",
+                    selection=[
                         "Thing One",
                         "Thing Two",
                         "The Lorax",
@@ -46,7 +50,8 @@ def make_test_config(num_tests):
                         "Yertle the Turtle",
                         "Lord Droon"
                     ],
-                    "Horton",
+                    value="Horton",
+                    uuid=shortuuid.uuid()
                 )
             ]
         )
@@ -55,18 +60,19 @@ def make_test_config(num_tests):
     parameter_list = []
 
     timer_cfg = ActionServiceCFG(
-        "TST",
-        "Test",
-        "Test with all provisioning types",
-        "TST",
-        num_tests,
-        True,
-        True,
-        provisioning_list,
-        parameter_list
+        objectName="TST",
+        name="Test",
+        text="Test with all provisioning types",
+        uuid=shortuuid.uuid(),
+        controlID="TST",
+        numAvail=num_tests,
+        isTrigger=True,
+        isIO=True,
+        provisioning=provisioning_list,
+        parameters=parameter_list
         #  parameter_list_out
     )
-    return timer_cfg.__json__()
+    return timer_cfg
 
 
 class ASService(threading.Thread):
