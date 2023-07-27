@@ -3,7 +3,7 @@ import glob
 import logging
 import sys
 import threading
-
+import shortuuid
 import serial
 import zmq
 
@@ -52,22 +52,25 @@ def make_modbus_config(num_tests):
     if len(s_ports) > 0:
         default = s_ports[0]
     provisioning_list = [
-        SelectorParameterSpec("Serial Port", s_ports, default),
-        SelectorParameterSpec("Baud", ["1200", "2400", "4800", "9600", "19200", "38400", "57600", "115200"], "9600"),
-        SelectorParameterSpec("Modbus Type", ["RTU", "ASCII"], "RTU"),
+        SelectorParameterSpec(name="Serial Port", selection=s_ports, value=default, uuid=shortuuid.uuid()),
+        SelectorParameterSpec(name="Baud", selection=["1200", "2400", "4800", "9600", "19200", "38400", "57600", "115200"], value="9600", uuid=shortuuid.uuid()),
+        SelectorParameterSpec(name="Modbus Type", selection=["RTU", "ASCII"], value="RTU", uuid=shortuuid.uuid()),
         ListParameterSpec(
-            "Read Registers",
-            "Create a list of registers to read data from.",
-            [
+            name="Read Registers",
+            text="Create a list of registers to read data from.",
+            uuid=shortuuid.uuid(),
+            param_list=[
                 IntParameterSpec(
-                    "Read Register Base Address",
-                    0,
-                    65535,
-                    "",
-                    0
+                    name="Read Register Base Address",
+                    min=0,
+                    max=65535,
+                    units="",
+                    value=0,
+                    uuid=shortuuid.uuid()
                 ),
                 SelectorParameterSpec(
-                    "Register Type", [
+                    name="Register Type",
+                    selection=[
                         "char",
                         "int_8",
                         "uint_8",
@@ -78,34 +81,39 @@ def make_modbus_config(num_tests):
                         "int_64",
                         "uint_64"
                     ],
-                    "uint_16",
+                    value="uint_16",
+                    uuid=shortuuid.uuid()
                 ),
                 IntParameterSpec(
-                    "Number of register to read from base address (Optional).",
-                    0,
-                    65535,
-                    "",
-                    2
+                    name="Number of register to read from base address (Optional).",
+                    min=0,
+                    max=65535,
+                    units="",
+                    value=2,
+                    uuid=shortuuid.uuid()
                 )
             ]
         ),
         ListParameterSpec(
-            "Read a Bit",
-            "Create a list of registers to read data from.",
-            [
+            name="Read a Bit",
+            text="Create a list of registers to read data from.",
+            uuid=shortuuid.uuid(),
+            param_list=[
                 IntParameterSpec(
-                    "Read Register Base Address",
-                    0,
-                    65535,
-                    "",
-                    0
+                    name="Read Register Base Address",
+                    min=0,
+                    max=65535,
+                    units="",
+                    value=0,
+                    uuid=shortuuid.uuid()
                 ),
                 IntParameterSpec(
-                    "Bit Mask",
-                    0,
-                    65535,
-                    "",
-                    0
+                    name="Bit Mask",
+                    min=0,
+                    max=65535,
+                    units="",
+                    value=0,
+                    uuid=shortuuid.uuid()
                 )
             ]
         )
@@ -114,18 +122,20 @@ def make_modbus_config(num_tests):
     parameter_list_in = []
     # parameter_list_out = []
     timer_cfg = ActionServiceCFG(
-        "MDBS",
-        "Modbus Test",
-        "Modbus - Test provisioning of list",
-        "TST$",
-        num_tests,
-        True,
-        True,
-        provisioning_list,
-        parameter_list_in
+        objectName="MDBS",
+        name="Modbus Test",
+        uuid=shortuuid.uuid(),
+        text="Modbus - Test provisioning of list",
+        controlID="TST",
+        num_tests=num_tests,
+        numAvail=1,
+        isTrigger=True,
+        isIO=True,
+        provisioning=provisioning_list,
+        parameters=parameter_list_in
         #  parameter_list_out
     )
-    return timer_cfg.__json__()
+    return timer_cfg
 
 
 class ModbusService(threading.Thread):

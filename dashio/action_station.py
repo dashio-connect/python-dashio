@@ -220,10 +220,10 @@ class ActionStation(threading.Thread):
         self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg_dict).encode()])
 
     def _start_control(self, t_object: dict):
-        if t_object['uuid'] in self.thread_dicts:
-            self.thread_dicts[t_object['uuid']].close()
+        if t_object["uuid"] in self.thread_dicts:
+            self.thread_dicts[t_object["uuid"]].close()
             time.sleep(0.1)
-        logging.debug("INIT TASK %s", t_object['uuid'])
+        logging.debug("INIT TASK %s", t_object["uuid"])
         self.thread_dicts[t_object['uuid']] = self.service_objects_defs[t_object['objectType']](self.device_id, self.zmq_service_uuid, t_object, self.context)
         return True
 
@@ -240,10 +240,10 @@ class ActionStation(threading.Thread):
         # TODO delete this for loop
         for j_object in self.configs.values():
             action_pair = {
-                "name": j_object['name'],
-                "uuid": j_object['uuid'],
-                "objectType": j_object['objectType'],
-                "revision": j_object.get('revision', 1)
+                "name": j_object.name,
+                "uuid": j_object.uuid,
+                "objectType": j_object.objectType,
+                "revision": j_object.revision
             }
             j_object_list.append(action_pair)
         result = {
@@ -254,13 +254,14 @@ class ActionStation(threading.Thread):
         return reply
 
     def _list_configs_command(self, data):
-        j_object_list = []
-        for j_object in self.configs.values():
-            if j_object['objectType'] == "CONFIG":
-                j_object_list.append(j_object)
+        config_list = []
+        for config in self.configs.values():
+            if config.objectType == "CONFIG":
+                config_list.append(config.dict())
+                logging.debug("Conf: %s", config.objectName)
         result = {
             'objectType': "LIST_RESULT",
-            'list': j_object_list
+            'list': config_list
         }
         reply = f"\t{self.device_id}\tACTN\tLIST_CONFIGS\t{json.dumps(result)}\n"
         return reply
@@ -387,10 +388,10 @@ class ActionStation(threading.Thread):
         test_cfg = make_test_config(1)
         modbus_cfg = make_modbus_config(1)
         clock_cfg = make_clock_config(1)
-        self.configs[timer_cfg['uuid']] = timer_cfg
-        self.configs[test_cfg['uuid']] = test_cfg
-        self.configs[modbus_cfg['uuid']] = modbus_cfg
-        self.configs[clock_cfg['uuid']] = clock_cfg
+        self.configs[timer_cfg.uuid] = timer_cfg
+        self.configs[test_cfg.uuid] = test_cfg
+        self.configs[modbus_cfg.uuid] = modbus_cfg
+        self.configs[clock_cfg.uuid] = clock_cfg
         self.zmq_service_uuid = "SRVC:" + shortuuid.uuid()
         if not self.action_station_dict:
             self.zmq_connection_uuid = "ACTN:" + shortuuid.uuid()

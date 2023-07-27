@@ -94,7 +94,7 @@ class TCPConnection(threading.Thread):
         while self._is_port_in_use(self.local_ip, self.local_port) and use_zero_conf:
             # increment port until we find one that is free.
             self.local_port += 1
-        self.ext_url = "tcp://" + self.local_ip + ":" + str(self.local_port)
+        self.ext_url = "tcp://*:" + str(self.local_port)
 
         self.socket_ids = []
         self.local_device_id_list = []
@@ -126,18 +126,19 @@ class TCPConnection(threading.Thread):
     def _connect_remote_device(self, msg: dict):
         """Connect to remote device"""
         ip_address = msg['address']
+        server = msg['server']
         port = msg['port']
-        url = f"tcp://{ip_address}:{port}"
+        url = f"tcp://{server}:{port}"
         self.tcpsocket.connect(url)
         socket_id = self.tcpsocket.getsockopt(zmq.IDENTITY)
-        ip_b = ip_address + ':' + port
+        ip_b = server + ':' + port
         if ip_b not in self.tcp_ip_2_id_dict:
             try:
                 logging.debug("Sending WHO to ID: %s", socket_id.hex())
                 self.tcpsocket.send(socket_id, zmq.SNDMORE)
                 self.tcpsocket.send_string('\tWHO\n')
-                self.tcp_id_2_ip_dict[socket_id] = ip_address + ':' + port
-                self.tcp_ip_2_id_dict[ip_address + ':' + port] = socket_id
+                self.tcp_id_2_ip_dict[socket_id] = ip_b
+                self.tcp_ip_2_id_dict[ip_b] = socket_id
             except zmq.error.ZMQError:
                 logging.debug("Sending TX Error.")
                 self.tcpsocket.send(b'')
@@ -158,8 +159,10 @@ class TCPConnection(threading.Thread):
         if r_device_id in self.remote_device_id_msg_dict:
             remote = self.remote_device_id_msg_dict[r_device_id]
             ip_address = remote['address']
+
+            server = msg['server']
             port = remote['port']
-            url = f"tcp://{ip_address}:{port}"
+            url = f"tcp://{server}:{port}"
             self.tcpsocket.connect(url)
             socket_id = self.tcpsocket.getsockopt(zmq.IDENTITY)
             self.tcpsocket.send(socket_id, zmq.SNDMORE)

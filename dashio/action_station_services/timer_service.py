@@ -23,7 +23,7 @@ SOFTWARE.
 """
 import logging
 import threading
-
+import shortuuid
 import zmq
 
 from ..constants import CONNECTION_PUB_URL, TASK_PULL
@@ -38,26 +38,26 @@ from .action_station_service_config import (
 def make_timer_config(num_timers):
     """Make a timer config"""
     provisioning_list = [
-        SelectorParameterSpec("Timer Type", ["Repeat", "OneShot"], "Repeat"),
-        IntParameterSpec("Timeout", 100, 600000, "ms", 1000)
+        SelectorParameterSpec(name="Timer Type", selection=["Repeat", "OneShot"], value="Repeat", uuid=shortuuid.uuid()),
+        IntParameterSpec(name="Timeout", min=100, max=600000, units="ms", value=1000, uuid=shortuuid.uuid())
     ]
     parameter_in_list = []
     #  parameter_out_list = []
 
     timer_cfg = ActionServiceCFG(
-        "TMR",
-        "Timer",
-        "A timer control.",
-        "TMR",
-        num_timers,
-        True,
-        True,
-        provisioning_list,
-        parameter_in_list
+        objectName="TMR",
+        name="Timer",
+        uuid=shortuuid.uuid(),
+        text="A timer control.",
+        controlID="TMR",
+        numAvail=num_timers,
+        isTrigger=True,
+        isIO=True,
+        provisioning=provisioning_list,
+        parameters=parameter_in_list
         #  parameter_out_list
     )
-    return timer_cfg.__json__()
-
+    return timer_cfg
 
 class RepeatTimer(threading.Timer):
     """The timer"""
