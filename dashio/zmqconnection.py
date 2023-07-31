@@ -108,7 +108,7 @@ class ZMQConnection(threading.Thread):
         # rename for .local mDNS advertising
         self.host_name = f"{host_list[0]}.local"
 
-        self.local_ip = ip.get_local_ip_address()
+        self.local_ip = ip.get_local_ip_v4_address()
         self.zeroconf = Zeroconf(ip_version=IPVersion.V4Only)
         self._zconf_publish_zmq(sub_port, pub_port)
         self.start()

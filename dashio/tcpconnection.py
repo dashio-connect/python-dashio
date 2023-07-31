@@ -87,7 +87,7 @@ class TCPConnection(threading.Thread):
         self.use_zeroconf = use_zero_conf
 
         if ip_address == "*":
-            self.local_ip = ip.get_local_ip_address()
+            self.local_ip = ip.get_local_ip_v4_address()
         else:
             self.local_ip = ip_address
         self.local_port = port
@@ -125,7 +125,6 @@ class TCPConnection(threading.Thread):
 
     def _connect_remote_device(self, msg: dict):
         """Connect to remote device"""
-        ip_address = msg['address']
         server = msg['server']
         port = msg['port']
         url = f"tcp://{server}:{port}"
@@ -158,8 +157,6 @@ class TCPConnection(threading.Thread):
     def _send_remote_device(self, r_device_id, msg):
         if r_device_id in self.remote_device_id_msg_dict:
             remote = self.remote_device_id_msg_dict[r_device_id]
-            ip_address = remote['address']
-
             server = msg['server']
             port = remote['port']
             url = f"tcp://{server}:{port}"
@@ -279,7 +276,6 @@ class TCPConnection(threading.Thread):
 
     def run(self):
         self.tcpsocket = self.context.socket(zmq.STREAM)
-
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         # Subscribe on ALL, COMMAND, and my zmq_connection_uuid
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")

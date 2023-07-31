@@ -24,7 +24,7 @@ SOFTWARE.
 import socket
 
 
-def get_local_ip_address():
+def get_local_ip_v4_address():
     """Find the external IP address."""
     test_s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
@@ -35,4 +35,10 @@ def get_local_ip_address():
         i_address = '127.0.0.1'
     finally:
         test_s.close()
+    return i_address
+
+
+def get_local_ip_v6_address():
+    """Find the external IP address."""
+    i_address = socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET6)[1][4][0]
     return i_address
