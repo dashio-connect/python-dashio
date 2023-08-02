@@ -28,8 +28,8 @@ import sys
 import shortuuid
 import zmq
 
-
-from .constants import CONNECTION_PUB_URL, MEMORY_REQ_URL, TASK_PULL
+from . import ip
+from .constants import CONNECTION_PUB_URL, TASK_MEMORY_PORT_OFFSET, TASK_PULL_PORT_OFFSET, TASK_CONN_PORT_OFFSET, TCP_URL
 from .action_station_services.task_service import TaskService
 from .action_station_services.timer_service import TimerService, make_timer_config
 from .action_station_services.as_servicel import make_test_config
@@ -224,7 +224,7 @@ class ActionStation(threading.Thread):
             self.thread_dicts[t_object["uuid"]].close()
             time.sleep(0.1)
         logging.debug("INIT TASK %s", t_object["uuid"])
-        self.thread_dicts[t_object['uuid']] = self.service_objects_defs[t_object['objectType']](self.device_id, self.zmq_service_uuid, t_object, self.context)
+        self.thread_dicts[t_object['uuid']] = self.service_objects_defs[t_object['objectType']](self.device_id, self.local_port, t_object, self.context)
         return True
 
     def _list_command(self, data):
@@ -357,7 +357,7 @@ class ActionStation(threading.Thread):
         self.device_id = device.device_id
         self.device = device
         self._json_filename = f"{self.device_id}_Actions.json"
-
+        self.local_port = 7654
         self.configured_services = {}
         self.configs = {}
         self.memory_tasks = {}
@@ -366,6 +366,10 @@ class ActionStation(threading.Thread):
         self._action_station_layout = None
         self.action_station_dict = self.load_action(self._json_filename)
         self.max_actions = max_actions
+
+        while ip.is_port_in_use("127.0.0.1", self.local_port):
+            # increment port until we find one that is free.
+            self.local_port += 1
 
         self.service_objects_defs = {
             'TASK': TaskService,
@@ -392,7 +396,7 @@ class ActionStation(threading.Thread):
         self.configs[test_cfg.uuid] = test_cfg
         self.configs[modbus_cfg.uuid] = modbus_cfg
         self.configs[clock_cfg.uuid] = clock_cfg
-        self.zmq_service_uuid = "SRVC:" + shortuuid.uuid()
+        # self.zmq_service_uuid = "SRVC:" + shortuuid.uuid()
         if not self.action_station_dict:
             self.zmq_connection_uuid = "ACTN:" + shortuuid.uuid()
             self.action_station_dict['actionStationID'] = self.zmq_connection_uuid
@@ -412,8 +416,7 @@ class ActionStation(threading.Thread):
     def run(self):
 
         self.zmq_service_pub = self.context.socket(zmq.PUB)
-
-        self.zmq_service_pub.bind(CONNECTION_PUB_URL.format(id=self.zmq_service_uuid))
+        self.zmq_service_pub.bind(TCP_URL.format(port=self.local_port + TASK_CONN_PORT_OFFSET))
 
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
         self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
@@ -430,10 +433,10 @@ class ActionStation(threading.Thread):
 
         #  Socket to receive messages on
         task_receiver = self.context.socket(zmq.PULL)
-        task_receiver.bind(TASK_PULL.format(id=self.zmq_service_uuid))
+        task_receiver.bind(TCP_URL.format(port=self.local_port + TASK_PULL_PORT_OFFSET))
 
         memory_socket = self.context.socket(zmq.REP)
-        memory_socket.bind(MEMORY_REQ_URL.format(id=self.device_id))
+        memory_socket.bind(TCP_URL.format(port=self.local_port + TASK_MEMORY_PORT_OFFSET))
 
         poller = zmq.Poller()
         poller.register(self.device_zmq_sub, zmq.POLLIN)
@@ -471,7 +474,8 @@ class ActionStation(threading.Thread):
                 if msg.startswith(f"\t{self.device_id}\tACTN".encode()):
                     self._service_actn_commands(msg, msg_from)
                     continue
-                self.zmq_service_pub.send_multipart([msg, msg_from])
+                for sub_msg in msg.split(b'\n'):
+                    self.zmq_service_pub.send_multipart([sub_msg, msg_from])
 
             if task_receiver in socks:
                 msg_to, msg = task_receiver.recv_multipart()
