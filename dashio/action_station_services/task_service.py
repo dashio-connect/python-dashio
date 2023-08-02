@@ -27,8 +27,8 @@ import threading
 
 import zmq
 
-from ..constants import CONNECTION_PUB_URL, MEMORY_REQ_URL, TASK_PULL
-
+from ..constants import TASK_CONN_PORT_OFFSET, TASK_MEMORY_PORT_OFFSET, TASK_PULL_PORT_OFFSET, TCP_URL
+from . import action_station_service_config as assc
 
 def num(s_num: str):
     try:
@@ -162,7 +162,7 @@ class TaskService(threading.Thread):
         logging.debug("AS CONNECT: %s", device_id)
         self.task_sender.send_multipart([b"COMMAND", json.dumps(msg_dict).encode()])
 
-    def __init__(self, device_id: str, action_station_id: str, task_config_dict: dict, context: zmq.Context) -> None:
+    def __init__(self, device_id: str, local_port: int, task_config_dict: dict, context: zmq.Context) -> None:
         threading.Thread.__init__(self, daemon=True)
         self.context = context
         self.running = True
@@ -171,33 +171,26 @@ class TaskService(threading.Thread):
         self.control_type = "TASK"
         self.task_memory = {}
 
-        self.action_function_dict = {
-            "READ_CONTROL": self._read_control_action,
-            "SEND_ALARM": self._send_alarm_action,
-            "WRITE_CONTROL": self._write_control_action,
-            "READ_MEM": self._read_mem_action,
-            "WRITE_MEM": self._write_mem_action,
-        }
-
-        self.task_id = task_config_dict['uuid']
-        self.actions = task_config_dict['actions']
-        self.name = task_config_dict['name']
         self.sub_msg = None
         rx_device_id = ""
-        if len(self.actions) == 0:
+        if len(task_config_dict['actions']) == 0:
             return
         try:
-            rx_device_id = self.actions[0]["deviceID"]
-            rx_control_type = self.actions[0]["controlType"]
-            rx_control_id = self.actions[0]["controlID"]
+            rx_device_id = task_config_dict['actions'][0]["deviceID"]
+            rx_control_type = task_config_dict['actions'][0]["controlType"]
+            rx_control_id = task_config_dict['actions'][0]["controlID"]
         except KeyError:
             return
+
+        self.task = assc.task_parse(task_config_dict)
+
         self.sub_msg = f"\t{rx_device_id}\t{rx_control_type}\t{rx_control_id}"
-        self.push_url = TASK_PULL.format(id=action_station_id)
-        self.sub_url = CONNECTION_PUB_URL.format(id=action_station_id)
+
+        self.sub_url = TCP_URL.format(port=local_port + TASK_CONN_PORT_OFFSET)
+        self.push_url = TCP_URL.format(port=local_port + TASK_PULL_PORT_OFFSET)
 
         self.device_mem_socket = self.context.socket(zmq.REQ)
-        self.device_mem_socket.connect(MEMORY_REQ_URL.format(id=self.device_id))
+        self.device_mem_socket.connect(TCP_URL.format(port=local_port + TASK_MEMORY_PORT_OFFSET))
 
         self.task_sender = self.context.socket(zmq.PUSH)
         self.task_sender.connect(self.push_url)
@@ -227,8 +220,9 @@ class TaskService(threading.Thread):
             if task_receiver in socks:
                 message, _ = task_receiver.recv_multipart()
                 if message:
-                    logging.debug("TASK: %s\t%s RX:%s", self.name, self.task_id, message.decode())
-                    self._do_actions(message)
+                    msg_list = message.decode().strip().split('\t')
+                    logging.debug("TASK: %s\t%s RX:%s", self.task.name, self.task.uuid, msg_list)
+                    # self._do_actions(message)
         self.task_sender.close()
         task_receiver.close()
         self.device_mem_socket.close()

@@ -26,7 +26,7 @@ import threading
 import shortuuid
 import zmq
 
-from ..constants import CONNECTION_PUB_URL, TASK_PULL
+from ..constants import TASK_CONN_PORT_OFFSET, TASK_PULL_PORT_OFFSET, TCP_URL
 from .action_station_service_config import (
     ActionServiceCFG,
     IntParameterSpec,
@@ -87,7 +87,7 @@ class TimerService(threading.Thread):
         """Close the thread"""
         self.running = False
 
-    def __init__(self, device_id: str, action_station_id: str, control_config_dict: dict, context: zmq.Context) -> None:
+    def __init__(self, device_id: str, local_port: int, control_config_dict: dict, context: zmq.Context) -> None:
         threading.Thread.__init__(self, daemon=True)
 
         self.context = context
@@ -99,9 +99,9 @@ class TimerService(threading.Thread):
         self.control_type = control_config_dict['objectType']
         provision_list = control_config_dict['provisioning']
 
-        self.sub_url = CONNECTION_PUB_URL.format(id=action_station_id)
+        self.sub_url = TCP_URL.format(port=local_port + TASK_CONN_PORT_OFFSET)
+        self.push_url = TCP_URL.format(port=local_port + TASK_PULL_PORT_OFFSET)
 
-        self.push_url = TASK_PULL.format(id=action_station_id)
         self.task_sender = self.context.socket(zmq.PUSH)
         self.task_sender.connect(self.push_url)
 

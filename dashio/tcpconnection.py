@@ -60,11 +60,6 @@ class TCPConnection(threading.Thread):
             self.local_device_id_list.append(device.device_id)
             self.z_conf.add_device(device.device_id)
 
-    @staticmethod
-    def _is_port_in_use(ip_address, port):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as port_s:
-            return port_s.connect_ex((ip_address, port)) == 0
-
     def __init__(self, ip_address="*", port=5650, use_zero_conf=True, context: zmq.Context = None):
         """TCP Connection
 
@@ -91,7 +86,7 @@ class TCPConnection(threading.Thread):
         else:
             self.local_ip = ip_address
         self.local_port = port
-        while self._is_port_in_use(self.local_ip, self.local_port) and use_zero_conf:
+        while ip.is_port_in_use(self.local_ip, self.local_port) and use_zero_conf:
             # increment port until we find one that is free.
             self.local_port += 1
         self.ext_url = "tcp://*:" + str(self.local_port)
@@ -268,7 +263,8 @@ class TCPConnection(threading.Thread):
         if message:
             logging.debug("TCP RX: %s\n%s", tcp_id.hex(), message.decode().rstrip())
             msg_from = self.b_zmq_connection_uuid + b":" + tcp_id
-            tx_zmq_pub.send_multipart([message, msg_from])
+            for sub_msg in message.split(b'\n'):
+                tx_zmq_pub.send_multipart([sub_msg, msg_from])
         else:
             if tcp_id in self.socket_ids:
                 logging.debug("Removed Socket ID: %s", tcp_id.hex())

@@ -30,7 +30,7 @@ from astral import LocationInfo
 from astral.sun import sun
 from dateutil import tz
 
-from ..constants import TASK_PULL, CONNECTION_PUB_URL
+from ..constants import TASK_PULL_PORT_OFFSET, TASK_CONN_PORT_OFFSET, TCP_URL
 from .action_station_service_config import ActionServiceCFG, FloatParameterSpec
 
 
@@ -106,7 +106,7 @@ class ClockService(threading.Thread):
         self.clock.close()
         self.running = False
 
-    def __init__(self, device_id: str, action_station_id: str, control_config_dict: dict, context: zmq.Context) -> None:
+    def __init__(self, device_id: str, local_port: int, control_config_dict: dict, context: zmq.Context) -> None:
         threading.Thread.__init__(self, daemon=True)
 
         self.context = context
@@ -126,9 +126,8 @@ class ClockService(threading.Thread):
         self.day = tstamp.day
         self.sun_time = sun(self.location_info.observer, date=datetime.datetime.now(tz=tz.tzlocal()))
 
-        self.push_url = TASK_PULL.format(id=action_station_id)
-
-        self.sub_url = CONNECTION_PUB_URL.format(id=action_station_id)
+        self.sub_url = TCP_URL.format(port=local_port + TASK_CONN_PORT_OFFSET)
+        self.push_url = TCP_URL.format(port=local_port + TASK_PULL_PORT_OFFSET)
 
         self.task_sender = self.context.socket(zmq.PUSH)
         self.task_sender.connect(self.push_url)
