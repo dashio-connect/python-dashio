@@ -24,42 +24,17 @@ SOFTWARE.
 import json
 import logging
 import threading
-
+import math
 import zmq
 
 from ..constants import TASK_CONN_PORT_OFFSET, TASK_MEMORY_PORT_OFFSET, TASK_PULL_PORT_OFFSET, TCP_URL
 from . import action_station_service_config as assc
 
-def num(s_num: str):
+def str_to_num(s_num: str):
     try:
         return int(s_num)
     except ValueError:
         return float(s_num)
-
-
-def _read_control_task(data, task):
-    logging.debug("READ_CONTROL: %s", data)
-    return data[+3]
-
-
-def _if_task(data, task):
-    logging.debug("IF: %s", data)
-    return ""
-
-
-def _endif_task(data, task):
-    logging.debug("ENDIF: %s", data)
-    return ''
-
-
-def _send_alarm_task(data, task):
-    logging.debug("SEND_ALARM: %s", data)
-    return ''
-
-
-def _write_control_task(data, task):
-    logging.debug("WRITE_CONTROL: %s", data)
-    return ""
 
 
 MESSAGE_FORMAT_INPUTS = {
@@ -77,23 +52,6 @@ MESSAGE_FORMAT_INPUTS = {
     "DIR": ["url"],
     "LOG": ["url"],
     "LBL": ["url"],
-}
-
-MESSAGE_FORMAT_OUTPUTS = {
-    "AVD": "\t{device_id}\tAVD\t{control_id}\t{url}",
-    "BTTN": "\t{device_id}\tBTTN\t{control_id}\t{url}",
-    "TEXT": "\t{device_id}\tTEXT\t{control_id}\t{url}",
-    "GRPH": "\t{device_id}\tGRPH\t{control_id}\t{url}",
-    "DIAL": "\t{device_id}\tDIAL\t{control_id}\t{url}",
-    "CLR": "\t{device_id}\tCLR\t{control_id}\t{url}",
-    "TGRPH": "\t{device_id}\tTGRPH\t{control_id}\t{url}",
-    "KNOB": "\t{device_id}\tKNOB\t{control_id}\t{url}",
-    "KBDL": "\t{device_id}\tKBDL\t{control_id}\t{url}",
-    "SLCTR": "\t{device_id}\tSLCTR\t{control_id}\t{url}",
-    "SLDR": "\t{device_id}\tSLDR\t{control_id}\t{url}",
-    "DIR": "\t{device_id}\tDIR\t{control_id}\t{url}",
-    "LOG": "\t{device_id}\tLOG\t{control_id}\t{url}",
-    "LBL": "\t{device_id}\tLBL\t{control_id}\t{url}",
 }
 
 
@@ -118,41 +76,86 @@ class TaskService(threading.Thread):
         msg = f"\t{self.device_id}\tALM\t{alarm_id}\t{header}\t{body}\n"
         self.send_message(msg)
 
-    def _read_control_action(self, action, msg: bytearray):
-        logging.debug("READ_CONTROL: %s", msg.decode())
+    def _read_control_action(self, action: assc.ActionReadControl, msg: list):
+        logging.debug("READ_CONTROL: %s", msg)
+        if msg[0] != action.deviceID or msg[1] != action.controlType or msg[2] != action.controlID:
+            return False, []
+        return True, msg[3:]
 
-    def _send_alarm_action(self, action, msg):
+    def _write_control_action(self, action: assc.ActionWriteControl, msg: list):
+        logging.debug("WRITE_CONTROL: %s", msg)
+        data = "\t".join(msg) + "\n"
+        self.send_message(f"\t{action.deviceID}\t{action.controlType}\t{action.controlID}\t{data}")
+        return True, msg
+
+    def _send_alarm_action(self, action: assc.ActionSendAlarm, msg: list):
         logging.debug("SEND_ALARM: %s", msg)
-        self._send_alarm(action['alarmID'], action['title'], action['body'])
+        self._send_alarm(action.alarmID, action.title, action.body)
+        return True, msg
 
-    def _write_control_action(self, action, msg):
-        logging.debug("WRITE_CONTROL: %s", msg.decode())
-
-    def _read_mem_action(self, action, msg):
-        logging.debug("READ_MEM memType: %s", action["memType"])
-        if action["memType"] == "Local":
+    def _write_mem_action(self, action: assc.ActionWriteMem, msg: list):
+        logging.debug("WRITE_MEM memType: %s", action.memType)
+        if action.memType == "Local":
             pass
-        elif action["memType"] == "Task":
-            reply = self._task_get_mem(action['memoryID'])
-            logging.debug("Task read mem: %s", reply)
-        elif action["memType"] == "Global":
-            self.device_mem_socket.send_multipart([b'GET', action['memoryID'].encode(), b'0'])
-            reply = self.device_mem_socket.recv_multipart()
-        else:
-            logging.debug("READ_MEM unknown memType: %s", action["memType"])
-
-    def _write_mem_action(self, action, msg):
-        logging.debug("WRITE_MEM memType: %s", action["memType"])
-        if action["memType"] == "Local":
-            pass
-        elif action["memType"] == "Task":
-            self._task_store_mem(action['memoryID'], action['thing'])
-        elif action["memType"] == "Global":
-            self.device_mem_socket.send_multipart([b'SET', action['memoryID'].encode(), action['thing'].encode()])
+        elif action.memType == "Task":
+            self._task_store_mem(action.memType, msg)
+        elif action.memType == "Global":
+            thing = "\t".join(msg)
+            self.device_mem_socket.send_multipart([b'SET', action.memoryID.encode(), thing.encode()])
             reply = self.device_mem_socket.recv_multipart()
             logging.debug("Task write mem: %s", reply)
         else:
-            logging.debug("WRITE_MEM unknown memType: %s", action["memType"])
+            logging.debug("WRITE_MEM unknown memType: %s", action.memType)
+        return True, msg
+
+    def _read_mem_action(self, action: assc.ActionReadMem, msg: list):
+        logging.debug("READ_MEM memType: %s", action.memType)
+        if action.memType == "Local":
+            pass
+        elif action.memType == "Task":
+            reply = self._task_get_mem(action.memType)
+            logging.debug("Task read mem: %s", reply)
+            return True, reply.split('\t')
+        elif action.memType == "Global":
+            self.device_mem_socket.send_multipart([b'GET', action.memType.encode(), b'0'])
+            reply = self.device_mem_socket.recv_multipart()
+            logging.debug("Task read mem reply: %s", reply)
+            # TODO test and return rely
+            return True, msg
+        else:
+            logging.debug("READ_MEM unknown memType: %s", action.memType)
+        return True, msg
+
+    def _bitwise_action(self, action: assc.ActionBitwise, msg: list):
+        logging.debug("BITWISE BEFORE: %s", msg)
+        for msg_item in msg:
+            if action.bw_or is not None:
+                msg_item = msg_item | action.bw_or
+            if action.bw_and is not None:
+                msg_item = msg_item & action.bw_and
+            if action.shiftRight is not None:
+                msg_item = msg_item >> action.shiftRight
+        logging.debug("BITWISE AFTER: %s", msg)
+        return True, msg
+
+    def _scale_action(self, action: assc.ActionScale, msg: list):
+        logging.debug("SCALE: %s", msg)
+        new_msg = []
+        for msg_item in msg:
+            new_item = float(msg_item) * action.scale + action.offset
+            new_msg.append(new_item)
+        return True, new_msg
+
+    def _if_action(self, action: assc.ActionIf, msg: list):
+        logging.debug("IF: %s", msg)
+        if action.ifOperator == '>':
+            return (float(msg[action.fieldNo]) > float(action.value)), msg
+        elif action.ifOperator == '<':
+            return (float(msg[action.fieldNo]) < float(action.value)), msg
+        elif action.ifOperator == '=':
+            return math.isclose(float(msg[action.fieldNo]), float(action.value)), msg
+        else:
+            return False, msg
 
     def _connect_device_id(self, device_id):
         msg_dict = {
@@ -161,6 +164,17 @@ class TaskService(threading.Thread):
         }
         logging.debug("AS CONNECT: %s", device_id)
         self.task_sender.send_multipart([b"COMMAND", json.dumps(msg_dict).encode()])
+
+    def action_chain(self, start_msg, task_actions: list):
+        res = start_msg
+        for task_action in task_actions:
+            res_if, res = self.actions_map[task_action.objectType](task_action, res)
+            if task_action.objectType == 'IF':
+                if res_if:
+                    res = self.action_chain(res, task_action.ifTrue)
+                else:
+                    res = self.action_chain(res, task_action.ifFalse)
+        return res
 
     def __init__(self, device_id: str, local_port: int, task_config_dict: dict, context: zmq.Context) -> None:
         threading.Thread.__init__(self, daemon=True)
@@ -173,18 +187,28 @@ class TaskService(threading.Thread):
 
         self.sub_msg = None
         rx_device_id = ""
+
         if len(task_config_dict['actions']) == 0:
-            return
-        try:
-            rx_device_id = task_config_dict['actions'][0]["deviceID"]
-            rx_control_type = task_config_dict['actions'][0]["controlType"]
-            rx_control_id = task_config_dict['actions'][0]["controlID"]
-        except KeyError:
             return
 
         self.task = assc.task_parse(task_config_dict)
 
-        self.sub_msg = f"\t{rx_device_id}\t{rx_control_type}\t{rx_control_id}"
+        try:
+            rx_device_id = self.task.actions[0].deviceID
+            self.sub_msg = f"\t{rx_device_id}\t{self.task.actions[0].controlType}\t{self.task.actions[0].controlID}"
+        except KeyError:
+            return
+
+        self.actions_map = {
+            'READ_CONTROL': self._read_control_action,
+            'WRITE_CONTROL': self._write_control_action,
+            'SEND_ALARM': self._send_alarm_action,
+            'WRITE_MEM': self._write_mem_action,
+            'READ_MEM': self._read_mem_action,
+            'BITWISE': self._bitwise_action,
+            'SCALE': self._scale_action,
+            'IF': self._if_action
+        }
 
         self.sub_url = TCP_URL.format(port=local_port + TASK_CONN_PORT_OFFSET)
         self.push_url = TCP_URL.format(port=local_port + TASK_PULL_PORT_OFFSET)
@@ -198,11 +222,6 @@ class TaskService(threading.Thread):
         if rx_device_id != device_id:
             self._connect_device_id(rx_device_id)
         self.start()
-
-    # Do a simple test case to check messaging.
-    def _do_actions(self, msg):
-        for action in self.actions:
-            self.action_function_dict[action['objectType']](action, msg)
 
     def run(self):
         task_receiver = self.context.socket(zmq.SUB)
@@ -222,7 +241,7 @@ class TaskService(threading.Thread):
                 if message:
                     msg_list = message.decode().strip().split('\t')
                     logging.debug("TASK: %s\t%s RX:%s", self.task.name, self.task.uuid, msg_list)
-                    # self._do_actions(message)
+                    self.action_chain(msg_list, self.task.actions)
         self.task_sender.close()
         task_receiver.close()
         self.device_mem_socket.close()
