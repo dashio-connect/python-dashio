@@ -1,6 +1,7 @@
 import shortuuid
 from pydantic import BaseModel, Field
-
+from typing import Optional
+import math
 
 def to_camel(string: str) -> str:
     string_split = string.split("_")
@@ -92,9 +93,6 @@ class ActionReadControl(BaseModel):
     controlType: str
     controlID: str
 
-    def action(msg):
-        pass
-
 class ActionWriteControl(BaseModel):
     objectType: str
     deviceID: str
@@ -120,9 +118,9 @@ class ActionReadMem(BaseModel):
 
 class ActionBitwise(BaseModel):
     objectType: str
-    bw_or: str = Field(alias='or')
-    bw_and: str = Field(alias='and')
-    shiftRight: int
+    bw_or: Optional[int] = Field(alias='or')
+    bw_and: Optional[int] = Field(alias='and')
+    shiftRight: Optional[int]
 
 class ActionScale(BaseModel):
     objectType: str
@@ -131,33 +129,27 @@ class ActionScale(BaseModel):
 
 class ActionIf(BaseModel):
     objectType: str
-    value: float
+    value: str
+    fieldNo: int = 0
+    fieldType: str = 'float'
     ifOperator: str
     ifTrue: list = []
     ifFalse: list = []
 
 
+MAP_ACTION_DICT = {
+    'READ_CONTROL': lambda action: ActionReadControl(**action),
+    'WRITE_CONTROL': lambda action: ActionWriteControl(**action),
+    'SEND_ALARM': lambda action: ActionSendAlarm(**action),
+    'WRITE_MEM': lambda action: ActionWriteMem(**action),
+    'READ_MEM': lambda action: ActionReadMem(**action),
+    'BITWISE': lambda action: ActionBitwise(**action),
+    'SCALE': lambda action: ActionScale(**action),
+    'IF': lambda action: ActionIf(**action)
+}
+
 def task_parse(task: dict) -> ActionTask:
     action_tree = []
-
-    def create_action(action: dict):
-        match action['objectType']:
-            case 'READ_CONTROL':
-                return ActionReadControl(**action)
-            case 'WRITE_CONTROL':
-                return ActionWriteControl(**action)
-            case 'SEND_ALARM':
-                return ActionSendAlarm(**action)
-            case 'WRITE_MEM':
-                return ActionWriteMem(**action)
-            case 'READ_MEM':
-                return ActionReadMem(**action)
-            case 'BITWISE':
-                return ActionBitwise(**action)
-            case 'SCALE':
-                return ActionScale(**action)
-            case 'IF':
-                return ActionIf(**action)
 
     def parse_tree(tree: list, actions: list) -> str:
         if len(actions) > 0:
@@ -168,7 +160,7 @@ def task_parse(task: dict) -> ActionTask:
             return 'ELSE'
         if action['objectType'] == 'ENDIF':
             return 'ENDIF'
-        new_action = create_action(action)
+        new_action = MAP_ACTION_DICT[action['objectType']](action)
         if new_action.objectType == 'IF':
             new_action.ifTrue = []
             result = parse_tree(new_action.ifTrue, actions)
