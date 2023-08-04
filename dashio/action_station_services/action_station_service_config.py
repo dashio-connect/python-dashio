@@ -179,3 +179,4 @@ def task_parse(task: dict) -> ActionTask:
     new_task = task.copy()
     new_task['actions'] = action_tree
     return ActionTask(**new_task)
+ 
