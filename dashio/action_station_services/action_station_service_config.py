@@ -29,7 +29,7 @@ class StringParameterSpec(BaseParameter):
 
 class FloatParameterSpec(BaseParameter):
     """Float Parameter"""
-    objectType = "FLOAT_PARAM"
+    objectType: str = "FLOAT_PARAM"
     min: float
     max: float
     units: str
@@ -37,7 +37,7 @@ class FloatParameterSpec(BaseParameter):
 
 class IntParameterSpec(BaseParameter):
     """Int Parameter"""
-    objectType = "INT_PARAM"
+    objectType: str = "INT_PARAM"
     min: int
     max: int
     units: str
