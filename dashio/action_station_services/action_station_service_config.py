@@ -51,7 +51,7 @@ class BoolParameterSpec(BaseParameter):
 class SelectorParameterSpec(BaseParameter):
     """Selection Parameter"""
     objectType: str = "SELECTION_PARAM"
-    selection: list[str]
+    selection: list
     value: str
 
 
