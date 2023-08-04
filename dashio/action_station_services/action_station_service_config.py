@@ -20,11 +20,11 @@ class ListParameterSpec(BaseParameter):
     """List Parameter"""
     text: str
     param_list: list
-    objectType = "LIST_PARAM"
+    objectType: str = "LIST_PARAM"
 
 class StringParameterSpec(BaseParameter):
     """String Parameter"""
-    objectType = "STRING_PARAM"
+    objectType: str = "STRING_PARAM"
     value: str
 
 class FloatParameterSpec(BaseParameter):
@@ -45,19 +45,19 @@ class IntParameterSpec(BaseParameter):
 
 class BoolParameterSpec(BaseParameter):
     """Bool Parameter"""
-    objectType = "BOOL_PARAM"
+    objectType: str = "BOOL_PARAM"
     value: bool
 
 class SelectorParameterSpec(BaseParameter):
     """Selection Parameter"""
-    objectType = "SELECTION_PARAM"
+    objectType: str = "SELECTION_PARAM"
     selection: list[str]
     value: str
 
 
 class SliderParameterSpec(BaseParameter):
     """Slider Parameter"""
-    objectType = "SLIDER_PARAM"
+    objectType: str = "SLIDER_PARAM"
     min: float
     max: float
     step: float
