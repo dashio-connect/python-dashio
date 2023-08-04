@@ -120,7 +120,7 @@ class TaskService(threading.Thread):
             self.device_mem_socket.send_multipart([b'GET', action.memType.encode(), b'0'])
             reply = self.device_mem_socket.recv_multipart()
             logging.debug("Task read mem reply: %s", reply)
-            # TODO test and return rely
+            # TODO test and return reply
             return True, msg
         else:
             logging.debug("READ_MEM unknown memType: %s", action.memType)
