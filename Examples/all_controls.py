@@ -126,6 +126,7 @@ class AllControls:
 
         self.tcp_con = dashio.TCPConnection()
         self.device = dashio.Device("AllControlsTest", args.device_id, args.device_name, cfg_dict=config_dict)
+        self.device.use_cfg64()
         self.tcp_con.add_device(self.device)
 
         self.avd: dashio.AudioVisualDisplay = self.device.get_control(dashio.ControlName.AVD, "AV1")
