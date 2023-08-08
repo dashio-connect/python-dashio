@@ -218,6 +218,7 @@ class TimeGraph(Control):
         y_axis_min_rt=0.0,
         y_axis_max_rt=1000.0,
         control_position=None,
+        column_no=1
     ):
         """A Timegraph control
 
@@ -241,7 +242,7 @@ class TimeGraph(Control):
             The number of bars to display on the graph, by default 5
         """
         super().__init__("TGRPH", control_id)
-        self._cfg_columnar.append(
+        self._app_columns_cfg[str(column_no)].append(
             TimeGraphConfig(
                 control_id,
                 title,
@@ -292,7 +293,7 @@ class TimeGraph(Control):
         return self.y_axis_num_bars
 
     @classmethod
-    def from_cfg_dict(cls, cfg_dict: dict):
+    def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
         """Instatiates TimeGraph from cfg dictionary
 
         Parameters
@@ -315,7 +316,8 @@ class TimeGraph(Control):
             cfg_dict.get("yAxisLabelRt", ''),
             cfg_dict.get("yAxisMinRt", 0.0),
             cfg_dict.get("yAxisMaxRt", 1000.0),
-            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
+            column_no
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls

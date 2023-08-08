@@ -101,6 +101,7 @@ class ButtonGroup(Control):
         icon=Icon.MENU,
         grid_view=True,
         control_position=None,
+        column_no=1
     ):
         """ButtonGroup control that shows a popup of buttons.
 
@@ -124,10 +125,10 @@ class ButtonGroup(Control):
                 [description]. Defaults to None.
         """
         super().__init__("BTGP", control_id)
-        self._cfg_columnar.append(ButtonGroupConfig(control_id, title, text, style, icon, grid_view, control_position, title_position))
+        self._app_columns_cfg[str(column_no)].append(ButtonGroupConfig(control_id, title, text, style, icon, grid_view, control_position, title_position))
 
     @classmethod
-    def from_cfg_dict(cls, cfg_dict: dict):
+    def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
         """Instatiates ButtonGroup from cfg dictionary
 
         Parameters
@@ -147,7 +148,8 @@ class ButtonGroup(Control):
             _get_button_group_style(cfg_dict.get("style", "basic")),
             _get_icon(cfg_dict.get("iconName", "None")),
             cfg_dict.get("gridView", True),
-            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
+            column_no
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls

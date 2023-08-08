@@ -93,21 +93,13 @@ class DialConfig(ControlConfig):
 class Dial(Control):
     """Dial Control"""
 
-    def add_config_columnar(self, config: DialConfig):
+    def add_config(self, config: DialConfig, column_no=1):
         if isinstance(config, DialConfig):
             config.cfg["min"] = self.dial_min
             config.cfg["max"] = self.dial_max
             config.cfg["redValue"] = self.red_value
             config.cfg["ControlID"] = self.control_id
-            self._cfg_columnar.append(config)
-
-    def add_config_full_page(self, config: DialConfig):
-        if isinstance(config, DialConfig):
-            config.cfg["min"] = self.dial_min
-            config.cfg["max"] = self.dial_max
-            config.cfg["redValue"] = self.red_value
-            config.cfg["ControlID"] = self.control_id
-            self._cfg_columnar.append(config)
+            self._app_columns_cfg[str(column_no)].append(config)
 
     def __init__(
         self,
@@ -124,7 +116,8 @@ class Dial(Control):
         style=DialStyle.PIE,
         precision=Precision.OFF,
         units="",
-        control_position=None
+        control_position=None,
+        column_no=1
     ):
         """Dial
 
@@ -160,7 +153,7 @@ class Dial(Control):
             Units of the dial position, by default ""
         """
         super().__init__("DIAL", control_id)
-        self._cfg_columnar.append(
+        self._app_columns_cfg[str(column_no)].append(
             DialConfig(
                 control_id,
                 title,
@@ -199,7 +192,7 @@ class Dial(Control):
         return self._red_value
 
     @classmethod
-    def from_cfg_dict(cls, cfg_dict: dict):
+    def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
         """Instatiates Dial from cfg dictionary
 
         Parameters
@@ -226,7 +219,8 @@ class Dial(Control):
             _get_dial_style(cfg_dict["style"]),
             _get_precision(cfg_dict["precision"]),
             cfg_dict["units"],
-            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
+            column_no
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls

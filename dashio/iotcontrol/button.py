@@ -135,10 +135,11 @@ class Button(Control):
         on_color=Color.BLUE,
         off_color=Color.RED,
         text="",
-        control_position: ControlPosition = None
+        control_position: ControlPosition = None,
+        column_no=1
     ):
         super().__init__("BTTN", control_id)
-        self._cfg_columnar.append(
+        self._app_columns_cfg[str(column_no)].append(
             ButtonConfig(
                 control_id,
                 title,
@@ -157,7 +158,7 @@ class Button(Control):
         self._icon_name = icon_name
 
     @classmethod
-    def from_cfg_dict(cls, cfg_dict: dict):
+    def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
         """Instatiates Button from cfg dictionary
 
         Parameters
@@ -179,7 +180,8 @@ class Button(Control):
             _get_color(cfg_dict["onColor"]),
             _get_color(cfg_dict["offColor"]),
             cfg_dict["text"],
-            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
+            column_no
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls

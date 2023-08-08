@@ -146,7 +146,8 @@ class Map(Control):
         control_id,
         title="A Map",
         title_position=TitlePosition.BOTTOM,
-        control_position=None
+        control_position=None,
+        column_no=1
     ):
         """A Map control
 
@@ -162,7 +163,7 @@ class Map(Control):
             Position of the title when displayed on the iotdashboard app, by default None
         """
         super().__init__("MAP", control_id)
-        self._cfg_columnar.append(ControlConfig(control_id, title, control_position, title_position))
+        self._app_columns_cfg[str(column_no)].append(ControlConfig(control_id, title, control_position, title_position))
         self.tracks = {}
         self.tracks["DEFAULT"] = self.default_track
 
@@ -170,7 +171,7 @@ class Map(Control):
         self._message_rx_event += self._get_tracks_from_timestamp
 
     @classmethod
-    def from_cfg_dict(cls, cfg_dict: dict):
+    def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
         """Instatiates Map from cfg dictionary
 
         Parameters
@@ -186,7 +187,8 @@ class Map(Control):
             cfg_dict["controlID"],
             cfg_dict["title"],
             _get_title_position(cfg_dict["titlePosition"]),
-            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
+            column_no
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls

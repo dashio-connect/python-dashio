@@ -166,10 +166,11 @@ class DeviceView(Control):
         control_max_font_size=20,
         control_background_transparency=0,
         num_grid_columns=22,
-        num_grid_rows=32
+        num_grid_rows=32,
+        column_no=1
     ):
         super().__init__("DVVW", control_id)
-        self._cfg_columnar.append(
+        self._app_columns_cfg[str(column_no)].append(
             DeviceViewConfig(
                 control_id,
                 title,
@@ -193,7 +194,7 @@ class DeviceView(Control):
         self._state_str = ""
 
     @classmethod
-    def from_cfg_dict(cls, cfg_dict: dict):
+    def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
         """Instatiates DeviceView from cfg dictionary
 
         Parameters
@@ -222,7 +223,8 @@ class DeviceView(Control):
             cfg_dict["ctrlMaxFontSize"],
             cfg_dict["ctrlBkgndTransparency"],
             cfg_dict["gridColumns"],
-            cfg_dict["gridRows"]
+            cfg_dict["gridRows"],
+            column_no
         )
 
     def add_control(self, control):

@@ -85,7 +85,8 @@ class Menu(Control):
         text="A Menu with Text",
         style=MenuStyle.BASIC,
         icon_name=Icon.MENU,
-        control_position=None
+        control_position=None,
+        column_no=1
     ):
         """A Menu control
 
@@ -105,7 +106,7 @@ class Menu(Control):
             Menu icon, by default Icon.MENU
         """
         super().__init__("MENU", control_id)
-        self._cfg_columnar.append(
+        self._app_columns_cfg[str(column_no)].append(
             MenuConfig(
                 control_id,
                 title,
@@ -118,7 +119,7 @@ class Menu(Control):
         )
 
     @classmethod
-    def from_cfg_dict(cls, cfg_dict: dict):
+    def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
         """Instatiates Menu from cfg dictionary
 
         Parameters
@@ -137,7 +138,8 @@ class Menu(Control):
             cfg_dict.get("text", ""),
             _get_menu_style(cfg_dict.get("style", "basic")),
             _get_icon(cfg_dict.get("iconName", "None")),
-            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
+            column_no
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls

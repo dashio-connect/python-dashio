@@ -217,23 +217,28 @@ class Device(threading.Thread):
         key = f"{control_type}\t{control_id}"
         return key in self.controls_dict
 
-    def add_all_c64_controls(self, c64_dict: dict):
+    def add_all_c64_controls(self, c64_dict: dict, column_no=1):
         """Loads all the controls in cfg_dict into the device.
 
         Parameters
         ----------
         c64_dict : Dict
             dictionary of the CFG loaded by decode_cfg from a CFG64 or json
+        column_no: Int From 1 to 3 (default 1).
+            The DashIO app reports the size of the screen in no of columns. You can load a seperate
+            config for each reported column number.
         """
+        if not 1 <= column_no <= 3:
+            column_no = 1
         for control_type, control_list in c64_dict.items():
             if isinstance(control_list, list):
                 for control in control_list:
                     key = f"{control_type}\t{control['controlID']}"
                     if self.is_control_loaded(control_type, control['controlID']):
                         cfg = CONFIG_INSTANCE_DICT[control_type].from_dict(control)
-                        self.controls_dict[key].add_config_columnar(cfg)
+                        self.controls_dict[key].add_config(cfg, column_no=column_no)
                     else:
-                        new_control = CONTROL_INSTANCE_DICT[control_type].from_cfg_dict(control)
+                        new_control = CONTROL_INSTANCE_DICT[control_type].from_cfg_dict(control, column_no=column_no)
                         self.add_control(new_control)
 
     def add_control(self, iot_control):

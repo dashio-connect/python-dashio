@@ -76,6 +76,7 @@ class Label(Control):
         color=Color.WHITE,
         style=LabelStyle.BASIC,
         control_position=None,
+        column_no=1
     ):
         """Label
 
@@ -103,11 +104,11 @@ class Label(Control):
             style,
             control_position
         )
-        self._cfg_columnar.append(control_config)
+        self._app_columns_cfg[str(column_no)].append(control_config)
         self._state_str = ""
 
     @classmethod
-    def from_cfg_dict(cls, cfg_dict: dict):
+    def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
         """Instatiates a label from cfg dictionary
 
         Parameters
@@ -125,7 +126,8 @@ class Label(Control):
             _get_title_position(cfg_dict["titlePosition"]),
             _get_color(cfg_dict["color"]),
             _get_label_style(cfg_dict["style"]),
-            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
+            column_no
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls

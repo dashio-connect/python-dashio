@@ -78,6 +78,7 @@ class ColorPicker(Control):
         style=ColorPickerStyle.WHEEL,
         send_only_on_release=True,
         control_position=None,
+        column_no=1
     ):
         """ColorPicker
 
@@ -98,7 +99,7 @@ class ColorPicker(Control):
 
         """
         super().__init__("CLR", control_id)
-        self._cfg_columnar.append(
+        self._app_columns_cfg[str(column_no)].append(
             ColorPickerConfig(
                 control_id,
                 title,
@@ -111,7 +112,7 @@ class ColorPicker(Control):
         self._color_value = "#4F5GA2"
 
     @classmethod
-    def from_cfg_dict(cls, cfg_dict: dict):
+    def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
         """Instatiates ColorPicker from cfg dictionary
 
         Parameters
@@ -129,7 +130,8 @@ class ColorPicker(Control):
             _get_title_position(cfg_dict["titlePosition"]),
             _get_color_picker_style(cfg_dict["pickerStyle"]),
             cfg_dict["sendOnlyOnRelease"],
-            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
+            column_no
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls

@@ -300,12 +300,14 @@ class Control():
             dashboard_id = data[2]
         except (IndexError, ValueError):
             return cfg_list
-        if num_columns >= self._cfg_full_page_no_columns and self._cfg_full_page:
-            for cfg in self._cfg_full_page:
-                cfg_list.append(f"\tCFG\t{dashboard_id}\t{self.cntrl_type}\t{cfg.get_cfg_json()}")
-        else:
-            for control_cfg in self._cfg_columnar:
-                cfg_list.append(f"\tCFG\t{dashboard_id}\t{self.cntrl_type}\t{control_cfg.get_cfg_json()}")
+        if 1 <= num_columns <= self._cfg_max_no_columns:
+            while num_columns >= 1:
+                cfgs = self._app_columns_cfg[str(num_columns)]
+                if cfgs:
+                    for cfg in cfgs:
+                        cfg_list.append(f"\tCFG\t{dashboard_id}\t{self.cntrl_type}\t{cfg.get_cfg_json()}")
+                    break
+                num_columns = num_columns - 1
         return cfg_list
 
     def get_cfg64(self, data) -> list:
@@ -326,27 +328,21 @@ class Control():
             num_columns = int(data[3])
         except (IndexError, ValueError):
             return []
-        if num_columns >= self._cfg_full_page_no_columns and self._cfg_full_page:
-            for cfg in self._cfg_full_page:
-                cfg_list.append(cfg.get_cfg64())
-        else:
-            for cfg in self._cfg_columnar:
-                cfg_list.append(cfg.get_cfg64())
+        if 1 <= num_columns <= self._cfg_max_no_columns:
+            while num_columns >= 1:
+                cfgs = self._app_columns_cfg[str(num_columns)]
+                if cfgs:
+                    for cfg in cfgs:
+                        cfg_list.append(cfg.get_cfg64())
+                    break
+                num_columns = num_columns - 1
         return cfg_list
 
-    def add_config_columnar(self, config):
-        """Add a duplicate Config for the columnar view"""
+    def add_config(self, config, column_no=1):
+        """Add a duplicate Config for dashio Apps with wider screens"""
         config.cfg["controlID"] = self.control_id
-        self._cfg_columnar.append(config)
-
-    def add_config_full_page(self, config):
-        """Add a duplicate Config for the full page view"""
-        config.cfg["controlID"] = self.control_id
-        self._cfg_full_page.append(config)
-
-    def set_no_culumns_full_page(self, no_columns: int):
-        """Set the number of columns that the full page view uses."""
-        self._cfg_full_page_no_columns = no_columns
+        if 1 <= column_no <= self._cfg_max_no_columns:
+            self._app_columns_cfg[str(column_no)].append(config)
 
     def add_receive_message_callback(self, callback):
         """Add a callback to receive incoming messages to the control."""
@@ -374,10 +370,13 @@ class Control():
         control_id : str
             An unique control identity string. The control identity string must be a unique string for each control per device
         """
-        # Dictionary to store CFG json
-        self._cfg_columnar = []
-        self._cfg_full_page = []
-        self._cfg_full_page_no_columns = 0
+        # List to store control CFG json
+        self._app_columns_cfg = {
+            '1': [],
+            '2': [],
+            '3': []
+        }
+        self._cfg_max_no_columns = 3
         self.cntrl_type = cntrl_type.translate(BAD_CHARS)
         self.control_id = control_id.translate(BAD_CHARS)
         if not self.control_id:
@@ -388,13 +387,9 @@ class Control():
         self._message_rx_event += self._message_tx_event
         self._control_hdr_str = f"\t{{device_id}}\t{self.cntrl_type}\t{self.control_id}\t"
 
-    def del_configs_columnar(self):
+    def del_config(self, column_no=1):
         """Deletes all the columnar config layout entries"""
-        self._cfg_columnar = []
-
-    def del_configs_full_page(self):
-        """Deletes all the full page config layout entries"""
-        self._cfg_columnar = []
+        self._app_columns_cfg[str(column_no)] = []
 
     @property
     def state_str(self) -> str:
@@ -413,7 +408,7 @@ class Control():
 
     #  Use getter, setter properties to store the settings in the config dictionary
     @property
-    def parent_id(self, index=0) -> str:
+    def parent_id(self, index=0, column_no=1) -> str:
         """The parent control or deviceview this control belongs to
 
         Returns
@@ -421,9 +416,13 @@ class Control():
         str
             The parent_id
         """
-        return self._cfg_columnar[index]["parentID"]
+        if not 1 <= column_no <= self._cfg_max_no_columns:
+            column_no = 1
+        return self._app_columns_cfg[str(column_no)][index]["parentID"]
 
     @parent_id.setter
-    def parent_id(self, val: str, index=0):
+    def parent_id(self, val: str, index=0, column_no=1):
         _val = val.translate(BAD_CHARS)
-        self._cfg_columnar[index].parent_id = _val
+        if not 1 <= column_no <= self._cfg_max_no_columns:
+            column_no = 1
+        self._app_columns_cfg[str(column_no)][index].parent_id = _val

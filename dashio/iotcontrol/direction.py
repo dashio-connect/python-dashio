@@ -78,17 +78,11 @@ class DirectionConfig(ControlConfig):
 class Direction(Control):
     """Direction control"""
 
-    def add_config_columnar(self, config: DirectionConfig):
+    def add_config(self, config: DirectionConfig, column_no=1):
         if isinstance(config, DirectionConfig):
             config.cfg["calAngle"] = self.cal_angle
             config.cfg["ControlID"] = self.control_id
-            self._cfg_columnar.append(config)
-
-    def add_config_full_page(self, config: DirectionConfig):
-        if isinstance(config, DirectionConfig):
-            config.cfg["calAngle"] = self.cal_angle
-            config.cfg["ControlID"] = self.control_id
-            self._cfg_full_page.append(config)
+            self._app_columns_cfg[str(column_no)]
 
     def __init__(
         self,
@@ -100,7 +94,8 @@ class Direction(Control):
         units="",
         precision=Precision.OFF,
         calibration_angle=0,
-        control_position=None
+        control_position=None,
+        column_no=1
     ):
         """Direction Control
 
@@ -126,7 +121,7 @@ class Direction(Control):
             Calibration angle offset, by default 0
         """
         super().__init__("DIR", control_id)
-        self._cfg_columnar.append(
+        self._app_columns_cfg[str(column_no)].append(
             DirectionConfig(
                 control_id,
                 title,
@@ -149,7 +144,7 @@ class Direction(Control):
         return self._cal_angle
 
     @classmethod
-    def from_cfg_dict(cls, cfg_dict: dict):
+    def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
         """Instatiates Direction from cfg dictionary
 
         Parameters
@@ -170,7 +165,8 @@ class Direction(Control):
             cfg_dict["units"],
             _get_precision(cfg_dict["precision"]),
             cfg_dict["calAngle"],
-            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
+            column_no
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls

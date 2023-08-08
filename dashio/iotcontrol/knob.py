@@ -90,21 +90,13 @@ class Knob(Control):
     """A Knob control
     """
 
-    def add_config_columnar(self, config: KnobConfig):
+    def add_config_columnar(self, config: KnobConfig, column_no=1):
         if isinstance(config, KnobConfig):
             config.cfg["min"] = self.dial_min
             config.cfg["max"] = self.dial_max
             config.cfg["redValue"] = self.red_value
             config.cfg["ControlID"] = self.control_id
-            self._cfg_columnar.append(config)
-
-    def add_config_full_page(self, config: KnobConfig):
-        if isinstance(config, KnobConfig):
-            config.cfg["min"] = self.dial_min
-            config.cfg["max"] = self.dial_max
-            config.cfg["redValue"] = self.red_value
-            config.cfg["ControlID"] = self.control_id
-            self._cfg_columnar.append(config)
+            self._app_columns_cfg[str(column_no)]
 
     def __init__(
         self,
@@ -120,7 +112,8 @@ class Knob(Control):
         dial_follows_knob=False,
         dial_color=Color.BLUE,
         knob_color=Color.RED,
-        control_position=None
+        control_position=None,
+        column_no=1
     ):
         """A Knob control is a control with a dial and knob.
 
@@ -154,7 +147,7 @@ class Knob(Control):
             The position of the control on a DeviceView, by default None
         """
         super().__init__("KNOB", control_id)
-        self._cfg_columnar.append(
+        self._app_columns_cfg[str(column_no)].append(
             KnobConfig(
                 control_id,
                 title,
@@ -199,7 +192,7 @@ class Knob(Control):
         return self._red_value
 
     @classmethod
-    def from_cfg_dict(cls, cfg_dict: dict):
+    def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
         """Instatiates Knob from cfg dictionary
 
         Parameters
@@ -224,7 +217,8 @@ class Knob(Control):
             cfg_dict["dialFollowsKnob"],
             _get_color(cfg_dict["dialColor"]),
             _get_color(cfg_dict["knobColor"]),
-            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
+            column_no
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls

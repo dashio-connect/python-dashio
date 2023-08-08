@@ -82,12 +82,15 @@ class EventLog(Control):
     """EventLog control
     """
 
-    def __init__(self,
-                 control_id: str,
-                 title="An Event Log",
-                 title_position=TitlePosition.BOTTOM,
-                 control_position=None,
-                 max_log_entries=100):
+    def __init__(
+        self,
+        control_id: str,
+        title="An Event Log",
+        title_position=TitlePosition.BOTTOM,
+        control_position=None,
+        max_log_entries=100,
+        column_no=1
+    ):
         """An EventLog control
 
         Parameters
@@ -106,14 +109,14 @@ class EventLog(Control):
             entries before over wrting older entires, by default 100
         """
         super().__init__("LOG", control_id)
-        self._cfg_columnar.append(ControlConfig(control_id, title, control_position, title_position))
+        self._app_columns_cfg[str(column_no)].append(ControlConfig(control_id, title, control_position, title_position))
 
         self._message_rx_event = Event()
         self._message_rx_event += self._get_log_from_timestamp
         self.log = RingBuffer(max_log_entries)
 
     @classmethod
-    def from_cfg_dict(cls, cfg_dict: dict):
+    def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
         """Instatiates Menu from cfg dictionary
 
         Parameters
@@ -129,7 +132,8 @@ class EventLog(Control):
             cfg_dict["controlID"],
             cfg_dict["title"],
             _get_title_position(cfg_dict["titlePosition"]),
-            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
+            column_no
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls
