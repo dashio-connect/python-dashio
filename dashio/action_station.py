@@ -120,7 +120,7 @@ class ActionStation(threading.Thread):
                         modified = True
                         logging.debug("Deleting layouts: %s, %s", control_type, control['controlID'])
                         try:
-                            self.device.controls_dict[key].del_configs_columnar()
+                            self.device.controls_dict[key].del_config()
                         except KeyError:
                             logging.debug("Error deleting layout: %s, %s", control_type, control['controlID'])
         return modified
@@ -138,7 +138,7 @@ class ActionStation(threading.Thread):
                         # load new config into control
                         logging.debug("Adding layouts: %s, %s", control_type, control['controlID'])
                         cfg = CONFIG_INSTANCE_DICT[control_type].from_dict(control)
-                        self.device.controls_dict[key].add_config_columnar(cfg)
+                        self.device.controls_dict[key].add_config(cfg)
                         modified = True
                         if key in added_control_ids:
                             # Add the next config to the control

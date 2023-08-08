@@ -30,7 +30,14 @@ class Selector(Control):
     """A Selector control
     """
 
-    def __init__(self, control_id: str, title="A Selector", title_position=TitlePosition.BOTTOM, control_position=None):
+    def __init__(
+        self,
+        control_id: str,
+        title="A Selector",
+        title_position=TitlePosition.BOTTOM,
+        control_position=None,
+        column_no=1
+    ):
         """A Selector control
 
         Parameters
@@ -45,7 +52,7 @@ class Selector(Control):
             Position of the title when displayed on the iotdashboard app, by default None
         """
         super().__init__("SLCTR", control_id)
-        self._cfg_columnar.append(
+        self._app_columns_cfg[str(column_no)].append(
             ControlConfig(
                 control_id,
                 title,
@@ -57,7 +64,7 @@ class Selector(Control):
         self.selection_list = []
 
     @classmethod
-    def from_cfg_dict(cls, cfg_dict: dict):
+    def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
         """Instatiates Selector from cfg dictionary
 
         Parameters
@@ -73,7 +80,8 @@ class Selector(Control):
             cfg_dict["controlID"],
             cfg_dict["title"],
             _get_title_position(cfg_dict["titlePosition"]),
-            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
+            column_no
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls

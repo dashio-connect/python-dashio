@@ -125,6 +125,7 @@ class Slider(Control):
         knob_color=Color.RED,
         bar_style=SliderBarStyle.SEG,
         control_position=None,
+        column_no=1
     ):
         """[summary]
 
@@ -160,7 +161,7 @@ class Slider(Control):
             bar style, by default SliderBarStyle.SEGMENTED
         """
         super().__init__("SLDR", control_id)
-        self._cfg_columnar.append(
+        self._app_columns_cfg[str(column_no)].append(
             SliderConfig(
                 control_id,
                 title,
@@ -209,7 +210,7 @@ class Slider(Control):
         return self._red_value
 
     @classmethod
-    def from_cfg_dict(cls, cfg_dict: dict):
+    def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
         """Instatiates Slider from cfg dictionary
 
         Parameters
@@ -235,7 +236,8 @@ class Slider(Control):
             _get_color(cfg_dict["barColor"]),
             _get_color(cfg_dict["knobColor"]),
             _get_bar_style(cfg_dict["barStyle"]),
-            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
+            column_no
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls

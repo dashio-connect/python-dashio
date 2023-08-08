@@ -99,6 +99,7 @@ class TextBox(Control):
         keyboard_type=Keyboard.ALL,
         close_keyboard_on_send=True,
         control_position=None,
+        column_no=1
     ):
         """A TextBox control
 
@@ -128,7 +129,7 @@ class TextBox(Control):
             Set to True to close keyboard on close, by default True
         """
         super().__init__("TEXT", control_id)
-        self._cfg_columnar.append(
+        self._app_columns_cfg[str(column_no)].append(
             TextBoxConfig(
                 control_id,
                 title,
@@ -149,7 +150,7 @@ class TextBox(Control):
         return self._control_hdr_str + f"{self.text}\n"
 
     @classmethod
-    def from_cfg_dict(cls, cfg_dict: dict):
+    def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
         """Instatiates TextBox from cfg dictionary
 
         Parameters
@@ -172,7 +173,8 @@ class TextBox(Control):
             _get_precision(cfg_dict["precision"]),
             _get_keyboard_type(cfg_dict["kbdType"]),
             cfg_dict["closeKbdOnSend"],
-            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
+            column_no
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls
