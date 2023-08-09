@@ -21,6 +21,7 @@ A Device is a collection of [Controls](#controls) and [DeviceViews](#deviceview)
 * *use_cfg64().* Generate a CFG64 formated CFG message.
 * *use_cfg().* Generate JSON formated CFG messages.
 * *close().* Close the device.
+* *add_all_c64_controls(c64_dict, column_no).* Add all controls defned in the c64_dict into the Device, the the configs are put into 1 of three column_no. Each device can store three configs that define how the device looks for Dash apps installed on single column phones or 2 column fold out phones or 3 column tablets. The default is for single column.
 
 ### Device Callback Methods
 
@@ -68,6 +69,7 @@ All of these attributes are config attributes.
 * *control_title_box_transparency : int.* Title box transparency for controls.
 * *num_grid_columns : int.* The num of grid columns on the edit view.
 * *num_grid_rows : int.* The num of grid rows on the edit view.
+* *column_no : int.* Optional default is 1. Must be 1..3. The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into. Each control can store three configs that define how the device looks for Dash apps installed on single column phones or 2 column fold out phones or 3 column tablets.
 
 #### DeviceView Methods
 
@@ -136,6 +138,7 @@ button1.send_button(ButtonState.OFF, Icon.DOWN, "Going Down")
 * *off_color : Color*. Set the off color.
 * *on_color : Color*. Set the on color.
 * *control_position : ControlPosition*. Set the size and position of the button on a DeviceView.
+* *column_no : int.* Optional default is 1. Must be 1..3. The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into. Each control can store three configs that define how the device looks for Dash apps installed on single column phones or 2 column fold out phones or 3 column tablets.
 
 #### Button Messaging Attributes
 
@@ -170,6 +173,8 @@ A ButtonGroup control is used to present a popup grid or table of Button control
 * *title_position : TitlePosition, optional.* Position of the title when displayed on the iotdashboard app, by default None
 * *icon : Icon*. Set the icon for the button.
 * *grid_view : Bool*. Defaults to True.
+* *column_no : int.* Optional default is 1. Must be 1..3. The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into. Each control can store three configs that define how the device looks for Dash apps installed on single column phones or 2 column fold out phones or 3 column tablets.
+
 
 #### Button Group Methods
 
@@ -189,6 +194,8 @@ be shown as either a spectrum or as a colour wheel and brightness slider.
 * *title_position : TitlePosition, optional.* Position of the title when displayed on the iotdashboard app, by default None
 * *picker_style: ColorPickerStyle, optional.* The style of color picker to use.
 * *send_only_on_release: Boolean.* Send only on release, by default True
+* *column_no : int.* Optional default is 1. Must be 1..3. The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into. Each control can store three configs that define how the device looks for Dash apps installed on single column phones or 2 column fold out phones or 3 column tablets.
+
 
 #### Color Picker Message Attributes
 
@@ -221,6 +228,8 @@ A Direction display is used to graphically present a decimal direction value fro
 * *units : str, optional.* Units to be displayed with the value, by default "".
 * *precision : [type], optional.* Precision of the value displayed, by default Precision.OFF
 * *calibration_angle : int, optional* Calibration angle offset, by default 0.
+* *column_no : int.* Optional default is 1. Must be 1..3. The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into. Each control can store three configs that define how the device looks for Dash apps installed on single column phones or 2 column fold out phones or 3 column tablets.
+
 
 #### Direction Message Attributes
 
@@ -257,6 +266,8 @@ A Dial display is used to present a numerical value in a graphical circular dial
 * *style : DialStyle, optional.* Dial style, by default DialStyle.PIE.
 * *precision : Precision, optional.* Precision of the displayed number, by default Precision.OFF.
 * *units : str, optional.* Units of the dial position, by default "".
+* *column_no : int.* Optional default is 1. Must be 1..3. The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into. Each control can store three configs that define how the device looks for Dash apps installed on single column phones or 2 column fold out phones or 3 column tablets.
+
 
 #### Dial Message Attributes
 
@@ -294,6 +305,7 @@ An EventData object is a single event used by the EventLog.
 * *title_position : TitlePosition, optional.* The position of the title, by default TitlePosition.BOTTOM
 * *control_position : ControlPosition, optional.* The position of the control on a DeviceView, by default None
 * *max_log_entries : int, optional.* The EventLog usues a ring buffer for data entries this dfines the number entries before over wrting older entires, by default 100.
+* *column_no : int.* Optional default is 1. Must be 1..3. The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into. Each control can store three configs that define how the device looks for Dash apps installed on single column phones or 2 column fold out phones or 3 column tablets.
 
 #### Event Log Methods
 
@@ -348,6 +360,7 @@ An GraphLine object represents a line for a Chart.
 * *y_axis_min_rt. : float, optional.*  Min value for the right Y axis, by default 0.0.
 * *y_axis_max_rt : float, optional.* Max value for the right Y axis, by default 1000.0.
 * *control_position : ControlPosition, optional.* The position of the control on a DeviceView, by default None.
+* *column_no : int.* Optional default is 1. Must be 1..3. The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into. Each control can store three configs that define how the device looks for Dash apps installed on single column phones or 2 column fold out phones or 3 column tablets.
 
 #### Chart Methods
 
@@ -380,6 +393,7 @@ The IoT device may send messages to update both the dial and knob positions.
 * *dial_color : Color, optional.* Color of the Dial, by default Color.BLUE.
 * *knob_color : Color, optional.* Color of the Knob, by default Color.RED.
 * *control_position : ControlPosition, optional.* The position of the control on a DeviceView, by default None.
+* *column_no : int.* Optional default is 1. Must be 1..3. The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into. Each control can store three configs that define how the device looks for Dash apps installed on single column phones or 2 column fold out phones or 3 column tablets.
 
 #### Knob Message Attributes
 
@@ -408,6 +422,7 @@ A Label is a simple control to add structure to your layout on the dashboard. La
 * *title_position : TitlePosition, optional.* Position of the title when displayed on the iotdashboard app, by default None.
 * *color : Color, optional.* Color of the label, by default Color.WHITE.
 * *style : LabelStyle, optional.* Style of label to be displayed, by default LabelStyle.BASIC
+* *column_no : int.* Optional default is 1. Must be 1..3. The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into. Each control can store three configs that define how the device looks for Dash apps installed on single column phones or 2 column fold out phones or 3 column tablets.
 
 #### Label Methods
 
@@ -438,6 +453,7 @@ Controls that can be included in a Menu control are Text Boxes, Sliders, Selecto
 * *title_position : TitlePosition, optional.* Position of the title when displayed on the iotdashboard app, by default None.
 * *text : str, optional.* Menu text, by default "A Menu with Text".
 * *icon : Icon, optional.* Menu icon, by default Icon.MENU.
+* *column_no : int.* Optional default is 1. Must be 1..3. The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into. Each control can store three configs that define how the device looks for Dash apps installed on single column phones or 2 column fold out phones or 3 column tablets.
 
 #### Menu Methods
 
@@ -458,6 +474,7 @@ Feedback to the user of the dashboard is achieved when the IoT device responds t
 * *title : str, optional.* Title of the control, by default "A Selector".
 * *control_position : ControlPosition, optional.* The position of the control on a DeviceView, by default None.
 * *title_position : TitlePosition, optional.* Position of the title when displayed on the iotdashboard app, by default None.
+* *column_no : int.* Optional default is 1. Must be 1..3. The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into. Each control can store three configs that define how the device looks for Dash apps installed on single column phones or 2 column fold out phones or 3 column tablets.
 
 #### Selector Message Attributes
 
@@ -499,6 +516,7 @@ The knob of the slider may be disabled so that the slider becomes a simple bar g
 * *bar_color : Color, optional.* The bar color, by default Color.BLUE.
 * *knob_color : Color, optional.* The knob color, by default Color.RED.
 * *bar_style : SliderBarStyle, optional.* The bar style, by default SliderBarStyle.SEGMENTED
+* *column_no : int.* Optional default is 1. Must be 1..3. The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into. Each control can store three configs that define how the device looks for Dash apps installed on single column phones or 2 column fold out phones or 3 column tablets.
 
 #### Slider Message Attributes
 
@@ -535,6 +553,7 @@ The Text Box may also allow the user to input text. Touching the control will pr
 * *precision : Precision, optional.* precision, by default Precision.OFF
 * *keyboard_type : Keyboard, optional.* Keyboard type for the textbox, by default Keyboard.ALL.
 * *close_keyboard_on_send : bool, optional.* Set to True to close keyboard on close, by default True.
+* *column_no : int.* Optional default is 1. Must be 1..3. The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into. Each control can store three configs that define how the device looks for Dash apps installed on single column phones or 2 column fold out phones or 3 column tablets.
 
 #### Text Box Message Attributes
 
@@ -596,6 +615,7 @@ A TimeGraphLine for a TimeGraph control.
 * *y_axis_label_rt : str, optional.* Label for the Y axis right side, by default ''.
 * *y_axis_min_rt. : float, optional.*  Min value for the right Y axis, by default 0.0.
 * *y_axis_max_rt : float, optional.* Max value for the right Y axis, by default 1000.0.
+* *column_no : int.* Optional default is 1. Must be 1..3. The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into. Each control can store three configs that define how the device looks for Dash apps installed on single column phones or 2 column fold out phones or 3 column tablets.
 
 #### Time Graph Methods
 

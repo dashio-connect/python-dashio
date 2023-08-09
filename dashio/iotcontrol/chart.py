@@ -188,6 +188,10 @@ class Chart(Control):
             Number of bars on the Y axis, by default 5
         control_position : ControlPosition, optional
             The position of the control on a DeviceView, by default None
+        column_no : int, optional default is 1. Must be 1..3
+            The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into.
+            Each control can store three configs that define how the device looks for Dash apps installed on single column
+            phones or 2 column fold out phones or 3 column tablets.
         """
         super().__init__("CHRT", control_id)
         self._app_columns_cfg[str(column_no)].append(

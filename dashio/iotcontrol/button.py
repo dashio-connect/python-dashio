@@ -103,6 +103,10 @@ class Button(Control):
         Set the on color
     control_position : ControlPosition
         Set the size and position of the button on a DeviceView.
+    column_no : int, optional default is 1. Must be 1..3
+        The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into.
+        Each control can store three configs that define how the device looks for Dash apps installed on single column
+        phones or 2 column fold out phones or 3 column tablets.
 
     Methods
     -------

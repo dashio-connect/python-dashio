@@ -137,6 +137,10 @@ class DeviceView(Control):
         The num of grid columns on the edit view
     num_grid_rows : int
         The num of grid rows on the edit view
+    column_no : int, optional default is 1. Must be 1..3
+        The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into.
+        Each control can store three configs that define how the device looks for Dash apps installed on single column
+        phones or 2 column fold out phones or 3 column tablets.
 
 
     Methods

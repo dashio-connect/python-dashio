@@ -96,7 +96,10 @@ class ColorPicker(Control):
             The style of color picker to use.
         send_only_on_release: Boolean
             send only on release, by default True
-
+        column_no : int, optional default is 1. Must be 1..3
+            The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into.
+            Each control can store three configs that define how the device looks for Dash apps installed on single column
+            phones or 2 column fold out phones or 3 column tablets.
         """
         super().__init__("CLR", control_id)
         self._app_columns_cfg[str(column_no)].append(
