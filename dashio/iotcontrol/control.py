@@ -329,13 +329,19 @@ class Control():
         except (IndexError, ValueError):
             return []
         if 1 <= num_columns <= self._cfg_max_no_columns:
-            while num_columns >= 1:
+            cfgs = self._app_columns_cfg[str(num_columns)]
+            if cfgs:
+                for cfg in cfgs:
+                    cfg_list.append(cfg.get_cfg64())
+                return cfg_list
+            num_columns = 1
+            while num_columns <= 3:
                 cfgs = self._app_columns_cfg[str(num_columns)]
                 if cfgs:
                     for cfg in cfgs:
                         cfg_list.append(cfg.get_cfg64())
                     break
-                num_columns = num_columns - 1
+                num_columns = num_columns + 1
         return cfg_list
 
     def add_config(self, config, column_no=1):
