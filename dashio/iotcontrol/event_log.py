@@ -156,7 +156,8 @@ class EventLog(Control):
                 data_str += "\t" + log.to_json()
                 has_data = True
         if has_data:
-            return data_str
+            data_str += "\n"
+        return data_str
 
     def add_event_data(self, data: EventData):
         """Add a data point to the log and send it to any connected iotdashboard app
@@ -170,7 +171,10 @@ class EventLog(Control):
             self.log.append(data)
             self.state_str = self._control_hdr_str + str(data)
 
-    def send_data(self):
+    def send_event(self, event: EventData):
+        self.state_str = self._control_hdr_str + str(event)
+
+    def send_latest_data(self):
         """Send the latest log entry to any connected iotdashboard app.
         """
         if self.log:
