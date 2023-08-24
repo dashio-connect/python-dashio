@@ -35,6 +35,7 @@ from .action_station_services.timer_service import TimerService, make_timer_conf
 from .action_station_services.as_servicel import make_test_config
 from .action_station_services.modbus_service import ModbusService, make_modbus_config
 from .action_station_services.clock_servicel import ClockService, make_clock_config
+from .action_station_services.ttn_service import TtnService, make_ttn_config
 from .load_config import CONTROL_INSTANCE_DICT, CONFIG_INSTANCE_DICT, decode_cfg64, encode_cfg64
 
 
@@ -375,7 +376,8 @@ class ActionStation(threading.Thread):
             'TASK': TaskService,
             'TMR': TimerService,
             'MDBS': ModbusService,
-            'CLK': ClockService
+            'CLK': ClockService,
+            'TTN': TtnService
         }
         self.thread_dicts = {}  # For the Instantiated control and task objects.
 
@@ -392,10 +394,12 @@ class ActionStation(threading.Thread):
         test_cfg = make_test_config(1)
         modbus_cfg = make_modbus_config(1)
         clock_cfg = make_clock_config(1)
+        ttn_cfg = make_ttn_config(1)
         self.configs[timer_cfg.uuid] = timer_cfg
         self.configs[test_cfg.uuid] = test_cfg
         self.configs[modbus_cfg.uuid] = modbus_cfg
         self.configs[clock_cfg.uuid] = clock_cfg
+        self.configs[ttn_cfg.uuid] = ttn_cfg
         # self.zmq_service_uuid = "SRVC:" + shortuuid.uuid()
         if not self.action_station_dict:
             self.zmq_connection_uuid = "ACTN:" + shortuuid.uuid()

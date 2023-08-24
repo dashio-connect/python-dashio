@@ -223,7 +223,8 @@ class TCPConnection(threading.Thread):
     def _service_device_messaging(self):
 
         def _zmq_tcp_send(tcp_id, data: bytearray):
-            logging.debug("TCP TX:\n%s", data.decode().rstrip())
+            
+            logging.debug("TCP TX %s:\n%s", tcp_id.hex(), data.decode().rstrip())
             try:
                 self.tcpsocket.send(tcp_id, zmq.SNDMORE)
                 self.tcpsocket.send(data, zmq.NOBLOCK)
