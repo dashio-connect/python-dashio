@@ -107,12 +107,13 @@ class TestControls:
         dash_conn = dashio.DashConnection(args.username, args.password)
         dash_conn.add_device(device)
 
-        self.gph_15_minutes = dashio.TimeGraph("TestGraph")
-        self.gph_15_minutes.title = f"Test: {args.connection}"
-        self.gph_15_minutes.y_axis_label = "Units"
-        self.gph_15_minutes.y_axis_min = -10.0
-        self.gph_15_minutes.y_axis_max = 10.0
-        self.gph_15_minutes.y_axis_num_bars = 9
+        self.gph_15_minutes = dashio.TimeGraph(
+            "TestGraph",
+            f"Test: {args.connection}",
+            y_axis_label="Units",
+            y_axis_min=-10,
+            y_axis_max=10.0,
+            y_axis_num_bars=9)
         self.line_15_minutes = dashio.TimeGraphLine(
             "Line", dashio.TimeGraphLineType.LINE, color=dashio.Color.BLACK, max_data_points=15 * 60 / LOGGER_PERIOD
         )

@@ -1,18 +1,11 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 
-def to_camel(string: str) -> str:
-    string_split = string.split("_")
-    return string_split[0] + "".join(word.capitalize() for word in string_split[1:])
 
 class BaseParameter(BaseModel):
     objectType: str
     name: str
     uuid: str
-
-    class Config:
-        alias_generator = to_camel
-        allow_population_by_field_name = True
 
 class ListParameterSpec(BaseParameter):
     """List Parameter"""
@@ -41,10 +34,12 @@ class IntParameterSpec(BaseParameter):
     units: str
     value: int
 
+
 class BoolParameterSpec(BaseParameter):
     """Bool Parameter"""
     objectType: str = "BOOL_PARAM"
     value: bool
+
 
 class SelectorParameterSpec(BaseParameter):
     """Selection Parameter"""
@@ -74,10 +69,6 @@ class ActionServiceCFG(BaseModel):
     isIO: bool
     provisioning: list
     parameters: list
-
-    class Config:
-        alias_generator = to_camel
-        allow_population_by_field_name = True
 
 class ActionTask(BaseModel):
     objectType: str
