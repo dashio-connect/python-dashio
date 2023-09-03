@@ -106,6 +106,13 @@ class Selector(Control):
         """
         self.selection_list.append(text.translate(BAD_CHARS))
 
+    def send_selection(self):
+        """Sends the current selection list"""
+        slctr_str = self._control_hdr_str + f"{self._position}\t"
+        slctr_str += "\t".join(map(str, self.selection_list))
+        slctr_str += "\n"
+        self.state_str = slctr_str
+
     def set_selected(self, selected_text: str):
         """Set the selector to the selected text
 
