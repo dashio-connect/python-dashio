@@ -106,8 +106,10 @@ class Selector(Control):
         """
         self.selection_list.append(text.translate(BAD_CHARS))
 
-    def send_selection(self):
+    def send_selection(self, position=None):
         """Sends the current selection list"""
+        if position is not None:
+            self._position = position
         slctr_str = self._control_hdr_str + f"{self._position}\t"
         slctr_str += "\t".join(map(str, self.selection_list))
         slctr_str += "\n"
