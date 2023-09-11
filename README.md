@@ -12,11 +12,9 @@
 
 * Get the App:
 
-[<img src=https://raw.githubusercontent.com/dashio-connect/python-dashio/master/Documents/download-on-the-app-store.svg>](<https://apps.apple.com/us/app/dash-iot/id1574116689>)
-
-Android coming soon. If you would like to help us test the android version email to [info@dashio.io](mailto:info@dashio.io) with "Android Beta Tester" in the title.
-
-<img src="https://raw.githubusercontent.com/dashio-connect/python-dashio/master/Documents/Google_Play_Store_badge_EN.svg" width="120"/> 
+Apple              | Android
+:-----------------:|:------------------:
+[<img src=https://raw.githubusercontent.com/dashio-connect/python-dashio/master/Documents/download-on-the-app-store.svg width=200>](<https://apps.apple.com/us/app/dash-iot/id1574116689>) | [<img src=https://raw.githubusercontent.com/dashio-connect/python-dashio/master/Documents/Google_Play_Store_badge_EN.svg width=225>](<https://play.google.com/store/apps/details?id=com.dashio.dashiodashboard>)
 
 ## Documentation
 
