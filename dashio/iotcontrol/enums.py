@@ -230,6 +230,7 @@ class TextFormat(Enum):
     DATETIME = "DATETIME"
     DATELONG = "DTLONG"
     INTERVAL = "INTVL"
+    LOG = "LOG"
 
 
 class TextAlignment(Enum):
