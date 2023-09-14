@@ -206,7 +206,7 @@ class TextBox(Control):
         _val = val.translate(BAD_CHARS)
         self._text = _val
         color = _get_color_str(self._color)
-        self.state_str = self._control_hdr_str + f"{_val}\tf{color}\n"
+        self.state_str = self._control_hdr_str + f"{_val}\t{color}\n"
 
     @property
     def color(self):
