@@ -149,11 +149,8 @@ class TextBox(Control):
             )
         )
         self.text = text.translate(BAD_CHARS)
-        self._is_log = text_format == TextFormat.LOG
 
     def get_state(self):
-        if self._is_log:
-            return self._control_hdr_str + "\n"
         return self._control_hdr_str + f"{self.text}\n"
 
     @classmethod
