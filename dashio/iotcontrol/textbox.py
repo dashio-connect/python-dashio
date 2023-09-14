@@ -154,7 +154,7 @@ class TextBox(Control):
                 control_position
             )
         )
-        self._color = Color.BLACK
+        self._color = Color.WHITE
         self.text = text.translate(BAD_CHARS)
 
     def get_state(self):
