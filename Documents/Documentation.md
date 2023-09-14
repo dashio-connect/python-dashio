@@ -559,6 +559,7 @@ The Text Box may also allow the user to input text. Touching the control will pr
 #### Text Box Message Attributes
 
 * *text : str.* Sends text to the **Dash** app.
+* *color : Color.* The text color, by default Color.WHITE.
 
 #### Text Box Methods
 
