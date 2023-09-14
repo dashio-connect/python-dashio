@@ -22,9 +22,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from ..constants import BAD_CHARS
-from .control import Control, ControlPosition, ControlConfig, _get_title_position, _get_text_align, _get_text_format, _get_precision, _get_keyboard_type
-from .enums import (Keyboard, Precision, TextAlignment, TextFormat,
-                    TitlePosition)
+from .control import Control, ControlPosition, ControlConfig, _get_title_position, _get_text_align, _get_text_format, _get_precision, _get_keyboard_type, _get_color_str
+from .enums import (
+    Keyboard,
+    Precision,
+    TextAlignment,
+    TextFormat,
+    Color,
+    TitlePosition
+)
 
 
 class TextBoxConfig(ControlConfig):
@@ -149,6 +155,7 @@ class TextBox(Control):
             )
         )
         self.text = text.translate(BAD_CHARS)
+        self._color = Color.BLACK
 
     def get_state(self):
         return self._control_hdr_str + f"{self.text}\n"
@@ -198,4 +205,20 @@ class TextBox(Control):
     def text(self, val: str):
         _val = val.translate(BAD_CHARS)
         self._text = _val
-        self.state_str = self._control_hdr_str + f"{_val}\n"
+        color = _get_color_str(self._color)
+        self.state_str = self._control_hdr_str + f"{_val}\tf{color}\n"
+
+    @property
+    def color(self) -> Color:
+        """TextBox Color
+
+        Returns
+        -------
+        Color
+            Text Color
+        """
+        return self._color
+
+    @color.setter
+    def color(self, val):
+        self._color = val
