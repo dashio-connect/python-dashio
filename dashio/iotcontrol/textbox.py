@@ -154,8 +154,8 @@ class TextBox(Control):
                 control_position
             )
         )
-        self.text = text.translate(BAD_CHARS)
         self._color = Color.BLACK
+        self.text = text.translate(BAD_CHARS)
 
     def get_state(self):
         return self._control_hdr_str + f"{self.text}\n"
