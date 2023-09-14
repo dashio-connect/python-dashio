@@ -209,12 +209,12 @@ class TextBox(Control):
         self.state_str = self._control_hdr_str + f"{_val}\tf{color}\n"
 
     @property
-    def color(self) -> Color:
+    def color(self):
         """TextBox Color
 
         Returns
         -------
-        Color
+        Text
             Text Color
         """
         return self._color
