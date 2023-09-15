@@ -141,7 +141,7 @@ class Device(threading.Thread):
         reply = f"\t{self.device_id}\tNAME\t{self._device_name}\n"
         for value in self.controls_dict.values():
             try:
-                reply += value.get_state().format(device_id=self.device_id)
+                reply += value.get_state().replace("{device_id}", self.device_id)
             except (TypeError, KeyError):
                 pass
         return reply
@@ -199,7 +199,7 @@ class Device(threading.Thread):
         if not data:
             return
         if isinstance(data, str):
-            reply_send = data.format(device_id=self.device_id)
+            reply_send = data.replace("{device_id}", self.device_id)
         elif isinstance(data, list):
             reply_send = "\t" + "\t".join(data) + "\n"
         try:
