@@ -27,4 +27,4 @@ TASK_CONN_PORT_OFFSET = 1
 TASK_PULL_PORT_OFFSET = 2
 TASK_MEMORY_PORT_OFFSET = 3
 
-BAD_CHARS = {ord(i): None for i in '\t\n'}
+BAD_CHARS = {ord(i): ' ' for i in '\t\n'}
