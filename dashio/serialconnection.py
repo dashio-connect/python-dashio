@@ -45,12 +45,106 @@ class SerialConnection(threading.Thread):
         device : dashio.Device
             Add a device to the connection.
         """
-        if device.device_id not in self.local_device_id_list:
+        if device.device_id not in self._device_id_list:
             device.register_connection(self)
-            self.local_device_id_list.append(device.device_id)
+            self._device_id_list.append(device.device_id)
 
-    def __init__(self, serial_port='/dev/ttyUSB0', baud_rate=38400, context: zmq.Context = None):
-        """TCP Connection
+    def _dashio_crtl_reboot(self, msg):
+        if self._crtl_reboot_callback:
+            self._crtl_reboot_callback(msg)
+
+    def set_crtl_reboot_callback(self, callback):
+        """
+        Specify a callback function to be called when DashIO Comms mudule sends CRTL message.
+
+        Parameters
+        ----------
+            callback:
+                The callback function. It will be invoked with one argument, the msg from the DashIO comms module.
+        """
+        self._crtl_reboot_callback = callback
+
+    def unset_crtl_reboot_callback(self):
+        """
+        Unset the reboot callback function.
+        """
+        self._crtl_reboot_callback = None
+
+    def _dashio_crtl_contection_callback(self, msg):
+        if self._crtl_cnctn_callback:
+            self._crtl_cnctn_callback(msg)
+
+    def set_crtl_connection_callback(self, callback):
+        """
+        Specify a callback function to be called when DashIO Comms mudule sends CRTL CTCTN message.
+
+        Parameters
+        ----------
+            callback:
+                The callback function. It will be invoked with one argument, the msg from the DashIO comms module.
+        """
+        self._crtl_cnctn_callback = callback
+
+    def unset_crtl_connection_callback(self):
+        """
+        Unset connection callback function.
+        """
+        self._crtl_cnctn_callback = None
+
+    def set_comms_module_passthough(self, coms_device_id: str) -> None:
+        message = f"\t{coms_device_id}\tCTRL\tMODE\tPSTH\n"
+        self.serial_com.write(message.encode())
+
+    def set_comms_module_normal(self, coms_device_id: str) -> None:
+        message = f"\t{coms_device_id}\tCTRL\tMODE\tNML\n"
+        self.serial_com.write(message.encode())
+
+    def start_comms_module_ble(self, coms_device_id: str) -> None:
+        message = f"\t{coms_device_id}\tCTRL\tBLE\n"
+        self.serial_com.write(message.encode())
+
+    def stop_comms_module_ble(self, coms_device_id: str) -> None:
+        message = f"\t{coms_device_id}\tCTRL\tBLE\tHLT\n"
+        self.serial_com.write(message.encode())
+
+    def start_comms_module_tcp(self, coms_device_id: str) -> None:
+        message = f"\t{coms_device_id}\tCTRL\tTCP\n"
+        self.serial_com.write(message.encode())
+
+    def stop_comms_module_tcp(self, coms_device_id: str) -> None:
+        message = f"\t{coms_device_id}\tCTRL\tTCP\tHLT\n"
+        self.serial_com.write(message.encode())
+
+    def start_comms_module_dash(self, coms_device_id: str) -> None:
+        message = f"\t{coms_device_id}\tCTRL\tMQTT\n"
+        self.serial_com.write(message.encode())
+
+    def stop_comms_module_dash(self, coms_device_id: str) -> None:
+        message = f"\t{coms_device_id}\tCTRL\tMQTT\tHLT\n"
+        self.serial_com.write(message.encode())
+
+    def set_comms_module_dash(self, coms_device_id: str, user_name: str, password: str) -> None:
+        message = f"\t{coms_device_id}\tDASHIO\t{user_name}\t{password}\n"
+        self.serial_com.write(message.encode())
+
+    def set_comms_module_tcp_port(self, coms_device_id: str, port: int) -> None:
+        message = f"\t{coms_device_id}\tTCP\t{port}\n"
+        self.serial_com.write(message.encode())
+
+    def set_comms_module_name(self, coms_device_id: str, name: str) -> None:
+        message = f"\t{coms_device_id}\tNAME\t{name}\n"
+        self.serial_com.write(message.encode())
+
+    def set_comms_module_wifi(self, coms_device_id: str, country_code: str, ssid: str, password: str) -> None:
+        message = f"\t{coms_device_id}\tWIFI\t{country_code}\t{ssid}\t{password}\n"
+        self.serial_com.write(message.encode())
+
+    def get_comms_module_active_connections(self, coms_device_id: str) -> None:
+        message = f"\t{coms_device_id}\tCTRL\tCNCTN\n"
+        self.serial_com.write(message.encode())
+
+    def __init__(self, serial_port='/dev/ttyUSB0', baud_rate=115200, context: zmq.Context = None):
+        """Serial Connection
 
         Parameters
         ---------
@@ -63,12 +157,20 @@ class SerialConnection(threading.Thread):
         """
 
         threading.Thread.__init__(self, daemon=True)
+
+        self.crtl_map = {
+            'REBOOT': self._dashio_crtl_reboot,
+            'CNCTN': self._dashio_crtl_contection_callback
+        }
+
         self.context = context or zmq.Context.instance()
         self.zmq_connection_uuid = "SERIAL:" + shortuuid.uuid()
-        self.b_connection_id = self.zmq_connection_uuid.encode()
+        self.b_zmq_connection_uuid = self.zmq_connection_uuid.encode()
+        self._crtl_reboot_callback = None
+        self._crtl_cnctn_callback = None
 
         self.running = True
-        self.local_device_id_list = []
+        self._device_id_list = []
         host_name = socket.gethostname()
         host_list = host_name.split(".")
         # rename for .local mDNS advertising
@@ -110,13 +212,19 @@ class SerialConnection(threading.Thread):
                 if not data:
                     continue
                 logging.debug("SERIAL Tx:\n%s", data.decode().rstrip())
-                self.serial_com.write(data)
+                # be nice and split the strings up
+                lines = data.split(b'\n')
+                for line in lines:
+                    self.serial_com.write(line + b'\n')
             if self.serial_com.in_waiting > 0:
                 message = self.serial_com.readline()
                 if message:
                     try:
-                        logging.debug("SERIAL Rx:\n%s", message.decode())
-                        tx_zmq_pub.send_multipart([message, self.zmq_connection_uuid])
+                        logging.debug("SERIAL Rx:\n%s", message.rstrip().decode())
+                        parts = message.strip().decode().split('\t')
+                        if len(parts) > 1 and parts[1] == 'CTRL':
+                            self.crtl_map[parts[2]](parts)
+                        tx_zmq_pub.send_multipart([message, self.b_zmq_connection_uuid])
                     except UnicodeDecodeError:
                         logging.debug("SERIAL DECODE ERROR Rx:\n%s", message.hex())
 
