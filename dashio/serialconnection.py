@@ -143,6 +143,13 @@ class SerialConnection(threading.Thread):
         message = f"\t{coms_device_id}\tCTRL\tCNCTN\n"
         self.serial_com.write(message.encode())
 
+    def _init_serial(self):
+        try:
+            self.serial_com = serial.Serial(self.serial_port, self.baud_rate, timeout=1.0)
+            self.serial_com.flush()
+        except serial.serialutil.SerialException as e:
+            logging.debug("Serial Err: %s", str(e))
+
     def __init__(self, serial_port='/dev/ttyUSB0', baud_rate=115200, context: zmq.Context = None):
         """Serial Connection
 
@@ -175,8 +182,9 @@ class SerialConnection(threading.Thread):
         host_list = host_name.split(".")
         # rename for .local mDNS advertising
         self.host_name = f"{host_list[0]}.local"
-        self.serial_com = serial.Serial(serial_port, baud_rate, timeout=1.0)
-        self.serial_com.flush()
+        self.serial_port = serial_port
+        self.baud_rate = baud_rate
+        self._init_serial()
         self.start()
         time.sleep(1)
 
@@ -200,7 +208,7 @@ class SerialConnection(threading.Thread):
 
         while self.running:
             try:
-                socks = dict(poller.poll(50))
+                socks = dict(poller.poll(15))
             except zmq.error.ContextTerminated:
                 break
             if self.rx_zmq_sub in socks:
@@ -215,18 +223,29 @@ class SerialConnection(threading.Thread):
                 # be nice and split the strings up
                 lines = data.split(b'\n')
                 for line in lines:
-                    self.serial_com.write(line + b'\n')
-            if self.serial_com.in_waiting > 0:
-                message = self.serial_com.readline()
-                if message:
-                    try:
-                        logging.debug("SERIAL Rx:\n%s", message.rstrip().decode())
-                        parts = message.strip().decode().split('\t')
-                        if len(parts) > 1 and parts[1] == 'CTRL':
-                            self.crtl_map[parts[2]](parts)
-                        tx_zmq_pub.send_multipart([message, self.b_zmq_connection_uuid])
-                    except UnicodeDecodeError:
-                        logging.debug("SERIAL DECODE ERROR Rx:\n%s", message.hex())
+                    if line:
+                        try:
+                            self.serial_com.write(line + b'\n')
+                        except serial.serialutil.SerialException as e:
+                            logging.debug("Serial Error: %s", str(e))
+                            time.sleep(1.0)
+                            self._init_serial()
+            try:
+                if self.serial_com.in_waiting > 0:
+                    message = self.serial_com.readline()
+                    if message:
+                        try:
+                            logging.debug("SERIAL Rx:\n%s", message.rstrip().decode())
+                            parts = message.strip().decode().split('\t')
+                            if len(parts) > 1 and parts[1] == 'CTRL':
+                                self.crtl_map[parts[2]](parts)
+                            tx_zmq_pub.send_multipart([message, self.b_zmq_connection_uuid])
+                        except UnicodeDecodeError:
+                            logging.debug("SERIAL DECODE ERROR Rx:\n%s", message.hex())
+            except OSError as e:
+                logging.debug("Serial Error: %s", str(e))
+                time.sleep(1.0)
+                self._init_serial()
 
         self.serial_com.close()
         tx_zmq_pub.close()
