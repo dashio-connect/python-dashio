@@ -245,7 +245,7 @@ class TestControls:
 
         while not self.shutdown:
             time.sleep(1)
-            # self.comp_control.direction_value = random.random() * 360
+            self.comp_control.direction_value = random.random() * 360
 
         self.serial_con.close()
         self.device.close()
