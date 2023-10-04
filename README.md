@@ -2,13 +2,13 @@
 
 ![Tests](https://github.com/dashio-connect/python-dashio/actions/workflows/tests.yml/badge.svg)
 
-[**python-dashio**](http://dashio.io) - Create beautiful mobile dashboards for your python project. The python-dashio library allows easy setup of controls such as Dials, Text Boxes, Charts, Graphs, and Notifications. You can define the look and layout of the controls on your phone from your python code. There are three methods to connect to your phone; Bluetooth Low Energy (BLE - on supported platforms), TCP, and MQTT via the dash.dashio.io server.
+**[python-dashio](https://github.com/dashio-connect/python-dashio)** - Create beautiful mobile dashboards for your python project. The python-dashio library allows easy setup of controls such as Dials, Text Boxes, Charts, Graphs, and Notifications. You can define the look and layout of the controls on your phone from your python code. There are three methods to connect to your phone; Bluetooth Low Energy (BLE - on supported platforms), TCP, and MQTT via the dash.dashio.io server.
 
 ## Getting Started
 
-* For the big picture on **DashIO**, take a look at our website: <a href="https://dashio.io">dashio.io</a>
+* For the big picture on **DashIO**, take a look at our website: [dashio.io](https://dashio.io")
 
-* Create an account on <a href="https://dashio.io/account-create/">dash.dashio.io</a>
+* Create an account on [dash.dashio.io](https://dashio.io/account-create/)
 
 * Get the App:
 
@@ -18,11 +18,11 @@ Apple              | Android
 
 ## Documentation
 
-For all documentation and software guides: <a href="https://dashio.io/documents">dashio.io/documents</a>
+For all documentation and software guides: [dashio.io/documents](https://dashio.io/documents)
 
-For the **DashIO** Python guide: <a href="https://dashio.io/guide-python">dashio.io/guide-python</a>
+For the **DashIO** Python guide: [dashio.io/guide-python](https://dashio.io/guide-python)
 
-For the **DashIO** Python library: <a href="https://dashio.io/python-library/">dashio.io/python-library</a>
+For the **DashIO** Python library: [dashio.io/python-library]("https://dashio.io/python-library/)
 
 ## Examples
 
