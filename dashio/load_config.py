@@ -117,7 +117,7 @@ def encode_cfg64(cfg: dict) -> str:
         str: the cfg encoded as C64 format
     """
     cfg_json = json.dumps(cfg)
-    compress = zlib.compressobj(6, zlib.DEFLATED, -9, zlib.DEF_MEM_LEVEL, zlib.Z_DEFAULT_STRATEGY)
+    compress = zlib.compressobj(9, zlib.DEFLATED, -9, zlib.DEF_MEM_LEVEL, zlib.Z_DEFAULT_STRATEGY)
     tmp_z = compress.compress(cfg_json.encode())
     tmp_z += compress.flush()
     return base64.b64encode(tmp_z).decode()

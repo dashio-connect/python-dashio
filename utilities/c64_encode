@@ -25,7 +25,7 @@ def parse_commandline_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('file', help="Input file name.")
     parser.add_argument("-f", "--format", dest="format", default="None", help="Format output. Options: 'None', 'C', 'Python' (Default 'None').")
-    parser.add_argument("-o", "--out", dest="out_file", help="output filename.")
+    parser.add_argument("-o", "--out", dest="out_file", default="", help="output filename.")
     parser.add_argument("-w", "--width", dest="width", default=80, type=int, help="Width of formatted output (Default 80).")
     args = parser.parse_args()
     return args
@@ -34,6 +34,10 @@ def main():
     args = parse_commandline_arguments()
     json_filename = args.file
     c64_filename = os.path.splitext(json_filename)[0] + ".c64"
+
+    if args.out_file:
+        c64_filename = args.out_file
+
     try:
         with open(json_filename, mode="r") as fp:
             json_cfg = fp.read()

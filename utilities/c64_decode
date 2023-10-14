@@ -11,6 +11,7 @@ def parse_commandline_arguments():
     parser.add_argument("-p", "--print", dest="print", action='store_true', help="Print output.")
     parser.add_argument("-o", "--out", dest="out_file", default="", help="output filename.")
     parser.add_argument("-i", "--indent", dest="indent", type=int, default=4, help="Indent depth (Default 4).")
+    parser.add_argument("-c", "--compact", dest="compact", default=False, action='store_true', help="Remove empty keys")
 
     args = parser.parse_args()
     return args
@@ -23,6 +24,7 @@ def main():
 
     if args.out_file:
         json_filename = args.out_file
+    
     try:
         with open(c64_filename, mode="r") as fp:
             cfg64 = fp.read()
@@ -33,7 +35,17 @@ def main():
     cfg64 = cfg64.translate({ord(i): None for i in '"\n \\;'})
 
     config_dict = dashio.decode_cfg64(cfg64)
-    cfg_json = json.dumps(config_dict, indent=args.indent)
+
+    if args.compact:
+        for k in list(config_dict.keys()):
+            if not config_dict[k]:
+                del config_dict[k]
+    
+    indent = args.indent
+    if args.indent == 0:
+        indent = None
+    
+    cfg_json = json.dumps(config_dict, indent=indent)
 
     if args.print:
         print(cfg_json)

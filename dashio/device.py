@@ -149,7 +149,6 @@ class Device(threading.Thread):
     def _make_cfg64(self, data):
         try:
             dashboard_id = data[2]
-            #  no_views = data[3]
         except IndexError:
             return ""
         reply = self._device_id_str + f"\tCFG\t{dashboard_id}\tC64\t"
