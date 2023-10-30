@@ -24,8 +24,8 @@ SOFTWARE.
 import json
 
 from ..constants import BAD_CHARS
-from .enums import ColorPickerStyle, DeviceViewStyle, DialNumberPosition, DirectionStyle, ChartXAxisLabelsStyle,\
-    Keyboard, KnobStyle, Precision, TextAlignment, TitlePosition, Icon, Color, TextFormat, LabelStyle, SliderBarStyle,\
+from .enums import ColorPickerStyle, DeviceViewStyle, DialNumberPosition, DirectionStyle, ChartXAxisLabelsStyle, \
+    Keyboard, KnobStyle, Precision, TextAlignment, TitlePosition, Icon, Color, TextFormat, LabelStyle, SliderBarStyle, \
     DialStyle, TimeGraphPositionOfKey, ButtonStyle, ButtonGroupStyle, MenuStyle
 from .event import Event
 
