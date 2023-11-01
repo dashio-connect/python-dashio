@@ -55,7 +55,7 @@ class SerialConnection(threading.Thread):
 
     def set_crtl_reboot_callback(self, callback):
         """
-        Specify a callback function to be called when DashIO Comms mudule sends CRTL message.
+        Specify a callback function to be called when DashIO Comms module sends CRTL message.
 
         Parameters
         ----------
@@ -80,7 +80,7 @@ class SerialConnection(threading.Thread):
 
     def set_crtl_connection_callback(self, callback):
         """
-        Specify a callback function to be called when DashIO Comms mudule sends CRTL CTCTN message.
+        Specify a callback function to be called when DashIO Comms module sends CRTL CTCTN message.
 
         Parameters
         ----------
@@ -91,7 +91,7 @@ class SerialConnection(threading.Thread):
 
     def set_crtl_device_id_callback(self, callback):
         """
-        Specify a callback function to be called when DashIO Comms mudule sends CRTL CTCTN message.
+        Specify a callback function to be called when DashIO Comms module sends CRTL CTCTN message.
 
         Parameters
         ----------
@@ -99,7 +99,6 @@ class SerialConnection(threading.Thread):
                 The callback function. It will be invoked with one argument, the msg from the DashIO comms module.
         """
         self._crtl_device_id_callback = callback
-
 
     def unset_crtl_connection_callback(self):
         """
