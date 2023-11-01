@@ -74,6 +74,10 @@ class SerialConnection(threading.Thread):
         if self._crtl_cnctn_callback:
             self._crtl_cnctn_callback(msg)
 
+    def _dashio_crtl_device_id_callback(self, msg):
+        if self._crtl_device_id_callback:
+            self._crtl_device_id_callback(msg)
+
     def set_crtl_connection_callback(self, callback):
         """
         Specify a callback function to be called when DashIO Comms mudule sends CRTL CTCTN message.
@@ -84,6 +88,18 @@ class SerialConnection(threading.Thread):
                 The callback function. It will be invoked with one argument, the msg from the DashIO comms module.
         """
         self._crtl_cnctn_callback = callback
+
+    def set_crtl_device_id_callback(self, callback):
+        """
+        Specify a callback function to be called when DashIO Comms mudule sends CRTL CTCTN message.
+
+        Parameters
+        ----------
+            callback:
+                The callback function. It will be invoked with one argument, the msg from the DashIO comms module.
+        """
+        self._crtl_device_id_callback = callback
+
 
     def unset_crtl_connection_callback(self):
         """
@@ -99,28 +115,25 @@ class SerialConnection(threading.Thread):
         message = f"\t{coms_device_id}\tCTRL\tMODE\tNML\n"
         self.serial_com.write(message.encode())
 
-    def start_comms_module_ble(self, coms_device_id: str) -> None:
-        message = f"\t{coms_device_id}\tCTRL\tBLE\n"
+    def enable_comms_module_ble(self, coms_device_id: str, enable: bool) -> None:
+        if enable:
+            message = f"\t{coms_device_id}\tCTRL\tBLE\n"
+        else:
+            message = f"\t{coms_device_id}\tCTRL\tBLE\tHLT\n"
         self.serial_com.write(message.encode())
 
-    def stop_comms_module_ble(self, coms_device_id: str) -> None:
-        message = f"\t{coms_device_id}\tCTRL\tBLE\tHLT\n"
+    def enable_comms_module_tcp(self, coms_device_id: str, enable: bool) -> None:
+        if enable:
+            message = f"\t{coms_device_id}\tCTRL\tTCP\n"
+        else:
+            message = f"\t{coms_device_id}\tCTRL\tTCP\tHLT\n"
         self.serial_com.write(message.encode())
 
-    def start_comms_module_tcp(self, coms_device_id: str) -> None:
-        message = f"\t{coms_device_id}\tCTRL\tTCP\n"
-        self.serial_com.write(message.encode())
-
-    def stop_comms_module_tcp(self, coms_device_id: str) -> None:
-        message = f"\t{coms_device_id}\tCTRL\tTCP\tHLT\n"
-        self.serial_com.write(message.encode())
-
-    def start_comms_module_dash(self, coms_device_id: str) -> None:
-        message = f"\t{coms_device_id}\tCTRL\tMQTT\n"
-        self.serial_com.write(message.encode())
-
-    def stop_comms_module_dash(self, coms_device_id: str) -> None:
-        message = f"\t{coms_device_id}\tCTRL\tMQTT\tHLT\n"
+    def enable_comms_module_dash(self, coms_device_id: str, enable: bool) -> None:
+        if enable:
+            message = f"\t{coms_device_id}\tCTRL\tMQTT\n"
+        else:
+            message = f"\t{coms_device_id}\tCTRL\tMQTT\tHLT\n"
         self.serial_com.write(message.encode())
 
     def set_comms_module_dash(self, coms_device_id: str, user_name: str, password: str) -> None:
@@ -141,6 +154,14 @@ class SerialConnection(threading.Thread):
 
     def get_comms_module_active_connections(self, coms_device_id: str) -> None:
         message = f"\t{coms_device_id}\tCTRL\tCNCTN\n"
+        self.serial_com.write(message.encode())
+
+    """
+        Like WHO and used to request the deviceID. Response from comms module is:
+        “\t Device_ID \t CTRL \n
+    """
+    def reguest_comms_module_device_id(self) -> None:
+        message = "\tCTRL\tCTRL\n"
         self.serial_com.write(message.encode())
 
     def _init_serial(self):
@@ -167,7 +188,7 @@ class SerialConnection(threading.Thread):
 
         self.crtl_map = {
             'REBOOT': self._dashio_crtl_reboot,
-            'CNCTN': self._dashio_crtl_contection_callback
+            'CNCTN': self._dashio_crtl_contection_callback,
         }
 
         self.context = context or zmq.Context.instance()
@@ -175,6 +196,7 @@ class SerialConnection(threading.Thread):
         self.b_zmq_connection_uuid = self.zmq_connection_uuid.encode()
         self._crtl_reboot_callback = None
         self._crtl_cnctn_callback = None
+        self._crtl_device_id_callback = None
 
         self.running = True
         self._device_id_list = []
@@ -237,7 +259,10 @@ class SerialConnection(threading.Thread):
                         try:
                             logging.debug("SERIAL Rx:\n%s", message.rstrip().decode())
                             parts = message.strip().decode().split('\t')
-                            if len(parts) > 1 and parts[1] == 'CTRL':
+                            if len(parts) == 2 and parts[1] == 'CTRL':
+                                if self._crtl_device_id_callback:
+                                    self._crtl_device_id_callback(parts)
+                            elif len(parts) > 2 and parts[1] == 'CTRL':
                                 self.crtl_map[parts[2]](parts)
                             tx_zmq_pub.send_multipart([message, self.b_zmq_connection_uuid])
                         except UnicodeDecodeError:

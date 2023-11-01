@@ -503,7 +503,7 @@ class Device(threading.Thread):
             self.action_station = ActionStation(self, context=self.context)
             time.sleep(0.5)
             self.action_station.device_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
-            
+
         self._set_devicesetup("name", True)
         self.running = True
         time.sleep(0.5)
