@@ -157,10 +157,10 @@ class SerialConnection(threading.Thread):
 
     """
         Like WHO and used to request the deviceID. Response from comms module is:
-        “\t Device_ID \t CTRL \n
+        \t Device_ID \t CTRL \n
     """
     def reguest_comms_module_device_id(self) -> None:
-        message = "\tCTRL\tCTRL\n"
+        message = "\tCTRL\n"
         self.serial_com.write(message.encode())
 
     def _init_serial(self):
