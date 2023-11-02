@@ -373,13 +373,32 @@ class Device(threading.Thread):
             self.tx_zmq_pub.send_multipart([b"ALL", data.encode('utf-8')])
         return ""
 
+    def set_name_callback(self, callback):
+        """
+        Specify a callback function to be called when IoTDashboard sets dashio parameters.
+
+        Parameters
+        ----------
+            callback:
+                The callback function. It will be invoked with one argument, the msg from IoTDashboard.
+                The callback must return the new name.
+        """
+        self._set_devicesetup("name", True)
+        self._name_rx_callback = callback
+
+    def unset_name_callback(self):
+        """
+        Unset the name callback function.
+        """
+        self._set_devicesetup("name", False)
+        self._name_rx_callback = None
+
     def _name_rx_event(self, msg):
-        try:
-            self._device_name = msg[2]
-            data = self._device_id_str + f"\tNAME\t{self._device_name}\n"
+        name = self._name_rx_callback(msg)
+        if name:
+            self._device_name = name
+            data = self._device_id_str + f"\tNAME\t{name}\n"
             self.tx_zmq_pub.send_multipart([b"ALL", data.encode('utf-8')])
-        except (KeyError, ValueError):
-            return ""
         return ""
 
     def set_tcp_callback(self, callback):
@@ -477,6 +496,7 @@ class Device(threading.Thread):
         self.context = context or zmq.Context.instance()
         self._wifi_rx_callback = None
         self._dashio_rx_callback = None
+        self._name_rx_callback = None
         self._tcp_rx_callback = None
         self._mqtt_rx_callback = None
         self.device_type = device_type.translate(BAD_CHARS)
@@ -503,8 +523,6 @@ class Device(threading.Thread):
             self.action_station = ActionStation(self, context=self.context)
             time.sleep(0.5)
             self.action_station.device_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
-
-        self._set_devicesetup("name", True)
         self.running = True
         time.sleep(0.5)
         self.start()

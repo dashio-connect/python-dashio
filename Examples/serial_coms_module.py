@@ -118,7 +118,7 @@ class TestControls:
     def _coms_reboot_msg(self, msg):
         logging.debug("RBT: %s", msg)
         self.serial_con.set_comms_module_passthough(msg[0])
-        self.serial_con.start_comms_module_ble(msg[0])
+        self.serial_con.enable_comms_module_ble(msg[0], True)
 
     def __init__(self):
 
@@ -134,7 +134,7 @@ class TestControls:
         self.device = dashio.Device("ControlTest", args.device_id, args.device_name, context=context)
         # self.device.use_cfg64()
 
-        self.serial_con = dashio.SerialConnection(serial_port='/dev/tty.usbserial-14340', baud_rate=115200, context=context)
+        self.serial_con = dashio.SerialConnection(serial_port='/dev/tty.usbserial-14440', baud_rate=115200, context=context)
         self.serial_con.set_crtl_reboot_callback(self._coms_reboot_msg)
         self.device.config_revision = 2
         self.serial_con.add_device(self.device)
