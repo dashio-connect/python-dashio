@@ -75,7 +75,7 @@ class TestControls:
                             No number means info. Default is no verbosity.""",
         )
         parser.add_argument("-u", "--url", help="Host URL.", dest="url", default="tcp://*")
-        parser.add_argument("-d", "--device_id", dest="device_id", default="00001", help="IotDashboard Device ID.")
+        parser.add_argument("-d", "--device_id", dest="device_id", default="00002", help="IotDashboard Device ID.")
         parser.add_argument("-p", "--port", dest="port", type=int, default=5650, help="Port number")
         parser.add_argument(
             "-n", "--device_name", dest="device_name", default="TCPTest", help="Alias name for device."
@@ -237,6 +237,7 @@ class TestControls:
         self.device.add_control(self.up_btn)
         self.device.config_revision = 1
 
+        self.device.use_cfg64()
         while not self.shutdown:
             time.sleep(1)
             self.comp_control.direction_value = random.random() * 360
