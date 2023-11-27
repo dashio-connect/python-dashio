@@ -16,6 +16,7 @@ def parse_commandline_arguments():
     args = parser.parse_args()
     return args
 
+
 def main():
     args = parse_commandline_arguments()
 
@@ -24,7 +25,7 @@ def main():
 
     if args.out_file:
         json_filename = args.out_file
-    
+
     try:
         with open(c64_filename, mode="r") as fp:
             cfg64 = fp.read()
@@ -40,11 +41,11 @@ def main():
         for k in list(config_dict.keys()):
             if not config_dict[k]:
                 del config_dict[k]
-    
+
     indent = args.indent
     if args.indent == 0:
         indent = None
-    
+
     cfg_json = json.dumps(config_dict, indent=indent)
 
     if args.print:
