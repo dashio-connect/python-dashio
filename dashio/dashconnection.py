@@ -275,7 +275,7 @@ class DashConnection(threading.Thread):
             self._dash_c.tls_insecure_set(False)
 
         # self.dash_c.on_log = self.__on_log
-        # self.dash_c.will_set(self.data_topic, self.LWD, qos=1, retain=False)
+        # self._dash_c.will_set(self.data_topic, self.LWD, qos=1, retain=False)
         # Connect
         if username and password:
             self._dash_c.username_pw_set(username, password)

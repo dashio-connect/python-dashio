@@ -23,7 +23,6 @@ SOFTWARE.
 """
 import json
 import logging
-import socket
 import threading
 import time
 
