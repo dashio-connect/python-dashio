@@ -459,7 +459,7 @@ class ActionStation(threading.Thread):
 
         while self.running:
             try:
-                socks = dict(poller.poll(20))
+                socks = dict(poller.poll(1))
             except zmq.error.ContextTerminated:
                 break
             if self.device_zmq_sub in socks:

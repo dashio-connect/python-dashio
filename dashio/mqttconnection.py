@@ -209,7 +209,7 @@ class MQTTConnection(threading.Thread):
 
         while self.running:
             try:
-                socks = dict(poller.poll(50))
+                socks = dict(poller.poll(1))
             except zmq.error.ContextTerminated:
                 break
             if self.rx_zmq_sub in socks:

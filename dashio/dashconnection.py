@@ -320,7 +320,7 @@ class DashConnection(threading.Thread):
         control_type = ""
         while self.running:
             try:
-                socks = dict(poller.poll(15))
+                socks = dict(poller.poll(1))
             except zmq.error.ContextTerminated:
                 break
 
