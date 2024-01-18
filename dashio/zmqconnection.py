@@ -33,6 +33,9 @@ from . import ip
 from .constants import CONNECTION_PUB_URL
 
 
+logger = logging.getLogger(__name__)
+
+
 class ZMQConnection(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via ZMQ."""
 
@@ -71,7 +74,7 @@ class ZMQConnection(threading.Thread):
             'msgType': 'send_announce',
             'connectionUUID': self.zmq_connection_uuid
         }
-        logging.debug("ZMQ SEND ANNOUNCE: %s", msg)
+        logger.debug("ZMQ SEND ANNOUNCE: %s", msg)
         self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg).encode()])
 
     def close(self):
@@ -116,16 +119,16 @@ class ZMQConnection(threading.Thread):
     def _add_device_rx(self, msg_dict):
         """Connect to another device"""
         device_id = msg_dict["deviceID"]
-        logging.debug("ZMQ DEVICE CONNECT: %s", device_id)
+        logger.debug("ZMQ DEVICE CONNECT: %s", device_id)
         #  TODO finish this
 
     def _del_device_rx(self, msg_dict):
         device_id = msg_dict["deviceID"]
-        logging.debug("TCP DEVICE_DISCONNECT: %s", device_id)
+        logger.debug("TCP DEVICE_DISCONNECT: %s", device_id)
         #  TODO finish this
 
     def _zmq_command(self, msg_dict: dict):
-        logging.debug("TCP CMD: %s", msg_dict)
+        logger.debug("TCP CMD: %s", msg_dict)
         if msg_dict['msgType'] == 'connect':
             self._add_device_rx(msg_dict)
         if msg_dict['msgType'] == 'disconnect':
@@ -165,14 +168,14 @@ class ZMQConnection(threading.Thread):
                 break
             if self.ext_rx_zmq_sub in socks:
                 message = self.ext_rx_zmq_sub.recv()
-                logging.debug("ZMQ Rx: %s", message.decode('utf-8').rstrip())
+                logger.debug("ZMQ Rx: %s", message.decode('utf-8').rstrip())
                 self.tx_zmq_pub.send_multipart([message, self.b_zmq_connection_id])
 
             if self.rx_zmq_sub in socks:
                 [msg_to, data] = self.rx_zmq_sub.recv_multipart()
 
                 if msg_to == b'ALL':
-                    logging.debug("ZMQ Tx: %s", data.decode('utf-8').rstrip())
+                    logger.debug("ZMQ Tx: %s", data.decode('utf-8').rstrip())
                     ext_tx_zmq_pub.send(data)
                 elif msg_to == b'COMMAND':
                     self._zmq_command(json.loads(data))

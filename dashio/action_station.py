@@ -39,6 +39,9 @@ from .action_station_services.ttn_service import TtnService, make_ttn_config
 from .load_config import CONTROL_INSTANCE_DICT, CONFIG_INSTANCE_DICT, decode_cfg64, encode_cfg64
 
 
+logger = logging.getLogger(__name__)
+
+
 class ActionStation(threading.Thread):
     """_summary_
 
@@ -89,7 +92,7 @@ class ActionStation(threading.Thread):
     def register_connection(self, connection):
         """Cennections register here"""
         if connection.zmq_connection_uuid not in self.connections_list:
-            logging.debug("AS REG CONNECTION")
+            logger.debug("AS REG CONNECTION")
             self.connections_list.append(connection.zmq_connection_uuid)
             self.connection_zmq_sub.connect(CONNECTION_PUB_URL.format(id=connection.zmq_connection_uuid))
             connection.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
@@ -102,14 +105,14 @@ class ActionStation(threading.Thread):
             for control_type, control_list in old_cfg_dict.items():
                 if isinstance(control_list, list):
                     for control in control_list:
-                        logging.debug("Deleting: %s, %s", control_type, control['controlID'])
+                        logger.debug("Deleting: %s, %s", control_type, control['controlID'])
                         key = f"{control_type}\t{control['controlID']}"
                         try:
                             del self.device.controls_dict[key]
                             if control_type == 'DVVW':
                                 self.device.number_of_device_views = self.device.number_of_device_views - 1
                         except KeyError:
-                            logging.debug("Error deleting control: %s, %s", control_type, control['controlID'])
+                            logger.debug("Error deleting control: %s, %s", control_type, control['controlID'])
 
     def _delete_gui_configs(self, cfg_dict: dict):
         modified = False
@@ -119,11 +122,11 @@ class ActionStation(threading.Thread):
                     key = f"{control_type}\t{control['controlID']}"
                     if self.device.is_control_loaded(control_type, control['controlID']):
                         modified = True
-                        logging.debug("Deleting layouts: %s, %s", control_type, control['controlID'])
+                        logger.debug("Deleting layouts: %s, %s", control_type, control['controlID'])
                         try:
                             self.device.controls_dict[key].del_config()
                         except KeyError:
-                            logging.debug("Error deleting layout: %s, %s", control_type, control['controlID'])
+                            logger.debug("Error deleting layout: %s, %s", control_type, control['controlID'])
         return modified
 
     def _update_gui_controls(self, cfg_dict: dict):
@@ -137,7 +140,7 @@ class ActionStation(threading.Thread):
                     key = f"{control_type}\t{control['controlID']}"
                     if self.device.is_control_loaded(control_type, control['controlID']):
                         # load new config into control
-                        logging.debug("Adding layouts: %s, %s", control_type, control['controlID'])
+                        logger.debug("Adding layouts: %s, %s", control_type, control['controlID'])
                         cfg = CONFIG_INSTANCE_DICT[control_type].from_dict(control)
                         self.device.controls_dict[key].add_config(cfg)
                         modified = True
@@ -151,7 +154,7 @@ class ActionStation(threading.Thread):
                         added_control_ids.append(key)
                         if control_type not in new_cfg_dict:
                             new_cfg_dict[control_type] = []
-                        logging.debug("Added control: %s", control_type + ":" + control["controlID"])
+                        logger.debug("Added control: %s", control_type + ":" + control["controlID"])
                         new_cfg_dict[control_type].append(control)
                         modified = True
         return modified, new_cfg_dict
@@ -180,7 +183,7 @@ class ActionStation(threading.Thread):
         if modified:
             self.device.inc_config_revision()
         if new_cfg_dict:
-            # logging.debug("New C64:\n%s", json.dumps(new_cfg_dict, indent=4))
+            # logger.debug("New C64:\n%s", json.dumps(new_cfg_dict, indent=4))
             new_c64 = encode_cfg64(new_cfg_dict)
         return new_c64
 
@@ -209,7 +212,7 @@ class ActionStation(threading.Thread):
             'msgType': 'connect',
             'deviceID': device_id
         }
-        logging.debug("AS CONNECT: %s", device_id)
+        logger.debug("AS CONNECT: %s", device_id)
         self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg_dict).encode()])
 
     def _disconnect_device_id(self, device_id):
@@ -217,14 +220,14 @@ class ActionStation(threading.Thread):
             'msgType': 'disconnect',
             'deviceID': device_id
         }
-        logging.debug("AS DISCONNECT: %s", device_id)
+        logger.debug("AS DISCONNECT: %s", device_id)
         self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg_dict).encode()])
 
     def _start_control(self, t_object: dict):
         if t_object["uuid"] in self.thread_dicts:
             self.thread_dicts[t_object["uuid"]].close()
             time.sleep(0.1)
-        logging.debug("INIT TASK %s", t_object["uuid"])
+        logger.debug("INIT TASK %s", t_object["uuid"])
         self.thread_dicts[t_object['uuid']] = self.service_objects_defs[t_object['objectType']](self.device_id, self.local_port, t_object, self.context)
         return True
 
@@ -259,7 +262,7 @@ class ActionStation(threading.Thread):
         for config in self.configs.values():
             if config.objectType == "CONFIG":
                 config_list.append(config.dict())
-                logging.debug("Conf: %s", config.objectName)
+                logger.debug("Conf: %s", config.objectName)
         result = {
             'objectType': "LIST_RESULT",
             'list': config_list
@@ -292,7 +295,7 @@ class ActionStation(threading.Thread):
         return reply
 
     def _delete_command(self, data):
-        logging.debug("DELETE: %s", data)
+        logger.debug("DELETE: %s", data)
         payload = json.loads(data[3])
         result = {
             'objectType': "DELETE_RESULT",
@@ -312,7 +315,7 @@ class ActionStation(threading.Thread):
 
             result['result'] = True
         except KeyError as error:
-            logging.debug("Key Error: %s", error)
+            logger.debug("Key Error: %s", error)
             result['result'] = False
         reply = f"\t{self.device_id}\tACTN\tDELETE\t{json.dumps(result)}\n"
         self.save_action(self._json_filename, self.action_station_dict)
@@ -320,7 +323,7 @@ class ActionStation(threading.Thread):
 
     def _rx_command(self, msg):
         msg_dict = json.loads(msg)
-        logging.debug("AS RX CMD: %s", msg_dict)
+        logger.debug("AS RX CMD: %s", msg_dict)
 
     def _update_command(self, data):
         payload = json.loads(data[3])
@@ -339,7 +342,7 @@ class ActionStation(threading.Thread):
                 self.configured_services[payload['uuid']] = payload
         except KeyError as error:
             msg = "UPDATE: payload has no objectType"
-            logging.debug("%s, %s", msg, error)
+            logger.debug("%s, %s", msg, error)
             result['message'] = msg
         if result['result']:
             self.save_action(self._json_filename, self.action_station_dict)
@@ -466,12 +469,12 @@ class ActionStation(threading.Thread):
                     # If there aren't two parts continue.
                     pass
                 if msg:
-                    logging.debug("ActionStation Device RX:\n%s", msg.decode().rstrip())
+                    logger.debug("ActionStation Device RX:\n%s", msg.decode().rstrip())
                     self.zmq_service_pub.send_multipart([msg, self.device_id.encode()])
 
             if self.connection_zmq_sub in socks:
                 msg, msg_from = self.connection_zmq_sub.recv_multipart()
-                # logging.debug("ActionStation Connection RX:\n%s, %s", msg_from, msg.decode())
+                # logger.debug("ActionStation Connection RX:\n%s, %s", msg_from, msg.decode())
                 if msg[0] == b"COMMAND":
                     self._rx_command(msg_from)
                     continue
@@ -488,19 +491,19 @@ class ActionStation(threading.Thread):
                     msg_dict = json.loads(msg)
                     if msg_dict['msgType'] == 'connect':
                         if msg_dict['deviceID'] not in self.remote_device_ids:
-                            logging.debug("Added remote deviceID: %s", msg_dict['deviceID'])
+                            logger.debug("Added remote deviceID: %s", msg_dict['deviceID'])
                             self.remote_device_ids.append(msg_dict['deviceID'])
 
             if memory_socket in socks:
                 message = memory_socket.recv_multipart()
-                logging.debug("MEM Rx: %s", message)
+                logger.debug("MEM Rx: %s", message)
                 if len(message) == 3:
                     if message[0] == b'SET':
                         self.memory_tasks[message[1].decode()] = message[2].decode()
-                        logging.debug("MEM Tx: SET: %s, TO: %s", message[1], message[2])
+                        logger.debug("MEM Tx: SET: %s, TO: %s", message[1], message[2])
                         memory_socket.send_multipart([message[0], message[1], message[2]])
                     if message[0] == b'GET':
-                        logging.debug("MEM Tx: GET: %s, RTN: %s", message[1], message[1])
+                        logger.debug("MEM Tx: GET: %s, RTN: %s", message[1], message[1])
                         memory_socket.send_multipart([message[0], message[1], self.memory_tasks[message[1].decode()].encode()])
                 #  Send error reply back to client
                 else:

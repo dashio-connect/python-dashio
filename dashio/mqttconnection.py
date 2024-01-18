@@ -36,6 +36,9 @@ from .constants import CONNECTION_PUB_URL
 from .iotcontrol.enums import ConnectionState
 
 
+logger = logging.getLogger(__name__)
+
+
 class MQTTConnection(threading.Thread):
     """Setups and manages a connection thread to the MQTT Server."""
 
@@ -49,24 +52,24 @@ class MQTTConnection(threading.Thread):
                 data_topic = f"{self.username}/{device_id}/data"
                 self.mqttc.subscribe(data_topic, 0)
             self._send_dash_announce()
-            logging.debug("connected OK")
+            logger.debug("connected OK")
         else:
-            logging.debug("Bad connection Returned code=%s", msg)
+            logger.debug("Bad connection Returned code=%s", msg)
 
     def _on_disconnect(self, client, userdata, msg):
-        logging.debug("disconnecting reason  %s", msg)
+        logger.debug("disconnecting reason  %s", msg)
         self._connection_state = ConnectionState.DISCONNECTED
 
     def _on_message(self, client, obj, msg):
         data = str(msg.payload, "utf-8").strip()
-        logging.debug("MQTT RX:\n%s", data)
+        logger.debug("MQTT RX:\n%s", data)
         self.tx_zmq_pub.send_multipart([msg.payload, self.b_connection_id])
 
     def _on_subscribe(self, client, obj, mid, granted_qos):
-        logging.debug("Subscribed: %s %s", str(mid), str(granted_qos))
+        logger.debug("Subscribed: %s %s", str(mid), str(granted_qos))
 
     def _on_log(self, client, obj, level, string):
-        logging.debug(string)
+        logger.debug(string)
 
     def add_device(self, device):
         """Add a Device to the connextion
@@ -87,7 +90,7 @@ class MQTTConnection(threading.Thread):
     def _add_device_rx(self, msg_dict):
         """Connect to another device"""
         device_id = msg_dict["deviceID"]
-        logging.debug("MQTT DEVICE CONNECT: %s", device_id)
+        logger.debug("MQTT DEVICE CONNECT: %s", device_id)
         if device_id not in self._device_id_rx_list:
             self._device_id_rx_list.append(device_id)
             data_topic = f"{self.username}/{device_id}/data"
@@ -98,7 +101,7 @@ class MQTTConnection(threading.Thread):
         if device_id in self._device_id_rx_list:
             data_topic = f"{self.username}/{device_id}/data"
             self.mqttc.unsubscribe(data_topic)
-            logging.debug("MQTT DEVICE_DISCONNECT: %s", device_id)
+            logger.debug("MQTT DEVICE_DISCONNECT: %s", device_id)
             del self._device_id_rx_list[device_id]
 
     def _send_dash_announce(self):
@@ -106,7 +109,7 @@ class MQTTConnection(threading.Thread):
             'msgType': 'send_announce',
             'connectionUUID': self.zmq_connection_uuid
         }
-        logging.debug("MQTT SEND ANNOUNCE: %s", msg)
+        logger.debug("MQTT SEND ANNOUNCE: %s", msg)
         self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg).encode()])
 
     def close(self):
@@ -175,13 +178,13 @@ class MQTTConnection(threading.Thread):
             self.mqttc.connect(self.host, self.port)
             self._connection_state = ConnectionState.CONNECTING
         except mqtt.socket.gaierror as error:
-            logging.debug("No connection to internet: %s", str(error))
+            logger.debug("No connection to internet: %s", str(error))
         # Start subscribe, with QoS level 0
         self._disconnect_timeout = 1.0
         self.start()
 
     def _mqtt_command(self, msg_dict: dict):
-        logging.debug("MQTT CMD: %s", msg_dict)
+        logger.debug("MQTT CMD: %s", msg_dict)
         if msg_dict['msgType'] == 'connect':
             self._add_device_rx(msg_dict)
         if msg_dict['msgType'] == 'disconnect':
@@ -213,14 +216,14 @@ class MQTTConnection(threading.Thread):
                 try:
                     [msg_to, data] = self.rx_zmq_sub.recv_multipart()
                 except ValueError:
-                    logging.debug("MQTT value error")
+                    logger.debug("MQTT value error")
                     continue
                 if not data:
-                    logging.debug("MQTT no data error")
+                    logger.debug("MQTT no data error")
                     continue
-                # logging.debug("DASH: %s ,%s", msg_to, data)
+                # logger.debug("DASH: %s ,%s", msg_to, data)
                 if msg_to == b'COMMAND':
-                    logging.debug("MQTT RX COMMAND")
+                    logger.debug("MQTT RX COMMAND")
                     self._mqtt_command(json.loads(data))
                     continue
                 msg_l = data.split(b'\t')
@@ -230,7 +233,7 @@ class MQTTConnection(threading.Thread):
                     continue
                 data_topic = f"{self.username}/{device_id}/data"
                 if self._connection_state == ConnectionState.CONNECTED:
-                    logging.debug("MQTT TX:\n%s", data.decode().rstrip())
+                    logger.debug("MQTT TX:\n%s", data.decode().rstrip())
                     self.mqttc.publish(data_topic, data.decode())
             if self._connection_state == ConnectionState.DISCONNECTED:
                 self._disconnect_timeout = min(self._disconnect_timeout, 900)
@@ -239,7 +242,7 @@ class MQTTConnection(threading.Thread):
                     self.mqttc.connect(self.host, self.port)
                     self._connection_state = ConnectionState.CONNECTING
                 except mqtt.socket.gaierror as error:
-                    logging.debug("No connection to internet: %s", str(error))
+                    logger.debug("No connection to internet: %s", str(error))
                 self._disconnect_timeout = self._disconnect_timeout * 2
 
         self.mqttc.loop_stop()

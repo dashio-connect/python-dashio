@@ -29,6 +29,9 @@ import logging
 from zeroconf import ServiceBrowser, ServiceInfo, Zeroconf
 
 
+logger = logging.getLogger(__name__)
+
+
 class ZeroConfDashTCPListener:
     """A zeroc conf listener"""
     def __init__(self, service_type: str, connection_uuid: str, context: zmq.Context):
@@ -40,7 +43,7 @@ class ZeroConfDashTCPListener:
 
     def _send_msg(self, msg: dict):
         """Send a message"""
-        logging.debug("ZCONF: %s", json.dumps(msg))
+        logger.debug("ZCONF: %s", json.dumps(msg))
         self.zmq_socket.send(json.dumps(msg).encode())
 
     def _send_info(self, connection_uuid, info):
@@ -48,7 +51,7 @@ class ZeroConfDashTCPListener:
             device_ids = info.properties[b'deviceID'].decode()
         except KeyError:
             device_ids = ''
-        logging.debug("Zcon INFO: %s", info)
+        logger.debug("Zcon INFO: %s", info)
         for address in info.addresses:
             msg = {
                 'objectType': 'zeroConfUpdate',

@@ -34,6 +34,9 @@ from .constants import CONNECTION_PUB_URL
 from .device import Device
 
 
+logger = logging.getLogger(__name__)
+
+
 class SerialConnection(threading.Thread):
     """Setups and manages a connection thread to iotdashboard via TCP."""
 
@@ -168,7 +171,7 @@ class SerialConnection(threading.Thread):
             self.serial_com = serial.Serial(self.serial_port, self.baud_rate, timeout=1.0)
             self.serial_com.flush()
         except serial.serialutil.SerialException as e:
-            logging.debug("Serial Err: %s", str(e))
+            logger.debug("Serial Err: %s", str(e))
 
     def __init__(self, serial_port='/dev/ttyUSB0', baud_rate=115200, context: zmq.Context = None):
         """Serial Connection
@@ -240,7 +243,7 @@ class SerialConnection(threading.Thread):
                     continue
                 if not data:
                     continue
-                logging.debug("SERIAL Tx:\n%s", data.decode().rstrip())
+                logger.debug("SERIAL Tx:\n%s", data.decode().rstrip())
                 # be nice and split the strings up
                 lines = data.split(b'\n')
                 for line in lines:
@@ -248,7 +251,7 @@ class SerialConnection(threading.Thread):
                         try:
                             self.serial_com.write(line + b'\n')
                         except serial.serialutil.SerialException as e:
-                            logging.debug("Serial Error: %s", str(e))
+                            logger.debug("Serial Error: %s", str(e))
                             time.sleep(1.0)
                             self._init_serial()
             try:
@@ -256,7 +259,7 @@ class SerialConnection(threading.Thread):
                     message = self.serial_com.readline()
                     if message:
                         try:
-                            logging.debug("SERIAL Rx:\n%s", message.rstrip().decode())
+                            logger.debug("SERIAL Rx:\n%s", message.rstrip().decode())
                             parts = message.strip().decode().split('\t')
                             if len(parts) == 2 and parts[1] == 'CTRL':
                                 if self._crtl_device_id_callback:
@@ -265,9 +268,9 @@ class SerialConnection(threading.Thread):
                                 self.crtl_map[parts[2]](parts)
                             tx_zmq_pub.send_multipart([message, self.b_zmq_connection_uuid])
                         except UnicodeDecodeError:
-                            logging.debug("SERIAL DECODE ERROR Rx:\n%s", message.hex())
+                            logger.debug("SERIAL DECODE ERROR Rx:\n%s", message.hex())
             except OSError as e:
-                logging.debug("Serial Error: %s", str(e))
+                logger.debug("Serial Error: %s", str(e))
                 time.sleep(1.0)
                 self._init_serial()
 
