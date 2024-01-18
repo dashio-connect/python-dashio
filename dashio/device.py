@@ -37,6 +37,9 @@ from .load_config import encode_cfg64
 from .load_config import CONTROL_INSTANCE_DICT, CONFIG_INSTANCE_DICT
 
 
+logger = logging.getLogger(__name__)
+
+
 class Device(threading.Thread):
     """Dashio Device
 
@@ -191,7 +194,7 @@ class Device(threading.Thread):
 
     def _send_alarm(self, alarm_id, message_header, message_body):
         payload = self._device_id_str + f"\tALM\t{alarm_id}\t{message_header}\t{message_body}\n"
-        logging.debug("ALARM: %s", payload)
+        logger.debug("ALARM: %s", payload)
         self.tx_zmq_pub.send_multipart([b"ALL", payload.encode('utf-8')])
 
     def _send_data(self, data: str):
@@ -208,7 +211,7 @@ class Device(threading.Thread):
 
     def _send_announce(self):
         payload = self._device_id_str + f"\tWHO\t{self.device_type}\t{self.device_name}\n"
-        logging.debug("ANNOUNCE: %s", payload)
+        logger.debug("ANNOUNCE: %s", payload)
         self.tx_zmq_pub.send_multipart([b"DASH", payload.encode('utf-8')])
 
     def is_control_loaded(self, control_type, control_id: str) -> bool:
@@ -455,7 +458,7 @@ class Device(threading.Thread):
     def register_connection(self, connection):
         """Connections registered here"""
         if connection.zmq_connection_uuid not in self.connections_list:
-            logging.debug("DEVICE REG CONECTION")
+            logger.debug("DEVICE REG CONECTION")
             self.connections_list.append(connection.zmq_connection_uuid)
             self.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=connection.zmq_connection_uuid))
             connection.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
@@ -623,15 +626,15 @@ class Device(threading.Thread):
                 try:
                     [data, msg_from] = self.rx_zmq_sub.recv_multipart()
                 except ValueError:
-                    logging.debug("Device value error")
-                #  logging.debug("DEVICE RX: %s ,%s", msg_from, data)
+                    logger.debug("Device value error")
+                #  logger.debug("DEVICE RX: %s ,%s", msg_from, data)
                 if data == b"COMMAND":
                     msg_dict = json.loads(msg_from)
                     self._local_command(msg_dict)
                     continue
                 reply = self._on_message(data)
                 if reply != "":
-                    #  logging.debug("DEVICE TX: %s ,%s", msg_from, data)
+                    #  logger.debug("DEVICE TX: %s ,%s", msg_from, data)
                     self.tx_zmq_pub.send_multipart([msg_from, reply.encode('utf-8')])
         self.tx_zmq_pub.close()
         self.rx_zmq_sub.close()

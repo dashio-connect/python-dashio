@@ -35,6 +35,9 @@ from .constants import CONNECTION_PUB_URL
 from .iotcontrol.enums import ConnectionState
 
 
+logger = logging.getLogger(__name__)
+
+
 class DashControl():
     """Class to stare dash connection info
     """
@@ -140,25 +143,26 @@ class DashConnection(threading.Thread):
                 data_topic = f"{self.username}/{device_id}/data"
                 self._dash_c.subscribe(data_topic, 0)
             self._send_dash_announce()
-            logging.debug("connected OK")
+            self._disconnect_timeout = 1.0
+            logger.debug("connected OK")
         else:
-            logging.debug("Bad connection Returned code=%s", msg)
+            logger.debug("Bad connection Returned code=%s", msg)
 
     def _on_disconnect(self, client, userdata, msg):
-        logging.debug("disconnecting reason  %s", msg)
+        logger.debug("disconnecting reason  %s", msg)
         self._connection_state = ConnectionState.DISCONNECTED
         self._disconnect_timeout = 1.0
 
     def _on_message(self, client, obj, msg):
         data = str(msg.payload, "utf-8").strip()
-        logging.debug("DASH RX:\n%s", data)
+        logger.debug("DASH RX:\n%s", data)
         self.tx_zmq_pub.send_multipart([msg.payload, self._b_zmq_connection_uuid])
 
     def _on_subscribe(self, client, obj, mid, granted_qos):
-        logging.debug("Subscribed: %s %s", str(mid), str(granted_qos))
+        logger.debug("Subscribed: %s %s", str(mid), str(granted_qos))
 
     def _on_log(self, client, obj, level, string):
-        logging.debug(string)
+        logger.debug(string)
 
     def add_device(self, device):
         """Add a Device to the connextion
@@ -179,7 +183,7 @@ class DashConnection(threading.Thread):
     def _add_device_rx(self, msg_dict):
         """Connect to another device"""
         device_id = msg_dict["deviceID"]
-        logging.debug("DASH DEVICE CONNECT: %s", device_id)
+        logger.debug("DASH DEVICE CONNECT: %s", device_id)
         if device_id not in self._device_id_rx_list:
             self._device_id_rx_list.append(device_id)
             data_topic = f"{self.username}/{device_id}/data"
@@ -190,7 +194,7 @@ class DashConnection(threading.Thread):
         if device_id in self._device_id_rx_list:
             data_topic = f"{self.username}/{device_id}/data"
             self._dash_c.unsubscribe(data_topic)
-            logging.debug("DASH DEVICE_DISCONNECT: %s", device_id)
+            logger.debug("DASH DEVICE_DISCONNECT: %s", device_id)
             del self._device_id_rx_list[device_id]
 
     def _send_dash_announce(self):
@@ -198,7 +202,7 @@ class DashConnection(threading.Thread):
             'msgType': 'send_announce',
             'connectionUUID': self.zmq_connection_uuid
         }
-        logging.debug("DASH SEND ANNOUNCE: %s", msg)
+        logger.debug("DASH SEND ANNOUNCE: %s", msg)
         self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg).encode()])
 
     def set_connection(self, username: str, password: str):
@@ -283,7 +287,7 @@ class DashConnection(threading.Thread):
                 self._dash_c.connect(host, port)
                 self._connection_state = ConnectionState.CONNECTING
             except (mqtt.socket.gaierror, ConnectionRefusedError) as error:
-                logging.debug("No connection to server: %s", str(error))
+                logger.debug("No connection to server: %s", str(error))
         # Start subscribe, with QoS level 0
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         self._disconnect_timeout = 1.0
@@ -294,7 +298,7 @@ class DashConnection(threading.Thread):
         self.running = False
 
     def _dash_command(self, msg_dict: dict):
-        logging.debug("TCP CMD: %s", msg_dict)
+        logger.debug("TCP CMD: %s", msg_dict)
         if msg_dict['msgType'] == 'connect':
             self._add_device_rx(msg_dict)
         if msg_dict['msgType'] == 'disconnect':
@@ -324,14 +328,14 @@ class DashConnection(threading.Thread):
                 try:
                     [msg_to, data] = self.rx_zmq_sub.recv_multipart()
                 except ValueError:
-                    logging.debug("DASH value error")
+                    logger.debug("DASH value error")
                     continue
                 if not data:
-                    logging.debug("DASH no data error")
+                    logger.debug("DASH no data error")
                     continue
-                # logging.debug("DASH: %s ,%s", msg_to, data)
+                # logger.debug("DASH: %s ,%s", msg_to, data)
                 if msg_to == b'COMMAND':
-                    logging.debug("DASH RX COMMAND")
+                    logger.debug("DASH RX COMMAND")
                     self._dash_command(json.loads(data))
                     continue
                 msg_l = data.split(b'\t')
@@ -349,7 +353,7 @@ class DashConnection(threading.Thread):
                 else:
                     data_topic = f"{self.username}/{device_id}/data"
                 if self._connection_state == ConnectionState.CONNECTED and data_topic:
-                    logging.debug("DASH TX:\n%s", data.decode().rstrip())
+                    logger.debug("DASH TX:\n%s", data.decode().rstrip())
                     self._dash_c.publish(data_topic, data.decode())
             if self._connection_state == ConnectionState.DISCONNECTED:
                 self._disconnect_timeout = min(self._disconnect_timeout, 900)
@@ -358,7 +362,7 @@ class DashConnection(threading.Thread):
                     self._dash_c.connect(self.host, self.port)
                     self._connection_state = ConnectionState.CONNECTING
                 except (mqtt.socket.gaierror, ConnectionRefusedError) as error:
-                    logging.debug("No connection to server: %s", str(error))
+                    logger.debug("No connection to server: %s", str(error))
                 self._disconnect_timeout = self._disconnect_timeout * 2
 
         self._dash_c.loop_stop()

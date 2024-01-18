@@ -39,6 +39,9 @@ from dashio.device import Device
 from .constants import CONNECTION_PUB_URL
 
 
+logger = logging.getLogger(__name__)
+
+
 class BLEControl():
     """BLE connection control
     """
@@ -163,15 +166,15 @@ class DashIOAdvertisement(dbus.service.Object):
     @dbus.service.method(LE_ADVERTISEMENT_IFACE, in_signature='', out_signature='')
     def Release(self):
         """DBUS calls this on release"""
-        logging.debug('%s: Released!', self.path)
+        logger.debug('%s: Released!', self.path)
 
     def register_ad_callback(self):
         """DBUS calls this on release"""
-        logging.debug("GATT advertisement registered")
+        logger.debug("GATT advertisement registered")
 
     def register_ad_error_callback(self):
         """DBUS calls this on error"""
-        logging.debug("Failed to register GATT advertisement")
+        logger.debug("Failed to register GATT advertisement")
 
     def register(self):
         """Register with DBUS"""
@@ -204,7 +207,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
             'msgType': 'send_announce',
             'connectionUUID': self.zmq_connection_uuid
         }
-        #  logging.debug("TCP SEND ANNOUNCE: %s", msg)
+        #  logger.debug("TCP SEND ANNOUNCE: %s", msg)
         self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg).encode()])
 
     def add_device(self, device: Device):
@@ -222,13 +225,13 @@ class BLEConnection(dbus.service.Object, threading.Thread):
     def close(self):
         """Close the connection
         """
-        logging.debug("\nGATT application terminated")
+        logger.debug("\nGATT application terminated")
         self.tx_zmq_pub.close()
         self.rx_zmq_sub.close()
         self.mainloop.quit()
 
     def _zmq_callback(self, queue, condition):
-        # logging.debug('zmq_callback')
+        # logger.debug('zmq_callback')
 
         while self.rx_zmq_sub.getsockopt(zmq.EVENTS) & zmq.POLLIN:
             try:
@@ -248,13 +251,13 @@ class BLEConnection(dbus.service.Object, threading.Thread):
             for data_chunk in data_chunks:
                 sent |= self.dash_service.dash_characteristics.ble_send(data_chunk)
             if sent:
-                logging.debug("BLE TX: %s", data_str.strip())
+                logger.debug("BLE TX: %s", data_str.strip())
 
         return True
 
     def _ble_rx(self, msg: str):
         msg_from = self.b_connection_id
-        #  logging.debug("BLE ZMQ TX: %s", msg)
+        #  logger.debug("BLE ZMQ TX: %s", msg)
         self.tx_zmq_pub.send_multipart([msg.encode(), msg_from])
 
     def __init__(self, ble_uuid=None, context: zmq.Context = None):
@@ -331,10 +334,10 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         return self.response
 
     def _register_app_callback(self):
-        logging.debug("GATT application registered")
+        logger.debug("GATT application registered")
 
     def _register_app_error_callback(self, error):
-        logging.debug("Failed to register application: %s", str(error))
+        logger.debug("Failed to register application: %s", str(error))
 
     def _register(self):
         adapter = self._find_adapter(self.bus)
@@ -441,7 +444,7 @@ class DashConCharacteristic(dbus.service.Object):
     @dbus.service.method(GATT_CHRC_IFACE, in_signature='a{sv}', out_signature='ay')
     def ReadValue(self, _):
         """Called by DBUS"""
-        logging.debug('Default ReadValue called, returning error')
+        logger.debug('Default ReadValue called, returning error')
         raise NotSupportedException()
 
     # pylint: disable=invalid-name, unnecessary-pass
@@ -483,6 +486,6 @@ class DashConCharacteristic(dbus.service.Object):
         rx_str = ''.join([str(v) for v in value])
         self.read_buffer += rx_str
         if rx_str[-1] == '\n':
-            logging.debug("BLE RX: %s", self.read_buffer.strip())
+            logger.debug("BLE RX: %s", self.read_buffer.strip())
             self._ble_rx(self.read_buffer)
             self.read_buffer = ''
