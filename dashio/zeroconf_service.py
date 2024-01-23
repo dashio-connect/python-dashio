@@ -49,7 +49,7 @@ class ZeroConfDashTCPListener:
     def _send_info(self, connection_uuid, info):
         try:
             device_ids = info.properties[b'deviceID'].decode()
-        except KeyError:
+        except (KeyError, AttributeError):
             device_ids = ''
         logger.debug("Zcon INFO: %s", info)
         for address in info.addresses:
