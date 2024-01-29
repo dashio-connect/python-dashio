@@ -30,6 +30,7 @@ import zmq
 from ..constants import TASK_CONN_PORT_OFFSET, TASK_MEMORY_PORT_OFFSET, TASK_PULL_PORT_OFFSET, TCP_URL
 from . import action_station_service_config as assc
 
+
 def str_to_num(s_num: str):
     try:
         return int(s_num)

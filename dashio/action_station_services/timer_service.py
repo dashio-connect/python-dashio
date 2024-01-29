@@ -59,6 +59,7 @@ def make_timer_config(num_timers):
     )
     return timer_cfg
 
+
 class RepeatTimer(threading.Timer):
     """The timer"""
     def run(self):
