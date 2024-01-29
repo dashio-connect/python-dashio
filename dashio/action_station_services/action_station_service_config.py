@@ -7,16 +7,19 @@ class BaseParameter(BaseModel):
     name: str
     uuid: str
 
+
 class ListParameterSpec(BaseParameter):
     """List Parameter"""
     text: str
     param_list: list
     objectType: str = "LIST_PARAM"
 
+
 class StringParameterSpec(BaseParameter):
     """String Parameter"""
     objectType: str = "STRING_PARAM"
     value: str
+
 
 class FloatParameterSpec(BaseParameter):
     """Float Parameter"""
@@ -25,6 +28,7 @@ class FloatParameterSpec(BaseParameter):
     max: float
     units: str
     value: float
+
 
 class IntParameterSpec(BaseParameter):
     """Int Parameter"""
@@ -56,6 +60,7 @@ class SliderParameterSpec(BaseParameter):
     step: float
     value: float
 
+
 class ActionServiceCFG(BaseModel):
     objectType: str = "CONFIG"
     objectName: str
@@ -70,11 +75,13 @@ class ActionServiceCFG(BaseModel):
     provisioning: list
     parameters: list
 
+
 class ActionTask(BaseModel):
     objectType: str
     name: str
     uuid: str
     actions: list
+
 
 class ActionReadControl(BaseModel):
     objectType: str
@@ -82,11 +89,13 @@ class ActionReadControl(BaseModel):
     controlType: str
     controlID: str
 
+
 class ActionWriteControl(BaseModel):
     objectType: str
     deviceID: str
     controlType: str
     controlID: str
+
 
 class ActionSendAlarm(BaseModel):
     objectType: str
@@ -94,16 +103,19 @@ class ActionSendAlarm(BaseModel):
     title: str
     body: str
 
+
 class ActionWriteMem(BaseModel):
     objectType: str
     memoryID: str
     memType: str
     thing: str
 
+
 class ActionReadMem(BaseModel):
     objectType: str
     memoryID: str
     memType: str
+
 
 class ActionBitwise(BaseModel):
     objectType: str
@@ -111,10 +123,12 @@ class ActionBitwise(BaseModel):
     bw_and: Optional[int] = Field(alias='and')
     shiftRight: Optional[int]
 
+
 class ActionScale(BaseModel):
     objectType: str
     scale: float
     offset: float
+
 
 class ActionIf(BaseModel):
     objectType: str
@@ -136,6 +150,7 @@ MAP_ACTION_DICT = {
     'SCALE': lambda action: ActionScale(**action),
     'IF': lambda action: ActionIf(**action)
 }
+
 
 def task_parse(task: dict) -> ActionTask:
     action_tree = []

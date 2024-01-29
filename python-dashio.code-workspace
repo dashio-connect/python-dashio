@@ -14,9 +14,9 @@
             "-p",
             "test_*.py"
         ],
-        "python.analysis.typeCheckingMode": "basic",
+        "python.analysis.typeCheckingMode": "off",
         "flake8.args": [
             "--config=${workspaceFolder}/.pylintrc"
-        ]
+        ],
     }
 }

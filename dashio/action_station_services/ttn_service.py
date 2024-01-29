@@ -11,12 +11,9 @@ from ctypes import c_uint8, c_uint16, c_uint32, memmove, pointer, sizeof, BigEnd
 
 from ..constants import TASK_CONN_PORT_OFFSET, TASK_PULL_PORT_OFFSET, TCP_URL
 from .action_station_service_config import (ActionServiceCFG,
-                                            BoolParameterSpec,
-                                            FloatParameterSpec,
                                             IntParameterSpec,
                                             ListParameterSpec,
                                             SelectorParameterSpec,
-                                            SliderParameterSpec,
                                             StringParameterSpec)
 
 
