@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="dashio",
-    version="3.4.4",
+    version="3.4.5",
     description="DashIO interface library",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -14,6 +14,7 @@ setup(
     url="https://dashio.io",
     download_url="https://github.com/dashio-connect/python-dashio",
     packages=find_packages(),
+    package_data={"dashio": ["py.typed"]},
     license="MIT",
     classifiers=["Programming Language :: Python :: 3.7", "Operating System :: OS Independent"],
     install_requires=["paho-mqtt", "pyzmq", "python-dateutil", "zeroconf", "shortuuid", "pyserial", "astral", "pydantic"],

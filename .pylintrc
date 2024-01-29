@@ -19,7 +19,7 @@ max-line-length=240
 # (useful for modules/projects where namespaces are manipulated during runtime
 # and thus existing member attributes cannot be deduced by static analysis. It
 # supports qualified module names, as well as Unix pattern matching.
-ignored-modules=zmq
+# ignored-modules=zmq
 
 [DESIGN]
 max-locals=25

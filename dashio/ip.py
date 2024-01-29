@@ -43,6 +43,7 @@ def get_local_ip_v6_address():
     i_address = socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET6)[1][4][0]
     return i_address
 
+
 def is_port_in_use(ip_address, port):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as port_s:
         return port_s.connect_ex((ip_address, port)) == 0
