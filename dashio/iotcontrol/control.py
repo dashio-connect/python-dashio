@@ -41,6 +41,7 @@ def _get_color_str(color) -> str:
             return color
     return str(color.value)
 
+
 def _get_color(color_str: str) -> Color:
     if color_str[0] == '#':
         return color_str
@@ -382,6 +383,9 @@ class Control():
             '2': [],
             '3': []
         }
+
+        self._is_active = False
+
         self._cfg_max_no_columns = 3
         self.cntrl_type = cntrl_type.translate(BAD_CHARS)
         self.control_id = control_id.translate(BAD_CHARS)

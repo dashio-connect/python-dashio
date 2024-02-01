@@ -181,6 +181,24 @@ class Dial(Control):
         self._red_value = red_value
 
     @property
+    def is_active(self) -> bool:
+        """Return the is_active state"""
+        return self._is_active
+
+    @is_active.setter
+    def is_active(self, active: bool):
+        """Indicates that the control should be active or not.
+
+        If is_active = False the Control will be greyed out.
+        Updating the dial value resets the is_active to True. If is_active is set to True the control will send
+        the current dial value."""
+        self._is_active = active
+        if active:
+            self.state_str = self._control_hdr_str + f"{self._dial_value}\n"
+        else:
+            self.state_str = self._control_hdr_str + "na\n"
+
+    @property
     def dial_min(self):
         """Return the minimum dial value"""
         return self._dial_min
@@ -230,7 +248,9 @@ class Dial(Control):
         return tmp_cls
 
     def get_state(self):
-        return self._control_hdr_str + f"{self._dial_value}\n"
+        if self._is_active:
+            return self._control_hdr_str + f"{self._dial_value}\n"
+        return self._control_hdr_str + "na\n"
 
     @property
     def dial_value(self) -> float:
@@ -247,3 +267,4 @@ class Dial(Control):
     def dial_value(self, val: float):
         self._dial_value = val
         self.state_str = self._control_hdr_str + f"{val}\n"
+        self._is_active = False

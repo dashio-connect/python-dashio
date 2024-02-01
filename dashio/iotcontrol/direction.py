@@ -143,6 +143,24 @@ class Direction(Control):
         self._direction_text = ""
 
     @property
+    def is_active(self) -> bool:
+        """Return the is_active state"""
+        return self._is_active
+
+    @is_active.setter
+    def is_active(self, active: bool):
+        """Indicates that the control should be active or not.
+
+        If is_active = False the Control will be greyed out.
+        Updating the direction value resets the is_active to True. If is_active is set to True the control will send
+        the current direction value."""
+        self._is_active = active
+        if active:
+            self.state_str = self._control_hdr_str + f"{self._dial_value}\n"
+        else:
+            self.state_str = self._control_hdr_str + "na\n"
+
+    @property
     def cal_angle(self):
         """Retturns the calibration angle"""
         return self._cal_angle
@@ -175,12 +193,14 @@ class Direction(Control):
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls
 
-    def get_state(self):
-        if self._direction_text:
-            s_str = self._control_hdr_str + f"{self._direction_value}\t{self._direction_text}\n"
+    def get_state(self) -> str:
+        if self._is_active:
+            if self._direction_text:
+                return self._control_hdr_str + f"{self._direction_value}\t{self._direction_text}\n"
+            else:
+                return self._control_hdr_str + f"{self._direction_value}\n"
         else:
-            s_str = self._control_hdr_str + f"{self._direction_value}\n"
-        return s_str
+            return self._control_hdr_str + "na\n"
 
     @property
     def direction_value(self) -> float:
