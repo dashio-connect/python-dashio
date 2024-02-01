@@ -240,7 +240,7 @@ class TestEventLog:
     def __init__(self):
         self.bttn1_value = False
         ri = random_insults()
-        # Catch CNTRL-C signel
+        # Catch CNTRL-C signal
         signal.signal(signal.SIGINT, self.signal_cntrl_c)
         self.shutdown = False
         args = self.parse_commandline_arguments()

@@ -112,7 +112,7 @@ def set_wifi_callback(msg):
 
 
 def main():
-    # Catch CNTRL-C signel
+    # Catch CNTRL-C signal
     global shutdown
     signal.signal(signal.SIGINT, signal_cntrl_c)
 
