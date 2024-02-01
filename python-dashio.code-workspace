@@ -5,18 +5,21 @@
         }
     ],
     "settings": {
-        "python.testing.pytestEnabled": false,
-        "python.testing.unittestEnabled": true,
-        "python.testing.unittestArgs": [
-            "-v",
-            "-s",
-            "./tests",
-            "-p",
-            "test_*.py"
-        ],
-        "python.analysis.typeCheckingMode": "off",
+        "python.analysis.typeCheckingMode": "strict",
         "flake8.args": [
             "--config=${workspaceFolder}/.pylintrc"
-        ],
+        ]
+    },
+    "extensions": {
+        "recommendations": [
+            "ms-python.flake8",
+            "njpwerner.autodocstring",
+            "gruntfuggly.todo-tree",
+            "ms-python.flake8",
+            "ms-python.isort",
+            "ms-python.python",
+            "ms-python.vscode-pylance",
+            "littlefoxteam.vscode-python-test-adapter"
+        ]
     }
 }
