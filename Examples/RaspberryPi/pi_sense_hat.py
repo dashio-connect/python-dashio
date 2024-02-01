@@ -99,7 +99,7 @@ class TestColorPicker:
 
     def __init__(self):
 
-        # Catch CNTRL-C signel
+        # Catch CNTRL-C signal
         signal.signal(signal.SIGINT, self.signal_cntrl_c)
         self.shutdown = False
         args = self.parse_commandline_arguments()

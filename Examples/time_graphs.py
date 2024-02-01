@@ -92,7 +92,7 @@ class TestControls:
     def __init__(self):
         self.bttn1_value = False
         LOGGER_PERIOD = 5
-        # Catch CNTRL-C signel
+        # Catch CNTRL-C signal
         signal.signal(signal.SIGINT, self.signal_cntrl_c)
         self.shutdown = False
         args = self.parse_commandline_arguments()

@@ -54,7 +54,7 @@ class SenseGraphTS:
 
     def __init__(self, config, context):
 
-        # Catch CNTRL-C signel
+        # Catch CNTRL-C signal
         self.shutdown = False
         self.tcp_con = dashio.TCPConnection()
         self.dash_con = dashio.DashConnection(username=config['DEFAULT']['DashUsername'], password=config['DEFAULT']['DashPassword'], context=context)
@@ -252,7 +252,7 @@ def parse_config(filename: str) -> dict:
 
 def main():
 
-    # Catch CNTRL-C signel
+    # Catch CNTRL-C signal
     global SHUTDOWN
     signal.signal(signal.SIGINT, signal_cntrl_c)
 
