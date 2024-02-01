@@ -181,6 +181,32 @@ class Knob(Control):
         self._red_value = red_value
 
     @property
+    def is_active(self) -> bool:
+        """Return the is_active state"""
+        return self._is_active
+
+    @is_active.setter
+    def is_active(self, active: bool):
+        """Indicates that the control should be active or not.
+
+        If is_active = False the Control will be greyed out.
+        Updating the knob value resets the is_active to True. If is_active is set to True the control will send
+        the current knob and dial values."""
+        self._is_active = active
+        if active:
+            self._state_str_knob = self._control_hdr_str + f"{self._knob_value}\n"
+            self._message_tx_event(self._state_str_knob)
+            self._state_str_dial = self._control_id_dial + f"{self._knob_dial_value}\n"
+            self._message_tx_event(self._state_str_dial)
+            self._knob_dial_state_str = self._state_str_knob + self._state_str_dial
+        else:
+            self._state_str_knob = self._control_hdr_str + "na\n"
+            self._message_tx_event(self._state_str_knob)
+            self._state_str_dial = self._control_id_dial + "na\n"
+            self._message_tx_event(self._state_str_dial)
+            self._knob_dial_state_str = self._state_str_knob + self._state_str_dial
+
+    @property
     def dial_min(self):
         """Return the minimum dial value"""
         return self._dial_min
@@ -244,7 +270,11 @@ class Knob(Control):
     @knob_value.setter
     def knob_value(self, val: float):
         self._knob_value = val
-        self._state_str_knob = self._control_hdr_str + f"{val}\n"
+        if not self._is_active:
+            self._is_active = True
+            self._state_str_dial = self._control_id_dial + f"{self._knob_dial_value}\n"
+            self._message_tx_event(self._state_str_dial)
+        self._state_str_knob = self._control_hdr_str + f"{self._knob_value}\n"
         self._message_tx_event(self._state_str_knob)
         self._knob_dial_state_str = self._state_str_knob + self._state_str_dial
 
@@ -262,6 +292,10 @@ class Knob(Control):
     @knob_dial_value.setter
     def knob_dial_value(self, val: float):
         self._knob_dial_value = val
-        self._state_str_dial = self._control_id_dial + f"{val}\n"
+        if not self._is_active:
+            self._is_active = True
+            self._state_str_knob = self._control_hdr_str + f"{self._knob_value}\n"
+            self._message_tx_event(self._state_str_knob)
+        self._state_str_dial = self._control_id_dial + f"{self._knob_dial_value}\n"
         self._message_tx_event(self._state_str_dial)
         self._knob_dial_state_str = self._state_str_knob + self._state_str_dial

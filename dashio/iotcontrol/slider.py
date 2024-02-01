@@ -199,6 +199,39 @@ class Slider(Control):
         self._red_value = red_value
 
     @property
+    def is_active(self) -> bool:
+        """Return the is_active state"""
+        return self._is_active
+
+    @is_active.setter
+    def is_active(self, active: bool):
+        """Indicates that the control should be active or not.
+
+        If is_active = False the Control will be greyed out.
+        Updating the slider value resets the is_active to True. If is_active is set to True the control will send
+        the current slider value(s)."""
+        self._is_active = active
+        if active:
+            if self._bar2_value is None:
+                self._bar_state_str = self._control_id_bar + f"{self._bar1_value}\n"
+            else:
+                self._bar_state_str = self._control_id_bar + "{:.2f}\t{:.2f}\n".format(self._bar1_value, self._bar2_value)
+            self._message_tx_event(self._bar_state_str)
+            self._slider_state_str = self._control_hdr_str + f"{self._slider_value}\n"
+            self._message_tx_event(self._slider_state_str)
+            self._slider_state_str = self._control_hdr_str + f"{self._slider_value}\n"
+            self._bar_slider_state_str = self._slider_state_str + self._bar_state_str
+        else:
+            if self._bar2_value is None:
+                self._bar_state_str = self._control_id_bar + "na\n"
+            else:
+                self._bar_state_str = self._control_id_bar + "na\tna\n"
+            self._slider_state_str = self._control_hdr_str + "na\n"
+            self._message_tx_event(self._slider_state_str)
+            self._message_tx_event(self._bar_state_str)
+            self._bar_slider_state_str = self._slider_state_str + self._bar_state_str
+
+    @property
     def bar_min(self):
         """Returns the minimum bar value"""
         return self._bar_min
@@ -263,6 +296,10 @@ class Slider(Control):
     @bar1_value.setter
     def bar1_value(self, val: float):
         self._bar1_value = val
+        if not self._is_active:
+            self._is_active = True
+            self._slider_state_str = self._control_hdr_str + f"{self._slider_value}\n"
+            self._message_tx_event(self._slider_state_str)
 
         if self._bar2_value is None:
             self._bar_state_str = self._control_id_bar + f"{self._bar1_value}\n"
@@ -285,6 +322,11 @@ class Slider(Control):
     @bar2_value.setter
     def bar2_value(self, val: float):
         self._bar2_value = val
+        if not self._is_active:
+            self._is_active = True
+            self._slider_state_str = self._control_hdr_str + f"{self._slider_value}\n"
+            self._message_tx_event(self._slider_state_str)
+
         if self._bar2_value is None:
             self._bar_state_str = self._control_id_bar + f"{self._bar1_value}\n"
         else:
@@ -305,6 +347,13 @@ class Slider(Control):
 
     @slider_value.setter
     def slider_value(self, val: float):
+        if not self._is_active:
+            self._is_active = True
+            if self._bar2_value is None:
+                self._bar_state_str = self._control_id_bar + f"{self._bar1_value}\n"
+            else:
+                self._bar_state_str = self._control_id_bar + "{:.2f}\t{:.2f}\n".format(self._bar1_value, self._bar2_value)
+        self._message_tx_event(self._bar_state_str)
         self._slider_value = val
         self._slider_state_str = self._control_hdr_str + f"{self._slider_value}\n"
         self._message_tx_event(self._slider_state_str)
