@@ -96,15 +96,21 @@ class Selector(Control):
         _state_str += "\n"
         return _state_str
 
-    def add_selection(self, text):
+    def add_selection(self, text) -> int:
         """Add a selector entry
 
         Parameters
         ----------
         text : str
             The text for the selection
+
+        Returns
+        -------
+        int
+            The index of inserted the item.
         """
         self.selection_list.append(text.translate(BAD_CHARS))
+        return len(self.selection_list) - 1
 
     def send_selection(self, position=None):
         """Sends the current selection list
