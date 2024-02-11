@@ -31,7 +31,7 @@ from .event import Event
 
 
 def _get_icon(icon_str: str) -> Icon:
-    icon_name = icon_str.upper().replace(" ", "")
+    icon_name = icon_str.upper().replace(" ", "_")
     return Icon[icon_name]
 
 
