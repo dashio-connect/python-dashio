@@ -203,6 +203,7 @@ class TitlePosition(Enum):
     """Title positions"""
     NONE = "None"
     TOP = "Top"
+    TOPLEFT = "Topleft"
     BOTTOM = "Bottom"
 
 
