@@ -133,8 +133,8 @@ class DashConnection(threading.Thread):
     close() :
         close the connection
     """
-    def _on_connect(self, client, userdata, flags, msg):
-        if msg == 0:
+    def _on_connect(self, client, userdata, flags, reason_code, properties):
+        if reason_code == 0:
             self._connection_state = ConnectionState.CONNECTED
             for device_id in self._device_id_list:
                 control_topic = f"{self.username}/{device_id}/control"
@@ -146,10 +146,10 @@ class DashConnection(threading.Thread):
             self._disconnect_timeout = 1.0
             logger.debug("connected OK")
         else:
-            logger.debug("Bad connection Returned code=%s", msg)
+            logger.debug("Bad connection Returned code=%s", reason_code)
 
-    def _on_disconnect(self, client, userdata, msg):
-        logger.debug("disconnecting reason  %s", msg)
+    def _on_disconnect(self, client, userdata, flags, reason_code, properties):
+        logger.debug("disconnecting reason  %s", reason_code)
         self._connection_state = ConnectionState.DISCONNECTED
         self._disconnect_timeout = 1.0
 
@@ -158,8 +158,8 @@ class DashConnection(threading.Thread):
         logger.debug("DASH RX:\n%s", data)
         self.tx_zmq_pub.send_multipart([msg.payload, self._b_zmq_connection_uuid])
 
-    def _on_subscribe(self, client, obj, mid, granted_qos):
-        logger.debug("Subscribed: %s %s", str(mid), str(granted_qos))
+    def _on_subscribe(self, client, userdata, mid, reason_codes, properties):
+        logger.debug("Subscribed: %s %s", str(mid), str(reason_codes))
 
     def _on_log(self, client, obj, level, string):
         logger.debug(string)
@@ -259,12 +259,11 @@ class DashConnection(threading.Thread):
         self.username = username
         self.host = host
         self.port = port
-        self._dash_c = mqtt.Client()
+        self._dash_c = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
         # Assign event callbacks
         self._dash_c.on_message = self._on_message
         self._dash_c.on_connect = self._on_connect
         self._dash_c.on_disconnect = self._on_disconnect
-        # self.dash_c.on_publish = self.__on_publish
         self._dash_c.on_subscribe = self._on_subscribe
         # self.connection_control = DashControl(self.zmq_connection_uuid, username, host)
         if use_ssl:
