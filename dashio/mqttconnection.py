@@ -42,8 +42,8 @@ logger = logging.getLogger(__name__)
 class MQTTConnection(threading.Thread):
     """Setups and manages a connection thread to the MQTT Server."""
 
-    def _on_connect(self, client, userdata, flags, msg):
-        if msg == 0:
+    def _on_connect(self, client, userdata, flags, reason_code, properties):
+        if reason_code == 0:
             self._connection_state = ConnectionState.CONNECTED
             for device_id in self._device_id_list:
                 control_topic = f"{self.username}/{device_id}/control"
@@ -54,10 +54,10 @@ class MQTTConnection(threading.Thread):
             self._send_dash_announce()
             logger.debug("connected OK")
         else:
-            logger.debug("Bad connection Returned code=%s", msg)
+            logger.debug("Bad connection Returned code=%s", reason_code)
 
-    def _on_disconnect(self, client, userdata, msg):
-        logger.debug("disconnecting reason  %s", msg)
+    def _on_disconnect(self, client, userdata, flags, reason_code, properties):
+        logger.debug("disconnecting reason  %s", reason_code)
         self._connection_state = ConnectionState.DISCONNECTED
 
     def _on_message(self, client, obj, msg):
@@ -65,8 +65,8 @@ class MQTTConnection(threading.Thread):
         logger.debug("MQTT RX:\n%s", data)
         self.tx_zmq_pub.send_multipart([msg.payload, self.b_connection_id])
 
-    def _on_subscribe(self, client, obj, mid, granted_qos):
-        logger.debug("Subscribed: %s %s", str(mid), str(granted_qos))
+    def _on_subscribe(self, client, userdata, mid, reason_codes, properties):
+        logger.debug("Subscribed: %s %s", str(mid), str(reason_codes))
 
     def _on_log(self, client, obj, level, string):
         logger.debug(string)
@@ -151,7 +151,7 @@ class MQTTConnection(threading.Thread):
         # self.last_will = "OFFLINE"
         self.running = True
         self.username = username
-        self.mqttc = mqtt.Client()
+        self.mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
         # Assign event callbacks
         self.mqttc.on_message = self._on_message
         self.mqttc.on_connect = self._on_connect
