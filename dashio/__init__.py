@@ -21,7 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-# flake8: noqa
+
 from .device import Device
 from .tcpconnection import TCPConnection
 from .mqttconnection import MQTTConnection
@@ -75,3 +75,66 @@ from .iotcontrol.control import Control, ControlPosition
 from .iotcontrol.button_group import ButtonGroup
 from .iotcontrol.event_log import EventData, EventLog
 from .iotcontrol.color_picker import ColorPicker
+
+__all__ = [
+    'Device',
+    'TCPConnection',
+    'MQTTConnection',
+    'ZMQConnection',
+    'DashConnection',
+    'SerialConnection',
+    'decode_cfg64',
+    'encode_cfg64',
+    'load_all_controls_from_config',
+    'get_control_dict_from_config',
+    'get_control_from_config',
+    'Color',
+    'Icon',
+    'Precision',
+    'SoundName',
+    'Keyboard',
+    'TextAlignment',
+    'TitlePosition',
+    'SliderBarStyle',
+    'DialNumberPosition',
+    'DialStyle',
+    'ChartLineType',
+    'TimeGraphLineType',
+    'TimeGraphPositionOfKey',
+    'ButtonState',
+    'LabelStyle',
+    'KnobStyle',
+    'ChartXAxisLabelsStyle',
+    'TextFormat',
+    'DirectionStyle',
+    'ColorPickerStyle',
+    'ControlName',
+    'ButtonStyle',
+    'ButtonGroupStyle',
+    'MenuStyle',
+    'AudioVisualDisplay',
+    'Chart',
+    'ChartLine',
+    'Slider',
+    'TextBox',
+    'Button',
+    'TimeGraph',
+    'TimeGraphLine',
+    'DataPoint',
+    'Knob',
+    'Dial',
+    'Direction',
+    'Map',
+    'MapLocation',
+    'Alarm',
+    'Menu',
+    'Selector',
+    'Label',
+    'DeviceView',
+    'Control',
+    'ControlPosition',
+    'ButtonGroup',
+    'EventData',
+    'EventLog',
+    'ColorPicker'
+]
