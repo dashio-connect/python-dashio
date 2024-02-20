@@ -77,16 +77,9 @@ class LteA767xConnection(threading.Thread):
         self.context = context or zmq.Context.instance()
         self.zmq_connection_uuid = "LTE:" + shortuuid.uuid()
         self.b_zmq_connection_uuid = self.zmq_connection_uuid.encode()
-        self._crtl_reboot_callback = None
-        self._crtl_cnctn_callback = None
-        self._crtl_device_id_callback = None
 
         self.running = True
         self._device_id_list = []
-        host_name = socket.gethostname()
-        host_list = host_name.split(".")
-        # rename for .local mDNS advertising
-        self.host_name = f"{host_list[0]}.local"
         self.serial_port = serial_port
         self.baud_rate = baud_rate
         self._init_serial()
