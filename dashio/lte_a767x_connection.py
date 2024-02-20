@@ -37,8 +37,8 @@ from .device import Device
 logger = logging.getLogger(__name__)
 
 
-class SerialConnection(threading.Thread):
-    """Under Development! - Setups and manages a connection thread to iotdashboard via a serial port."""
+class LteA767xConnection(threading.Thread):
+    """Under Active Development - DOES NOT WORK!"""
 
     def add_device(self, device: Device):
         """Add a device to the connection
@@ -52,126 +52,12 @@ class SerialConnection(threading.Thread):
             device.register_connection(self)
             self._device_id_list.append(device.device_id)
 
-    def _dashio_crtl_reboot(self, msg):
-        if self._crtl_reboot_callback:
-            self._crtl_reboot_callback(msg)
-
-    def set_crtl_reboot_callback(self, callback):
-        """
-        Specify a callback function to be called when DashIO Comms module sends CRTL message.
-
-        Parameters
-        ----------
-            callback:
-                The callback function. It will be invoked with one argument, the msg from the DashIO comms module.
-        """
-        self._crtl_reboot_callback = callback
-
-    def unset_crtl_reboot_callback(self):
-        """
-        Unset the reboot callback function.
-        """
-        self._crtl_reboot_callback = None
-
-    def _dashio_crtl_contection_callback(self, msg):
-        if self._crtl_cnctn_callback:
-            self._crtl_cnctn_callback(msg)
-
-    def _dashio_crtl_device_id_callback(self, msg):
-        if self._crtl_device_id_callback:
-            self._crtl_device_id_callback(msg)
-
-    def set_crtl_connection_callback(self, callback):
-        """
-        Specify a callback function to be called when DashIO Comms module sends CRTL CTCTN message.
-
-        Parameters
-        ----------
-            callback:
-                The callback function. It will be invoked with one argument, the msg from the DashIO comms module.
-        """
-        self._crtl_cnctn_callback = callback
-
-    def set_crtl_device_id_callback(self, callback):
-        """
-        Specify a callback function to be called when DashIO Comms module sends CRTL CTCTN message.
-
-        Parameters
-        ----------
-            callback:
-                The callback function. It will be invoked with one argument, the msg from the DashIO comms module.
-        """
-        self._crtl_device_id_callback = callback
-
-    def unset_crtl_connection_callback(self):
-        """
-        Unset connection callback function.
-        """
-        self._crtl_cnctn_callback = None
-
-    def set_comms_module_passthough(self, coms_device_id: str) -> None:
-        message = f"\t{coms_device_id}\tCTRL\tMODE\tPSTH\n"
-        self.serial_com.write(message.encode())
-
-    def set_comms_module_normal(self, coms_device_id: str) -> None:
-        message = f"\t{coms_device_id}\tCTRL\tMODE\tNML\n"
-        self.serial_com.write(message.encode())
-
-    def enable_comms_module_ble(self, coms_device_id: str, enable: bool) -> None:
-        if enable:
-            message = f"\t{coms_device_id}\tCTRL\tBLE\n"
-        else:
-            message = f"\t{coms_device_id}\tCTRL\tBLE\tHLT\n"
-        self.serial_com.write(message.encode())
-
-    def enable_comms_module_tcp(self, coms_device_id: str, enable: bool) -> None:
-        if enable:
-            message = f"\t{coms_device_id}\tCTRL\tTCP\n"
-        else:
-            message = f"\t{coms_device_id}\tCTRL\tTCP\tHLT\n"
-        self.serial_com.write(message.encode())
-
-    def enable_comms_module_dash(self, coms_device_id: str, enable: bool) -> None:
-        if enable:
-            message = f"\t{coms_device_id}\tCTRL\tMQTT\n"
-        else:
-            message = f"\t{coms_device_id}\tCTRL\tMQTT\tHLT\n"
-        self.serial_com.write(message.encode())
-
-    def set_comms_module_dash(self, coms_device_id: str, user_name: str, password: str) -> None:
-        message = f"\t{coms_device_id}\tDASHIO\t{user_name}\t{password}\n"
-        self.serial_com.write(message.encode())
-
-    def set_comms_module_tcp_port(self, coms_device_id: str, port: int) -> None:
-        message = f"\t{coms_device_id}\tTCP\t{port}\n"
-        self.serial_com.write(message.encode())
-
-    def set_comms_module_name(self, coms_device_id: str, name: str) -> None:
-        message = f"\t{coms_device_id}\tNAME\t{name}\n"
-        self.serial_com.write(message.encode())
-
-    def set_comms_module_wifi(self, coms_device_id: str, country_code: str, ssid: str, password: str) -> None:
-        message = f"\t{coms_device_id}\tWIFI\t{country_code}\t{ssid}\t{password}\n"
-        self.serial_com.write(message.encode())
-
-    def get_comms_module_active_connections(self, coms_device_id: str) -> None:
-        message = f"\t{coms_device_id}\tCTRL\tCNCTN\n"
-        self.serial_com.write(message.encode())
-
-    """
-        Like WHO and used to request the deviceID. Response from comms module is:
-        \t Device_ID \t CTRL \n
-    """
-    def reguest_comms_module_device_id(self) -> None:
-        message = "\tCTRL\n"
-        self.serial_com.write(message.encode())
-
     def _init_serial(self):
         try:
             self.serial_com = serial.Serial(self.serial_port, self.baud_rate, timeout=1.0)
             self.serial_com.flush()
         except serial.serialutil.SerialException as e:
-            logger.debug("Serial Err: %s", str(e))
+            logger.debug("LTE Serial Err: %s", str(e))
 
     def __init__(self, serial_port='/dev/ttyUSB0', baud_rate=115200, context: zmq.Context = None):
         """Serial Connection
@@ -188,13 +74,8 @@ class SerialConnection(threading.Thread):
 
         threading.Thread.__init__(self, daemon=True)
 
-        self.crtl_map = {
-            'REBOOT': self._dashio_crtl_reboot,
-            'CNCTN': self._dashio_crtl_contection_callback,
-        }
-
         self.context = context or zmq.Context.instance()
-        self.zmq_connection_uuid = "SERIAL:" + shortuuid.uuid()
+        self.zmq_connection_uuid = "LTE:" + shortuuid.uuid()
         self.b_zmq_connection_uuid = self.zmq_connection_uuid.encode()
         self._crtl_reboot_callback = None
         self._crtl_cnctn_callback = None
@@ -223,7 +104,7 @@ class SerialConnection(threading.Thread):
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         # Subscribe on ALL, and my connection
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "SERIAL")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "LTE")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.zmq_connection_uuid)
         # rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
 
@@ -243,7 +124,7 @@ class SerialConnection(threading.Thread):
                     continue
                 if not data:
                     continue
-                logger.debug("SERIAL Tx:\n%s", data.decode().rstrip())
+                logger.debug("LTE Tx:\n%s", data.decode().rstrip())
                 # be nice and split the strings up
                 lines = data.split(b'\n')
                 for line in lines:
@@ -251,7 +132,7 @@ class SerialConnection(threading.Thread):
                         try:
                             self.serial_com.write(line + b'\n')
                         except serial.serialutil.SerialException as e:
-                            logger.debug("Serial Error: %s", str(e))
+                            logger.debug("LTE Serial Error: %s", str(e))
                             time.sleep(1.0)
                             self._init_serial()
             try:
@@ -259,7 +140,7 @@ class SerialConnection(threading.Thread):
                     message = self.serial_com.readline()
                     if message:
                         try:
-                            logger.debug("SERIAL Rx:\n%s", message.rstrip().decode())
+                            logger.debug("LTE Rx:\n%s", message.rstrip().decode())
                             parts = message.strip().decode().split('\t')
                             if len(parts) == 2 and parts[1] == 'CTRL':
                                 if self._crtl_device_id_callback:
@@ -268,9 +149,9 @@ class SerialConnection(threading.Thread):
                                 self.crtl_map[parts[2]](parts)
                             tx_zmq_pub.send_multipart([message, self.b_zmq_connection_uuid])
                         except UnicodeDecodeError:
-                            logger.debug("SERIAL DECODE ERROR Rx:\n%s", message.hex())
+                            logger.debug("LTE SERIAL DECODE ERROR Rx:\n%s", message.hex())
             except OSError as e:
-                logger.debug("Serial Error: %s", str(e))
+                logger.debug("LTE Serial Error: %s", str(e))
                 time.sleep(1.0)
                 self._init_serial()
 
