@@ -22,7 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 import logging
-import socket
 import threading
 import time
 
@@ -37,7 +36,7 @@ from .device import Device
 logger = logging.getLogger(__name__)
 
 
-class LteA767xConnection(threading.Thread):
+class Lte767xConnection(threading.Thread):
     """Under Active Development - DOES NOT WORK!"""
 
     def add_device(self, device: Device):
