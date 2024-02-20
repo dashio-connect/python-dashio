@@ -205,6 +205,15 @@ class DashConnection(threading.Thread):
         logger.debug("DASH SEND ANNOUNCE: %s", msg)
         self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg).encode()])
 
+    def connect(self):
+        if self._connection_state == ConnectionState.CONNECTED:
+            self._dash_c.disconnect()
+        if self._connection_state == ConnectionState.CONNECTING:
+            logging.debug("Please wait. Try again later")
+            return
+        self._dash_c.username_pw_set(self.username, self.password)
+        self._dash_c.connect(self.host, self.port)
+
     def set_connection(self, username: str, password: str):
         """Changes the connection to the DashIO server
 
@@ -215,10 +224,9 @@ class DashConnection(threading.Thread):
         password : str
             password for the server
         """
-        self._dash_c.disconnect()
         self.username = username
-        self._dash_c.username_pw_set(username, password)
-        self._dash_c.connect(self.host, self.port)
+        self.password = password
+        self.connect()
 
     def __init__(
         self,
@@ -257,10 +265,12 @@ class DashConnection(threading.Thread):
         # self.LWD = "OFFLINE"
         self.running = True
         self.username = username
+        self.password = password
         self.host = host
         self.port = port
         self._dash_c = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
         # Assign event callbacks
+        self.disconnect = self._dash_c.disconnect
         self._dash_c.on_message = self._on_message
         self._dash_c.on_connect = self._on_connect
         self._dash_c.on_disconnect = self._on_disconnect
