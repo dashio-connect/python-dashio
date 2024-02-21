@@ -9,7 +9,7 @@ from .chart import Chart, ChartLine, ChartConfig
 from .slider import Slider, SliderConfig
 from .textbox import TextBox, TextBoxConfig
 from .button import Button, ButtonConfig
-from .time_graph import TimeGraph, TimeGraphLine, DataPoint, TimeGraphConfig
+from .time_graph import TimeGraph, TimeGraphLine, DataPoint, DataPointArray, TimeGraphConfig
 from .knob import Knob, KnobConfig
 from .dial import Dial, DialConfig
 from .direction import Direction, DirectionConfig
