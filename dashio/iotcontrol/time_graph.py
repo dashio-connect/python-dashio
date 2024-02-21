@@ -32,6 +32,29 @@ from .ring_buffer import RingBuffer
 from .event import Event
 
 
+class DataPointArray:
+    """
+    A time stamped data array for a Time Graph
+    """
+    def __init__(self, data: list):
+        """
+        A time stamped data array for a time series graph.
+
+        Parameters
+        ----------
+            data: A data array can contain an int, float, or string representing a number.
+        """
+        self.timestamp = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
+        for item in data:
+            if isinstance(item, str):
+                item = item.translate(BAD_CHARS)
+        self.data_point = data
+
+    def __str__(self):
+        dp_str = ','.join([str(i) for i in self.data_point])
+        return f"{self.timestamp.isoformat()},[{dp_str}]"
+
+
 class DataPoint:
     """
     A time stamped data point for a Time Graph
@@ -121,16 +144,26 @@ class TimeGraphLine:
             data_str = ""
         return data_str
 
-    def add_data_point(self, data_point: DataPoint):
-        """Add and sends a single datapoint to the line. It automatically timestamps to the current time.
+    def add_data_point(self, data):
+        """Add and sends a datapoint to the line. It automatically timestamps to the current time.
 
         Parameters
         ----------
-            data_point : DataPoint
-                A single data point
+            data_point : str, int, float, DataPoint, DataPointArray
+                A data point to add to the line.
         """
-        data_p = DataPoint(data_point)
+        if isinstance(data, DataPoint) or isinstance(data, DataPointArray):
+            self.data.append(data)
+        elif isinstance(data, str) or isinstance(data, float) or isinstance(data, int) or isinstance(data, bool):
+            data_p = DataPoint(data)
+        else:
+            raise TypeError("Not a valid data point")
         self.data.append(data_p)
+
+    def add_break(self):
+        self.timestamp = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
+        dp_break = f"{self.timestamp.isoformat()},B"
+        self.data.append(dp_break)
 
     def get_latest_data(self) -> str:
         """Get the last inserted datapoint

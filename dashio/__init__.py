@@ -62,7 +62,7 @@ from .iotcontrol.chart import Chart, ChartLine
 from .iotcontrol.slider import Slider
 from .iotcontrol.textbox import TextBox
 from .iotcontrol.button import Button
-from .iotcontrol.time_graph import TimeGraph, TimeGraphLine, DataPoint
+from .iotcontrol.time_graph import TimeGraph, TimeGraphLine, DataPoint, DataPointArray
 from .iotcontrol.knob import Knob
 from .iotcontrol.dial import Dial
 from .iotcontrol.direction import Direction
@@ -123,6 +123,7 @@ __all__ = [
     'TimeGraph',
     'TimeGraphLine',
     'DataPoint',
+    'DataPointArray',
     'Knob',
     'Dial',
     'Direction',
