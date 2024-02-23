@@ -168,11 +168,10 @@ class Map(Control):
         """
         super().__init__("MAP", control_id)
         self._app_columns_cfg[str(column_no)].append(ControlConfig(control_id, title, control_position, title_position))
-        self.tracks = {}
-        self.tracks["DEFAULT"] = self.default_track
+        #  self.tracks = {}
 
-        self._message_rx_event = Event()
-        self._message_rx_event += self._get_tracks_from_timestamp
+        #  self._message_rx_event = Event()
+        #  self._message_rx_event += self._get_tracks_from_timestamp
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
