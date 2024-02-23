@@ -1,4 +1,15 @@
 """
+DashIO
+------
+
+[python-dashio](https://github.com/dashio-connect/python-dashio) -
+Create beautiful mobile dashboards for your python project. The python-dashio
+library allows easy setup of controls such as Dials, Text Boxes, Charts, Graphs,
+and Notifications. You can define the look and layout of the controls on
+your phone from your python code. There are three methods to connect to your
+phone; Bluetooth Low Energy (BLE - on supported platforms), TCP, and MQTT via
+the dash.dashio.io server.
+
 MIT License
 
 Copyright (c) 2020 DashIO-Connect
