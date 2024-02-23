@@ -26,7 +26,7 @@ from enum import Enum
 
 class ConnectionState(Enum):
     """
-    Used Internally for MQTT and DashConnections
+    Used for MQTT and DashConnections
     """
     CONNECTED = 0
     CONNECTING = 1

@@ -135,7 +135,7 @@ class DashConnection(threading.Thread):
     """
     def _on_connect(self, client, userdata, flags, reason_code, properties):
         if reason_code == 0:
-            self._connection_state = ConnectionState.CONNECTED
+            self.connection_state = ConnectionState.CONNECTED
             for device_id in self._device_id_list:
                 control_topic = f"{self.username}/{device_id}/control"
                 self._dash_c.subscribe(control_topic, 0)
@@ -150,7 +150,7 @@ class DashConnection(threading.Thread):
 
     def _on_disconnect(self, client, userdata, flags, reason_code, properties):
         logger.debug("disconnecting reason  %s", reason_code)
-        self._connection_state = ConnectionState.DISCONNECTED
+        self.connection_state = ConnectionState.DISCONNECTED
         self._disconnect_timeout = 1.0
 
     def _on_message(self, client, obj, msg):
@@ -175,7 +175,7 @@ class DashConnection(threading.Thread):
         if device.device_id not in self._device_id_list:
             self._device_id_list.append(device.device_id)
             device.register_connection(self)
-            if self._connection_state == ConnectionState.CONNECTED:
+            if self.connection_state == ConnectionState.CONNECTED:
                 control_topic = f"{self.username}/{device.device_id}/control"
                 self._dash_c.subscribe(control_topic, 0)
                 self._send_dash_announce()
@@ -206,9 +206,9 @@ class DashConnection(threading.Thread):
         self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg).encode()])
 
     def connect(self):
-        if self._connection_state == ConnectionState.CONNECTED:
+        if self.connection_state == ConnectionState.CONNECTED:
             self._dash_c.disconnect()
-        if self._connection_state == ConnectionState.CONNECTING:
+        if self.connection_state == ConnectionState.CONNECTING:
             logging.debug("Please wait. Try again later")
             return
         self._dash_c.username_pw_set(self.username, self.password)
@@ -257,7 +257,7 @@ class DashConnection(threading.Thread):
         threading.Thread.__init__(self, daemon=True)
 
         self.context = context or zmq.Context.instance()
-        self._connection_state = ConnectionState.DISCONNECTED
+        self.connection_state = ConnectionState.DISCONNECTED
         self.zmq_connection_uuid = "DASH:" + shortuuid.uuid()
         self._b_zmq_connection_uuid = self.zmq_connection_uuid.encode('utf-8')
         self._device_id_list = []
@@ -294,7 +294,7 @@ class DashConnection(threading.Thread):
             self._dash_c.username_pw_set(username, password)
             try:
                 self._dash_c.connect(host, port)
-                self._connection_state = ConnectionState.CONNECTING
+                self.connection_state = ConnectionState.CONNECTING
             except (mqtt.socket.gaierror, ConnectionRefusedError) as error:
                 logger.debug("No connection to server: %s", str(error))
         # Start subscribe, with QoS level 0
@@ -361,15 +361,15 @@ class DashConnection(threading.Thread):
                     data_topic = f"{self.username}/{device_id}/announce"
                 else:
                     data_topic = f"{self.username}/{device_id}/data"
-                if self._connection_state == ConnectionState.CONNECTED and data_topic:
+                if self.connection_state == ConnectionState.CONNECTED and data_topic:
                     logger.debug("DASH TX:\n%s", data.decode().rstrip())
                     self._dash_c.publish(data_topic, data.decode())
-            if self._connection_state == ConnectionState.DISCONNECTED:
+            if self.connection_state == ConnectionState.DISCONNECTED:
                 self._disconnect_timeout = min(self._disconnect_timeout, 900)
                 time.sleep(self._disconnect_timeout)
                 try:
                     self._dash_c.connect(self.host, self.port)
-                    self._connection_state = ConnectionState.CONNECTING
+                    self.connection_state = ConnectionState.CONNECTING
                 except (mqtt.socket.gaierror, ConnectionRefusedError) as error:
                     logger.debug("No connection to server: %s", str(error))
                 self._disconnect_timeout = self._disconnect_timeout * 2

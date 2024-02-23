@@ -55,7 +55,8 @@ from .iotcontrol.enums import (
     ControlName,
     ButtonStyle,
     ButtonGroupStyle,
-    MenuStyle
+    MenuStyle,
+    ConnectionState
 )
 from .iotcontrol.audio_visual_display import AudioVisualDisplay
 from .iotcontrol.chart import Chart, ChartLine
@@ -83,6 +84,7 @@ __all__ = [
     'MQTTConnection',
     'ZMQConnection',
     'DashConnection',
+    'ConnectionState',
     'SerialConnection',
     'Schedular',
     'decode_cfg64',
