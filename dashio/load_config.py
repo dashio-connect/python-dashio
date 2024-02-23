@@ -41,7 +41,8 @@ from .iotcontrol import (
     Direction, DirectionConfig,
     EventLog,
     Knob, KnobConfig,
-    AudioVisualDisplay, ControlConfig
+    AudioVisualDisplay, ControlConfig,
+    Map,
 )
 
 CONTROL_INSTANCE_DICT = {
@@ -60,7 +61,8 @@ CONTROL_INSTANCE_DICT = {
     "SLDR": Slider,
     "DIR": Direction,
     "LOG": EventLog,
-    "LBL": Label
+    "LBL": Label,
+    "MAP": Map
 }
 
 CONFIG_INSTANCE_DICT = {
@@ -79,7 +81,8 @@ CONFIG_INSTANCE_DICT = {
     "SLDR": SliderConfig,
     "DIR": DirectionConfig,
     "LOG": ControlConfig,
-    "LBL": ControlConfig
+    "LBL": ControlConfig,
+    "Map": ControlConfig
 }
 
 
