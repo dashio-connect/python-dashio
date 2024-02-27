@@ -276,6 +276,11 @@ class Device(threading.Thread):
                 The type of control
             control_id : str
                 The controlID of the control
+
+        Returns
+        -------
+            Control | None
+                The requested control or None if the control isn't available.
         """
         key = f"{control_type.value}\t{control_id}"
         return self.controls_dict.get(key, None)

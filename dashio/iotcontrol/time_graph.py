@@ -162,7 +162,7 @@ class TimeGraphLine:
 
     def add_break(self):
         self.timestamp = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
-        dp_break = f"{self.timestamp.isoformat()},B"
+        dp_break = DataPoint("B")
         self.data.append(dp_break)
 
     def get_latest_data(self) -> str:
