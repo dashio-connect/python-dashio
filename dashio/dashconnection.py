@@ -208,11 +208,14 @@ class DashConnection(threading.Thread):
     def connect(self):
         if self.connection_state == ConnectionState.CONNECTED:
             self._dash_c.disconnect()
+            self.connection_state = ConnectionState.DISCONNECTED
         if self.connection_state == ConnectionState.CONNECTING:
             logging.debug("Please wait. Try again later")
             return
-        self._dash_c.username_pw_set(self.username, self.password)
-        self._dash_c.connect(self.host, self.port)
+        else:
+            self._dash_c.username_pw_set(self.username, self.password)
+            self._dash_c.connect(self.host, self.port)
+            self.connection_state == ConnectionState.CONNECTING
 
     def set_connection(self, username: str, password: str):
         """Changes the connection to the DashIO server
