@@ -156,9 +156,9 @@ class TimeGraphLine:
             self.data.append(data)
         elif isinstance(data, str) or isinstance(data, float) or isinstance(data, int) or isinstance(data, bool):
             data_p = DataPoint(data)
+            self.data.append(data_p)
         else:
             raise TypeError("Not a valid data point")
-        self.data.append(data_p)
 
     def add_break(self):
         self.timestamp = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
