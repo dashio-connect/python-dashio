@@ -88,7 +88,7 @@ class MapLocation:
         _type_
             _description_
         """
-        return f"\t{self.latitude},{self.longitude}\n"
+        return f"\t{self._map_loc["latitude"]},{self._map_loc["longitude"]}\n"
 
 
 class MapTrack:
@@ -168,10 +168,10 @@ class Map(Control):
         """
         super().__init__("MAP", control_id)
         self._app_columns_cfg[str(column_no)].append(ControlConfig(control_id, title, control_position, title_position))
-        #  self.tracks = {}
+        self.tracks = {}
 
-        #  self._message_rx_event = Event()
-        #  self._message_rx_event += self._get_tracks_from_timestamp
+        self._message_rx_event = Event()
+        self._message_rx_event += self._get_tracks_from_timestamp
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
@@ -225,9 +225,9 @@ class Map(Control):
             self.tracks[track_id].add_location(location)
         self.send_location(location, track_id)
 
-    def send_location(self, location, track_id=""):
+    def send_location(self, location: MapLocation, track_id: str = ""):
         """Sends the locations to the map
         """
         state_str = ""
-        state_str += self._control_hdr_str + track_id + location.simple_format()
+        state_str += self._control_hdr_str + track_id + location.get_simple_format()
         self.state_str = state_str

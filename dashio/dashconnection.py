@@ -150,6 +150,7 @@ class DashConnection(threading.Thread):
 
     def _on_disconnect(self, client, userdata, flags, reason_code, properties):
         logger.debug("disconnecting reason  %s", reason_code)
+        self._dash_c.username_pw_set(self.username, self.password)
         self.connection_state = ConnectionState.DISCONNECTED
         self._disconnect_timeout = 1.0
 
@@ -206,16 +207,12 @@ class DashConnection(threading.Thread):
         self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg).encode()])
 
     def connect(self):
-        if self.connection_state == ConnectionState.CONNECTED:
-            self._dash_c.disconnect()
-            self.connection_state = ConnectionState.DISCONNECTED
-        if self.connection_state == ConnectionState.CONNECTING:
-            logging.debug("Please wait. Try again later")
-            return
-        else:
-            self._dash_c.username_pw_set(self.username, self.password)
+        logger.debug("Connecting..")
+        try:
             self._dash_c.connect(self.host, self.port)
-            self.connection_state == ConnectionState.CONNECTING
+            self.connection_state = ConnectionState.CONNECTING
+        except (mqtt.socket.gaierror, ConnectionRefusedError) as error:
+            logger.debug("No connection to server: %s", str(error))
 
     def set_connection(self, username: str, password: str):
         """Changes the connection to the DashIO server
@@ -229,7 +226,7 @@ class DashConnection(threading.Thread):
         """
         self.username = username
         self.password = password
-        self.connect()
+        self._dash_c.disconnect()
 
     def __init__(
         self,
@@ -273,7 +270,7 @@ class DashConnection(threading.Thread):
         self.port = port
         self._dash_c = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
         # Assign event callbacks
-        self.disconnect = self._dash_c.disconnect
+
         self._dash_c.on_message = self._on_message
         self._dash_c.on_connect = self._on_connect
         self._dash_c.on_disconnect = self._on_disconnect
@@ -290,16 +287,12 @@ class DashConnection(threading.Thread):
             )
             self._dash_c.tls_insecure_set(False)
 
+        self._dash_c.username_pw_set(self.username, self.password)
         # self.dash_c.on_log = self.__on_log
         # self._dash_c.will_set(self.data_topic, self.LWD, qos=1, retain=False)
         # Connect
         if username and password:
-            self._dash_c.username_pw_set(username, password)
-            try:
-                self._dash_c.connect(host, port)
-                self.connection_state = ConnectionState.CONNECTING
-            except (mqtt.socket.gaierror, ConnectionRefusedError) as error:
-                logger.debug("No connection to server: %s", str(error))
+            self.connect()
         # Start subscribe, with QoS level 0
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         self._disconnect_timeout = 1.0
@@ -370,11 +363,7 @@ class DashConnection(threading.Thread):
             if self.connection_state == ConnectionState.DISCONNECTED:
                 self._disconnect_timeout = min(self._disconnect_timeout, 900)
                 time.sleep(self._disconnect_timeout)
-                try:
-                    self._dash_c.connect(self.host, self.port)
-                    self.connection_state = ConnectionState.CONNECTING
-                except (mqtt.socket.gaierror, ConnectionRefusedError) as error:
-                    logger.debug("No connection to server: %s", str(error))
+                self.connect()
                 self._disconnect_timeout = self._disconnect_timeout * 2
 
         self._dash_c.loop_stop()
