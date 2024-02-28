@@ -53,6 +53,7 @@ class ControlName(Enum):
     DIR = "DIR"
     LOG = "LOG"
     LBL = "LBL"
+    MAP = "MAP"
 
 
 class Icon(Enum):
