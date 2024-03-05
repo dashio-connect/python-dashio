@@ -209,6 +209,16 @@ class Device(threading.Thread):
         except zmq.error.ZMQError:
             pass
 
+    def storage_enable(self, control_type: ControlName, control_id: str) -> None:
+        key = f"{control_type.value}\t{control_id}"
+        if key not in self.controls_dict:
+            return
+        if control_type not in [ControlName.LOG, ControlName.MAP, ControlName.TGRPH]:
+            return
+        payload = self._device_id_str + f"\tSTE\t{control_type.value}\t{control_id}\n"
+        logger.debug("STORAGE ENABLE: %s", payload)
+        self.tx_zmq_pub.send_multipart([b"DASH", payload.encode('utf-8')])
+
     def _send_announce(self):
         payload = self._device_id_str + f"\tWHO\t{self.device_type}\t{self.device_name}\n"
         logger.debug("ANNOUNCE: %s", payload)
