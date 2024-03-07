@@ -59,7 +59,7 @@ class Lte767xConnection(threading.Thread):
             logger.debug("LTE Serial Err: %s", str(e))
 
     def __init__(self, serial_port='/dev/ttyUSB0', baud_rate=115200, context: zmq.Context = None):
-        """Serial Connection
+        """LTE 767x Connection
 
         Parameters
         ---------
