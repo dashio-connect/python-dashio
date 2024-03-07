@@ -329,7 +329,7 @@ class DashConnection(threading.Thread):
             except zmq.error.ContextTerminated:
                 break
 
-            if self.rx_zmq_sub in socks:
+            if self.rx_zmq_sub in socks and self.connection_state == ConnectionState.CONNECTED:
                 try:
                     [msg_to, data] = self.rx_zmq_sub.recv_multipart()
                 except ValueError:
@@ -357,9 +357,8 @@ class DashConnection(threading.Thread):
                     data_topic = f"{self.username}/{device_id}/announce"
                 else:
                     data_topic = f"{self.username}/{device_id}/data"
-                if self.connection_state == ConnectionState.CONNECTED and data_topic:
-                    logger.debug("DASH TX:\n%s", data.decode().rstrip())
-                    self._dash_c.publish(data_topic, data.decode())
+                logger.debug("DASH TX:\n%s", data.decode().rstrip())
+                self._dash_c.publish(data_topic, data.decode())
             if self.connection_state == ConnectionState.DISCONNECTED:
                 self._disconnect_timeout = min(self._disconnect_timeout, 900)
                 time.sleep(self._disconnect_timeout)

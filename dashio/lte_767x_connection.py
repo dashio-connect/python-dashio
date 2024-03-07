@@ -31,6 +31,7 @@ import serial
 
 from .constants import CONNECTION_PUB_URL
 from .device import Device
+from .iotcontrol.enums import ConnectionState
 
 
 logger = logging.getLogger(__name__)
@@ -55,6 +56,7 @@ class Lte767xConnection(threading.Thread):
         try:
             self.serial_com = serial.Serial(self.serial_port, self.baud_rate, timeout=1.0)
             self.serial_com.flush()
+            self.connection_state = ConnectionState.CONNECTED  # Change this to CONNECTING
         except serial.serialutil.SerialException as e:
             logger.debug("LTE Serial Err: %s", str(e))
 
@@ -72,7 +74,7 @@ class Lte767xConnection(threading.Thread):
         """
 
         threading.Thread.__init__(self, daemon=True)
-
+        self.connection_state = ConnectionState.DISCONNECTED
         self.context = context or zmq.Context.instance()
         self.zmq_connection_uuid = "LTE:" + shortuuid.uuid()
         self.b_zmq_connection_uuid = self.zmq_connection_uuid.encode()
@@ -108,27 +110,37 @@ class Lte767xConnection(threading.Thread):
                 socks = dict(poller.poll(1))
             except zmq.error.ContextTerminated:
                 break
-            if self.rx_zmq_sub in socks:
+            if self.rx_zmq_sub in socks and self.connection_state == ConnectionState.CONNECTED:  # If not connected the incoming messages are queued
                 try:
-                    [_, data] = self.rx_zmq_sub.recv_multipart()
+                    [msg_to, data] = self.rx_zmq_sub.recv_multipart()
                 except ValueError:
                     #  If there aren't two parts continue.
                     continue
                 if not data:
                     continue
-                logger.debug("LTE Tx:\n%s", data.decode().rstrip())
-                # be nice and split the strings up
-                lines = data.split(b'\n')
-                for line in lines:
-                    if line:
-                        try:
-                            self.serial_com.write(line + b'\n')
-                        except serial.serialutil.SerialException as e:
-                            logger.debug("LTE Serial Error: %s", str(e))
-                            time.sleep(1.0)
-                            self._init_serial()
+
+                msg_l = data.split(b'\t')
+                if len(msg_l) > 3:
+                    control_type = msg_l[2]
+                try:
+                    device_id = msg_l[1].decode().strip()
+                except IndexError:
+                    continue
+                if control_type == b'ALM':
+                    data_topic = f"{self.username}/{device_id}/alarm"
+                    control_type = ""
+                elif msg_to == b"DASH":
+                    data_topic = f"{self.username}/{device_id}/announce"
+                else:
+                    data_topic = f"{self.username}/{device_id}/data"
+
+                logger.debug("LTE TX:\n%s\n%s", data_topic, data.decode().rstrip())
+
+                # self._lte_publish(data_topic, data.decode()) <- craig needs to write this function
+
             try:
                 if self.serial_com.in_waiting > 0:
+                    # Craig needs to change this to get data from LTE
                     message = self.serial_com.readline()
                     if message:
                         try:
