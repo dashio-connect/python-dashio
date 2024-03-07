@@ -180,7 +180,7 @@ class Map(Control):
         Parameters
         ----------
         cfg_dict : dict
-            A dictionary usually loaded from a config json from IoTDashboard App
+            A dictionary usually loaded from a config json from the IoTDashboard App
 
         Returns
         -------
