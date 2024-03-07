@@ -145,12 +145,6 @@ class Lte767xConnection(threading.Thread):
                     if message:
                         try:
                             logger.debug("LTE Rx:\n%s", message.rstrip().decode())
-                            parts = message.strip().decode().split('\t')
-                            if len(parts) == 2 and parts[1] == 'CTRL':
-                                if self._crtl_device_id_callback:
-                                    self._crtl_device_id_callback(parts)
-                            elif len(parts) > 2 and parts[1] == 'CTRL':
-                                self.crtl_map[parts[2]](parts)
                             tx_zmq_pub.send_multipart([message, self.b_zmq_connection_uuid])
                         except UnicodeDecodeError:
                             logger.debug("LTE SERIAL DECODE ERROR Rx:\n%s", message.hex())
