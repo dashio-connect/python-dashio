@@ -21,6 +21,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
+from __future__ import annotations
 from .control import Control, ControlPosition, ControlConfig, _get_title_position
 from .enums import (TitlePosition)
 
@@ -34,7 +36,7 @@ class AudioVisualDisplay(Control):
         control_id: str,
         title="A Audio visual display",
         title_position=TitlePosition.BOTTOM,
-        control_position=None,
+        control_position: ControlPosition | None = None,
         column_no=1
     ):
         """AudioVisualDisplay

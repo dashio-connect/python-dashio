@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 import datetime
-import dateutil
+from dateutil import parser
 import json
 
 from ..constants import BAD_CHARS
@@ -200,13 +200,13 @@ class Map(Control):
         reply = ""
         try:
             dashboard_id = msg[3]
-            from_timestamp = dateutil.parser.isoparse(msg[4])
+            from_timestamp = parser.isoparse(msg[4])
         except IndexError:
             return ""
         if self.tracks:
             for _, value in self.tracks:
                 if value.track_start_time > from_timestamp:
-                    reply = + self._control_hdr_str + dashboard_id + value.get_track() + "\n"
+                    reply += self._control_hdr_str + dashboard_id + value.get_track() + "\n"
         return reply
 
     def add_location_to_track(self, location: MapLocation, track_id: str) -> None:

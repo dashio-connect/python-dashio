@@ -21,6 +21,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
+from __future__ import annotations
 from ..constants import BAD_CHARS
 from .button import Button
 from .control import Control, ControlPosition, ControlConfig, _get_icon, _get_title_position, _get_button_group_style
@@ -37,7 +39,7 @@ class ButtonGroupConfig(ControlConfig):
         style: ButtonGroupStyle,
         icon: Icon,
         grid_view: bool,
-        control_position: ControlPosition,
+        control_position: ControlPosition | None,
         title_position: TitlePosition
     ) -> None:
         super().__init__(control_id, title, control_position, title_position)
@@ -100,7 +102,7 @@ class ButtonGroup(Control):
         style=ButtonGroupStyle.BASIC,
         icon=Icon.MENU,
         grid_view=True,
-        control_position=None,
+        control_position: ControlPosition | None = None,
         column_no=1
     ):
         """ButtonGroup control that shows a popup of buttons.

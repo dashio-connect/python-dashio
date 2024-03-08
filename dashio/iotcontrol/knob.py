@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+from __future__ import annotations
 from .control import Control, ControlPosition, ControlConfig, _get_color, _get_title_position, _get_knob_style, _get_color_str
 from .enums import Color, KnobStyle, TitlePosition
 
@@ -39,8 +40,8 @@ class KnobConfig(ControlConfig):
         show_min_max: bool,
         send_only_on_release: bool,
         dial_follows_knob: bool,
-        dial_color: Color,
-        knob_color: Color,
+        dial_color: Color | str,
+        knob_color: Color | str,
         control_position=None,
     ) -> None:
         super().__init__(control_id, title, control_position, title_position)
@@ -110,8 +111,8 @@ class Knob(Control):
         show_min_max=False,
         send_only_on_release=True,
         dial_follows_knob=False,
-        dial_color=Color.BLUE,
-        knob_color=Color.RED,
+        dial_color: Color | str = Color.BLUE,
+        knob_color: Color | str = Color.RED,
         control_position=None,
         column_no=1
     ):

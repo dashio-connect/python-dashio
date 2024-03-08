@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+from __future__ import annotations
 from .control import Control, ControlPosition, ControlConfig, _get_title_position, _get_color, _get_bar_style, _get_color_str
 from .enums import Color, SliderBarStyle, TitlePosition
 
@@ -39,10 +40,10 @@ class SliderConfig(ControlConfig):
         slider_enabled: bool,
         send_only_on_release: bool,
         bar_follows_slider: bool,
-        bar_color: Color,
-        knob_color: Color,
+        bar_color: Color | str,
+        knob_color: Color | str,
         bar_style: SliderBarStyle,
-        control_position: ControlPosition,
+        control_position: ControlPosition | None,
     ) -> None:
         super().__init__(control_id, title, control_position, title_position)
         self.cfg["redValue"] = red_value
@@ -92,23 +93,6 @@ class SliderConfig(ControlConfig):
 class Slider(Control):
     """Single slider bar control
     """
-
-    def add_config_columnar(self, config: SliderConfig):
-        if isinstance(config, SliderConfig):
-            config.cfg["min"] = self.bar_min
-            config.cfg["max"] = self.bar_max
-            config.cfg["redValue"] = self.red_value
-            config.cfg["ControlID"] = self.control_id
-            self._cfg_columnar.append(config)
-
-    def add_config_full_page(self, config: SliderConfig):
-        if isinstance(config, SliderConfig):
-            config.cfg["min"] = self.bar_min
-            config.cfg["max"] = self.bar_max
-            config.cfg["redValue"] = self.red_value
-            config.cfg["ControlID"] = self.control_id
-            self._cfg_columnar.append(config)
-
     def __init__(
         self,
         control_id: str,
@@ -121,8 +105,8 @@ class Slider(Control):
         slider_enabled=True,
         send_only_on_release=True,
         bar_follows_slider=False,
-        bar_color=Color.BLUE,
-        knob_color=Color.RED,
+        bar_color: Color | str = Color.BLUE,
+        knob_color: Color | str = Color.RED,
         bar_style=SliderBarStyle.SEG,
         control_position=None,
         column_no=1
@@ -309,7 +293,7 @@ class Slider(Control):
         self._bar_slider_state_str = self._slider_state_str + self._bar_state_str
 
     @property
-    def bar2_value(self) -> float:
+    def bar2_value(self) -> float | None:
         """bar2 value
 
         Returns

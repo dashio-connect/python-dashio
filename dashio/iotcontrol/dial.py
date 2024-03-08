@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+from __future__ import annotations
 from .control import Control, ControlPosition, ControlConfig, _get_color, _get_title_position, _get_dial_number_position, _get_dial_style, _get_precision, _get_color_str
 from .enums import (Color, DialNumberPosition, DialStyle, Precision,
                     TitlePosition)
@@ -36,14 +37,14 @@ class DialConfig(ControlConfig):
         dial_min: float,
         dial_max: float,
         red_value: float,
-        dial_fill_color: Color,
-        pointer_color: Color,
+        dial_fill_color: Color | str,
+        pointer_color: Color | str,
         number_position: DialNumberPosition,
         show_min_max: bool,
         style: DialStyle,
         precision: Precision,
         units: str,
-        control_position: ControlPosition
+        control_position: ControlPosition | None
     ) -> None:
         super().__init__(control_id, title, control_position, title_position)
         self.cfg["min"] = dial_min
@@ -109,8 +110,8 @@ class Dial(Control):
         dial_min=0.0,
         dial_max=100.0,
         red_value=75.0,
-        dial_fill_color=Color.RED,
-        pointer_color=Color.BLUE,
+        dial_fill_color: Color | str = Color.RED,
+        pointer_color: Color | str = Color.BLUE,
         number_position=DialNumberPosition.LEFT,
         show_min_max=False,
         style=DialStyle.PIE,

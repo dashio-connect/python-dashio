@@ -21,6 +21,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
+from __future__ import annotations
 import json
 import logging
 import ssl
@@ -30,7 +32,7 @@ import time
 import paho.mqtt.client as mqtt
 import shortuuid
 import zmq
-
+from socket import gaierror
 from .constants import CONNECTION_PUB_URL
 
 from .iotcontrol.enums import ConnectionState
@@ -116,7 +118,7 @@ class MQTTConnection(threading.Thread):
         """Close the connection."""
         self.running = False
 
-    def __init__(self, host, port, username="", password="", use_ssl=False, context: zmq.Context = None):
+    def __init__(self, host, port, username="", password="", use_ssl=False, context: zmq.Context | None = None):
         """
         Setups and manages a connection thread to the MQTT Server.
 
@@ -151,11 +153,11 @@ class MQTTConnection(threading.Thread):
         # self.last_will = "OFFLINE"
         self.running = True
         self.username = username
-        self.mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+        self.mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)  # type: ignore
         # Assign event callbacks
         self.mqttc.on_message = self._on_message
         self.mqttc.on_connect = self._on_connect
-        self.mqttc.on_disconnect = self._on_disconnect
+        self.mqttc.on_disconnect = self._on_disconnect  # type: ignore
         self.mqttc.on_subscribe = self._on_subscribe
 
         if use_ssl:
@@ -177,7 +179,7 @@ class MQTTConnection(threading.Thread):
         try:
             self.mqttc.connect(self.host, self.port)
             self._connection_state = ConnectionState.CONNECTING
-        except mqtt.socket.gaierror as error:
+        except gaierror as error:
             logger.debug("No connection to internet: %s", str(error))
         # Start subscribe, with QoS level 0
         self._disconnect_timeout = 1.0
@@ -241,7 +243,7 @@ class MQTTConnection(threading.Thread):
                 try:
                     self.mqttc.connect(self.host, self.port)
                     self._connection_state = ConnectionState.CONNECTING
-                except mqtt.socket.gaierror as error:
+                except gaierror as error:
                     logger.debug("No connection to internet: %s", str(error))
                 self._disconnect_timeout = self._disconnect_timeout * 2
 

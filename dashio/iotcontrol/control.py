@@ -21,6 +21,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
+from __future__ import annotations
 import json
 
 from ..constants import BAD_CHARS
@@ -35,14 +37,16 @@ def _get_icon(icon_str: str) -> Icon:
     return Icon[icon_name]
 
 
-def _get_color_str(color) -> str:
+def _get_color_str(color: str | Color) -> str:
     if isinstance(color, str):
         if color[0] == '#':
             return color
-    return str(color.value)
+    if isinstance(color, Color):
+        return str(color.value)
+    return ""
 
 
-def _get_color(color_str: str) -> Color:
+def _get_color(color_str: str) -> Color | str:
     if color_str[0] == '#':
         return color_str
     color_name = color_str.upper().replace(" ", "_")
@@ -217,8 +221,8 @@ class ControlConfig:
         self,
         control_id: str,
         title: str,
-        control_position: ControlPosition,
-        title_position: TitlePosition
+        control_position: ControlPosition | None,
+        title_position: TitlePosition | None
 
     ) -> None:
         self.cfg = {}

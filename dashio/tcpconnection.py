@@ -21,6 +21,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
+from __future__ import annotations
 import json
 import logging
 import threading
@@ -62,7 +64,7 @@ class TCPConnection(threading.Thread):
             self.local_device_id_list.append(device.device_id)
             self.z_conf.add_device(device.device_id)
 
-    def __init__(self, ip_address="*", port=5650, use_zero_conf=True, context: zmq.Context = None):
+    def __init__(self, ip_address="*", port=5650, use_zero_conf=True, context: zmq.Context | None = None):
         """TCP Connection
 
         Parameters

@@ -28,7 +28,7 @@ import time
 import shortuuid
 import zmq
 import serial
-
+from serial.serialutil import SerialException
 from .constants import CONNECTION_PUB_URL
 from .device import Device
 from .iotcontrol.enums import ConnectionState
@@ -57,7 +57,7 @@ class Lte767xConnection(threading.Thread):
             self.serial_com = serial.Serial(self.serial_port, self.baud_rate, timeout=1.0)
             self.serial_com.flush()
             self.connection_state = ConnectionState.CONNECTED  # Change this to CONNECTING
-        except serial.serialutil.SerialException as e:
+        except SerialException as e:
             logger.debug("LTE Serial Err: %s", str(e))
 
     def __init__(
@@ -68,7 +68,7 @@ class Lte767xConnection(threading.Thread):
         port=8883,
         serial_port='/dev/ttyUSB0',
         baud_rate=115200,
-        context: zmq.Context = None
+        context=None
     ):
         """LTE 767x Connection
 

@@ -21,6 +21,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
+from __future__ import annotations
 import logging
 import socket
 import threading
@@ -29,7 +31,7 @@ import time
 import shortuuid
 import zmq
 import serial
-
+from serial.serialutil import SerialException
 from .constants import CONNECTION_PUB_URL
 from .device import Device
 
@@ -170,10 +172,10 @@ class SerialConnection(threading.Thread):
         try:
             self.serial_com = serial.Serial(self.serial_port, self.baud_rate, timeout=1.0)
             self.serial_com.flush()
-        except serial.serialutil.SerialException as e:
+        except SerialException as e:
             logger.debug("Serial Err: %s", str(e))
 
-    def __init__(self, serial_port='/dev/ttyUSB0', baud_rate=115200, context: zmq.Context = None):
+    def __init__(self, serial_port='/dev/ttyUSB0', baud_rate=115200, context: zmq.Context | None = None):
         """Serial Connection
 
         Parameters
@@ -250,7 +252,7 @@ class SerialConnection(threading.Thread):
                     if line:
                         try:
                             self.serial_com.write(line + b'\n')
-                        except serial.serialutil.SerialException as e:
+                        except SerialException as e:
                             logger.debug("Serial Error: %s", str(e))
                             time.sleep(1.0)
                             self._init_serial()

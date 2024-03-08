@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+from __future__ import annotations
 from .control import Control, ControlConfig, _get_color, _get_icon, _get_device_view_style, _get_color_str
 from .enums import Color, Icon, DeviceViewStyle
 
@@ -33,14 +34,14 @@ class DeviceViewConfig(ControlConfig):
         title: str,
         style: DeviceViewStyle,
         icon_name: Icon,
-        color: Color,
+        color: Color | str,
         share_column: bool,
         num_columns: int,
-        control_title_box_color: Color,
+        control_title_box_color: Color | str,
         control_title_box_transparency: int,
-        control_color: Color,
-        control_border_color: Color,
-        control_background_color: Color,
+        control_color: Color | str,
+        control_border_color: Color | str,
+        control_background_color: Color | str,
         control_title_font_size: int,
         control_max_font_size: int,
         control_background_transparency: int,
@@ -158,14 +159,14 @@ class DeviceView(Control):
         title="A DeviceView",
         style=DeviceViewStyle.BASIC,
         icon=Icon.SQUARE,
-        color=Color.BLACK,
+        color: Color | str = Color.BLACK,
         share_column=True,
         num_columns=1,
-        control_title_box_color=Color.BLACK,
+        control_title_box_color: Color | str = Color.BLACK,
         control_title_box_transparency=0,
-        control_color=Color.WHITE_SMOKE,
-        control_border_color=Color.WHITE_SMOKE,
-        control_background_color=Color.BLACK,
+        control_color: Color | str = Color.WHITE_SMOKE,
+        control_border_color: Color | str = Color.WHITE_SMOKE,
+        control_background_color: Color | str = Color.BLACK,
         control_title_font_size=16,
         control_max_font_size=20,
         control_background_transparency=0,

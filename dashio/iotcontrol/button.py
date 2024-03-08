@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+from __future__ import annotations
 from ..constants import BAD_CHARS
 from .control import Control, ControlPosition, ControlConfig, _get_color, _get_icon, _get_title_position, _get_button_style, _get_color_str
 from .enums import ButtonState, Color, Icon, TitlePosition, ButtonStyle
@@ -36,10 +37,10 @@ class ButtonConfig(ControlConfig):
         button_enabled: bool,
         style: ButtonStyle,
         icon_name: Icon,
-        on_color: Color,
-        off_color: Color,
+        on_color: Color | str,
+        off_color: Color | str,
         text: str,
-        control_position: ControlPosition
+        control_position: ControlPosition | None
     ) -> None:
         super().__init__(control_id, title, control_position, title_position)
         self.cfg["text"] = text.translate(BAD_CHARS)
@@ -136,10 +137,10 @@ class Button(Control):
         button_enabled=True,
         style=ButtonStyle.BASIC,
         icon_name=Icon.NONE,
-        on_color=Color.BLUE,
-        off_color=Color.RED,
+        on_color: Color | str = Color.BLUE,
+        off_color: Color | str = Color.RED,
         text="",
-        control_position: ControlPosition = None,
+        control_position: ControlPosition | None = None,
         column_no=1
     ):
         super().__init__("BTTN", control_id)

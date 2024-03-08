@@ -260,7 +260,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
         #  logger.debug("BLE ZMQ TX: %s", msg)
         self.tx_zmq_pub.send_multipart([msg.encode(), msg_from])
 
-    def __init__(self, ble_uuid=None, context: zmq.Context = None):
+    def __init__(self, ble_uuid=None, context=None):
         """BLE Connection
 
         Parameters
