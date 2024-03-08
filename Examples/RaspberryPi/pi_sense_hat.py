@@ -28,7 +28,7 @@ import platform
 import signal
 import time
 
-from sense_hat import SenseHat
+from sense_hat import SenseHat  # type: ignore
 
 import dashio
 
