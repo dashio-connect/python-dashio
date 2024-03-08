@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+from __future__ import annotations
 from ..constants import BAD_CHARS
 from .control import Control, ControlPosition, ControlConfig, _get_title_position, _get_chart_x_axis_labels_style
 from .enums import Color, ChartLineType, ChartXAxisLabelsStyle, TitlePosition
@@ -71,7 +72,7 @@ class ChartConfig(ControlConfig):
         y_axis_label_rt: str,
         y_axis_min_rt: float,
         y_axis_max_rt: float,
-        control_position: ControlPosition,
+        control_position: ControlPosition | None,
     ) -> None:
         super().__init__(control_id, title, control_position, title_position)
         self.cfg["xAxisLabel"] = x_axis_label.translate(BAD_CHARS)

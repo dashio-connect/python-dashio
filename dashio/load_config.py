@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+from __future__ import annotations
 import json
 import base64
 import zlib
@@ -106,7 +107,7 @@ def decode_cfg64(cfg: str) -> dict:
     try:
         cfg_dict = json.loads(tmp_b)
     except json.JSONDecodeError:
-        return ""
+        return {}
     return cfg_dict
 
 

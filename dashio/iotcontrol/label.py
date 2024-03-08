@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+from __future__ import annotations
 from .control import Control, ControlPosition, ControlConfig, _get_color, _get_title_position, _get_label_style, _get_color_str
 from .enums import Color, LabelStyle, TitlePosition
 
@@ -32,9 +33,9 @@ class LabelConfig(ControlConfig):
         control_id: str,
         title: str,
         title_position: TitlePosition,
-        color: Color,
+        color: Color | str,
         style: LabelStyle,
-        control_position: ControlPosition
+        control_position: ControlPosition | None
     ) -> None:
         super().__init__(control_id, title, control_position, title_position)
         self.cfg["style"] = style.value
@@ -73,7 +74,7 @@ class Label(Control):
         control_id: str,
         title="A label",
         title_position=TitlePosition.BOTTOM,
-        color=Color.WHITE,
+        color: Color | str = Color.WHITE,
         style=LabelStyle.BASIC,
         control_position=None,
         column_no=1

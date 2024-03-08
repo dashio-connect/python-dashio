@@ -21,18 +21,20 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
+from __future__ import annotations
 import json
 import socket
 import threading
 import zmq
 import logging
-from zeroconf import ServiceBrowser, ServiceInfo, Zeroconf
+from zeroconf import ServiceBrowser, ServiceInfo, Zeroconf, ServiceListener
 
 
 logger = logging.getLogger(__name__)
 
 
-class ZeroConfDashTCPListener:
+class ZeroConfDashTCPListener(ServiceListener):
     """A zeroc conf listener"""
     def __init__(self, service_type: str, connection_uuid: str, context: zmq.Context):
         self.context = context
@@ -137,7 +139,7 @@ class ZeroconfService(threading.Thread):
         self.zeroconf.unregister_all_services()
         self.zeroconf.close()
 
-    def __init__(self, connection_uuid: str, ip_address: str, port: int, context: zmq.Context = None):
+    def __init__(self, connection_uuid: str, ip_address: str, port: int, context: zmq.Context | None = None):
         threading.Thread.__init__(self, daemon=True)
         self.context = context or zmq.Context.instance()
         self.connection_uuid = connection_uuid

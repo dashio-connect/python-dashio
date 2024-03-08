@@ -159,7 +159,7 @@ class ActionStation(threading.Thread):
                         modified = True
         return modified, new_cfg_dict
 
-    def load_all_controls_from_config(self, cfg_dict) -> dict:
+    def load_all_controls_from_config(self, cfg_dict) -> str:
         """Loads all the controls in cfg_dict into device and returns a dictionary of the control objects
 
         Parameters
@@ -354,7 +354,7 @@ class ActionStation(threading.Thread):
         reply = ""
         return reply
 
-    def __init__(self, device, max_actions=100, number_timers=10, memory_storage_size=0, context: zmq.Context = None):
+    def __init__(self, device, max_actions=100, number_timers=10, memory_storage_size=0, context=None):
         """Action Station"""
         threading.Thread.__init__(self, daemon=True)
         self.context = context or zmq.Context.instance()

@@ -21,6 +21,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
+from __future__ import annotations
 import logging
 import socket
 import threading
@@ -43,7 +45,7 @@ class ZMQConnection(threading.Thread):
         zconf_desc = {
             'subPort': str(sub_port),
             'pubPort': str(pub_port),
-            'deviceID': ','.join(self.device_id_list)
+            'deviceID': ','.join(self._device_id_list)
         }
 
         zconf_info = ServiceInfo(
@@ -84,7 +86,7 @@ class ZMQConnection(threading.Thread):
         self.zeroconf.close()
         self.running = False
 
-    def __init__(self, zmq_out_url="*", pub_port=5555, sub_port=5556, context: zmq.Context = None):
+    def __init__(self, zmq_out_url="*", pub_port=5555, sub_port=5556, context: zmq.Context | None = None):
         """ZMQConnection
 
         Parameters
@@ -110,7 +112,8 @@ class ZMQConnection(threading.Thread):
         host_list = host_name.split(".")
         # rename for .local mDNS advertising
         self.host_name = f"{host_list[0]}.local"
-
+        self.tx_url_external = f"tcp://{zmq_out_url}:{pub_port}"
+        self.rx_url_external = f"tcp://{zmq_out_url}:{sub_port}"
         self.local_ip = ip.get_local_ip_v4_address()
         self.zeroconf = Zeroconf(ip_version=IPVersion.V4Only)
         self._zconf_publish_zmq(sub_port, pub_port)
@@ -150,7 +153,6 @@ class ZMQConnection(threading.Thread):
 
         ext_tx_zmq_pub = self.context.socket(zmq.PUB)
         ext_tx_zmq_pub.bind(self.tx_url_external)
-
         self.ext_rx_zmq_sub = self.context.socket(zmq.SUB)
         self.ext_rx_zmq_sub.bind(self.rx_url_external)
 

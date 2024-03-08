@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+from __future__ import annotations
 import json
 import logging
 import threading
@@ -359,10 +360,11 @@ class Device(threading.Thread):
         self._set_devicesetup("wifi", False)
         self._wifi_rx_callback = None
 
-    def _wifi_rx_event(self, msg):
-        if self._wifi_rx_callback(msg):
-            data = self._device_id_str + "\tWIFI\n"
-            self.tx_zmq_pub.send_multipart([b"ALL", data.encode('utf-8')])
+    def _wifi_rx_event(self, msg) -> str:
+        if self._wifi_rx_callback is not None:
+            if self._wifi_rx_callback(msg):
+                data = self._device_id_str + "\tWIFI\n"
+                self.tx_zmq_pub.send_multipart([b"ALL", data.encode('utf-8')])
         return ""
 
     def set_dashio_callback(self, callback):
@@ -386,9 +388,10 @@ class Device(threading.Thread):
         self._dashio_rx_callback = None
 
     def _dashio_rx_event(self, msg):
-        if self._dashio_rx_callback(msg):
-            data = self._device_id_str + "\tDASHIO\n"
-            self.tx_zmq_pub.send_multipart([b"ALL", data.encode('utf-8')])
+        if self._dashio_rx_callback is not None:
+            if self._dashio_rx_callback(msg):
+                data = self._device_id_str + "\tDASHIO\n"
+                self.tx_zmq_pub.send_multipart([b"ALL", data.encode('utf-8')])
         return ""
 
     def set_name_callback(self, callback):
@@ -411,12 +414,13 @@ class Device(threading.Thread):
         self._set_devicesetup("name", False)
         self._name_rx_callback = None
 
-    def _name_rx_event(self, msg):
-        name = self._name_rx_callback(msg)
-        if name:
-            self._device_name = name
-            data = self._device_id_str + f"\tNAME\t{name}\n"
-            self.tx_zmq_pub.send_multipart([b"ALL", data.encode('utf-8')])
+    def _name_rx_event(self, msg) -> str:
+        if self._name_rx_callback is not None:
+            name = self._name_rx_callback(msg)
+            if name:
+                self._device_name = name
+                data = self._device_id_str + f"\tNAME\t{name}\n"
+                self.tx_zmq_pub.send_multipart([b"ALL", data.encode('utf-8')])
         return ""
 
     def set_tcp_callback(self, callback):
@@ -439,10 +443,11 @@ class Device(threading.Thread):
         self._tcp_rx_callback = None
 
     def _tcp_rx_event(self, msg):
-        if self._tcp_rx_callback(msg):
-            data = self._device_id_str + "\tTCP\n"
-            self.tx_zmq_pub.send_multipart([b"ALL", data.encode('utf-8')])
-        return ""
+        if self._tcp_rx_callback is not None:
+            if self._tcp_rx_callback(msg):
+                data = self._device_id_str + "\tTCP\n"
+                self.tx_zmq_pub.send_multipart([b"ALL", data.encode('utf-8')])
+            return ""
 
     def set_mqtt_callback(self, callback):
         """
@@ -465,9 +470,10 @@ class Device(threading.Thread):
         self._mqtt_rx_callback = None
 
     def _mqtt_rx_event(self, msg):
-        if self._mqtt_rx_callback(msg):
-            data = self._device_id_str + "\tMQTT\n"
-            self.tx_zmq_pub.send_multipart([b"ALL", data.encode('utf-8')])
+        if self._mqtt_rx_callback is not None:
+            if self._mqtt_rx_callback(msg):
+                data = self._device_id_str + "\tMQTT\n"
+                self.tx_zmq_pub.send_multipart([b"ALL", data.encode('utf-8')])
         return ""
 
     def register_connection(self, connection):
@@ -487,8 +493,8 @@ class Device(threading.Thread):
         device_id: str,
         device_name: str,
         add_actions: bool = False,
-        cfg_dict: dict = None,
-        context: zmq.Context = None
+        cfg_dict: dict | None = None,
+        context: zmq.Context | None = None
     ) -> None:
         """DashDevice
 

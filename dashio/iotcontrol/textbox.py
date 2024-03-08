@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+from __future__ import annotations
 from ..constants import BAD_CHARS
 from .control import Control, ControlPosition, ControlConfig, _get_title_position, _get_text_align, _get_text_format, _get_precision, _get_keyboard_type, _get_color_str
 from .enums import (
@@ -47,7 +48,7 @@ class TextBoxConfig(ControlConfig):
         precision: Precision,
         keyboard_type: Keyboard,
         close_keyboard_on_send: bool,
-        control_position: ControlPosition
+        control_position: ControlPosition | None
     ) -> None:
         super().__init__(control_id, title, control_position, title_position)
         self.cfg["text"] = text.translate(BAD_CHARS)

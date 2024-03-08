@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+from __future__ import annotations
 import json
 import logging
 import ssl
@@ -28,6 +29,7 @@ import threading
 import time
 
 import paho.mqtt.client as mqtt
+from socket import gaierror
 import shortuuid
 import zmq
 
@@ -148,7 +150,7 @@ class DashConnection(threading.Thread):
         else:
             logger.debug("Bad connection Returned code=%s", reason_code)
 
-    def _on_disconnect(self, client, userdata, flags, reason_code, properties):
+    def _on_disconnect(self, client, userdata, disconnect_flags, reason_code, properties):
         logger.debug("disconnecting reason  %s", reason_code)
         self._dash_c.username_pw_set(self.username, self.password)
         self.connection_state = ConnectionState.DISCONNECTED
@@ -211,7 +213,7 @@ class DashConnection(threading.Thread):
         try:
             self._dash_c.connect(self.host, self.port)
             self.connection_state = ConnectionState.CONNECTING
-        except (mqtt.socket.gaierror, ConnectionRefusedError) as error:
+        except (gaierror, ConnectionRefusedError) as error:
             logger.debug("No connection to server: %s", str(error))
 
     def set_connection(self, username: str, password: str):
@@ -235,7 +237,7 @@ class DashConnection(threading.Thread):
         host='dash.dashio.io',
         port=8883,
         use_ssl=True,
-        context: zmq.Context = None
+        context: zmq.Context | None = None
     ):
         """
         Setups and manages a connection thread to the Dash Server.
@@ -268,12 +270,12 @@ class DashConnection(threading.Thread):
         self.password = password
         self.host = host
         self.port = port
-        self._dash_c = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+        self._dash_c = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)  # type: ignore
         # Assign event callbacks
 
         self._dash_c.on_message = self._on_message
         self._dash_c.on_connect = self._on_connect
-        self._dash_c.on_disconnect = self._on_disconnect
+        self._dash_c.on_disconnect = self._on_disconnect  # type: ignore
         self._dash_c.on_subscribe = self._on_subscribe
         # self.connection_control = DashControl(self.zmq_connection_uuid, username, host)
         if use_ssl:

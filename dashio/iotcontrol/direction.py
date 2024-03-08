@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+from __future__ import annotations
 from ..constants import BAD_CHARS
 from .control import Control, ControlPosition, ControlConfig, _get_color, _get_title_position, _get_direction_style, _get_precision, _get_color_str
 from .enums import Color, DirectionStyle, Precision, TitlePosition
@@ -34,11 +35,11 @@ class DirectionConfig(ControlConfig):
         title: str,
         style: DirectionStyle,
         title_position: TitlePosition,
-        pointer_color: Color,
+        pointer_color: Color | str,
         units: str,
         precision: Precision,
         calibration_angle: float,
-        control_position: ControlPosition
+        control_position: ControlPosition | None
     ) -> None:
         super().__init__(control_id, title, control_position, title_position)
         self.cfg["style"] = str(style.value)
@@ -90,7 +91,7 @@ class Direction(Control):
         title="A Control",
         style=DirectionStyle.DEG,
         title_position=TitlePosition.BOTTOM,
-        pointer_color=Color.GREEN,
+        pointer_color: Color | str = Color.GREEN,
         units="",
         precision=Precision.OFF,
         calibration_angle=0,
@@ -156,7 +157,7 @@ class Direction(Control):
         the current direction value."""
         self._is_active = active
         if active:
-            self.state_str = self._control_hdr_str + f"{self._dial_value}\n"
+            self.state_str = self._control_hdr_str + f"{self._direction_value}\n"
         else:
             self.state_str = self._control_hdr_str + "na\n"
 
