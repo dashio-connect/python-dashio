@@ -60,7 +60,16 @@ class Lte767xConnection(threading.Thread):
         except serial.serialutil.SerialException as e:
             logger.debug("LTE Serial Err: %s", str(e))
 
-    def __init__(self, serial_port='/dev/ttyUSB0', baud_rate=115200, context: zmq.Context = None):
+    def __init__(
+        self,
+        username="",
+        password="",
+        host='dash.dashio.io',
+        port=8883,
+        serial_port='/dev/ttyUSB0',
+        baud_rate=115200,
+        context: zmq.Context = None
+    ):
         """LTE 767x Connection
 
         Parameters
@@ -78,6 +87,11 @@ class Lte767xConnection(threading.Thread):
         self.context = context or zmq.Context.instance()
         self.zmq_connection_uuid = "LTE:" + shortuuid.uuid()
         self.b_zmq_connection_uuid = self.zmq_connection_uuid.encode()
+
+        self.username = username
+        self.password = password
+        self.host = host
+        self.port = port
 
         self.running = True
         self._device_id_list = []
