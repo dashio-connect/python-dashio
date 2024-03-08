@@ -17,7 +17,7 @@ def knob_event_handler(msg):
 
 
 aknob = dashio.Knob("aKNB", control_position=dashio.ControlPosition(0.24, 0.14, 0.54, 0.26))
-aknob.message_rx_event += knob_event_handler
+aknob.add_receive_message_callback(knob_event_handler)
 dv.add_control(aknob)
 device.add_control(aknob)
 
