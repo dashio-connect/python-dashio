@@ -27,12 +27,12 @@ import time
 import uuid
 import shortuuid
 
-import dbus
-import dbus.exceptions
-import dbus.mainloop.glib
-import dbus.service
+import dbus  # type: ignore
+import dbus.exceptions  # type: ignore
+import dbus.mainloop.glib  # type: ignore
+import dbus.service  # type: ignore
 import zmq
-from gi.repository import GLib
+from gi.repository import GLib  # type: ignore
 
 from dashio.device import Device
 
