@@ -88,14 +88,13 @@ class BBB_Temperature:
         args = parser.parse_args()
         return args
 
-    def read_sensor(self):
+    def read_sensor(self) -> float:
         ain_value = ADC.read("P9_39")
         ain_voltage = 1.8 * ain_value
         sensor_output_voltage = ain_voltage * 2
         f = sensor_output_voltage * 100
         c = (f - 32) * 5 / 9
-        c_str = "{:.2f}".format(c)
-        return c_str
+        return c
 
     def __init__(self):
         LOGGER_PERIOD = 15
@@ -129,7 +128,7 @@ class BBB_Temperature:
             "DegC",
             dashio.TimeGraphLineType.LINE,
             color=dashio.Color.BLACK,
-            max_data_points=15 * 60 / LOGGER_PERIOD
+            max_data_points=int(15 * 60 / LOGGER_PERIOD)
         )
         gph_15_minutes.add_line("DegC", line_15_minutes)
 
@@ -226,7 +225,7 @@ class BBB_Temperature:
                 for d in line_15_minutes.data.data:
                     temps = d.data_point
                     total += float(temps)
-                avg = total / len(line_15_minutes.data)
+                avg = total / len(line_15_minutes.data.data)
                 avg_str = f"{avg:.2f}"
                 line_1_day.add_data_point(avg_str)
                 line_1_week.add_data_point(avg_str)

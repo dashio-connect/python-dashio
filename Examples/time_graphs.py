@@ -87,7 +87,7 @@ class TestControls:
         return args
 
     def gph_15_minutes_event_handler(self, msg):
-        self.gph_15_minutes.send_graph()
+        self.gph_15_minutes.send_data()
 
     def __init__(self):
         self.bttn1_value = False
@@ -115,31 +115,31 @@ class TestControls:
             y_axis_max=10.0,
             y_axis_num_bars=9)
         self.line_15_minutes = dashio.TimeGraphLine(
-            "Line", dashio.TimeGraphLineType.LINE, color=dashio.Color.BLACK, max_data_points=15 * 60 / LOGGER_PERIOD
+            "Line", dashio.TimeGraphLineType.LINE, color=dashio.Color.BLACK, max_data_points=int(15 * 60 / LOGGER_PERIOD)
         )
         self.bar_15_minutes = dashio.TimeGraphLine(
             "Bar",
             dashio.TimeGraphLineType.BAR,
             color=dashio.Color.ORANGE,
-            max_data_points=15 * 60 / LOGGER_PERIOD,
+            max_data_points=int(15 * 60 / LOGGER_PERIOD),
         )
         self.bin_15_minutes = dashio.TimeGraphLine(
             "Bin",
             dashio.TimeGraphLineType.BOOL,
             color=dashio.Color.YELLOW,
-            max_data_points=15 * 60 / LOGGER_PERIOD,
+            max_data_points=int(15 * 60 / LOGGER_PERIOD),
         )
         self.am_pm_15_minutes = dashio.TimeGraphLine(
             "Hour",
             dashio.TimeGraphLineType.BOOL,
             color=dashio.Color.SILVER,
-            max_data_points=15 * 60 / LOGGER_PERIOD,
+            max_data_points=int(15 * 60 / LOGGER_PERIOD),
         )
         self.gph_15_minutes.add_line("line", self.line_15_minutes)
         self.gph_15_minutes.add_line("Bar", self.bar_15_minutes)
         self.gph_15_minutes.add_line("Bin", self.bin_15_minutes)
         self.gph_15_minutes.add_line("Hour", self.am_pm_15_minutes)
-        self.gph_15_minutes.message_rx_event = self.gph_15_minutes_event_handler
+        self.gph_15_minutes.add_receive_message_callback(self.gph_15_minutes_event_handler)
         device.add_control(self.gph_15_minutes)
 
         line_data = 0
