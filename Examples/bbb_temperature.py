@@ -29,7 +29,7 @@ import logging
 import signal
 import time
 
-import Adafruit_BBIO.ADC as ADC
+import Adafruit_BBIO.ADC as ADC  # type: ignore
 
 import dashio
 
@@ -187,7 +187,7 @@ class BBB_Temperature:
             title="Daily Min",
             dial_max=50
         )
-        self.page = dashio.DeviceView("tmppage", "Temperatures", 1)
+        self.page = dashio.DeviceView("tmppage", "Temperatures")
         device.add_control(self.page)
         device.add_control(dl_temperature_ctrl)
         self.page.add_control(dl_temperature_ctrl)
