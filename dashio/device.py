@@ -487,6 +487,17 @@ class Device(threading.Thread):
         if self._add_actions:
             self.action_station.register_connection(connection)
 
+    def de_register_connection(self, connection):
+        """Connections unregistered here"""
+        if connection.zmq_connection_uuid in self.connections_list:
+            logger.debug("DEVICE DE-REG CONECTION")
+            self.connections_list.remove(connection.zmq_connection_uuid)
+            self.rx_zmq_sub.disconnect(CONNECTION_PUB_URL.format(id=connection.zmq_connection_uuid))
+            connection.rx_zmq_sub.disconnect(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
+        if self._add_actions:
+            self.action_station.register_connection(connection)
+            self.action_station.de_register_connection(connection)
+
     def __init__(
         self,
         device_type: str,
