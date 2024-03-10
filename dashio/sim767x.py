@@ -50,7 +50,7 @@ class ERROR_State(Enum):
 class SIM767X:
     MAX_MESSAGE_LEN = 10000
     CHECK_CONNECTION_INTERVAL_S = 30
-    SHUTDOWN_WAIT_S = 10
+    SHUTDOWN_WAIT_S = 20
 
     printMessages = True
     autoShutdown = False
@@ -64,7 +64,7 @@ class SIM767X:
 
     checkConnectionSecondCount = 0
     atTimeoutS = 10
-    chars = []
+    chars = ""
     incomingMessage = False
     moreDataComing = 0
 
@@ -207,19 +207,20 @@ class SIM767X:
                 data = ""
                 haveMessage = False
                 while self.serialAT.in_waiting > 0 and not haveMessage:
-                    for c in self.serialAT.read():
-                        if chr(c) != '\n':
-                            self.chars.append(chr(c))  # Convert from ASCII
-                            if chr(c) == ">" and len(self.chars) == 1:
-                                data = ">"
-                                self.chars = []
-                                haveMessage = True
-                                break
-                        else:
-                            data = ''.join(str(v) for v in self.chars)  # Make a string from array
-                            self.chars = []
+                    charsIn = self.serialAT.read().decode()
+                    if '\n' in charsIn:
+                        charsArr = charsIn.split('\n')
+                        self.chars += charsArr[0]
+                        data = self.chars
+                        self.chars = ""
+                        haveMessage = True
+                        break
+                    else:
+                        self.chars += charsIn
+                        if self.chars.startswith(">"):
+                            data = ">"
+                            self.chars = ""
                             haveMessage = True
-                            break
 
                 data = data.replace('\r', '')
 
@@ -375,15 +376,9 @@ class SIM767X:
                             self.processGNSSdata(resultStr)
 
     def readMessage(self, messageLen):
-        charsIn = []
-        i = 0
-        for c in self.serialAT.read():
-            charsIn.append(chr(c))
-            i += 1
-            if i == messageLen:
-                break
-        self.rxMessage += ''.join(str(v) for v in charsIn)  # Make a string from array
-        self.moreDataComing = messageLen - i
+        charsIn = self.serialAT.read().decode()
+        self.rxMessage += charsIn
+        self.moreDataComing = messageLen - len(charsIn)
 
     def runOneSecondModuleTasks(self):
         if self.shutDownTimerS >= 0:
