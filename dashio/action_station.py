@@ -98,6 +98,13 @@ class ActionStation(threading.Thread):
             connection.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
             self._connect_all_ext_devices()
 
+    def de_register_connection(self, connection):
+        if connection.zmq_connection_uuid in self.connections_list:
+            logger.debug("AS UN REG CONNECTION")
+            self.connections_list.remove(connection.zmq_connection_uuid)
+            self.connection_zmq_sub.disconnect(CONNECTION_PUB_URL.format(id=connection.zmq_connection_uuid))
+            connection.rx_zmq_sub.disconnect(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
+
     def _rm_old_action_station_gui_controls(self):
         old_controls = self._action_station_layout
         if old_controls is not None:

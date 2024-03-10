@@ -24,7 +24,7 @@ SOFTWARE.
 import logging
 import threading
 import time
-
+import json
 import shortuuid
 import zmq
 import serial
@@ -51,6 +51,36 @@ class Lte767xConnection(threading.Thread):
         if device.device_id not in self._device_id_list:
             device.register_connection(self)
             self._device_id_list.append(device.device_id)
+            if self.connection_state == ConnectionState.CONNECTED:
+                pass
+                # TODO: Subscribe here
+                # control_topic = f"{self.username}/{device.device_id}/control"
+
+                # self._lte.subscribe(control_topic)
+                self._send_dash_announce()
+
+    def remove_device(self, device: Device):
+        """Remove a device from the connection
+
+        Parameters
+        ----------
+        device : dashio.Device
+            Remove a device from the connection.
+        """
+        if device.device_id in self._device_id_list:
+            device.de_register_connection(self)
+            self._device_id_list.remove(device.device_id)
+            pass
+            # TODO: Unsubscribe here
+            # self._lte.unsubscribe(control_topic)
+
+    def _send_dash_announce(self):
+        msg = {
+            'msgType': 'send_announce',
+            'connectionUUID': self.zmq_connection_uuid
+        }
+        logger.debug("DASH SEND ANNOUNCE: %s", msg)
+        self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg).encode()])
 
     def _init_serial(self):
         try:
@@ -106,8 +136,8 @@ class Lte767xConnection(threading.Thread):
         self.running = False
 
     def run(self):
-        tx_zmq_pub = self.context.socket(zmq.PUB)
-        tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
+        self.tx_zmq_pub = self.context.socket(zmq.PUB)
+        self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
 
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         # Subscribe on ALL, and my connection
@@ -159,7 +189,7 @@ class Lte767xConnection(threading.Thread):
                     if message:
                         try:
                             logger.debug("LTE Rx:\n%s", message.rstrip().decode())
-                            tx_zmq_pub.send_multipart([message, self.b_zmq_connection_uuid])
+                            self.tx_zmq_pub.send_multipart([message, self.b_zmq_connection_uuid])
                         except UnicodeDecodeError:
                             logger.debug("LTE SERIAL DECODE ERROR Rx:\n%s", message.hex())
             except OSError as e:
@@ -168,5 +198,5 @@ class Lte767xConnection(threading.Thread):
                 self._init_serial()
 
         self.serial_com.close()
-        tx_zmq_pub.close()
+        self.tx_zmq_pub.close()
         self.rx_zmq_sub.close()
