@@ -9,7 +9,7 @@ logging.getLogger('dashio').setLevel(logging.DEBUG)
 formatter = logging.Formatter("[%(asctime)s][%(module)15s] -- %(message)s")
 handler = logging.StreamHandler()
 handler.setFormatter(formatter)
-logger = logging.getLogger("ex05_SIM767X")
+logger = logging.getLogger()
 logger.addHandler(handler)
 logger.setLevel(logging.DEBUG)
 
