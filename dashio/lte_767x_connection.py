@@ -96,7 +96,7 @@ class Lte767xConnection(threading.Thread):
         password="",
         host='dash.dashio.io',
         port=8883,
-        serial_port='/dev/ttyUSB0',
+        serial_port: str | None = '/dev/ttyUSB0',
         baud_rate=115200,
         context=None
     ):
@@ -104,7 +104,7 @@ class Lte767xConnection(threading.Thread):
 
         Parameters
         ---------
-            serial_port : str, optional
+            serial_com : str, optional
                 Serial port to use. Defaults to "/dev/ttyUSB0".
             baud_rate : int, optional
                 Baud rate to use. Defaults to 115200.
@@ -125,6 +125,7 @@ class Lte767xConnection(threading.Thread):
 
         self.running = True
         self._device_id_list = []
+        self.serial_com: serial.Serial | None = None
         self.serial_port = serial_port
         self.baud_rate = baud_rate
         self._init_serial()
@@ -183,7 +184,8 @@ class Lte767xConnection(threading.Thread):
                 # self._lte_publish(data_topic, data.decode()) <- craig needs to write this function
 
             try:
-                if self.serial_com.in_waiting > 0:
+
+                if self.serial_com is not None and self.serial_com.in_waiting > 0:
                     # Craig needs to change this to get data from LTE
                     message = self.serial_com.readline()
                     if message:
@@ -197,6 +199,7 @@ class Lte767xConnection(threading.Thread):
                 time.sleep(1.0)
                 self._init_serial()
 
-        self.serial_com.close()
+        if self.serial_com is not None:
+            self.serial_com.close()
         self.tx_zmq_pub.close()
         self.rx_zmq_sub.close()

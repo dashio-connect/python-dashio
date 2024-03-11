@@ -3,6 +3,16 @@
 import dashio
 from dashio import lte_767x_connection
 import time
+import logging
+
+logging.getLogger('dashio').setLevel(logging.DEBUG)
+formatter = logging.Formatter("[%(asctime)s][%(module)15s] -- %(message)s")
+handler = logging.StreamHandler()
+handler.setFormatter(formatter)
+logger = logging.getLogger("ex05_SIM767X")
+logger.addHandler(handler)
+logger.setLevel(logging.DEBUG)
+
 
 cfg64 = "pVNdr5pAEP0rN/tMjHCrbXnjQ60RxQD1Nmn6wIVVN8IuXZar1vjfOwuLeNWmTfo2OztzZnLmnBPybA+Z339oaLbwbYhOqBTHDCMT"\
     "LfxgbnlIQwmjgrNs6kIyni1sSJWYpj7Njj4NcIbjEuoFr7CG8viATL3f11ARc0xF0+TiN5LgFcF7eGuI43QVZxU0fRxoSBBRz7Oe"\
@@ -15,7 +25,7 @@ cfg64 = "pVNdr5pAEP0rN/tMjHCrbXnjQ60RxQD1Nmn6wIVVN8IuXZar1vjfOwuLeNWmTfo2OztzZnL
 
 config_dict = dashio.decode_cfg64(cfg64)
 device = dashio.Device("aDeviceType", "aDeviceID", "aDeviceName", cfg_dict=config_dict)
-lte_con = lte_767x_connection.Lte767xConnection("username", "password", serial_port="/dev/ttyUSB0")
+lte_con = lte_767x_connection.Lte767xConnection("username", "password", serial_port="/dev/tty.usbserial-0001")
 lte_con.add_device(device)
 
 aknob: dashio.Knob = device.get_control(dashio.ControlName.KNOB, "aKNB")
