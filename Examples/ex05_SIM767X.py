@@ -1,6 +1,7 @@
 """Under Active Development - INCOMPLETE!"""
 
 import dashio
+from dashio import lte_767x_connection
 import time
 
 cfg64 = "pVNdr5pAEP0rN/tMjHCrbXnjQ60RxQD1Nmn6wIVVN8IuXZar1vjfOwuLeNWmTfo2OztzZnLmnBPybA+Z339oaLbwbYhOqBTHDCMT"\
@@ -14,8 +15,8 @@ cfg64 = "pVNdr5pAEP0rN/tMjHCrbXnjQ60RxQD1Nmn6wIVVN8IuXZar1vjfOwuLeNWmTfo2OztzZnL
 
 config_dict = dashio.decode_cfg64(cfg64)
 device = dashio.Device("aDeviceType", "aDeviceID", "aDeviceName", cfg_dict=config_dict)
-tcp_con = dashio.TCPConnection()
-tcp_con.add_device(device)
+lte_con = lte_767x_connection.Lte767xConnection("username", "password", serial_port="/dev/ttyUSB0")
+lte_con.add_device(device)
 
 aknob: dashio.Knob = device.get_control(dashio.ControlName.KNOB, "aKNB")
 first_dial_control: dashio.Dial = device.get_control(dashio.ControlName.DIAL, "FirstDial")
