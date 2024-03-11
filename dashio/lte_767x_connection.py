@@ -27,8 +27,7 @@ import time
 import json
 import shortuuid
 import zmq
-import serial
-from serial.serialutil import SerialException
+from .sim767x import SIM767X
 from .constants import CONNECTION_PUB_URL
 from .device import Device
 from .iotcontrol.enums import ConnectionState
@@ -39,6 +38,25 @@ logger = logging.getLogger(__name__)
 
 class Lte767xConnection(threading.Thread):
     """Under Active Development - DOES NOT WORK!"""
+
+    def onMQTTconnect(self, connected, errorState):
+        if connected:
+            self.connection_state = ConnectionState.CONNECTED
+            self._send_dash_announce()
+            logger.debug("connected OK")
+        else:
+            logger.debug("disconnecting reason  %s", errorState)
+            self._connection_state = ConnectionState.DISCONNECTED
+
+    def onMQTTsubscribe(self, topic, error):
+        logger.debug("Subscribed: %s %s", topic, str(error))
+
+    def onMQTTreceiveMessage(self, message):
+        try:
+            logger.debug("LTE Rx:\n%s", message.rstrip())
+            self.tx_zmq_pub.send_multipart([message.encode(), self.b_zmq_connection_uuid])
+        except UnicodeDecodeError:
+            logger.debug("LTE SERIAL DECODE ERROR Rx:\n%s", message.hex())
 
     def add_device(self, device: Device):
         """Add a device to the connection
@@ -52,11 +70,8 @@ class Lte767xConnection(threading.Thread):
             device.register_connection(self)
             self._device_id_list.append(device.device_id)
             if self.connection_state == ConnectionState.CONNECTED:
-                pass
-                # TODO: Subscribe here
-                # control_topic = f"{self.username}/{device.device_id}/control"
-
-                # self._lte.subscribe(control_topic)
+                control_topic = f"{self.username}/{device.device_id}/control"
+                self.lte_con.subscribe(control_topic)
                 self._send_dash_announce()
 
     def remove_device(self, device: Device):
@@ -82,6 +97,7 @@ class Lte767xConnection(threading.Thread):
         logger.debug("DASH SEND ANNOUNCE: %s", msg)
         self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg).encode()])
 
+    """
     def _init_serial(self):
         try:
             self.serial_com = serial.Serial(self.serial_port, self.baud_rate, timeout=1.0)
@@ -89,9 +105,11 @@ class Lte767xConnection(threading.Thread):
             self.connection_state = ConnectionState.CONNECTED  # Change this to CONNECTING
         except SerialException as e:
             logger.debug("LTE Serial Err: %s", str(e))
+    """
 
     def __init__(
         self,
+        apn="",
         username="",
         password="",
         host='dash.dashio.io',
@@ -118,6 +136,7 @@ class Lte767xConnection(threading.Thread):
         self.zmq_connection_uuid = "LTE:" + shortuuid.uuid()
         self.b_zmq_connection_uuid = self.zmq_connection_uuid.encode()
 
+        self.apn = apn
         self.username = username
         self.password = password
         self.host = host
@@ -127,7 +146,11 @@ class Lte767xConnection(threading.Thread):
         self._device_id_list = []
         self.serial_port = serial_port
         self.baud_rate = baud_rate
-        self._init_serial()
+        self.lte_con = SIM767X(self.serial_port, "", self.apn, self.baud_rate)
+        self.lte_con.mqttSetup(self.host, self.port, self.username, self.password)
+        self.lte_con.setCallbacks(self.onMQTTconnect, self.onMQTTsubscribe, self.onMQTTreceiveMessage)
+        self.connection_state = ConnectionState.CONNECTING
+
         self.start()
         time.sleep(1)
 
@@ -180,8 +203,11 @@ class Lte767xConnection(threading.Thread):
 
                 logger.debug("LTE TX:\n%s\n%s", data_topic, data.decode().rstrip())
 
-                # self._lte_publish(data_topic, data.decode()) <- craig needs to write this function
+                self.lte_con.publishMessage(data_topic, data.decode())
 
+            self.lte_con.run()
+
+            """
             try:
                 if self.serial_com.in_waiting > 0:
                     # Craig needs to change this to get data from LTE
@@ -196,7 +222,8 @@ class Lte767xConnection(threading.Thread):
                 logger.debug("LTE Serial Error: %s", str(e))
                 time.sleep(1.0)
                 self._init_serial()
+            """
 
-        self.serial_com.close()
+    # ???    self.serial_com.close()
         self.tx_zmq_pub.close()
         self.rx_zmq_sub.close()

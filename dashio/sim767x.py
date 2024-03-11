@@ -107,8 +107,7 @@ class SIM767X:
     gnssRetryCounter = 0
     gnssState = GNSS_State.GNSS_SHUTDOWN
 
-    def __init__(self, _serial, _deviceID, _network, _apn, _baud_rate):
-        self.deviceID = _deviceID
+    def __init__(self, _serial, _network, _apn, _baud_rate):
         self.network = _network
         self.apn = _apn
         self.serialAT = serial.Serial(_serial, _baud_rate)
@@ -538,7 +537,7 @@ class SIM767X:
 
 # ---- MQTT LWT -----
     def mqttRequestWillToic(self):
-        self.willTopic = self.username + "/" + self.deviceID + "/" + "data"  # ??? This needs sorting
+        self.willTopic = self.username + "/" + "deviceID" + "/" + "data"  # ??? This needs sorting
         self.willMessage = self.offlineMessage
         self.protectedATcmd("CMQTTWILLTOPIC=0," + str(len(self.willTopic)), lambda: self.mqttRequestWillMessage(), lambda: self.mqttEnterWillToic())  # clientIndex = 0
 
