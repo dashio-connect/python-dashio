@@ -2,6 +2,8 @@ import serial
 import time
 from enum import Enum
 
+#  TODO In the serial init add AT+CGMM and throw an exception if you don't get a response or the correct response.
+
 
 class LTE_State(Enum):
     MODULE_STARTUP = 0
@@ -19,8 +21,6 @@ class MQTT_State(Enum):
     MQTT_DISCONNECTED = 0
     MQTT_REQ_CONNECT = 1
     MQTT_CONNECTING = 2
-    MQTT_REQ_SUBSCRIBE = 3
-    MQTT_SUBSCRIBING = 4
     MQTT_CONNECTED = 5
     MQTT_REQ_DISCONNECT = 6
     MQTT_DISCONNECTING = 7
@@ -50,17 +50,18 @@ class ERROR_State(Enum):
 class SIM767X:
     MAX_MESSAGE_LEN = 10000
     CHECK_CONNECTION_INTERVAL_S = 30
-    SHUTDOWN_WAIT_S = 20
+    SHUTDOWN_WAIT_S = 10
 
     printMessages = True
-    autoShutdown = False
     onOKCallback = None
     onEnterCallback = None
 
-    receiveIncomingMessageCallback = None
-    onNewDeviceIDcallback = None
-    mqttConnectCallback = None
-    mqttPublishCallback = None
+    imei = ""  # Use imei as the client ID for MQTT
+
+    onReceiveIncomingMessageCallback = None
+    onMQTTconnectCallback = None
+    onMQTTsubscribeCallback = None
+    onMQTTpublishCallback = None
 
     checkConnectionSecondCount = 0
     atTimeoutS = 10
@@ -84,15 +85,16 @@ class SIM767X:
     errorState = ERROR_State.ERR_REBOOT
     mqttState = MQTT_State.MQTT_DISCONNECTED
 
+    offlineMessage = ""
+    willTopic = ""
+    willMessage = ""
     mqttIsPublishing = False
-    willSubTopic = ""
-    willSubMessage = ""
-    topic = ""
-    messageToSend = ""
+    pubTopic = ""
+    subTopic = ""
+    mqttIsSubscribing = False
     messageSendID = -1
-    alarmMessageToSend = ""
-    announceMessageToSend = ""
-    lastCommand = ""
+    lastCommand = ""  # ??? is this being used anymore
+    messagesDict = {}
 
     username = ""
     password = ""
@@ -114,24 +116,19 @@ class SIM767X:
         self.username = _username
         self.password = _password
 
-    def setCallbacks(self, _onMQTTconnect, _receiveIncomingMessage, _onNewDeviceID):
-        self.onMQTTconnect = _onMQTTconnect
-        self.receiveIncomingMessageCallback = _receiveIncomingMessage
-        self.onNewDeviceIDcallback = _onNewDeviceID
+    def setCallbacks(self, _onMQTTconnect, _onMQTTsubscribe, _receiveIncomingMessage):
+        self.onMQTTconnectCallback = _onMQTTconnect
+        self.onMQTTsubscribeCallback = _onMQTTsubscribe
+        self.onReceiveIncomingMessageCallback = _receiveIncomingMessage
 
-    def sendAnnounce(self, announceMessage):
-        if len(self.announceMessageToSend) + len(announceMessage) <= self.MAX_MESSAGE_LEN:
-            self.announceMessageToSend += announceMessage
+    def subscribe(self, _topic):
+        self.subTopic = _topic
 
-    def sendAlarm(self, alarmMessage):
-        if len(self.alarmMessageToSend) + len(alarmMessage) <= self.MAX_MESSAGE_LEN:
-            self.alarmMessageToSend += alarmMessage
-
-    def sendMessage(self, message, messageID):
-        if len(self.messageToSend) + len(message) <= self.MAX_MESSAGE_LEN:
-            self.messageToSend += message
-            if (messageID > 0):  # Allow for multiple messages, where some may have no messageID
-                self.messageSendID = messageID
+    def publishMessage(self, topic, message):
+        if topic not in self.messagesDict.keys():
+            self.messagesDict[topic] = message
+        else:
+            self.messagesDict[topic] += message
 
     def log(self, message):
         print(message)
@@ -156,34 +153,31 @@ class SIM767X:
         self.shutDownTimerS = -1
 
         self.mqttIsPublishing = False
+        self.mqttIsSubscribing = False
         self.mqttState = MQTT_State.MQTT_DISCONNECTED
         self.gnssState = GNSS_State.GNSS_OFF
 
     def onMQTTconnected(self):
         self.mqttState = MQTT_State.MQTT_CONNECTED
 
-        # Send MQTT ONLINE and WHO messages to connection
-        # WHO is only required here if using the Dash server and it must be sent to the ANNOUNCE topic
-        self.sendMessage(self.getOnlineMessage(), -1)
-
-        if self.mqttConnectCallback is not None:
-            self.mqttConnectCallback(True, self.errorState)
+        if self.onMQTTconnectCallback is not None:
+            self.onMQTTconnectCallback(True, self.errorState)
 
         self.errorState = ERROR_State.ERR_NONE
 
-    def getOnlineMessage(self):
-        return "\t" + self.deviceID + "\tONLINE\n"
-
-    def getOfflineMessage(self):
-        return "\t" + self.deviceID + "\tOFFLINE\n"
-
-    def getMQTTTopic(self, username, topic):
-        return username + "/" + self.deviceID + "/" + topic
-
     def run(self):
         self.processATcommands()
-        self.checkOutgoingMessages()
 
+        # Messaging
+        if (self.mqttState == MQTT_State.MQTT_CONNECTED) and (not self.runATcallbacks):
+            if not self.mqttIsSubscribing and not self.mqttIsPublishing and not self.incomingMessage:  # Wait for any received message being downloaded.
+                if len(self.subTopic) > 0:
+                    self.mqttReqSubscribe()
+                elif len(self.messagesDict) > 0:
+                    dTopic = list(self.messagesDict.keys())[0]
+                    self.mqttRequestPublish(dTopic, self.messagesDict[dTopic])
+
+        #  Timed activities
         now = time.time()
         deltaTime = now - self.startTime
         if deltaTime >= 1:
@@ -192,12 +186,6 @@ class SIM767X:
             self.runOneSecondModuleTasks()
             self.runOneSecondMQTTTasks()
             self.runOneSecondGNSSTasks()
-
-            if self.autoShutdown and (self.lteState == LTE_State.LTE_CONNECTED) and (self.mqttState == MQTT_State.MQTT_CONNECTED):
-                if (self.gnssDataCallback is None or self.gnssState == GNSS_State.GNSS_SHUTDOWN):
-                    if len(self.messageToSend) == 0 and len(self.alarmMessageToSend) == 0 and len(self.announceMessageToSend) == 0:
-                        if not self.runATcallbacks:
-                            self.powerDownModule()
 
     def processATcommands(self):
         while self.serialAT.in_waiting > 0:
@@ -288,10 +276,7 @@ class SIM767X:
                             elif (resultStr.startswith("NW PDN DEACT")):
                                 self.log("NW PDN DEACT")
                         elif data.startswith("+SIMEI:"):
-                            if self.deviceID is None:
-                                self.deviceID = "IMEI" + resultStr
-                            if (self.onNewDeviceIDcallback is not None):
-                                self.onNewDeviceIDcallback(self.deviceID)
+                            self.imei = "IMEI" + resultStr
                         elif data.startswith("+COPS:"):
                             resultArr = resultStr.split(',')
                             if len(resultArr) >= 3:
@@ -309,36 +294,42 @@ class SIM767X:
                             if len(resultArr) >= 2:
                                 error = int(resultArr[1])
                                 if (error == 0):
-                                    self.mqttState = MQTT_State.MQTT_REQ_SUBSCRIBE
+                                    self.onMQTTconnected()
                                     self.mqttReconnectFailCounter = 0
                                 else:
                                     self.log("MQTT Cnct: " + str(error))
                                     self.reqMQTTreconnect()
                         elif data.startswith("+CMQTTSUB:"):
+                            self.mqttIsSubscribing = False
                             resultArr = resultStr.split(',')
                             if len(resultArr) >= 2:
                                 error = int(resultArr[1])
+                                if self.onMQTTsubscribeCallback is not None:
+                                    self.onMQTTsubscribeCallback(self.subTopic, error)
+
                                 if error == 0:
-                                    self.onMQTTconnected()
+                                    self.subTopic = ""
                                 else:
                                     self.log("MQTT Sub: " + str(error))
                                     self.reqMQTTreconnect()
                         elif data.startswith("+CMQTTPUB:"):
                             self.mqttIsPublishing = False
-
                             resultArr = resultStr.split(',')
                             if len(resultArr) >= 2:
                                 error = int(resultArr[1])
-                                if self.mqttPublishCallback is not None:
-                                    self.mqttPublishCallback(self.topic, self.messageSendID, error)  # Do before topic is cleared below
-                                self.messageSendID = -1  # Probably don't need this
-
-                                if error != 0:
+                                if error == 0:
+                                    if self.pubTopic in self.messagesDict:
+                                        del self.messagesDict[self.pubTopic]  # ??? This should really be after successful publish
+                                else:
                                     self.log("MQTT Pub: " + str(error))
                                     self.reqMQTTreconnect()
-                                else:
-                                    self.topic = ""
-                                    self.txMessage = ""
+
+                                if self.onMQTTpublishCallback is not None:
+                                    self.onMQTTpublishCallback(self.pubTopic, self.messageSendID, error)  # Do before topic is cleared below
+                                self.messageSendID = -1  # Probably don't need this
+
+                                self.pubTopic = ""
+                                self.txMessage = ""
                         elif data.startswith("+CMQTTRXTOPIC:"):
                             # No need to do anything with the received topic as there shoud only be one topic.
                             pass
@@ -354,8 +345,8 @@ class SIM767X:
                             self.incomingMessage = False
 
                             if len(self.rxMessage) > 0:
-                                if self.receiveIncomingMessageCallback is not None:
-                                    self.receiveIncomingMessageCallback(self.rxMessage)
+                                if self.onReceiveIncomingMessageCallback is not None:
+                                    self.onReceiveIncomingMessageCallback(self.rxMessage)
                                 self.rxMessage = ""
                         elif data.startswith("+CMQTTDISC:"):
                             self.mqttState = MQTT_State.MQTT_DISCONNECTED
@@ -363,8 +354,8 @@ class SIM767X:
                                 self.lteState = LTE_State.MODULE_REQ_SHUTDOWN
                         elif data.startswith("+CMQTTCONNLOST:"):
                             self.mqttState = MQTT_State.MQTT_DISCONNECTED
-                            if self.mqttConnectCallback is not None:
-                                self.mqttConnectCallback(False, ERROR_State.ERR_MQTT_CONNECTION_LOST)
+                            if self.onMQTTconnectCallback is not None:
+                                self.onMQTTconnectCallback(False, ERROR_State.ERR_MQTT_CONNECTION_LOST)
 
                             resultArr = resultStr.split(',')
                             if len(resultArr) >= 2:
@@ -439,8 +430,6 @@ class SIM767X:
     def runOneSecondMQTTTasks(self):
         if self.mqttState == MQTT_State.MQTT_REQ_CONNECT:
             self.mqttConnect()
-        elif self.mqttState == MQTT_State.MQTT_REQ_SUBSCRIBE:
-            self.mqttReqSubscribe()
         elif self.mqttState == MQTT_State.MQTT_REQ_DISCONNECT:
             self.mqttDisconnect()
 
@@ -466,30 +455,8 @@ class SIM767X:
         elif self.gnssState == GNSS_State.GNSS_REQ_SHUTDOWN:
             self.powerDownGNSS()
 
-    def checkOutgoingMessages(self):
-        if (not self.mqttIsPublishing) and (self.mqttState == MQTT_State.MQTT_CONNECTED) and (not self.runATcallbacks):
-            if not self.incomingMessage:  # Wait if any received message is being downloaded.
-                if (len(self.topic) > 0) and (len(self.txMessage) > 0):
-                    self.mqttRequestPublish()  # Try and publish again
-                elif len(self.messageToSend) > 0:  # Don't send a message unless all callbacks are finished.
-                    self.txMessage = self.messageToSend
-                    self.topic = self.getMQTTTopic(self.username, "data")
-                    if self.mqttRequestPublish():
-                        self.messageToSend = ""
-                elif len(self.alarmMessageToSend) > 0:
-                    self.txMessage = self.alarmMessageToSend
-                    self.topic = self.getMQTTTopic(self.username, "alarm")
-                    if (self.mqttRequestPublish()):
-                        self.alarmMessageToSend = ""
-                elif len(self.announceMessageToSend) > 0:
-                    self.txMessage = self.announceMessageToSend
-                    self.topic = self.getMQTTTopic(self.username, "announce")
-                    if self.mqttRequestPublish():
-                        self.announceMessageToSend = ""
-
     def powerDownModule(self):
         self.lteState = LTE_State.MODULE_SHUTTING_DOWN
-        self.messageToSend = self.getOfflineMessage()
         self.shutDownTimerS = 0  # Start shutdown counter
 
     def shutdownModule(self):
@@ -558,7 +525,7 @@ class SIM767X:
 
     def mqttAcquireCLient(self):
         tempStr = "CMQTTACCQ=0,\""  # clientIndex = 0
-        tempStr += self.deviceID  # cliendID
+        tempStr += self.imei  # cliendID
         tempStr += "\",1"  # serverType 1 = SSL/TLS, 0 = TCP
         self.protectedATcmd(tempStr, lambda: self.mqttConfigSSL(), lambda: None)
 
@@ -567,21 +534,21 @@ class SIM767X:
 
 # ---- MQTT LWT -----
     def mqttRequestWillToic(self):
-        self.willSubTopic = self.getMQTTTopic(self.username, "data")
-        self.willSubMessage = self.getOfflineMessage()
-        self.protectedATcmd("CMQTTWILLTOPIC=0," + str(len(self.willSubTopic)), lambda: self.mqttRequestWillMessage(), lambda: self.mqttEnterWillToic())  # clientIndex = 0
+        self.willTopic = self.username + "/" + self.deviceID + "/" + "data"  # ??? This needs sorting
+        self.willMessage = self.offlineMessage
+        self.protectedATcmd("CMQTTWILLTOPIC=0," + str(len(self.willTopic)), lambda: self.mqttRequestWillMessage(), lambda: self.mqttEnterWillToic())  # clientIndex = 0
 
     def mqttEnterWillToic(self):
-        self.serialAT.write((self.willSubTopic).encode())
+        self.serialAT.write((self.willTopic).encode())
 
     def mqttRequestWillMessage(self):
         tempStr = "CMQTTWILLMSG=0,"
-        tempStr += str(len(self.willSubMessage))
+        tempStr += str(len(self.willMessage))
         tempStr += ",2"
         self.protectedATcmd(tempStr, lambda: self.reqMQTTconnect(), lambda: self.mqttEnterWillMessage())  # clientIndex = 0, qos = 2
 
     def mqttEnterWillMessage(self):
-        self.serialAT.write(self.willSubMessage.encode())
+        self.serialAT.write(self.willMessage.encode())
 
     def reqMQTTconnect(self):
         self.mqttState = MQTT_State.MQTT_REQ_CONNECT
@@ -598,20 +565,22 @@ class SIM767X:
 
 # ---- MQTT Subscribe -----
     def mqttReqSubscribe(self):
-        self.willSubTopic = self.getMQTTTopic(self.username, "control")
-        self.protectedATcmd("CMQTTSUB=0," + str(len(self.willSubTopic)) + ",2", lambda: self.printOK(), lambda: self.mqttEnterSubTopic())  # clientIndex = 0
+        if self.protectedATcmd("CMQTTSUB=0," + str(len(self.subTopic)) + ",2", lambda: self.printOK(), lambda: self.mqttEnterSubTopic()):  # clientIndex = 0
+            self.mqttIsSubscribing = True
 
     def mqttEnterSubTopic(self):
         if self.printMessages:
-            print("Sub Topic: " + self.willSubTopic)
-            self.serialAT.write(self.willSubTopic.encode())
+            print("Sub Topic: " + self.subTopic)
+        self.serialAT.write(self.subTopic.encode())
 
 # ----- MQTT Publish ------
-    def mqttRequestPublish(self):
+    def mqttRequestPublish(self, topic, message):
+        self.pubTopic = topic
+        self.txMessage = message
         if len(self.txMessage) > 0:
             if self.lteState == LTE_State.MODULE_SHUTTING_DOWN:
                 self.shutDownTimerS = 0  # Reset shutdown timer as there is a message to send
-            if self.protectedATcmd("CMQTTTOPIC=0," + str(len(self.topic)), lambda: self.mqttRequestPayload(), lambda: self.mqttEnterPubTopic()):  # clientIndex = 0
+            if self.protectedATcmd("CMQTTTOPIC=0," + str(len(self.pubTopic)), lambda: self.mqttRequestPayload(), lambda: self.mqttEnterPubTopic()):  # clientIndex = 0
                 return True
             else:
                 return False
@@ -620,15 +589,15 @@ class SIM767X:
 
     def mqttEnterPubTopic(self):
         if self.printMessages:
-            print("Pub Topic: " + self.topic)
-        self.serialAT.write(self.topic.encode())
+            print("Pub Topic: " + self.pubTopic)
+        self.serialAT.write(self.pubTopic.encode())
 
     def mqttRequestPayload(self):
         self.protectedATcmd("CMQTTPAYLOAD=0," + str(len(self.txMessage)), lambda: self.mqttPublish(), lambda: self.mqttEnterMessage())  # clientIndex = 0
 
     def mqttEnterMessage(self):
         if self.printMessages:
-            print("Publish Message: " + self.topic)
+            print("Publish Message: " + self.pubTopic)
             print(self.txMessage)
         self.serialAT.write(self.txMessage.encode())
 
