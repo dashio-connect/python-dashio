@@ -144,7 +144,6 @@ class Lte767xConnection(threading.Thread):
 
         self.running = True
         self._device_id_list = []
-        self.serial_com: serial.Serial | None = None
         self.serial_port = serial_port
         self.baud_rate = baud_rate
         self.lte_con = SIM767X(self.serial_port, "", self.apn, self.baud_rate)
