@@ -3,6 +3,7 @@ import time
 from enum import Enum
 
 #  TODO In the serial init add AT+CGMM and throw an exception if you don't get a response or the correct response.
+#  TODO don't setup LWT unless will topic and message is setup. Remove offlineMessage
 
 
 class LTE_State(Enum):
@@ -106,15 +107,18 @@ class SIM767X:
     gnssRetryCounter = 0
     gnssState = GNSS_State.GNSS_SHUTDOWN
 
-    def __init__(self, _serial, _deviceID, _network, _apn):
+    def __init__(self, _serial, _deviceID, _network, _apn, _baud_rate):
         self.deviceID = _deviceID
         self.network = _network
         self.apn = _apn
-        self.serialAT = serial.Serial(_serial, 115200)
+        self.serialAT = serial.Serial(_serial, _baud_rate)
+        self.serialAT.flush()
 
-    def setup(self, _username, _password):
+    def mqttSetup(self,  _host, _port, _username, _password):
         self.username = _username
         self.password = _password
+        self.host = _host
+        self.port = _port
 
     def setCallbacks(self, _onMQTTconnect, _onMQTTsubscribe, _receiveIncomingMessage):
         self.onMQTTconnectCallback = _onMQTTconnect
@@ -188,7 +192,7 @@ class SIM767X:
             self.runOneSecondGNSSTasks()
 
     def processATcommands(self):
-        while self.serialAT.in_waiting > 0:
+        if self.serialAT.in_waiting > 0:
             if self.moreDataComing > 0:  # Required because we can read the message through AT faster than it may arrive.
                 self.readMessage(self.moreDataComing)
             else:
@@ -555,7 +559,11 @@ class SIM767X:
 
 # ---- MQTT Connect -----
     def mqttConnect(self):
-        connectStr = "CMQTTCONNECT=0,\"tcp://dash.dashio.io:8883\",60,1,\""  # 60s keep alive
+        connectStr = "CMQTTCONNECT=0,\"tcp://"
+        connectStr += self.host
+        connectStr += ":"
+        connectStr += str(self.port)
+        connectStr += "\",60,1,\""  # 60s keep alive
         connectStr += self.username
         connectStr += "\",\""
         connectStr += self.password
