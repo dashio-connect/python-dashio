@@ -23,7 +23,6 @@ SOFTWARE.
 """
 import logging
 import threading
-import time
 import json
 import shortuuid
 import zmq
@@ -152,7 +151,6 @@ class Lte767xConnection(threading.Thread):
         self.connection_state = ConnectionState.CONNECTING
 
         self.start()
-        time.sleep(1)
 
     def close(self):
         """Close the connection."""
