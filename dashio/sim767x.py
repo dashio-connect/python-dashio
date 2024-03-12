@@ -481,15 +481,11 @@ class SIM767X:
 
     def set_carrier(self):
         if self.network is not None:
-            carrier_str: str = "AT+COPS=4,2,\""  # 1 = manual (4 = manual/auto), 2 = short format. For One NZ SIM cards not roaming in NZ, Could take up to 60s
-            carrier_str += self.network
-            carrier_str += "\""
+            carrier_str = f'AT+COPS=4,2,"{self.network}"'  # 1 = manual (4 = manual/auto), 2 = short format. For One NZ SIM cards not roaming in NZ, Could take up to 60s
             self.serial_at.write(carrier_str.encode())  # ??? Maybe should be protected
 
     def start_pdp_context(self):
-        context_str = "CGDCONT=1,\"IP\",\""
-        context_str += self.apn
-        context_str += "\""
+        context_str = f'CGDCONT=1,"IP","{self.apn}"'
         self.protected_at_cmd(context_str, lambda: self.activate_context(), lambda: None)
 
     def activate_context(self):
@@ -518,9 +514,7 @@ class SIM767X:
         self.protected_at_cmd("CMQTTSTART", lambda: self.print_ok(), lambda: None, 60)
 
     def mqtt_acquire_client(self):
-        temp_str = "CMQTTACCQ=0,\""  # clientIndex = 0
-        temp_str += self.imei  # cliendID
-        temp_str += "\",1"  # serverType 1 = SSL/TLS, 0 = TCP
+        temp_str = f'CMQTTACCQ=0,"{self.imei}",1'  # clientIndex = 0, cliendID, serverType 1 = SSL/TLS, 0 = TCP
         self.protected_at_cmd(temp_str, lambda: self.mqtt_config_ssl(), lambda: None)
 
     def mqtt_config_ssl(self):
@@ -551,15 +545,7 @@ class SIM767X:
 
 # ---- MQTT Connect -----
     def mqtt_connect(self):
-        connect_str = "CMQTTCONNECT=0,\"tcp://"
-        connect_str += self.host
-        connect_str += ":"
-        connect_str += str(self.port)
-        connect_str += "\",60,1,\""  # 60s keep alive
-        connect_str += self.username
-        connect_str += "\",\""
-        connect_str += self.password
-        connect_str += "\""
+        connect_str = f'"CMQTTCONNECT=0,"tcp://{self.host}:{str(self.port)}",60,1,"{self.username}","{self.password}"'
         if self.protected_at_cmd(connect_str, lambda: self.print_ok(), lambda: None, 60):  # Allow 60s for MQTT to connect
             self.mqtt_state = MQTT_State.MQTT_CONNECTING
 
