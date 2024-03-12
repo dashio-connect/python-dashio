@@ -311,13 +311,13 @@ class SIM767X:
                                     logger.debug("MQTT Sub: %s", error)
                                     self.req_mqtt_reconnect()
                         elif data.startswith("+CMQTTPUB:"):
-                            self.mqttIsPublishing = False
+                            self.mqtt_is_publishing = False
                             result_arr = result_str.split(',')
                             if len(result_arr) >= 2:
                                 error = int(result_arr[1])
                                 if error == 0:
                                     if self.pub_topic in self.messages_dict:
-                                        del self.messages_dict[self.pub_topic]  # ??? This should really be after successful publish
+                                        del self.messages_dict[self.pub_topic]
                                 else:
                                     logger.debug("MQTT Pub: %s", error)
                                     self.req_mqtt_reconnect()
@@ -381,7 +381,7 @@ class SIM767X:
 
         # LTE State
         if self.lte_state == LTE_State.MODULE_STARTUP:
-            logger.debug("Disconnect Timers: %s.", self.disconnect_timer_s)
+            logger.debug("Startup Timer: %s.", self.disconnect_timer_s)
             self.disconnect_timer_s += 1
             if self.disconnect_timer_s > 60:  # One min
                 self.disconnect_timer_s = 0
@@ -394,7 +394,7 @@ class SIM767X:
 
             self.get_imei()
         elif self.lte_state == LTE_State.LTE_DISCONNECTED:
-            logger.debug("Disconnect Timers: %s^", self.disconnect_timer_s)
+            logger.debug("MQTT Disconnected Timer: %s^", self.disconnect_timer_s)
             self.disconnect_timer_s += 1
             if self.disconnect_timer_s > 300:  # Five mins
                 self.disconnect_timer_s = 0
@@ -543,7 +543,7 @@ class SIM767X:
 
 # ---- MQTT Connect -----
     def mqtt_connect(self):
-        connect_str = f'"CMQTTCONNECT=0,"tcp://{self.host}:{str(self.port)}",60,1,"{self.username}","{self.password}"'
+        connect_str = f'CMQTTCONNECT=0,"tcp://{self.host}:{str(self.port)}",60,1,"{self.username}","{self.password}"'
         if self.protected_at_cmd(connect_str, lambda: self.print_ok(), lambda: None, 60):  # Allow 60s for MQTT to connect
             self.mqtt_state = MQTT_State.MQTT_CONNECTING
 
@@ -558,6 +558,7 @@ class SIM767X:
 
 # ----- MQTT Publish ------
     def mqtt_request_publish(self, topic, message):
+        print("XXX Publishing: " + topic + "   - " + message)  # ???
         self.pub_topic = topic
         self.tx_message = message
         if self.tx_message:
