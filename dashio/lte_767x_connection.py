@@ -153,8 +153,8 @@ class Lte767xConnection(threading.Thread):
         self.serial_port = serial_port
         self.baud_rate = baud_rate
         self.lte_con = SIM767X(self.serial_port, "", self.apn, self.baud_rate)
-        self.lte_con.mqttSetup(self.host, self.port, self.username, self.password)
-        self.lte_con.setCallbacks(self.on_mqtt_connect, self.on_mqtt_subscribe, self.on_mqtt_receive_message)
+        self.lte_con.mqtt_setup(self.host, self.port, self.username, self.password)
+        self.lte_con.set_callbacks(self.on_mqtt_connect, self.on_mqtt_subscribe, self.on_mqtt_receive_message)
         self.connection_state = ConnectionState.CONNECTING
         self.start()
 
@@ -207,7 +207,7 @@ class Lte767xConnection(threading.Thread):
                     data_topic = f"{self.username}/{device_id}/data"
 
                 logger.debug("LTE TX:\n%s\n%s", data_topic, data.decode().rstrip())
-                self.lte_con.publishMessage(data_topic, data.decode())
+                self.lte_con.publish_message(data_topic, data.decode())
 
             """
             try:

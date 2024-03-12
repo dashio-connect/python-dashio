@@ -8,7 +8,11 @@
         "python.analysis.typeCheckingMode": "basic",
         "flake8.args": [
             "--config=${workspaceFolder}/.pylintrc"
-        ]
+        ],
+        "[python]": {
+            "editor.defaultFormatter": "ms-python.autopep8",
+            "editor.formatOnSave": true
+          }
     },
     "extensions": {
         "recommendations": [
@@ -19,7 +23,8 @@
             "ms-python.isort",
             "ms-python.python",
             "ms-python.vscode-pylance",
-            "littlefoxteam.vscode-python-test-adapter"
+            "littlefoxteam.vscode-python-test-adapter",
+            "ms-python.autopep8"
         ]
     }
 }
