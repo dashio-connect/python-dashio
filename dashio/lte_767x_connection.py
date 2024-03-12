@@ -41,9 +41,9 @@ class Lte767xConnection(threading.Thread):
 
     def onMQTTconnect(self, connected, errorState):
         if connected:
+            logger.debug("connected OK")
             self.connection_state = ConnectionState.CONNECTED
             self._send_dash_announce()
-            logger.debug("connected OK")
         else:
             logger.debug("disconnecting reason  %s", errorState)
             self._connection_state = ConnectionState.DISCONNECTED
@@ -203,6 +203,7 @@ class Lte767xConnection(threading.Thread):
 
                 logger.debug("LTE TX:\n%s\n%s", data_topic, data.decode().rstrip())
 
+                print("Publish: " + data_topic + "  " + data.decode())  # ???
                 self.lte_con.publishMessage(data_topic, data.decode())
 
             self.lte_con.run()

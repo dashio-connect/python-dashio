@@ -79,6 +79,7 @@ class SIM767X:
     atTimerS = -1
     shutDownTimerS = -1
     mqttReconnectTimerS = -1
+    mqttReconnectFailCounter = 0
     disconnectTimerS = 0
     runATcallbacks = False
 
@@ -86,7 +87,6 @@ class SIM767X:
     errorState = ERROR_State.ERR_REBOOT
     mqttState = MQTT_State.MQTT_DISCONNECTED
 
-    offlineMessage = ""
     willTopic = ""
     willMessage = ""
     mqttIsPublishing = False
@@ -537,9 +537,10 @@ class SIM767X:
 
 # ---- MQTT LWT -----
     def mqttRequestWillToic(self):
-        self.willTopic = self.username + "/" + "deviceID" + "/" + "data"  # ??? This needs sorting
-        self.willMessage = self.offlineMessage
-        self.protectedATcmd("CMQTTWILLTOPIC=0," + str(len(self.willTopic)), lambda: self.mqttRequestWillMessage(), lambda: self.mqttEnterWillToic())  # clientIndex = 0
+        if len(self.willMessage) > 0 and len(self.willTopic) > 0:
+            self.protectedATcmd("CMQTTWILLTOPIC=0," + str(len(self.willTopic)), lambda: self.mqttRequestWillMessage(), lambda: self.mqttEnterWillToic())  # clientIndex = 0
+        else:
+            self.mqttConnect()
 
     def mqttEnterWillToic(self):
         self.serialAT.write((self.willTopic).encode())
