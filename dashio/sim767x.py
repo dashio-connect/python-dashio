@@ -178,7 +178,6 @@ class SIM767X:
 
     def run(self, cookie):
         self.processATcommands()
-
         # Messaging
         if (self.mqttState == MQTT_State.MQTT_CONNECTED) and (not self.runATcallbacks):
             if not self.mqttIsSubscribing and not self.mqttIsPublishing and not self.incomingMessage:  # Wait for any received message being downloaded.
