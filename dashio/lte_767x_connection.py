@@ -164,6 +164,7 @@ class Lte767xConnection(threading.Thread):
         # Subscribe on ALL, and my connection
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "LTE")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.zmq_connection_uuid)
         # rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
 
