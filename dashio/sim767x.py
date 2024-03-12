@@ -176,7 +176,7 @@ class SIM767X:
 
         self.errorState = ERROR_State.ERR_NONE
 
-    def run(self):
+    def run(self, cookie):
         self.processATcommands()
 
         # Messaging
@@ -371,7 +371,7 @@ class SIM767X:
         self.rxMessage += charsIn
         self.moreDataComing = messageLen - len(charsIn)
 
-    def runOneSecondModuleTasks(self):
+    def runOneSecondModuleTasks(self, cookie):
         if self.shutDownTimerS >= 0:
             logger.debug("Shutdown Ttimers: %ss", self.shutDownTimerS)
             self.shutDownTimerS += 1
@@ -424,7 +424,7 @@ class SIM767X:
                     self.reqResetModule(ERROR_State.ERR_AT_TIMEOUT_RESET)
         return True
 
-    def runOneSecondMQTTTasks(self):
+    def runOneSecondMQTTTasks(self, cookie):
         if self.mqttState == MQTT_State.MQTT_REQ_CONNECT:
             self.mqttConnect()
         elif self.mqttState == MQTT_State.MQTT_REQ_DISCONNECT:
@@ -439,7 +439,7 @@ class SIM767X:
                 self.reqMQTTconnect()
         return True
 
-    def runOneSecondGNSSTasks(self):
+    def runOneSecondGNSSTasks(self, cookie):
         if self.gnssState == GNSS_State.GNSS_REQ_POWERUP:
             self.powerUpGNSS()
         elif self.gnssState == GNSS_State.GNSS_REQ_DATA:
