@@ -179,7 +179,7 @@ class Lte767xConnection(threading.Thread):
             if self.rx_zmq_sub in socks and self.connection_state == ConnectionState.CONNECTED:  # If not connected the incoming messages are queued
                 try:
                     [msg_to, data] = self.rx_zmq_sub.recv_multipart()
-                    logger.debug("LTE con ZMQ rx: %s, $s", msg_to, data)
+                    logger.debug("LTE con ZMQ rx: %s, %s", msg_to, data)
                 except ValueError:
                     #  If there aren't two parts continue.
                     continue
@@ -196,7 +196,7 @@ class Lte767xConnection(threading.Thread):
                 if control_type == b'ALM':
                     data_topic = f"{self.username}/{device_id}/alarm"
                     control_type = ""
-                elif msg_to == b"DASH":
+                elif msg_to == b"ANNOUNCE":
                     data_topic = f"{self.username}/{device_id}/announce"
                 else:
                     data_topic = f"{self.username}/{device_id}/data"
