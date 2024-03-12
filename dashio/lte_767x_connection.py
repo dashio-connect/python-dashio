@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 class Lte767xConnection(threading.Thread):
     """Under Active Development - DOES NOT WORK!"""
 
-    def onMQTTconnect(self, connected, errorState):
+    def on_mqtt_connect(self, connected, error_state):
         if connected:
             logger.debug("connected OK")
             self.connection_state = ConnectionState.CONNECTED
@@ -46,21 +46,21 @@ class Lte767xConnection(threading.Thread):
                 control_topic = f"{self.username}/{device_id}/control"
                 self.lte_con.subscribe(control_topic)
         else:
-            logger.debug("disconnecting reason  %s", errorState)
+            logger.debug("disconnecting reason  %s", error_state)
             self._connection_state = ConnectionState.DISCONNECTED
 
-    def onMQTTsubscribe(self, topic, error):
+    def on_mqtt_subscribe(self, topic, error):
         logger.debug("Subscribed: %s %s", topic, str(error))
         if error == 0:
             device_id = topic.split('/')[1]
             self._send_dash_announce(device_id)
 
-    def onMQTTreceiveMessage(self, message):
+    def on_mqtt_receive_message(self, message: str):
         try:
             logger.debug("LTE Rx:\n%s", message.rstrip())
             self.tx_zmq_pub.send_multipart([message.encode(), self.b_zmq_connection_uuid])
         except UnicodeDecodeError:
-            logger.debug("LTE SERIAL DECODE ERROR Rx:\n%s", message.hex())
+            logger.debug("LTE SERIAL DECODE ERROR Rx:\n%s", message)
 
     def add_device(self, device: Device):
         """Add a device to the connection
@@ -152,7 +152,7 @@ class Lte767xConnection(threading.Thread):
         self.baud_rate = baud_rate
         self.lte_con = SIM767X(self.serial_port, "", self.apn, self.baud_rate)
         self.lte_con.mqttSetup(self.host, self.port, self.username, self.password)
-        self.lte_con.setCallbacks(self.onMQTTconnect, self.onMQTTsubscribe, self.onMQTTreceiveMessage)
+        self.lte_con.setCallbacks(self.on_mqtt_connect, self.on_mqtt_subscribe, self.on_mqtt_receive_message)
         self.connection_state = ConnectionState.CONNECTING
         self.start()
 
@@ -170,7 +170,6 @@ class Lte767xConnection(threading.Thread):
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "LTE")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.zmq_connection_uuid)
-        # rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
 
         poller = zmq.Poller()
         poller.register(self.rx_zmq_sub, zmq.POLLIN)
