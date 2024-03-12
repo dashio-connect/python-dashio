@@ -4,7 +4,7 @@ import serial
 import time
 import logging
 from enum import Enum
-
+from .schedular import Schedular
 
 logger = logging.getLogger(__name__)
 
@@ -118,6 +118,11 @@ class SIM767X:
         self.apn = _apn
         self.serialAT = serial.Serial(_serial, _baud_rate)
         self.serialAT.flush()
+        sched = Schedular("LTE Connection Schedular")
+        sched.add_timer(1.0, 0.0, self.run)
+        sched.add_timer(1.0, 0.25, self.runOneSecondModuleTasks)
+        sched.add_timer(1.0, 0.5, self.runOneSecondMQTTTasks)
+        sched.add_timer(1.0, 0.75, self.runOneSecondGNSSTasks)
 
     def mqttSetup(self,  _host, _port, _username, _password):
         self.username = _username
@@ -183,15 +188,7 @@ class SIM767X:
                     dTopic = list(self.messagesDict.keys())[0]
                     self.mqttRequestPublish(dTopic, self.messagesDict[dTopic])
 
-        #  Timed activities
-        now = time.time()
-        deltaTime = now - self.startTime
-        if deltaTime >= 1:
-            self.startTime = now
-
-            self.runOneSecondModuleTasks()
-            self.runOneSecondMQTTTasks()
-            self.runOneSecondGNSSTasks()
+        return True
 
     def processATcommands(self):
         if self.serialAT.in_waiting > 0:
@@ -425,6 +422,7 @@ class SIM767X:
                     logger.debug("Callback - Houston - we have a problem TIMEOUT")
                     self.timeoutErrorCommand = self.lastCommand
                     self.reqResetModule(ERROR_State.ERR_AT_TIMEOUT_RESET)
+        return True
 
     def runOneSecondMQTTTasks(self):
         if self.mqttState == MQTT_State.MQTT_REQ_CONNECT:
@@ -439,6 +437,7 @@ class SIM767X:
                 self.mqttReconnectTimerS = -1  # Turn off timer
                 logger.debug("MQTT Reconnect")
                 self.reqMQTTconnect()
+        return True
 
     def runOneSecondGNSSTasks(self):
         if self.gnssState == GNSS_State.GNSS_REQ_POWERUP:
@@ -451,6 +450,7 @@ class SIM767X:
                 self.getGNSSinfo()
         elif self.gnssState == GNSS_State.GNSS_REQ_SHUTDOWN:
             self.powerDownGNSS()
+        return True
 
     def powerDownModule(self):
         self.lteState = LTE_State.MODULE_SHUTTING_DOWN

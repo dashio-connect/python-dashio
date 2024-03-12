@@ -550,6 +550,7 @@ class Device(threading.Thread):
         if cfg_dict is not None:
             self._cfg["cfgRev"] = cfg_dict['CFG']['cfgRev']
             self.add_all_c64_controls(cfg_dict)
+            self.use_cfg64()
 
         self._add_actions = add_actions
         if self._add_actions:
