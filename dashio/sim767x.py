@@ -179,7 +179,7 @@ class SIM767X:
     def run(self, cookie):
         self.process_at_commands()
         # Messaging
-        if (self.mqtt_state == MQTT_State.MQTT_CONNECTED) and (not self.run_at_callbacks):
+        if self.mqtt_state == MQTT_State.MQTT_CONNECTED and not self.run_at_callbacks:
             if not self.mqtt_is_subscribing and not self.mqtt_is_publishing and not self.incoming_message:  # Wait for any received message being downloaded.
                 if self.sub_topic:
                     self.mqtt_req_subscribe()
@@ -213,7 +213,7 @@ class SIM767X:
 
                 data = data.replace('\r', '')
 
-                if (have_message or data.startswith(">")) and (len(data) > 0):
+                if (have_message or data.startswith(">")) and data:
                     logger.debug("CMD: %s", data)
 
                     if data.startswith("OK"):
@@ -221,17 +221,17 @@ class SIM767X:
 
                         if self.run_at_callbacks:
                             self.run_at_callbacks = False
-                            if (self.on_ok_callback is not None):
+                            if self.on_ok_callback is not None:
                                 self.on_ok_callback()
-                    elif (data.startswith("ERROR")):
+                    elif data.startswith("ERROR"):
                         self.more_data_coming = 0  # Just in case
-                        if (self.run_at_callbacks):
+                        if self.run_at_callbacks:
                             self.run_at_callbacks = False
                             logger.debug("Callback - Houston - we have a problem ERROR")
                             logger.debug("AT Error")
                     elif data.startswith(">"):
                         if self.run_at_callbacks:
-                            if (self.on_enter_callback is not None):
+                            if self.on_enter_callback is not None:
                                 self.on_enter_callback()
                     else:
                         data_arr = data.split(':')
@@ -240,23 +240,23 @@ class SIM767X:
                             result_str = result_str.strip()
 
                         if data.startswith("+CPIN:"):
-                            if (result_str.startswith("READY")):  # Module has started up and is ready for AT commands
+                            if result_str.startswith("READY"):  # Module has started up and is ready for AT commands
                                 self.run_at_callbacks = False
                                 self.lte_state = LTE_State.SIM_READY
 
-                        elif (data.startswith("+CREG:")) or (data.startswith("+CEREG:")) or (data.startswith("+CGREG:")):  # Network Registration Status
+                        elif data.startswith("+CREG:") or data.startswith("+CEREG:") or data.startswith("+CGREG:"):  # Network Registration Status
                             result_arr = result_str.split(',')
                             if len(result_arr) == 1:  # Unsolicited response
                                 status = int(result_arr[0])
-                                if (status == 1) or (status == 5):
-                                    if (self.lte_state != LTE_State.LTE_CONNECTED):
+                                if status == 1 or status == 5:
+                                    if self.lte_state != LTE_State.LTE_CONNECTED:
                                         self.lte_state = LTE_State.LTE_CONNECTED
                                         self.disconnect_timer_s = 0
                                         self.start_pdp_context()
                             else:  # Request response
                                 status = int(result_arr[1])
-                                if (status == 1) or (status == 5):
-                                    if (self.lte_state != LTE_State.LTE_CONNECTED):
+                                if status == 1 or status == 5:
+                                    if self.lte_state != LTE_State.LTE_CONNECTED:
                                         self.lte_state = LTE_State.LTE_CONNECTED
                                         self.disconnect_timer_s = 0
                                         self.start_pdp_context()
@@ -265,13 +265,13 @@ class SIM767X:
                                     self.mqtt_state = MQTT_State.MQTT_DISCONNECTED
                                     self.error_state = ERROR_State.ERR_LTE_CONNECT_FAIL_RESET
                         elif data.startswith("+CGEV:"):
-                            if (result_str.startswith("ME PDN ACT")):  # AcT = 0 (GSM)
+                            if result_str.startswith("ME PDN ACT"):  # AcT = 0 (GSM)
                                 logger.debug("ME PDN ACT")
-                            elif (result_str.startswith("EPS PDN ACT")):  # AcT = 7 (EUTRAN)
+                            elif result_str.startswith("EPS PDN ACT"):  # AcT = 7 (EUTRAN)
                                 logger.debug("EPS PDN ACT")
-                            elif (result_str.startswith("ME PDN DEACT")):
+                            elif result_str.startswith("ME PDN DEACT"):
                                 logger.debug("ME PDN DEACT")
-                            elif (result_str.startswith("NW PDN DEACT")):
+                            elif result_str.startswith("NW PDN DEACT"):
                                 logger.debug("NW PDN DEACT")
                         elif data.startswith("+SIMEI:"):
                             self.imei = "IMEI" + result_str
@@ -280,18 +280,18 @@ class SIM767X:
                             if len(result_arr) >= 3:
                                 logger.debug("Carrier: %s", result_arr[2])
                         # MQTT
-                        elif (data.startswith("+CMQTTSTART:")):
+                        elif data.startswith("+CMQTTSTART:"):
                             error = int(result_str)
-                            if (error == 0):
+                            if error == 0:
                                 self.mqtt_acquire_client()
                             else:
                                 logger.debug("MQTT Start: %s", error)
                                 self.lte_state = LTE_State.MODULE_REQ_RESET
-                        elif (data.startswith("+CMQTTCONNECT:")):
+                        elif data.startswith("+CMQTTCONNECT:"):
                             result_arr = result_str.split(',')
                             if len(result_arr) >= 2:
                                 error = int(result_arr[1])
-                                if (error == 0):
+                                if error == 0:
                                     self.on_mqtt_connected()
                                     self.mqtt_reconnect_fail_counter = 0
                                 else:
@@ -373,9 +373,9 @@ class SIM767X:
         if self.shut_down_timer_s >= 0:
             logger.debug("Shutdown Ttimers: %ss", self.shut_down_timer_s)
             self.shut_down_timer_s += 1
-            if (self.shut_down_timer_s == self.SHUTDOWN_WAIT_S):
+            if self.shut_down_timer_s == self.SHUTDOWN_WAIT_S:
                 self.mqtt_state = MQTT_State.MQTT_REQ_DISCONNECT
-            if (self.shut_down_timer_s == self.SHUTDOWN_WAIT_S + 5):  # Allow 5 seconds to disconnect before shutdown
+            if self.shut_down_timer_s == self.SHUTDOWN_WAIT_S + 5:  # Allow 5 seconds to disconnect before shutdown
                 self.shut_down_timer_s = -1  # Turn off timer
                 self.lte_state = LTE_State.MODULE_REQ_SHUTDOWN
 
@@ -383,7 +383,7 @@ class SIM767X:
         if self.lte_state == LTE_State.MODULE_STARTUP:
             logger.debug("Disconnect Timers: %s.", self.disconnect_timer_s)
             self.disconnect_timer_s += 1
-            if (self.disconnect_timer_s > 60):  # One min
+            if self.disconnect_timer_s > 60:  # One min
                 self.disconnect_timer_s = 0
                 self.run_at_callbacks = False
                 self.req_reset_module(ERROR_State.ERR_STARTUP_TIMEOUT)
@@ -396,7 +396,7 @@ class SIM767X:
         elif self.lte_state == LTE_State.LTE_DISCONNECTED:
             logger.debug("Disconnect Timers: %s^", self.disconnect_timer_s)
             self.disconnect_timer_s += 1
-            if (self.disconnect_timer_s > 300):  # Five mins
+            if self.disconnect_timer_s > 300:  # Five mins
                 self.disconnect_timer_s = 0
                 self.req_reset_module(ERROR_State.ERR_NO_CARRIER_TIMEOUT)
         elif self.lte_state == LTE_State.MODULE_REQ_RESET:
@@ -406,7 +406,7 @@ class SIM767X:
 
         # Check Connection
         self.check_connection_second_count += 1
-        if (self.check_connection_second_count > self.CHECK_CONNECTION_INTERVAL_S):
+        if self.check_connection_second_count > self.CHECK_CONNECTION_INTERVAL_S:
             self.check_connection_second_count = 0
             if self.lte_state == LTE_State.LTE_CONNECTED:
                 self.check_connection()
