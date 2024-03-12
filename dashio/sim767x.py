@@ -119,7 +119,7 @@ class SIM767X:
         self.serialAT = serial.Serial(_serial, _baud_rate)
         self.serialAT.flush()
         sched = Schedular("LTE Connection Schedular")
-        sched.add_timer(1.0, 0.0, self.run)
+        sched.add_timer(0.001, 0.0, self.run)
         sched.add_timer(1.0, 0.25, self.runOneSecondModuleTasks)
         sched.add_timer(1.0, 0.5, self.runOneSecondMQTTTasks)
         sched.add_timer(1.0, 0.75, self.runOneSecondGNSSTasks)
@@ -187,7 +187,6 @@ class SIM767X:
                 elif len(self.messagesDict) > 0:
                     dTopic = list(self.messagesDict.keys())[0]
                     self.mqttRequestPublish(dTopic, self.messagesDict[dTopic])
-
         return True
 
     def processATcommands(self):
