@@ -42,13 +42,18 @@ class Lte767xConnection(threading.Thread):
         if connected:
             logger.debug("connected OK")
             self.connection_state = ConnectionState.CONNECTED
-            self._send_dash_announce()
+            for device_id in self._device_id_list:
+                control_topic = f"{self.username}/{device_id}/control"
+                self.lte_con.subscribe(control_topic)
         else:
             logger.debug("disconnecting reason  %s", errorState)
             self._connection_state = ConnectionState.DISCONNECTED
 
     def onMQTTsubscribe(self, topic, error):
         logger.debug("Subscribed: %s %s", topic, str(error))
+        if error == 0:
+            device_id = topic.split('/')[1]
+            self._send_dash_announce(device_id)
 
     def onMQTTreceiveMessage(self, message):
         try:
@@ -71,7 +76,6 @@ class Lte767xConnection(threading.Thread):
             if self.connection_state == ConnectionState.CONNECTED:
                 control_topic = f"{self.username}/{device.device_id}/control"
                 self.lte_con.subscribe(control_topic)
-                self._send_dash_announce()
 
     def remove_device(self, device: Device):
         """Remove a device from the connection
@@ -88,10 +92,11 @@ class Lte767xConnection(threading.Thread):
             # TODO: Unsubscribe here
             # self._lte.unsubscribe(control_topic)
 
-    def _send_dash_announce(self):
+    def _send_dash_announce(self, device_id: str):
         msg = {
             'msgType': 'send_announce',
-            'connectionUUID': self.zmq_connection_uuid
+            'connectionUUID': self.zmq_connection_uuid,
+            'deviceID': device_id
         }
         logger.debug("DASH SEND ANNOUNCE: %s", msg)
         self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg).encode()])

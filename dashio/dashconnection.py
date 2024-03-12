@@ -140,11 +140,12 @@ class DashConnection(threading.Thread):
             self.connection_state = ConnectionState.CONNECTED
             for device_id in self._device_id_list:
                 control_topic = f"{self.username}/{device_id}/control"
-                self._dash_c.subscribe(control_topic, 0)
+                result, mid = self._dash_c.subscribe(control_topic, 0)
+                if result == mqtt.MQTT_ERR_SUCCESS:
+                    self._subscribing_topics[mid] = control_topic
             for device_id in self._device_id_rx_list:
                 data_topic = f"{self.username}/{device_id}/data"
-                self._dash_c.subscribe(data_topic, 0)
-            self._send_dash_announce()
+                result, mid = self._dash_c.subscribe(data_topic, 0)
             self._disconnect_timeout = 1.0
             logger.debug("connected OK")
         else:
@@ -163,6 +164,12 @@ class DashConnection(threading.Thread):
 
     def _on_subscribe(self, client, userdata, mid, reason_codes, properties):
         logger.debug("Subscribed: %s %s", str(mid), str(reason_codes))
+        if reason_codes[0] == 0:
+            topic = self._subscribing_topics.get(mid, None)
+            logger.debug("On sub: %s", topic)
+            if topic is not None:
+                device_id = topic.split('/')[1]
+                self._send_dash_announce(device_id)
 
     def _on_log(self, client, obj, level, string):
         logger.debug(string)
@@ -180,8 +187,9 @@ class DashConnection(threading.Thread):
             device.register_connection(self)
             if self.connection_state == ConnectionState.CONNECTED:
                 control_topic = f"{self.username}/{device.device_id}/control"
-                self._dash_c.subscribe(control_topic, 0)
-                self._send_dash_announce()
+                result, mid = self._dash_c.subscribe(control_topic, 0)
+                if result == mqtt.MQTT_ERR_SUCCESS:
+                    self._subscribing_topics[mid] = control_topic
 
     def _add_device_rx(self, msg_dict):
         """Connect to another device"""
@@ -200,10 +208,11 @@ class DashConnection(threading.Thread):
             logger.debug("DASH DEVICE_DISCONNECT: %s", device_id)
             del self._device_id_rx_list[device_id]
 
-    def _send_dash_announce(self):
+    def _send_dash_announce(self, device_id: str):
         msg = {
             'msgType': 'send_announce',
-            'connectionUUID': self.zmq_connection_uuid
+            'connectionUUID': self.zmq_connection_uuid,
+            'deviceID': device_id
         }
         logger.debug("DASH SEND ANNOUNCE: %s", msg)
         self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg).encode()])
@@ -264,6 +273,7 @@ class DashConnection(threading.Thread):
         self._b_zmq_connection_uuid = self.zmq_connection_uuid.encode('utf-8')
         self._device_id_list = []
         self._device_id_rx_list = []
+        self._subscribing_topics = {}
         # self.LWD = "OFFLINE"
         self.running = True
         self.username = username
