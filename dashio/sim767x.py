@@ -563,7 +563,7 @@ class SIM767X:
         if self.tx_message:
             if self.lte_state == LTE_State.MODULE_SHUTTING_DOWN:
                 self.shut_down_timer_s = 0  # Reset shutdown timer as there is a message to send
-            if self.protected_at_cmd("CMQTTTOPIC=0," + str(len(self.pub_topic)), lambda: self.mqtt_request_payload(), lambda: self.mqtt_enter_pub_topic()):  # clientIndex = 0
+            if self.protected_at_cmd(f"CMQTTTOPIC=0,{str(len(self.pub_topic))}", lambda: self.mqtt_request_payload(), lambda: self.mqtt_enter_pub_topic()):  # clientIndex = 0
                 return True
             else:
                 return False
@@ -575,7 +575,7 @@ class SIM767X:
         self.serial_at.write(self.pub_topic.encode())
 
     def mqtt_request_payload(self):
-        self.protected_at_cmd("CMQTTPAYLOAD=0," + str(len(self.tx_message)), lambda: self.mqtt_publish(), lambda: self.mqtt_enter_message())  # clientIndex = 0
+        self.protected_at_cmd(f"CMQTTPAYLOAD=0,{str(len(self.tx_message))}", lambda: self.mqtt_publish(), lambda: self.mqtt_enter_message())  # clientIndex = 0
 
     def mqtt_enter_message(self):
         logger.debug("Publish Message: %s\n%s", self.pub_topic, self.tx_message)
