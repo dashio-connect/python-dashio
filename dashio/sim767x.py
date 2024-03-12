@@ -181,9 +181,9 @@ class SIM767X:
         # Messaging
         if (self.mqtt_state == MQTT_State.MQTT_CONNECTED) and (not self.run_at_callbacks):
             if not self.mqtt_is_subscribing and not self.mqtt_is_publishing and not self.incoming_message:  # Wait for any received message being downloaded.
-                if len(self.sub_topic) > 0:
+                if self.sub_topic:
                     self.mqtt_req_subscribe()
-                elif len(self.messages_dict) > 0:
+                elif self.messages_dict:
                     d_topic = list(self.messages_dict.keys())[0]
                     self.mqtt_request_publish(d_topic, self.messages_dict[d_topic])
         return True
@@ -342,7 +342,7 @@ class SIM767X:
                             self.more_data_coming = 0
                             self.incoming_message = False
 
-                            if len(self.rx_message) > 0:
+                            if self.rx_message:
                                 if self.on_receive_incoming_message_callback is not None:
                                     self.on_receive_incoming_message_callback(self.rx_message)
                                 self.rxMessage = ""
@@ -523,8 +523,8 @@ class SIM767X:
 # ---- MQTT LWT -----
 
     def mqtt_request_will_toic(self):
-        if len(self.will_message) > 0 and len(self.will_topic) > 0:
-            self.protected_at_cmd("CMQTTWILLTOPIC=0," + str(len(self.will_topic)), lambda: self.mqtt_request_will_message(), lambda: self.mqtt_enter_will_toic())  # clientIndex = 0
+        if self.will_message and self.will_topic:
+            self.protected_at_cmd(f"CMQTTWILLTOPIC=0,{str(len(self.will_topic))}", lambda: self.mqtt_request_will_message(), lambda: self.mqtt_enter_will_toic())  # clientIndex = 0
         else:
             self.mqtt_connect()
 
@@ -532,9 +532,7 @@ class SIM767X:
         self.serial_at.write((self.will_topic).encode())
 
     def mqtt_request_will_message(self):
-        temp_str = "CMQTTWILLMSG=0,"
-        temp_str += str(len(self.will_message))
-        temp_str += ",2"
+        temp_str = f'CMQTTWILLMSG=0,{str(len(self.will_message))},2'
         self.protected_at_cmd(temp_str, lambda: self.req_mqtt_connect(), lambda: self.mqtt_enter_will_message())  # clientIndex = 0, qos = 2
 
     def mqtt_enter_will_message(self):
@@ -551,7 +549,7 @@ class SIM767X:
 
 # ---- MQTT Subscribe -----
     def mqtt_req_subscribe(self):
-        if self.protected_at_cmd("CMQTTSUB=0," + str(len(self.sub_topic)) + ",2", lambda: self.print_ok(), lambda: self.mqtt_enter_sub_topic()):  # clientIndex = 0
+        if self.protected_at_cmd(f'CMQTTSUB=0,{str(len(self.sub_topic))},2', lambda: self.print_ok(), lambda: self.mqtt_enter_sub_topic()):  # clientIndex = 0
             self.mqtt_is_subscribing = True
 
     def mqtt_enter_sub_topic(self):
@@ -562,7 +560,7 @@ class SIM767X:
     def mqtt_request_publish(self, topic, message):
         self.pub_topic = topic
         self.tx_message = message
-        if len(self.tx_message) > 0:
+        if self.tx_message:
             if self.lte_state == LTE_State.MODULE_SHUTTING_DOWN:
                 self.shut_down_timer_s = 0  # Reset shutdown timer as there is a message to send
             if self.protected_at_cmd("CMQTTTOPIC=0," + str(len(self.pub_topic)), lambda: self.mqtt_request_payload(), lambda: self.mqtt_enter_pub_topic()):  # clientIndex = 0
