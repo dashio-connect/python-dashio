@@ -481,7 +481,7 @@ class SIM767X:
 
     def setCarrier(self):
         if self.network is not None:
-            carrierStr = "AT+COPS=4,2,\""  # 1 = manual (4 = manual/auto), 2 = short format. For One NZ SIM cards not roaming in NZ, Could take up to 60s
+            carrierStr: str = "AT+COPS=4,2,\""  # 1 = manual (4 = manual/auto), 2 = short format. For One NZ SIM cards not roaming in NZ, Could take up to 60s
             carrierStr += self.network
             carrierStr += "\""
             self.serialAT.write(carrierStr.encode())  # ??? Maybe should be protected

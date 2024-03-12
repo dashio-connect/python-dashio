@@ -28,6 +28,10 @@ device = dashio.Device("aDeviceType", "aDeviceID", "aDeviceName", cfg_dict=confi
 lte_con = lte_767x_connection.Lte767xConnection("iot.lbo.gdsp.nz", "username", "password", 'dash.dashio.io', 8883, "/dev/cu.usbmodem56B30003703", 115200, None)
 lte_con.add_device(device)
 
+tcp_con = dashio.TCPConnection()
+tcp_con.add_device(device)
+
+
 aknob: dashio.Knob = device.get_control(dashio.ControlName.KNOB, "aKNB")
 first_dial_control: dashio.Dial = device.get_control(dashio.ControlName.DIAL, "FirstDial")
 
