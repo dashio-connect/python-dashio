@@ -154,7 +154,6 @@ class Lte767xConnection(threading.Thread):
         self.lte_con.mqttSetup(self.host, self.port, self.username, self.password)
         self.lte_con.setCallbacks(self.onMQTTconnect, self.onMQTTsubscribe, self.onMQTTreceiveMessage)
         self.connection_state = ConnectionState.CONNECTING
-
         self.start()
 
     def close(self):
@@ -208,8 +207,6 @@ class Lte767xConnection(threading.Thread):
 
                 logger.debug("LTE TX:\n%s\n%s", data_topic, data.decode().rstrip())
                 self.lte_con.publishMessage(data_topic, data.decode())
-
-            self.lte_con.run()
 
             """
             try:
