@@ -223,7 +223,7 @@ class Device(threading.Thread):
     def _send_announce(self):
         payload = self._device_id_str + f"\tWHO\t{self.device_type}\t{self.device_name}\n"
         logger.debug("ANNOUNCE: %s", payload)
-        self.tx_zmq_pub.send_multipart([b"DASH", payload.encode('utf-8')])
+        self.tx_zmq_pub.send_multipart([b"ANNOUNCE", payload.encode('utf-8')])
 
     def is_control_loaded(self, control_type, control_id: str) -> bool:
         """Is the control loaded in the device?"""

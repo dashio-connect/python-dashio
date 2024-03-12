@@ -320,6 +320,7 @@ class DashConnection(threading.Thread):
         #  Subscribe on ALL, and my connection
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "DASH")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.zmq_connection_uuid)
         poller = zmq.Poller()
         poller.register(self.rx_zmq_sub, zmq.POLLIN)
