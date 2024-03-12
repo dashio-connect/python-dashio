@@ -1,6 +1,13 @@
+
+from __future__ import annotations
 import serial
 import time
+import logging
 from enum import Enum
+
+
+logger = logging.getLogger(__name__)
+
 
 #  TODO In the serial init add AT+CGMM and throw an exception if you don't get a response or the correct response.
 #  TODO don't setup LWT unless will topic and message is setup. Remove offlineMessage
@@ -53,7 +60,6 @@ class SIM767X:
     CHECK_CONNECTION_INTERVAL_S = 30
     SHUTDOWN_WAIT_S = 10
 
-    printMessages = True
     onOKCallback = None
     onEnterCallback = None
 
@@ -132,9 +138,6 @@ class SIM767X:
             self.messagesDict[topic] = message
         else:
             self.messagesDict[topic] += message
-
-    def log(self, message):
-        print(message)
 
     def protectedATcmd(self, cmd, _onOKCallback, _onEnterCallback, _timeoutS=10):
         if not self.runATcallbacks:
@@ -216,12 +219,10 @@ class SIM767X:
                 data = data.replace('\r', '')
 
                 if (haveMessage or data.startswith(">")) and (len(data) > 0):
-                    if (self.printMessages):
-                        print("CMD: " + data)
+                    logger.debug("CMD: %s", data)
 
                     if data.startswith("OK"):
-                        if (self.printMessages):
-                            print()
+                        logger.debug('\n')
 
                         if self.runATcallbacks:
                             self.runATcallbacks = False
@@ -231,9 +232,8 @@ class SIM767X:
                         self.moreDataComing = 0  # Just in case
                         if (self.runATcallbacks):
                             self.runATcallbacks = False
-                            if (self.printMessages):
-                                print("Callback - Houston - we have a problem ERROR")
-                            self.log("AT Error")
+                            logger.debug("Callback - Houston - we have a problem ERROR")
+                            logger.debug("AT Error")
                     elif data.startswith(">"):
                         if self.runATcallbacks:
                             if (self.onEnterCallback is not None):
@@ -271,26 +271,26 @@ class SIM767X:
                                     self.errorState = ERROR_State.ERR_LTE_CONNECT_FAIL_RESET
                         elif data.startswith("+CGEV:"):
                             if (resultStr.startswith("ME PDN ACT")):  # AcT = 0 (GSM)
-                                self.log("ME PDN ACT")
+                                logger.debug("ME PDN ACT")
                             elif (resultStr.startswith("EPS PDN ACT")):  # AcT = 7 (EUTRAN)
-                                self.log("EPS PDN ACT")
+                                logger.debug("EPS PDN ACT")
                             elif (resultStr.startswith("ME PDN DEACT")):
-                                self.log("ME PDN DEACT")
+                                logger.debug("ME PDN DEACT")
                             elif (resultStr.startswith("NW PDN DEACT")):
-                                self.log("NW PDN DEACT")
+                                logger.debug("NW PDN DEACT")
                         elif data.startswith("+SIMEI:"):
                             self.imei = "IMEI" + resultStr
                         elif data.startswith("+COPS:"):
                             resultArr = resultStr.split(',')
                             if len(resultArr) >= 3:
-                                self.log("Carrier: " + resultArr[2])
+                                logger.debug("Carrier: %s", resultArr[2])
                         # MQTT
                         elif (data.startswith("+CMQTTSTART:")):
                             error = int(resultStr)
                             if (error == 0):
                                 self.mqttAcquireCLient()
                             else:
-                                self.log("MQTT Start: " + str(error))
+                                logger.debug("MQTT Start: %s", error)
                                 self.lteState = LTE_State.MODULE_REQ_RESET
                         elif (data.startswith("+CMQTTCONNECT:")):
                             resultArr = resultStr.split(',')
@@ -300,7 +300,7 @@ class SIM767X:
                                     self.onMQTTconnected()
                                     self.mqttReconnectFailCounter = 0
                                 else:
-                                    self.log("MQTT Cnct: " + str(error))
+                                    logger.debug("MQTT Cnct: %s", error)
                                     self.reqMQTTreconnect()
                         elif data.startswith("+CMQTTSUB:"):
                             self.mqttIsSubscribing = False
@@ -313,7 +313,7 @@ class SIM767X:
                                 if error == 0:
                                     self.subTopic = ""
                                 else:
-                                    self.log("MQTT Sub: " + str(error))
+                                    logger.debug("MQTT Sub: %s", error)
                                     self.reqMQTTreconnect()
                         elif data.startswith("+CMQTTPUB:"):
                             self.mqttIsPublishing = False
@@ -324,7 +324,7 @@ class SIM767X:
                                     if self.pubTopic in self.messagesDict:
                                         del self.messagesDict[self.pubTopic]  # ??? This should really be after successful publish
                                 else:
-                                    self.log("MQTT Pub: " + str(error))
+                                    logger.debug("MQTT Pub: %s", error)
                                     self.reqMQTTreconnect()
 
                                 if self.onMQTTpublishCallback is not None:
@@ -363,7 +363,7 @@ class SIM767X:
                             resultArr = resultStr.split(',')
                             if len(resultArr) >= 2:
                                 error = int(resultArr[1])
-                                self.log("MQTT Cnct Lost: " + str(error))
+                                logger.debug("MQTT Cnct Lost: %s", error)
                                 self.reqMQTTreconnect()
                         # GNSS
                         elif data.startswith("+CGNSSINFO:"):
@@ -376,8 +376,7 @@ class SIM767X:
 
     def runOneSecondModuleTasks(self):
         if self.shutDownTimerS >= 0:
-            if self.printMessages:
-                print(str(self.shutDownTimerS) + "s")
+            logger.debug("Shutdown Ttimers: %ss", self.shutDownTimerS)
             self.shutDownTimerS += 1
             if (self.shutDownTimerS == self.SHUTDOWN_WAIT_S):
                 self.mqttState = MQTT_State.MQTT_REQ_DISCONNECT
@@ -387,8 +386,7 @@ class SIM767X:
 
         # LTE State
         if self.lteState == LTE_State.MODULE_STARTUP:
-            if self.printMessages:
-                print(str(self.disconnectTimerS) + ".")
+            logger.debug("Disconnect Timers: %s.", self.disconnectTimerS)
             self.disconnectTimerS += 1
             if (self.disconnectTimerS > 60):  # One min
                 self.disconnectTimerS = 0
@@ -401,8 +399,7 @@ class SIM767X:
 
             self.getIMEI()
         elif self.lteState == LTE_State.LTE_DISCONNECTED:
-            if self.printMessages:
-                print(str(self.disconnectTimerS) + "^")
+            logger.debug("Disconnect Timers: %s^", self.disconnectTimerS)
             self.disconnectTimerS += 1
             if (self.disconnectTimerS > 300):  # Five mins
                 self.disconnectTimerS = 0
@@ -425,8 +422,7 @@ class SIM767X:
                 if self.atTimerS > self.atTimeoutS:
                     self.atTimerS = -1  # Turn off timer
                     self.runATcallbacks = False
-                    if self.printMessages:
-                        print("Callback - Houston - we have a problem TIMEOUT")
+                    logger.debug("Callback - Houston - we have a problem TIMEOUT")
                     self.timeoutErrorCommand = self.lastCommand
                     self.reqResetModule(ERROR_State.ERR_AT_TIMEOUT_RESET)
 
@@ -438,11 +434,10 @@ class SIM767X:
 
         if self.mqttReconnectTimerS >= 0:
             self.mqttReconnectTimerS += 1
-            if self.printMessages:
-                print(str(self.mqttReconnectTimerS) + "m")
+            logger.debug("mqttReconnectTimers: %sm.", self.mqttReconnectTimerS)
             if self.mqttReconnectTimerS >= 10:
                 self.mqttReconnectTimerS = -1  # Turn off timer
-                self.log("MQTT Reconnect")
+                logger.debug("MQTT Reconnect")
                 self.reqMQTTconnect()
 
     def runOneSecondGNSSTasks(self):
@@ -450,8 +445,7 @@ class SIM767X:
             self.powerUpGNSS()
         elif self.gnssState == GNSS_State.GNSS_REQ_DATA:
             self.gnssIntervalTimerS += 1
-            if self.printMessages:
-                print(str(self.gnssIntervalTimerS) + "g")
+            logger.debug("gnssIntervalTimerS: %s", self.gnssIntervalTimerS)
             if self.gnssIntervalTimerS >= self.gnssInterval:
                 self.gnssIntervalTimerS = 0
                 self.getGNSSinfo()
@@ -476,8 +470,7 @@ class SIM767X:
             self.lteState = LTE_State. MODULE_RESETTING
 
     def printOK(self):
-        if self.printMessages:
-            print("OK ACK")
+        logger.debug("OK ACK")
 
     def checkConnection(self):
         self.protectedATcmd("CREG?", lambda: self.printOK(), lambda: None)
@@ -577,8 +570,7 @@ class SIM767X:
             self.mqttIsSubscribing = True
 
     def mqttEnterSubTopic(self):
-        if self.printMessages:
-            print("Sub Topic: " + self.subTopic)
+        logger.debug("Sub Topic: %s", self.subTopic)
         self.serialAT.write(self.subTopic.encode())
 
 # ----- MQTT Publish ------
@@ -596,17 +588,14 @@ class SIM767X:
             return True
 
     def mqttEnterPubTopic(self):
-        if self.printMessages:
-            print("Pub Topic: " + self.pubTopic)
+        logger.debug("Pub Topic: %s", self.pubTopic)
         self.serialAT.write(self.pubTopic.encode())
 
     def mqttRequestPayload(self):
         self.protectedATcmd("CMQTTPAYLOAD=0," + str(len(self.txMessage)), lambda: self.mqttPublish(), lambda: self.mqttEnterMessage())  # clientIndex = 0
 
     def mqttEnterMessage(self):
-        if self.printMessages:
-            print("Publish Message: " + self.pubTopic)
-            print(self.txMessage)
+        logger.debug("Publish Message: %s\n%s", self.pubTopic, self.txMessage)
         self.serialAT.write(self.txMessage.encode())
 
     def mqttPublish(self):
