@@ -483,7 +483,6 @@ class Device(threading.Thread):
             self.connections_list.append(connection.zmq_connection_uuid)
             self.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=connection.zmq_connection_uuid))
             connection.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
-            self._send_announce()
         if self._add_actions:
             self.action_station.register_connection(connection)
 
@@ -633,7 +632,7 @@ class Device(threading.Thread):
         self.running = False
 
     def _local_command(self, msg_dict):
-        if msg_dict['msgType'] == 'send_announce':
+        if msg_dict['msgType'] == 'send_announce' and msg_dict['deviceID'] == self.device_id:
             self._send_announce()
 
     def run(self):
