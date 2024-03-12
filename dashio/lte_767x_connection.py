@@ -178,6 +178,7 @@ class Lte767xConnection(threading.Thread):
             if self.rx_zmq_sub in socks and self.connection_state == ConnectionState.CONNECTED:  # If not connected the incoming messages are queued
                 try:
                     [msg_to, data] = self.rx_zmq_sub.recv_multipart()
+                    logger.debug("LTE con ZMQ rx: %s, $s", msg_to, data)
                 except ValueError:
                     #  If there aren't two parts continue.
                     continue
@@ -200,8 +201,6 @@ class Lte767xConnection(threading.Thread):
                     data_topic = f"{self.username}/{device_id}/data"
 
                 logger.debug("LTE TX:\n%s\n%s", data_topic, data.decode().rstrip())
-
-                print("Publish: " + data_topic + "  " + data.decode())  # ???
                 self.lte_con.publishMessage(data_topic, data.decode())
 
             self.lte_con.run()
