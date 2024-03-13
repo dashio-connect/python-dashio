@@ -28,7 +28,7 @@ import threading
 import json
 import shortuuid
 import zmq
-from .sim767x import SIM767X
+from .sim767x import SIM767X, ERROR_State
 from .constants import CONNECTION_PUB_URL
 from .device import Device
 from .iotcontrol.enums import ConnectionState
@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 class Lte767xConnection(threading.Thread):
     """Under Active Development - DOES NOT WORK!"""
 
-    def on_mqtt_connect(self, connected, error_state):
+    def on_mqtt_connect(self, connected: bool, error_state: ERROR_State):
         if connected:
             logger.debug("connected OK")
             self.connection_state = ConnectionState.CONNECTED
@@ -51,7 +51,7 @@ class Lte767xConnection(threading.Thread):
             logger.debug("disconnecting reason  %s", error_state)
             self._connection_state = ConnectionState.DISCONNECTED
 
-    def on_mqtt_subscribe(self, topic, error):
+    def on_mqtt_subscribe(self, topic: str, error: int):
         logger.debug("Subscribed: %s %s", topic, str(error))
         if error == 0:
             device_id = topic.split('/')[1]
@@ -115,13 +115,13 @@ class Lte767xConnection(threading.Thread):
 
     def __init__(
         self,
-        apn="",
-        username="",
-        password="",
-        host='dash.dashio.io',
-        port=8883,
-        serial_port: str | None = '/dev/ttyUSB0',
-        baud_rate=115200,
+        apn: str = "",
+        username: str = "",
+        password: str = "",
+        host: str = 'dash.dashio.io',
+        port: int = 8883,
+        serial_port: str = '/dev/ttyUSB0',
+        baud_rate: int = 115200,
         context=None
     ):
         """LTE 767x Connection
