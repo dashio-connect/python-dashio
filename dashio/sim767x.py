@@ -1,5 +1,6 @@
 
 from __future__ import annotations
+from typing import Any, Callable
 import serial
 import time
 import logging
@@ -65,10 +66,10 @@ class SIM767X:
 
     imei = ""  # Use imei as the client ID for MQTT
 
-    on_receive_incoming_message_callback = None
-    on_mqtt_connect_callback = None
-    on_mqtt_subscribe_callback = None
-    on_mqtt_publish_callback = None
+    on_receive_incoming_message_callback: Callable[[str], None] | None = None
+    on_mqtt_connect_callback: Callable[[bool, ERROR_State], None] | None = None
+    on_mqtt_subscribe_callback:  Callable[[str, int], None] | None = None
+    on_mqtt_publish_callback: Callable[[str, int, int], None] | None = None
 
     check_connection_second_count = 0
     at_timeout_s = 10
@@ -107,16 +108,16 @@ class SIM767X:
     password = ""
 
     gnss_data_callback = None
-    gnss_interval = 60
+    gnss_interval: int = 60
     gnss_one_shot = False
     gnss_interval_timer_s = 0
     gnss_retry_counter = 0
     gnss_state = GNSS_State.GNSS_SHUTDOWN
 
-    def __init__(self, _serial, _network, _apn, _baud_rate):
-        self.network = _network
-        self.apn = _apn
-        self.serial_at = serial.Serial(_serial, _baud_rate)
+    def __init__(self, serial_port: str, network: str, apn: str, baud_rate: int):
+        self.network = network
+        self.apn = apn
+        self.serial_at = serial.Serial(serial_port, baud_rate)
         self.serial_at.flush()
         sched = Schedular("LTE Connection Schedular")
         sched.add_timer(0.001, 0.0, self.run)
@@ -124,27 +125,27 @@ class SIM767X:
         sched.add_timer(1.0, 0.5, self.run_one_second_mqtt_tasks)
         sched.add_timer(1.0, 0.75, self.run_one_second_gnss_tasks)
 
-    def mqtt_setup(self,  host, port, username, password):
+    def mqtt_setup(self,  host: str, port: int, username: str, password: str):
         self.username = username
         self.password = password
         self.host = host
         self.port = port
 
-    def set_callbacks(self, on_mqtt_connect, on_mqtt_subscribe, receive_incoming_message):
+    def set_callbacks(self, on_mqtt_connect: Callable[[bool, ERROR_State], None], on_mqtt_subscribe: Callable[[str, int], None], receive_incoming_message: Callable[[str], None]):
         self.on_mqtt_connect_callback = on_mqtt_connect
         self.on_mqtt_subscribe_callback = on_mqtt_subscribe
         self.on_receive_incoming_message_callback = receive_incoming_message
 
-    def subscribe(self, topic):
+    def subscribe(self, topic: str):
         self.sub_topic = topic
 
-    def publish_message(self, topic, message):
+    def publish_message(self, topic: str, message: str):
         if topic not in self.messages_dict.keys():
             self.messages_dict[topic] = message
         else:
             self.messages_dict[topic] += message
 
-    def protected_at_cmd(self, cmd, on_ok_callback, on_enter_callback, timeout_s=10):
+    def protected_at_cmd(self, cmd: str, on_ok_callback: Callable[[], None], on_enter_callback: Callable[[], None], timeout_s: int = 10):
         if not self.run_at_callbacks:
             self.on_ok_callback = on_ok_callback
             self.on_enter_callback = on_enter_callback
@@ -176,7 +177,7 @@ class SIM767X:
 
         self.error_state = ERROR_State.ERR_NONE
 
-    def run(self, cookie):
+    def run(self, cookie: Any):
         self.process_at_commands()
         # Messaging
         if self.mqtt_state == MQTT_State.MQTT_CONNECTED and not self.run_at_callbacks:
@@ -195,6 +196,7 @@ class SIM767X:
             else:
                 data = ""
                 have_message = False
+                result_str = ""
                 while self.serial_at.in_waiting > 0 and not have_message:
                     chars_in = self.serial_at.read().decode()
                     if '\n' in chars_in:
@@ -364,12 +366,12 @@ class SIM767X:
                         elif data.startswith("+CGNSSINFO:"):
                             self.process_gnss_data(result_str)
 
-    def read_message(self, message_len):
+    def read_message(self, message_len: int):
         chars_in = self.serial_at.read().decode()
         self.rx_message += chars_in
         self.more_data_coming = message_len - len(chars_in)
 
-    def run_one_second_module_tasks(self, cookie):
+    def run_one_second_module_tasks(self, cookie: Any):
         if self.shut_down_timer_s >= 0:
             logger.debug("Shutdown Ttimers: %ss", self.shut_down_timer_s)
             self.shut_down_timer_s += 1
@@ -422,7 +424,7 @@ class SIM767X:
                     self.req_reset_module(ERROR_State.ERR_AT_TIMEOUT_RESET)
         return True
 
-    def run_one_second_mqtt_tasks(self, cookie):
+    def run_one_second_mqtt_tasks(self, cookie: Any):
         if self.mqtt_state == MQTT_State.MQTT_REQ_CONNECT:
             self.mqtt_connect()
         elif self.mqtt_state == MQTT_State.MQTT_REQ_DISCONNECT:
@@ -437,7 +439,7 @@ class SIM767X:
                 self.req_mqtt_connect()
         return True
 
-    def run_one_second_gnss_tasks(self, cookie):
+    def run_one_second_gnss_tasks(self, cookie: Any):
         if self.gnss_state == GNSS_State.GNSS_REQ_POWERUP:
             self.power_up_gnss()
         elif self.gnss_state == GNSS_State.GNSS_REQ_DATA:
@@ -459,7 +461,7 @@ class SIM767X:
             self.shut_down_timer_s = -1
             self.lte_state = LTE_State.MODULE_SHUTDOWN
 
-    def req_reset_module(self, error_state):
+    def req_reset_module(self, error_state: ERROR_State):
         self.error_state = error_state
         self.lte_state = LTE_State.MODULE_REQ_RESET
 
@@ -480,7 +482,7 @@ class SIM767X:
         self.protected_at_cmd("CREG=1", lambda: self.set_carrier, lambda: None)
 
     def set_carrier(self):
-        if self.network is not None:
+        if self.network:
             carrier_str = f'AT+COPS=4,2,"{self.network}"'  # 1 = manual (4 = manual/auto), 2 = short format. For One NZ SIM cards not roaming in NZ, Could take up to 60s
             self.serial_at.write(carrier_str.encode())  # ??? Maybe should be protected
 
@@ -557,7 +559,7 @@ class SIM767X:
         self.serial_at.write(self.sub_topic.encode())
 
 # ----- MQTT Publish ------
-    def mqtt_request_publish(self, topic, message):
+    def mqtt_request_publish(self, topic: str, message: str):
         self.pub_topic = topic
         self.tx_message = message
         if self.tx_message:
@@ -586,7 +588,7 @@ class SIM767X:
             self.mqtt_is_publishing = True  # Block further publishing until publish succeeds or fails.
 
 # --------- GNSS ----------
-    def gnss_start(self, interval, one_shot):
+    def gnss_start(self, interval: int, one_shot: bool):
         if self.gnss_data_callback is not None:
             self.gnss_interval = interval
             self.gnss_one_shot = one_shot
@@ -612,7 +614,7 @@ class SIM767X:
         self.gnss_retry_counter = 0
         self.gnss_state = GNSS_State.GNSS_REQ_DATA
 
-    def process_gnss_data(self, nmea_string):
+    def process_gnss_data(self, nmea_string: str):
         if len(nmea_string) < 20:  # Make sure it has sensible data
             if self.gnss_one_shot:
                 self.gnss_retry_counter += 1

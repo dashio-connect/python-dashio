@@ -24,7 +24,7 @@ import logging
 import queue
 import threading
 import time
-from typing import Callable
+from typing import Any, Callable
 
 logger = logging.getLogger(__name__)
 
@@ -32,13 +32,14 @@ logger = logging.getLogger(__name__)
 class Schedular:
     """A useful Schedular for for running jobs (Callbacks) at set intervals.
     """
-    def __init__(self, name=""):
-        self._timer_events = []
-        self._async_jobs = []
+
+    def __init__(self, name: str = ""):
+        self._timer_events = [dict]
+        self._async_jobs = [Callable[[float], float]]
 
         self._job_thread_end = threading.Event()
         logger.info("Starting Schedular async thread")
-        self._job_thread_wakeup_queue = queue.Queue()
+        self._job_thread_wakeup_queue: queue.Queue[int] = queue.Queue()
         self._job_thread = threading.Thread(target=self._async_job_thread, name=name)
         # A thread can be flagged as a "daemon thread". The significance of
         # this flag is that the entire Python program exits when only daemon
@@ -94,7 +95,7 @@ class Schedular:
                     # do nothing
                     pass
 
-    def add_timer(self, delta_time: float, offset: float, callback: Callable, cookie=None):
+    def add_timer(self, delta_time: float, offset: float, callback: Callable[[Any], bool], cookie: Any = None):
         """Adds a callback to the list of timer events. The callback should return True
         if it wants to be called again.
 
@@ -113,12 +114,12 @@ class Schedular:
             'callback': callback,
             'deadline': (time.time() + delta_time + offset),
             'cookie': cookie,
-            }
+        }
 
         self._timer_events.append(d)
         self.job_thread_wakeup()
 
-    def remove_timer(self, callback: Callable):
+    def remove_timer(self, callback: Callable[[Any], bool]):
         """Removes ALL entries from the timer event list for the given callback
 
         :param callback:
@@ -129,14 +130,14 @@ class Schedular:
                 self._timer_events.remove(event)
         self.job_thread_wakeup()
 
-    def add_async_job(self, callback):
+    def add_async_job(self, callback: Callable[[float], float]):
         """Adds a callback to the list of async job
         """
 
         self._async_jobs.append(callback)
         self.job_thread_wakeup()
 
-    def remove_async_job(self, callback: Callable):
+    def remove_async_job(self, callback: Callable[[float], float]):
         """Removes ALL entries from the async job list for the given callback
 
         :param callback:
