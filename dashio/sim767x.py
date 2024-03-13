@@ -11,8 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 #  TODO In the serial init add AT+CGMM and throw an exception if you don't get a response or the correct response.
-#  TODO don't setup LWT unless will topic and message is setup. Remove offlineMessage
-
+#  TODO Need to include hardrired powerup/reset control
 
 class LTE_State(Enum):
     MODULE_STARTUP = 0
@@ -373,7 +372,7 @@ class SIM767X:
 
     def run_one_second_module_tasks(self, cookie: Any):
         if self.shut_down_timer_s >= 0:
-            logger.debug("Shutdown Ttimers: %ss", self.shut_down_timer_s)
+            logger.debug("Shutdown Timer: %ss", self.shut_down_timer_s)
             self.shut_down_timer_s += 1
             if self.shut_down_timer_s == self.SHUTDOWN_WAIT_S:
                 self.mqtt_state = MQTT_State.MQTT_REQ_DISCONNECT
@@ -565,12 +564,7 @@ class SIM767X:
         if self.tx_message:
             if self.lte_state == LTE_State.MODULE_SHUTTING_DOWN:
                 self.shut_down_timer_s = 0  # Reset shutdown timer as there is a message to send
-            if self.protected_at_cmd(f"CMQTTTOPIC=0,{str(len(self.pub_topic))}", lambda: self.mqtt_request_payload(), lambda: self.mqtt_enter_pub_topic()):  # clientIndex = 0
-                return True
-            else:
-                return False
-        else:
-            return True
+            self.protected_at_cmd(f"CMQTTTOPIC=0,{str(len(self.pub_topic))}", lambda: self.mqtt_request_payload(), lambda: self.mqtt_enter_pub_topic())  # clientIndex = 0
 
     def mqtt_enter_pub_topic(self):
         logger.debug("Pub Topic: %s", self.pub_topic)
