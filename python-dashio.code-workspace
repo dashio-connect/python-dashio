@@ -5,7 +5,7 @@
         }
     ],
     "settings": {
-        "python.analysis.typeCheckingMode": "strict",
+        "python.analysis.typeCheckingMode": "basic",
         "flake8.args": [
             "--config=${workspaceFolder}/.pylintrc"
         ],
