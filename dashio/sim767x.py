@@ -558,7 +558,6 @@ class SIM767X:
 
 # ----- MQTT Publish ------
     def mqtt_request_publish(self, topic, message):
-        print("XXX Publishing: " + topic + "   - " + message)  # ???
         self.pub_topic = topic
         self.tx_message = message
         if self.tx_message:
