@@ -28,8 +28,8 @@ import ssl
 import threading
 import time
 
-import paho.mqtt.client as mqtt
 from socket import gaierror
+import paho.mqtt.client as mqtt
 import shortuuid
 import zmq
 
@@ -218,6 +218,7 @@ class DashConnection(threading.Thread):
         self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg).encode()])
 
     def connect(self):
+        """Connect to the server."""
         logger.debug("Connecting..")
         try:
             self._dash_c.connect(self.host, self.port)
