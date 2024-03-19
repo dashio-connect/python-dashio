@@ -43,6 +43,7 @@ logger = logging.getLogger(__name__)
 class DashControl():
     """Class to stare dash connection info
     """
+
     def get_state(self) -> str:
         """Not used by this class as its a CFG only control
         """
@@ -135,6 +136,7 @@ class DashConnection(threading.Thread):
     close() :
         close the connection
     """
+
     def _on_connect(self, client, userdata, flags, reason_code, properties):
         if reason_code == 0:
             self.connection_state = ConnectionState.CONNECTED
@@ -367,7 +369,7 @@ class DashConnection(threading.Thread):
                 if control_type == b'ALM':
                     data_topic = f"{self.username}/{device_id}/alarm"
                     control_type = ""
-                elif msg_to == b"DASH":
+                elif msg_to == b"ANNOUNCE":
                     data_topic = f"{self.username}/{device_id}/announce"
                 else:
                     data_topic = f"{self.username}/{device_id}/data"
