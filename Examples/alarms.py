@@ -77,7 +77,7 @@ class TestControls:
         parser.add_argument(
             "-p", "--port", type=int, help="Port number.", default=5650, dest="port",
         )
-        parser.add_argument("-d", "--device_id", dest="device_id", default="101010101010101", help="IotDashboard Device ID.")
+        parser.add_argument("-d", "--device_id", dest="device_id", default="101010101010102", help="IotDashboard Device ID.")
         parser.add_argument(
             "-n", "--device_name", dest="device_name", default="TestAlarms", help="Alias name for device."
         )
