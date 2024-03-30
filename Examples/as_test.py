@@ -40,7 +40,7 @@ class ActionStationOnly:
         elif level == 2:
             log_level = logging.DEBUG
         if not logfilename:
-            formatter = logging.Formatter("%(asctime)s, %(message)s")
+            formatter = logging.Formatter("[%(asctime)s][%(module)20s] -- %(message)s")
             handler = logging.StreamHandler()
             handler.setFormatter(formatter)
             logger = logging.getLogger()

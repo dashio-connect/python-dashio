@@ -35,6 +35,7 @@ class MapLocation:
     """
     A json version of a map location.
     """
+
     def __init__(self, latitude: str, longitude: str, average_speed=None, peak_speed=None, course=None, altitude=None, distance=None):
         """MapLocation
 
@@ -88,12 +89,14 @@ class MapLocation:
         _type_
             _description_
         """
-        return f"\t{self._map_loc["latitude"]},{self._map_loc["longitude"]}\n"
-
+        lat = self._map_loc["latitude"]
+        long = self._map_loc["longitude"]
+        return f"\t{lat},{long}\n"
 
 class MapTrack:
     """A Map track
     """
+
     def __init__(self, track_id: str, text="", color=Color.RED) -> None:
         self.track_id = track_id.translate(BAD_CHARS)
         self.text = text.translate(BAD_CHARS)

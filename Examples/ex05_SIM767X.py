@@ -6,6 +6,7 @@ import time
 import logging
 
 logging.getLogger('dashio').setLevel(logging.DEBUG)
+
 formatter = logging.Formatter("[%(asctime)s][%(module)15s] -- %(message)s")
 handler = logging.StreamHandler()
 handler.setFormatter(formatter)
