@@ -1,10 +1,13 @@
 
 from __future__ import annotations
-from typing import Any, Callable
-import serial
-import time
+
 import logging
+import time
 from enum import Enum
+from typing import Any, Callable
+
+import serial
+
 from .schedular import Schedular
 
 logger = logging.getLogger(__name__)
