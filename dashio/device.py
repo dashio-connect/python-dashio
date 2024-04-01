@@ -633,7 +633,7 @@ class Device(threading.Thread):
 
     def _local_command(self, msg_dict):
         logging.debug("LOCAL COMMAND: %s", msg_dict)
-        if msg_dict['msgType'] == 'send_announce' and msg_dict['deviceID'] == self.device_id:
+        if msg_dict.get('msgType', '') == 'send_announce' and msg_dict.get('deviceID', '') == self.device_id:
             self._send_announce()
 
     def run(self):
