@@ -93,6 +93,7 @@ class MapLocation:
         long = self._map_loc["longitude"]
         return f"\t{lat},{long}\n"
 
+
 class MapTrack:
     """A Map track
     """

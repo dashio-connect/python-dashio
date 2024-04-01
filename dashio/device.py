@@ -632,6 +632,7 @@ class Device(threading.Thread):
         self.running = False
 
     def _local_command(self, msg_dict):
+        logging.debug("LOCAL COMMAND: %s", msg_dict)
         if msg_dict['msgType'] == 'send_announce' and msg_dict['deviceID'] == self.device_id:
             self._send_announce()
 
