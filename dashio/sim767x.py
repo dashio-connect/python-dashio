@@ -140,11 +140,15 @@ class Sim767x:
         self.apn = apn
         self.serial_at = serial.Serial(serial_port, baud_rate)
         self.serial_at.flush()
-        sched = Schedular("LTE Connection Schedular")
-        sched.add_timer(0.001, 0.0, self._run_processing)
-        sched.add_timer(1.0, 0.25, self._run_one_second_module_tasks)
-        sched.add_timer(1.0, 0.5, self._run_one_second_mqtt_tasks)
-        sched.add_timer(1.0, 0.75, self._run_one_second_gnss_tasks)
+        self.sched = Schedular("LTE Connection Schedular")
+        self.sched.add_timer(0.001, 0.0, self._run_processing)
+        self.sched.add_timer(1.0, 0.25, self._run_one_second_module_tasks)
+        self.sched.add_timer(1.0, 0.5, self._run_one_second_mqtt_tasks)
+        self.sched.add_timer(1.0, 0.75, self._run_one_second_gnss_tasks)
+
+    def close(self):
+        """Close"""
+        self.sched.stop()
 
     def mqtt_setup(self,  host: str, port: int, username: str, password: str):
         """Set up MQTT Connection

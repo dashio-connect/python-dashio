@@ -157,9 +157,9 @@ class Schedular:
         self._job_thread_wakeup_queue.put(1)
 
     def stop(self):
-        """Stops the N2k Connection background handling
+        """Stops the Schedular background handling
 
-        This Function explicitely stops the background handling of the N2k Connection.
+        This Function explicitely stops the background handling of the Schedular.
         """
         self._job_thread_end.set()
         self.job_thread_wakeup()
