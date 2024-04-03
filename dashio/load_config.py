@@ -148,7 +148,7 @@ def get_control_from_config(control_type: str, control_id: str, cfg_dict: dict):
         for control in control_list:
             if control["controlID"] == control_id:
                 return CONTROL_INSTANCE_DICT[control_type].from_cfg_dict(control)
-    raise Exception(f"Control with control_id: {control_id} not found")
+    raise ValueError(f"Control with control_id: {control_id} not found")
 
 
 def get_control_dict_from_config(control_type: str, control_id: str, cfg_dict: dict) -> dict:
@@ -172,7 +172,7 @@ def get_control_dict_from_config(control_type: str, control_id: str, cfg_dict: d
         for control in control_list:
             if control["controlID"] == control_id:
                 return control
-    raise Exception(f"Control with control_id: {control_id} not found")
+    raise ValueError(f"Control with control_id: {control_id} not found")
 
 
 def load_all_controls_from_config(device, cfg_dict):

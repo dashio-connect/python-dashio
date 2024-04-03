@@ -34,7 +34,7 @@ class Schedular:
     """
 
     def __init__(self, name: str = ""):
-        self._timer_events = [dict]
+        self._timer_events = [dict[str, Any]]
         self._async_jobs = [Callable[[float], float]]
 
         self._job_thread_end = threading.Event()
