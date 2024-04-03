@@ -147,7 +147,7 @@ class SIM767X:
         else:
             self.messages_dict[topic] += message
 
-    def protected_at_cmd(self, cmd: str, on_ok_callback: Callable[[], None], on_enter_callback: Callable[[], None], timeout_s: int = 10):
+    def protected_at_cmd(self, cmd: str, on_ok_callback: Callable[[], None], on_enter_callback: Callable[[], None] | None, timeout_s: int = 10):
         if not self.run_at_callbacks:
             self.on_ok_callback = on_ok_callback
             self.on_enter_callback = on_enter_callback
@@ -459,7 +459,7 @@ class SIM767X:
         self.shut_down_timer_s = 0  # Start shutdown counter
 
     def shutdown_module(self):
-        if self.protected_at_cmd("CPOF", lambda: self.reset_timers(), lambda: None, 120):
+        if self.protected_at_cmd("CPOF", self.reset_timers, None, 120):
             self.shut_down_timer_s = -1
             self.lte_state = LTE_State.MODULE_SHUTDOWN
 
@@ -468,20 +468,20 @@ class SIM767X:
         self.lte_state = LTE_State.MODULE_REQ_RESET
 
     def reset_module(self):
-        if self.protected_at_cmd("CRESET", lambda: self.reset_timers(), lambda: None, 120):
+        if self.protected_at_cmd("CRESET", self.reset_timers, None, 120):
             self.lte_state = LTE_State. MODULE_RESETTING
 
     def print_ok(self):
         logger.debug("OK ACK")
 
     def check_connection(self):
-        self.protected_at_cmd("CREG?", lambda: self.print_ok(), lambda: None)
+        self.protected_at_cmd("CREG?", self.print_ok, None)
 
     def get_imei(self):
-        self.protected_at_cmd("SIMEI?", lambda: self.set_unsolicited_network_reg_messages(), lambda: None)
+        self.protected_at_cmd("SIMEI?", self.set_unsolicited_network_reg_messages, None)
 
     def set_unsolicited_network_reg_messages(self):
-        self.protected_at_cmd("CREG=1", lambda: self.set_carrier, lambda: None)
+        self.protected_at_cmd("CREG=1", self.set_carrier, None)
 
     def set_carrier(self):
         if self.network:
@@ -490,13 +490,13 @@ class SIM767X:
 
     def start_pdp_context(self):
         context_str = f'CGDCONT=1,"IP","{self.apn}"'
-        self.protected_at_cmd(context_str, lambda: self.activate_context(), lambda: None)
+        self.protected_at_cmd(context_str, self.activate_context, None)
 
     def activate_context(self):
-        self.protected_at_cmd("CGACT=1,1", lambda: self.get_carrier(), lambda: None)
+        self.protected_at_cmd("CGACT=1,1", self.get_carrier, None)
 
     def get_carrier(self):
-        self.protected_at_cmd("COPS?", lambda: self.mqtt_start(), lambda: None)
+        self.protected_at_cmd("COPS?", self.mqtt_start, None)
 
 # ----- MQTT -----
     def req_mqtt_reconnect(self):
@@ -511,24 +511,24 @@ class SIM767X:
             self.mqtt_reconnect_timer_s = 0  # Restart timer
 
     def mqtt_disconnect(self):
-        if self.protected_at_cmd("CMQTTDISC=0,60", lambda: self.print_ok(), lambda: None):  # clientIndex = 0, timeout (force disconnect to attempt to clear out any buffers etc.)
+        if self.protected_at_cmd("CMQTTDISC=0,60", self.print_ok, None):  # clientIndex = 0, timeout (force disconnect to attempt to clear out any buffers etc.)
             self.mqtt_state = MQTT_State.MQTT_DISCONNECTING
 
     def mqtt_start(self):
-        self.protected_at_cmd("CMQTTSTART", lambda: self.print_ok(), lambda: None, 60)
+        self.protected_at_cmd("CMQTTSTART", self.print_ok, None, 60)
 
     def mqtt_acquire_client(self):
         temp_str = f'CMQTTACCQ=0,"{self.imei}",1'  # clientIndex = 0, cliendID, serverType 1 = SSL/TLS, 0 = TCP
-        self.protected_at_cmd(temp_str, lambda: self.mqtt_config_ssl(), lambda: None)
+        self.protected_at_cmd(temp_str, self.mqtt_config_ssl, None)
 
     def mqtt_config_ssl(self):
-        self.protected_at_cmd("CMQTTSSLCFG=0,0", lambda: self.mqtt_request_will_toic(), lambda: None)  # sessionID = 0, sslIndex = 0
+        self.protected_at_cmd("CMQTTSSLCFG=0,0", self.mqtt_request_will_toic, None)  # sessionID = 0, sslIndex = 0
 
 # ---- MQTT LWT -----
 
     def mqtt_request_will_toic(self):
         if self.will_message and self.will_topic:
-            self.protected_at_cmd(f"CMQTTWILLTOPIC=0,{str(len(self.will_topic))}", lambda: self.mqtt_request_will_message(), lambda: self.mqtt_enter_will_toic())  # clientIndex = 0
+            self.protected_at_cmd(f"CMQTTWILLTOPIC=0,{str(len(self.will_topic))}", self.mqtt_request_will_message, self.mqtt_enter_will_toic)  # clientIndex = 0
         else:
             self.mqtt_connect()
 
@@ -537,7 +537,7 @@ class SIM767X:
 
     def mqtt_request_will_message(self):
         temp_str = f'CMQTTWILLMSG=0,{str(len(self.will_message))},2'
-        self.protected_at_cmd(temp_str, lambda: self.req_mqtt_connect(), lambda: self.mqtt_enter_will_message())  # clientIndex = 0, qos = 2
+        self.protected_at_cmd(temp_str, self.req_mqtt_connect, self.mqtt_enter_will_message)  # clientIndex = 0, qos = 2
 
     def mqtt_enter_will_message(self):
         self.serial_at.write(self.will_message.encode())
@@ -548,12 +548,12 @@ class SIM767X:
 # ---- MQTT Connect -----
     def mqtt_connect(self):
         connect_str = f'CMQTTCONNECT=0,"tcp://{self.host}:{str(self.port)}",60,1,"{self.username}","{self.password}"'
-        if self.protected_at_cmd(connect_str, lambda: self.print_ok(), lambda: None, 60):  # Allow 60s for MQTT to connect
+        if self.protected_at_cmd(connect_str, self.print_ok, None, 60):  # Allow 60s for MQTT to connect
             self.mqtt_state = MQTT_State.MQTT_CONNECTING
 
 # ---- MQTT Subscribe -----
     def mqtt_req_subscribe(self):
-        if self.protected_at_cmd(f'CMQTTSUB=0,{str(len(self.sub_topic))},2', lambda: self.print_ok(), lambda: self.mqtt_enter_sub_topic()):  # clientIndex = 0
+        if self.protected_at_cmd(f'CMQTTSUB=0,{str(len(self.sub_topic))},2', self.print_ok, self.mqtt_enter_sub_topic):  # clientIndex = 0
             self.mqtt_is_subscribing = True
 
     def mqtt_enter_sub_topic(self):
@@ -567,21 +567,21 @@ class SIM767X:
         if self.tx_message:
             if self.lte_state == LTE_State.MODULE_SHUTTING_DOWN:
                 self.shut_down_timer_s = 0  # Reset shutdown timer as there is a message to send
-            self.protected_at_cmd(f"CMQTTTOPIC=0,{str(len(self.pub_topic))}", lambda: self.mqtt_request_payload(), lambda: self.mqtt_enter_pub_topic())  # clientIndex = 0
+            self.protected_at_cmd(f"CMQTTTOPIC=0,{str(len(self.pub_topic))}", self.mqtt_request_payload, self.mqtt_enter_pub_topic)  # clientIndex = 0
 
     def mqtt_enter_pub_topic(self):
         logger.debug("Pub Topic: %s", self.pub_topic)
         self.serial_at.write(self.pub_topic.encode())
 
     def mqtt_request_payload(self):
-        self.protected_at_cmd(f"CMQTTPAYLOAD=0,{str(len(self.tx_message))}", lambda: self.mqtt_publish(), lambda: self.mqtt_enter_message())  # clientIndex = 0
+        self.protected_at_cmd(f"CMQTTPAYLOAD=0,{str(len(self.tx_message))}", self.mqtt_publish, self.mqtt_enter_message)  # clientIndex = 0
 
     def mqtt_enter_message(self):
         logger.debug("Publish Message: %s\n%s", self.pub_topic, self.tx_message)
         self.serial_at.write(self.tx_message.encode())
 
     def mqtt_publish(self):
-        if self.protected_at_cmd("CMQTTPUB=0,2,60", lambda: self.print_ok(), lambda: None):  # clientIndex = 0
+        if self.protected_at_cmd("CMQTTPUB=0,2,60", self.print_ok, None):  # clientIndex = 0
             self.mqtt_is_publishing = True  # Block further publishing until publish succeeds or fails.
 
 # --------- GNSS ----------
@@ -592,20 +592,20 @@ class SIM767X:
             self.gnss_state = GNSS_State.GNSS_REQ_POWERUP
 
     def power_up_gnss(self):
-        if self.protected_at_cmd("CGNSSPWR=1", lambda: self.enable_gnss(), lambda: None):
+        if self.protected_at_cmd("CGNSSPWR=1", self.enable_gnss, None):
             self.gnss_state = GNSS_State.GNSS_POWERING_UP
 
     def get_gnss_info(self):
         if self.gnss_state == GNSS_State.GNSS_REQ_DATA:
-            self.protected_at_cmd("CGNSSINFO", lambda: self.print_ok(), lambda: None)
+            self.protected_at_cmd("CGNSSINFO", self.print_ok, None)
 
     def power_down_gnss(self):
-        if self.protected_at_cmd("CGNSSPWR=0", lambda: self.print_ok(), lambda: None):
+        if self.protected_at_cmd("CGNSSPWR=0", self.print_ok, None):
             self.gnss_state = GNSS_State.GNSS_SHUTDOWN
 
 # GNSS Callbacks
     def enable_gnss(self):
-        self.protected_at_cmd("CGPSHOT", lambda: self.set_gnss_ready(), lambda: None)
+        self.protected_at_cmd("CGPSHOT", self.set_gnss_ready, None)
 
     def set_gnss_ready(self):
         self.gnss_retry_counter = 0
