@@ -34,8 +34,8 @@ class Schedular:
     """
 
     def __init__(self, name: str = ""):
-        self._timer_events = [dict[str, Any]]
-        self._async_jobs = [Callable[[float], float]]
+        self._timer_events = []
+        self._async_jobs = []
 
         self._job_thread_end = threading.Event()
         logger.info("Starting Schedular async thread")
@@ -109,7 +109,7 @@ class Schedular:
             The callback function to call
         """
 
-        d = {
+        d: dict[str, Any] = {
             'delta_time': delta_time,
             'callback': callback,
             'deadline': (time.time() + delta_time + offset),

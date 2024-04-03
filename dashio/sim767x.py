@@ -91,58 +91,58 @@ class Sim767x:
     CHECK_CONNECTION_INTERVAL_S = 30
     SHUTDOWN_WAIT_S = 10
 
-    on_ok_callback = None
-    on_enter_callback = None
+    _on_ok_callback = None
+    _on_enter_callback = None
 
-    imei = ""  # Use imei as the client ID for MQTT
+    _imei = ""  # Use imei as the client ID for MQTT
 
     _on_receive_incoming_message_callback: Callable[[str], None] | None = None
     _on_mqtt_connect_callback: Callable[[bool, ErrorState], None] | None = None
     _on_mqtt_subscribe_callback:  Callable[[str, int], None] | None = None
     on_mqtt_publish_callback: Callable[[str, int, int], None] | None = None
 
-    check_connection_second_count = 0
-    at_timeout_s = 10
-    chars = ""
-    incoming_message = False
-    more_data_coming = 0
+    _check_connection_second_count = 0
+    _at_timeout_s = 10
+    _char_buffer = ""
+    _incoming_message = False
+    _more_data_coming = 0
 
     start_time = time.time()
 
-    tx_message = ""
-    rx_message = ""
+    _tx_message = ""
+    _rx_message = ""
 
-    at_timeout_s = 10
-    at_timer_s = -1
-    shut_down_timer_s = -1
-    mqtt_reconnect_timer_s = -1
-    mqtt_reconnect_fail_counter = 0
-    disconnect_timer_s = 0
-    run_at_callbacks = False
+    _at_timeout_s = 10
+    _at_timer_s = -1
+    _shut_down_timer_s = -1
+    _mqtt_reconnect_timer_s = -1
+    _mqtt_reconnect_fail_counter = 0
+    _disconnect_timer_s = 0
+    _run_at_callbacks = False
 
-    lte_state = LteState.MODULE_STARTUP
-    error_state = ErrorState.ERR_REBOOT
-    mqtt_state = MqttState.MQTT_DISCONNECTED
+    _lte_state = LteState.MODULE_STARTUP
+    _error_state = ErrorState.ERR_REBOOT
+    _mqtt_state = MqttState.MQTT_DISCONNECTED
 
-    will_topic = ""
-    will_message = ""
-    mqtt_is_publishing = False
-    pub_topic = ""
-    sub_topic = ""
-    mqtt_is_subscribing = False
-    message_send_id = -1
-    last_command = ""  # ??? is this being used anymore
-    messages_dict = {}
+    _will_topic = ""
+    _will_message = ""
+    _mqtt_is_publishing = False
+    _pub_topic = ""
+    _sub_topic = ""
+    _mqtt_is_subscribing = False
+    _message_send_id = -1
+    _last_command = ""  # ??? is this being used anymore
+    _messages_dict = {}
 
-    username = ""
-    password = ""
+    _username = ""
+    _password = ""
 
-    gnss_data_callback = None
-    gnss_interval: int = 60
-    gnss_one_shot = False
-    gnss_interval_timer_s = 0
-    gnss_retry_counter = 0
-    gnss_state = GnssState.GNSS_SHUTDOWN
+    _gnss_data_callback = None
+    _gnss_interval: int = 60
+    _gnss_one_shot = False
+    _gnss_interval_timer_s = 0
+    _gnss_retry_counter = 0
+    _gnss_state = GnssState.GNSS_SHUTDOWN
 
     def __init__(self, serial_port: str, network: str, apn: str, baud_rate: int):
         """SIM767x AT Interface
@@ -158,19 +158,19 @@ class Sim767x:
         baud_rate : int
             Baud rate of the Serial connection
         """
-        self.network = network
-        self.apn = apn
-        self.serial_at = serial.Serial(serial_port, baud_rate)
-        self.serial_at.flush()
-        self.sched = Schedular("LTE Connection Schedular")
-        self.sched.add_timer(0.001, 0.0, self._run_processing)
-        self.sched.add_timer(1.0, 0.25, self._run_one_second_module_tasks)
-        self.sched.add_timer(1.0, 0.5, self._run_one_second_mqtt_tasks)
-        self.sched.add_timer(1.0, 0.75, self._run_one_second_gnss_tasks)
+        self._network = network
+        self._apn = apn
+        self._serial_at = serial.Serial(serial_port, baud_rate)
+        self._serial_at.flush()
+        self._sched = Schedular("LTE Connection Schedular")
+        self._sched.add_timer(0.001, 0.0, self._run_processing)
+        self._sched.add_timer(1.0, 0.25, self._run_one_second_module_tasks)
+        self._sched.add_timer(1.0, 0.5, self._run_one_second_mqtt_tasks)
+        self._sched.add_timer(1.0, 0.75, self._run_one_second_gnss_tasks)
 
     def close(self):
         """Close"""
-        self.sched.stop()
+        self._sched.stop()
 
     def mqtt_setup(self,  host: str, port: int, username: str, password: str):
         """Set up MQTT Connection
@@ -186,10 +186,10 @@ class Sim767x:
         password : str
             password
         """
-        self.username = username
-        self.password = password
-        self.host = host
-        self.port = port
+        self._username = username
+        self._password = password
+        self._host = host
+        self._port = port
 
     @property
     def on_mqtt_connect_callback(self) -> Callable[[bool, ErrorState], None] | None:
@@ -250,81 +250,81 @@ class Sim767x:
 
     def subscribe(self, topic: str):
         """Subscribe to a topic"""
-        self.sub_topic = topic
+        self._sub_topic = topic
 
     def publish_message(self, topic: str, message: str):
         """Publis a message"""
-        if topic not in self.messages_dict:
-            self.messages_dict[topic] = message
+        if topic not in self._messages_dict:
+            self._messages_dict[topic] = message
         else:
-            self.messages_dict[topic] += message
+            self._messages_dict[topic] += message
 
     def _protected_at_cmd(self, cmd: str, on_ok_callback: Callable[[], None], on_enter_callback: Callable[[], None] | None, timeout_s: int = 10):
-        if not self.run_at_callbacks:
-            self.on_ok_callback = on_ok_callback
-            self.on_enter_callback = on_enter_callback
-            self.at_timeout_s = timeout_s
-            self.run_at_callbacks = True
+        if not self._run_at_callbacks:
+            self._on_ok_callback = on_ok_callback
+            self._on_enter_callback = on_enter_callback
+            self._at_timeout_s = timeout_s
+            self._run_at_callbacks = True
 
             command = f"AT+{cmd}\r\n"
-            self.serial_at.write(command.encode())
+            self._serial_at.write(command.encode())
 
             return True
         else:
             return False
 
     def _reset_timers(self):
-        self.at_timer_s = -1
-        self.mqtt_reconnect_timer_s = -1
-        self.shut_down_timer_s = -1
+        self._at_timer_s = -1
+        self._mqtt_reconnect_timer_s = -1
+        self._shut_down_timer_s = -1
 
-        self.mqtt_is_publishing = False
-        self.mqtt_is_subscribing = False
-        self.mqtt_state = MqttState.MQTT_DISCONNECTED
-        self.gnss_state = GnssState.GNSS_OFF
+        self._mqtt_is_publishing = False
+        self._mqtt_is_subscribing = False
+        self._mqtt_state = MqttState.MQTT_DISCONNECTED
+        self._gnss_state = GnssState.GNSS_OFF
 
     def _on_mqtt_connected(self):
-        self.mqtt_state = MqttState.MQTT_CONNECTED
+        self._mqtt_state = MqttState.MQTT_CONNECTED
 
         if self._on_mqtt_connect_callback is not None:
-            self._on_mqtt_connect_callback(True, self.error_state)
+            self._on_mqtt_connect_callback(True, self._error_state)
 
-        self.error_state = ErrorState.ERR_NONE
+        self._error_state = ErrorState.ERR_NONE
 
     def _run_processing(self, cookie: Any):
         self._process_at_commands()
         # Messaging
-        if self.mqtt_state == MqttState.MQTT_CONNECTED and not self.run_at_callbacks:
-            if not self.mqtt_is_subscribing and not self.mqtt_is_publishing and not self.incoming_message:  # Wait for any received message being downloaded.
-                if self.sub_topic:
+        if self._mqtt_state == MqttState.MQTT_CONNECTED and not self._run_at_callbacks:
+            if not self._mqtt_is_subscribing and not self._mqtt_is_publishing and not self._incoming_message:  # Wait for any received message being downloaded.
+                if self._sub_topic:
                     self._mqtt_req_subscribe()
-                elif self.messages_dict:
-                    d_topic = list(self.messages_dict.keys())[0]
-                    self._mqtt_request_publish(d_topic, self.messages_dict[d_topic])
+                elif self._messages_dict:
+                    d_topic = list(self._messages_dict.keys())[0]
+                    self._mqtt_request_publish(d_topic, self._messages_dict[d_topic])
         return True
 
     def _process_at_commands(self):
-        if self.serial_at.in_waiting > 0:
-            if self.more_data_coming > 0:  # Required because we can read the message through AT faster than it may arrive.
-                self._read_message(self.more_data_coming)
+        if self._serial_at.in_waiting > 0:
+            if self._more_data_coming > 0:  # Required because we can read the message through AT faster than it may arrive.
+                self._read_message(self._more_data_coming)
             else:
                 data = ""
                 have_message = False
                 result_str = ""
-                while self.serial_at.in_waiting > 0 and not have_message:
-                    chars_in = self.serial_at.read().decode()
+                while self._serial_at.in_waiting > 0 and not have_message:
+                    chars_in = self._serial_at.read().decode()
                     if '\n' in chars_in:
                         chars_arr = chars_in.split('\n')
-                        self.chars += chars_arr[0]
-                        data = self.chars
-                        self.chars = ""
+                        self._char_buffer += chars_arr[0]
+                        data = self._char_buffer
+                        self._char_buffer = ""
                         have_message = True
                         break
                     else:
-                        self.chars += chars_in
-                        if self.chars.startswith(">"):
+                        self._char_buffer += chars_in
+                        if self._char_buffer.startswith(">"):
                             data = ">"
-                            self.chars = ""
+                            self._char_buffer = ""
                             have_message = True
 
                 data = data.replace('\r', '')
@@ -335,20 +335,20 @@ class Sim767x:
                     if data.startswith("OK"):
                         logger.debug('\n')
 
-                        if self.run_at_callbacks:
-                            self.run_at_callbacks = False
-                            if self.on_ok_callback is not None:
-                                self.on_ok_callback()
+                        if self._run_at_callbacks:
+                            self._run_at_callbacks = False
+                            if self._on_ok_callback is not None:
+                                self._on_ok_callback()
                     elif data.startswith("ERROR"):
-                        self.more_data_coming = 0  # Just in case
-                        if self.run_at_callbacks:
-                            self.run_at_callbacks = False
+                        self._more_data_coming = 0  # Just in case
+                        if self._run_at_callbacks:
+                            self._run_at_callbacks = False
                             logger.debug("Callback - Houston - we have a problem ERROR")
                             logger.debug("AT Error")
                     elif data.startswith(">"):
-                        if self.run_at_callbacks:
-                            if self.on_enter_callback is not None:
-                                self.on_enter_callback()
+                        if self._run_at_callbacks:
+                            if self._on_enter_callback is not None:
+                                self._on_enter_callback()
                     else:
                         data_arr = data.split(':')
                         if len(data_arr) > 1:
@@ -357,29 +357,29 @@ class Sim767x:
 
                         if data.startswith("+CPIN:"):
                             if result_str.startswith("READY"):  # Module has started up and is ready for AT commands
-                                self.run_at_callbacks = False
-                                self.lte_state = LteState.SIM_READY
+                                self._run_at_callbacks = False
+                                self._lte_state = LteState.SIM_READY
 
                         elif data.startswith("+CREG:") or data.startswith("+CEREG:") or data.startswith("+CGREG:"):  # Network Registration Status
                             result_arr = result_str.split(',')
                             if len(result_arr) == 1:  # Unsolicited response
                                 status = int(result_arr[0])
                                 if status == 1 or status == 5:
-                                    if self.lte_state != LteState.LTE_CONNECTED:
-                                        self.lte_state = LteState.LTE_CONNECTED
-                                        self.disconnect_timer_s = 0
+                                    if self._lte_state != LteState.LTE_CONNECTED:
+                                        self._lte_state = LteState.LTE_CONNECTED
+                                        self._disconnect_timer_s = 0
                                         self._start_pdp_context()
                             else:  # Request response
                                 status = int(result_arr[1])
                                 if status == 1 or status == 5:
-                                    if self.lte_state != LteState.LTE_CONNECTED:
-                                        self.lte_state = LteState.LTE_CONNECTED
-                                        self.disconnect_timer_s = 0
+                                    if self._lte_state != LteState.LTE_CONNECTED:
+                                        self._lte_state = LteState.LTE_CONNECTED
+                                        self._disconnect_timer_s = 0
                                         self._start_pdp_context()
                                 else:  # Only do this for request response (i.e. when monitoring)
-                                    self.lte_state = LteState.LTE_DISCONNECTED
-                                    self.mqtt_state = MqttState.MQTT_DISCONNECTED
-                                    self.error_state = ErrorState.ERR_LTE_CONNECT_FAIL_RESET
+                                    self._lte_state = LteState.LTE_DISCONNECTED
+                                    self._mqtt_state = MqttState.MQTT_DISCONNECTED
+                                    self._error_state = ErrorState.ERR_LTE_CONNECT_FAIL_RESET
                         elif data.startswith("+CGEV:"):
                             if result_str.startswith("ME PDN ACT"):  # AcT = 0 (GSM)
                                 logger.debug("ME PDN ACT")
@@ -390,7 +390,7 @@ class Sim767x:
                             elif result_str.startswith("NW PDN DEACT"):
                                 logger.debug("NW PDN DEACT")
                         elif data.startswith("+SIMEI:"):
-                            self.imei = "IMEI" + result_str
+                            self._imei = "IMEI" + result_str
                         elif data.startswith("+COPS:"):
                             result_arr = result_str.split(',')
                             if len(result_arr) >= 3:
@@ -402,72 +402,72 @@ class Sim767x:
                                 self._mqtt_acquire_client()
                             else:
                                 logger.debug("MQTT Start: %s", error)
-                                self.lte_state = LteState.MODULE_REQ_RESET
+                                self._lte_state = LteState.MODULE_REQ_RESET
                         elif data.startswith("+CMQTTCONNECT:"):
                             result_arr = result_str.split(',')
                             if len(result_arr) >= 2:
                                 error = int(result_arr[1])
                                 if error == 0:
                                     self._on_mqtt_connected()
-                                    self.mqtt_reconnect_fail_counter = 0
+                                    self._mqtt_reconnect_fail_counter = 0
                                 else:
                                     logger.debug("MQTT Cnct: %s", error)
                                     self._req_mqtt_reconnect()
                         elif data.startswith("+CMQTTSUB:"):
-                            self.mqtt_is_subscribing = False
+                            self._mqtt_is_subscribing = False
                             result_arr = result_str.split(',')
                             if len(result_arr) >= 2:
                                 error = int(result_arr[1])
                                 if self._on_mqtt_subscribe_callback is not None:
-                                    self._on_mqtt_subscribe_callback(self.sub_topic, error)
+                                    self._on_mqtt_subscribe_callback(self._sub_topic, error)
 
                                 if error == 0:
-                                    self.sub_topic = ""
+                                    self._sub_topic = ""
                                 else:
                                     logger.debug("MQTT Sub: %s", error)
                                     self._req_mqtt_reconnect()
                         elif data.startswith("+CMQTTPUB:"):
-                            self.mqtt_is_publishing = False
+                            self._mqtt_is_publishing = False
                             result_arr = result_str.split(',')
                             if len(result_arr) >= 2:
                                 error = int(result_arr[1])
                                 if error == 0:
-                                    if self.pub_topic in self.messages_dict:
-                                        del self.messages_dict[self.pub_topic]
+                                    if self._pub_topic in self._messages_dict:
+                                        del self._messages_dict[self._pub_topic]
                                 else:
                                     logger.debug("MQTT Pub: %s", error)
                                     self._req_mqtt_reconnect()
 
                                 if self.on_mqtt_publish_callback is not None:
-                                    self.on_mqtt_publish_callback(self.pub_topic, self.message_send_id, error)  # Do before topic is cleared below
-                                self.message_send_id = -1  # Probably don't need this
+                                    self.on_mqtt_publish_callback(self._pub_topic, self._message_send_id, error)  # Do before topic is cleared below
+                                self._message_send_id = -1  # Probably don't need this
 
-                                self.pub_topic = ""
-                                self.tx_message = ""
+                                self._pub_topic = ""
+                                self._tx_message = ""
                         elif data.startswith("+CMQTTRXTOPIC:"):
                             # No need to do anything with the received topic as there shoud only be one topic.
                             pass
                         elif data.startswith("+CMQTTRXSTART:"):
-                            self.incoming_message = True
-                            self.rx_message = ""
+                            self._incoming_message = True
+                            self._rx_message = ""
                         elif data.startswith("+CMQTTRXPAYLOAD:"):
                             result_arr = result_str.split(',')
                             if len(result_arr) >= 2:
                                 self._read_message(int(result_arr[1]))
                         elif data.startswith("+CMQTTRXEND:"):
-                            self.more_data_coming = 0
-                            self.incoming_message = False
+                            self._more_data_coming = 0
+                            self._incoming_message = False
 
-                            if self.rx_message:
+                            if self._rx_message:
                                 if self._on_receive_incoming_message_callback is not None:
-                                    self._on_receive_incoming_message_callback(self.rx_message)
-                                self.rx_message = ""
+                                    self._on_receive_incoming_message_callback(self._rx_message)
+                                self._rx_message = ""
                         elif data.startswith("+CMQTTDISC:"):
-                            self.mqtt_state = MqttState.MQTT_DISCONNECTED
-                            if self.shut_down_timer_s >= 0:
-                                self.lte_state = LteState.MODULE_REQ_SHUTDOWN
+                            self._mqtt_state = MqttState.MQTT_DISCONNECTED
+                            if self._shut_down_timer_s >= 0:
+                                self._lte_state = LteState.MODULE_REQ_SHUTDOWN
                         elif data.startswith("+CMQTTCONNLOST:"):
-                            self.mqtt_state = MqttState.MQTT_DISCONNECTED
+                            self._mqtt_state = MqttState.MQTT_DISCONNECTED
                             if self._on_mqtt_connect_callback is not None:
                                 self._on_mqtt_connect_callback(False, ErrorState.ERR_MQTT_CONNECTION_LOST)
 
@@ -481,110 +481,110 @@ class Sim767x:
                             self._process_gnss_data(result_str)
 
     def _read_message(self, message_len: int):
-        chars_in = self.serial_at.read().decode()
-        self.rx_message += chars_in
-        self.more_data_coming = message_len - len(chars_in)
+        chars_in = self._serial_at.read().decode()
+        self._rx_message += chars_in
+        self._more_data_coming = message_len - len(chars_in)
 
     def _run_one_second_module_tasks(self, cookie: Any):
-        if self.shut_down_timer_s >= 0:
-            logger.debug("Shutdown Timer: %ss", self.shut_down_timer_s)
-            self.shut_down_timer_s += 1
-            if self.shut_down_timer_s == self.SHUTDOWN_WAIT_S:
-                self.mqtt_state = MqttState.MQTT_REQ_DISCONNECT
-            if self.shut_down_timer_s == self.SHUTDOWN_WAIT_S + 5:  # Allow 5 seconds to disconnect before shutdown
-                self.shut_down_timer_s = -1  # Turn off timer
-                self.lte_state = LteState.MODULE_REQ_SHUTDOWN
+        if self._shut_down_timer_s >= 0:
+            logger.debug("Shutdown Timer: %ss", self._shut_down_timer_s)
+            self._shut_down_timer_s += 1
+            if self._shut_down_timer_s == self.SHUTDOWN_WAIT_S:
+                self._mqtt_state = MqttState.MQTT_REQ_DISCONNECT
+            if self._shut_down_timer_s == self.SHUTDOWN_WAIT_S + 5:  # Allow 5 seconds to disconnect before shutdown
+                self._shut_down_timer_s = -1  # Turn off timer
+                self._lte_state = LteState.MODULE_REQ_SHUTDOWN
 
         # LTE State
-        if self.lte_state == LteState.MODULE_STARTUP:
-            logger.debug("Startup Timer: %s.", self.disconnect_timer_s)
-            self.disconnect_timer_s += 1
-            if self.disconnect_timer_s > 60:  # One min
-                self.disconnect_timer_s = 0
-                self.run_at_callbacks = False
+        if self._lte_state == LteState.MODULE_STARTUP:
+            logger.debug("Startup Timer: %s.", self._disconnect_timer_s)
+            self._disconnect_timer_s += 1
+            if self._disconnect_timer_s > 60:  # One min
+                self._disconnect_timer_s = 0
+                self._run_at_callbacks = False
                 self._req_reset_module(ErrorState.ERR_STARTUP_TIMEOUT)
-        elif self.lte_state == LteState.SIM_READY:
-            self.lte_state = LteState.LTE_DISCONNECTED
+        elif self._lte_state == LteState.SIM_READY:
+            self._lte_state = LteState.LTE_DISCONNECTED
             self._reset_timers()
-            self.disconnect_timer_s = 0
+            self._disconnect_timer_s = 0
 
             self._get_imei()
-        elif self.lte_state == LteState.LTE_DISCONNECTED:
-            logger.debug("MQTT Disconnected Timer: %s^", self.disconnect_timer_s)
-            self.disconnect_timer_s += 1
-            if self.disconnect_timer_s > 300:  # Five mins
-                self.disconnect_timer_s = 0
+        elif self._lte_state == LteState.LTE_DISCONNECTED:
+            logger.debug("MQTT Disconnected Timer: %s^", self._disconnect_timer_s)
+            self._disconnect_timer_s += 1
+            if self._disconnect_timer_s > 300:  # Five mins
+                self._disconnect_timer_s = 0
                 self._req_reset_module(ErrorState.ERR_NO_CARRIER_TIMEOUT)
-        elif self.lte_state == LteState.MODULE_REQ_RESET:
+        elif self._lte_state == LteState.MODULE_REQ_RESET:
             self.reset_module()
-        elif self.lte_state == LteState.MODULE_REQ_SHUTDOWN:
+        elif self._lte_state == LteState.MODULE_REQ_SHUTDOWN:
             self.shutdown_module()
 
         # Check Connection
-        self.check_connection_second_count += 1
-        if self.check_connection_second_count > self.CHECK_CONNECTION_INTERVAL_S:
-            self.check_connection_second_count = 0
-            if self.lte_state == LteState.LTE_CONNECTED:
+        self._check_connection_second_count += 1
+        if self._check_connection_second_count > self.CHECK_CONNECTION_INTERVAL_S:
+            self._check_connection_second_count = 0
+            if self._lte_state == LteState.LTE_CONNECTED:
                 self._check_connection()
 
-        if self.run_at_callbacks:
-            if self.at_timer_s >= 0:  # i.e. -1 is timer turned off
-                self.at_timer_s += 1
-                if self.at_timer_s > self.at_timeout_s:
-                    self.at_timer_s = -1  # Turn off timer
-                    self.run_at_callbacks = False
+        if self._run_at_callbacks:
+            if self._at_timer_s >= 0:  # i.e. -1 is timer turned off
+                self._at_timer_s += 1
+                if self._at_timer_s > self._at_timeout_s:
+                    self._at_timer_s = -1  # Turn off timer
+                    self._run_at_callbacks = False
                     logger.debug("Callback - Houston - we have a problem TIMEOUT")
-                    self.timeout_error_command = self.last_command
+                    self.timeout_error_command = self._last_command
                     self._req_reset_module(ErrorState.ERR_AT_TIMEOUT_RESET)
         return True
 
     def _run_one_second_mqtt_tasks(self, cookie: Any):
-        if self.mqtt_state == MqttState.MQTT_REQ_CONNECT:
+        if self._mqtt_state == MqttState.MQTT_REQ_CONNECT:
             self._mqtt_connect()
-        elif self.mqtt_state == MqttState.MQTT_REQ_DISCONNECT:
+        elif self._mqtt_state == MqttState.MQTT_REQ_DISCONNECT:
             self._mqtt_disconnect()
 
-        if self.mqtt_reconnect_timer_s >= 0:
-            self.mqtt_reconnect_timer_s += 1
-            logger.debug("mqttReconnectTimers: %sm.", self.mqtt_reconnect_timer_s)
-            if self.mqtt_reconnect_timer_s >= 10:
-                self.mqtt_reconnect_timer_s = -1  # Turn off timer
+        if self._mqtt_reconnect_timer_s >= 0:
+            self._mqtt_reconnect_timer_s += 1
+            logger.debug("mqttReconnectTimers: %sm.", self._mqtt_reconnect_timer_s)
+            if self._mqtt_reconnect_timer_s >= 10:
+                self._mqtt_reconnect_timer_s = -1  # Turn off timer
                 logger.debug("MQTT Reconnect")
                 self._req_mqtt_connect()
         return True
 
     def _run_one_second_gnss_tasks(self, cookie: Any):
-        if self.gnss_state == GnssState.GNSS_REQ_POWERUP:
+        if self._gnss_state == GnssState.GNSS_REQ_POWERUP:
             self._power_up_gnss()
-        elif self.gnss_state == GnssState.GNSS_REQ_DATA:
-            self.gnss_interval_timer_s += 1
-            logger.debug("gnssIntervalTimerS: %s", self.gnss_interval_timer_s)
-            if self.gnss_interval_timer_s >= self.gnss_interval:
-                self.gnss_interval_timer_s = 0
+        elif self._gnss_state == GnssState.GNSS_REQ_DATA:
+            self._gnss_interval_timer_s += 1
+            logger.debug("gnssIntervalTimerS: %s", self._gnss_interval_timer_s)
+            if self._gnss_interval_timer_s >= self._gnss_interval:
+                self._gnss_interval_timer_s = 0
                 self._get_gnss_info()
-        elif self.gnss_state == GnssState.GNSS_REQ_SHUTDOWN:
+        elif self._gnss_state == GnssState.GNSS_REQ_SHUTDOWN:
             self._power_down_gnss()
         return True
 
     def power_down_module(self):
         """Power down the module"""
-        self.lte_state = LteState.MODULE_SHUTTING_DOWN
-        self.shut_down_timer_s = 0  # Start shutdown counter
+        self._lte_state = LteState.MODULE_SHUTTING_DOWN
+        self._shut_down_timer_s = 0  # Start shutdown counter
 
     def shutdown_module(self):
         """Shutdown the module"""
         if self._protected_at_cmd("CPOF", self._reset_timers, None, 120):
-            self.shut_down_timer_s = -1
-            self.lte_state = LteState.MODULE_SHUTDOWN
+            self._shut_down_timer_s = -1
+            self._lte_state = LteState.MODULE_SHUTDOWN
 
     def _req_reset_module(self, error_state: ErrorState):
-        self.error_state = error_state
-        self.lte_state = LteState.MODULE_REQ_RESET
+        self._error_state = error_state
+        self._lte_state = LteState.MODULE_REQ_RESET
 
     def reset_module(self):
         """Reset Module"""
         if self._protected_at_cmd("CRESET", self._reset_timers, None, 120):
-            self.lte_state = LteState. MODULE_RESETTING
+            self._lte_state = LteState. MODULE_RESETTING
 
     def _print_ok(self):
         logger.debug("OK ACK")
@@ -599,12 +599,12 @@ class Sim767x:
         self._protected_at_cmd("CREG=1", self._set_carrier, None)
 
     def _set_carrier(self):
-        if self.network:
-            carrier_str = f'AT+COPS=4,2,"{self.network}"'  # 1 = manual (4 = manual/auto), 2 = short format. For One NZ SIM cards not roaming in NZ, Could take up to 60s
-            self.serial_at.write(carrier_str.encode())  # ??? Maybe should be protected
+        if self._network:
+            carrier_str = f'AT+COPS=4,2,"{self._network}"'  # 1 = manual (4 = manual/auto), 2 = short format. For One NZ SIM cards not roaming in NZ, Could take up to 60s
+            self._serial_at.write(carrier_str.encode())  # ??? Maybe should be protected
 
     def _start_pdp_context(self):
-        context_str = f'CGDCONT=1,"IP","{self.apn}"'
+        context_str = f'CGDCONT=1,"IP","{self._apn}"'
         self._protected_at_cmd(context_str, self._activate_context, None)
 
     def _activate_context(self):
@@ -615,25 +615,25 @@ class Sim767x:
 
 # ----- MQTT -----
     def _req_mqtt_reconnect(self):
-        self.mqtt_is_publishing = False
-        self.mqtt_state = MqttState.MQTT_DISCONNECTED
+        self._mqtt_is_publishing = False
+        self._mqtt_state = MqttState.MQTT_DISCONNECTED
 
-        self.mqtt_reconnect_fail_counter += 1
-        if self.mqtt_reconnect_fail_counter > 5:  # After 5 tries, go for a reset
-            self.mqtt_reconnect_fail_counter = 0
+        self._mqtt_reconnect_fail_counter += 1
+        if self._mqtt_reconnect_fail_counter > 5:  # After 5 tries, go for a reset
+            self._mqtt_reconnect_fail_counter = 0
             self._req_reset_module(ErrorState.ERR_MQTT_RECONNECT_FAIL_RESET)
         else:
-            self.mqtt_reconnect_timer_s = 0  # Restart timer
+            self._mqtt_reconnect_timer_s = 0  # Restart timer
 
     def _mqtt_disconnect(self):
         if self._protected_at_cmd("CMQTTDISC=0,60", self._print_ok, None):  # clientIndex = 0, timeout (force disconnect to attempt to clear out any buffers etc.)
-            self.mqtt_state = MqttState.MQTT_DISCONNECTING
+            self._mqtt_state = MqttState.MQTT_DISCONNECTING
 
     def _mqtt_start(self):
         self._protected_at_cmd("CMQTTSTART", self._print_ok, None, 60)
 
     def _mqtt_acquire_client(self):
-        temp_str = f'CMQTTACCQ=0,"{self.imei}",1'  # clientIndex = 0, cliendID, serverType 1 = SSL/TLS, 0 = TCP
+        temp_str = f'CMQTTACCQ=0,"{self._imei}",1'  # clientIndex = 0, cliendID, serverType 1 = SSL/TLS, 0 = TCP
         self._protected_at_cmd(temp_str, self._mqtt_config_ssl, None)
 
     def _mqtt_config_ssl(self):
@@ -642,62 +642,62 @@ class Sim767x:
 # ---- MQTT LWT -----
 
     def _mqtt_request_will_toic(self):
-        if self.will_message and self.will_topic:
-            self._protected_at_cmd(f"CMQTTWILLTOPIC=0,{str(len(self.will_topic))}", self._mqtt_request_will_message, self._mqtt_enter_will_toic)  # clientIndex = 0
+        if self._will_message and self._will_topic:
+            self._protected_at_cmd(f"CMQTTWILLTOPIC=0,{str(len(self._will_topic))}", self._mqtt_request_will_message, self._mqtt_enter_will_toic)  # clientIndex = 0
         else:
             self._mqtt_connect()
 
     def _mqtt_enter_will_toic(self):
-        self.serial_at.write((self.will_topic).encode())
+        self._serial_at.write((self._will_topic).encode())
 
     def _mqtt_request_will_message(self):
-        temp_str = f'CMQTTWILLMSG=0,{str(len(self.will_message))},2'
+        temp_str = f'CMQTTWILLMSG=0,{str(len(self._will_message))},2'
         self._protected_at_cmd(temp_str, self._req_mqtt_connect, self._mqtt_enter_will_message)  # clientIndex = 0, qos = 2
 
     def _mqtt_enter_will_message(self):
-        self.serial_at.write(self.will_message.encode())
+        self._serial_at.write(self._will_message.encode())
 
     def _req_mqtt_connect(self):
-        self.mqtt_state = MqttState.MQTT_REQ_CONNECT
+        self._mqtt_state = MqttState.MQTT_REQ_CONNECT
 
 # ---- MQTT Connect -----
     def _mqtt_connect(self):
-        connect_str = f'CMQTTCONNECT=0,"tcp://{self.host}:{str(self.port)}",60,1,"{self.username}","{self.password}"'
+        connect_str = f'CMQTTCONNECT=0,"tcp://{self._host}:{str(self._port)}",60,1,"{self._username}","{self._password}"'
         if self._protected_at_cmd(connect_str, self._print_ok, None, 60):  # Allow 60s for MQTT to connect
-            self.mqtt_state = MqttState.MQTT_CONNECTING
+            self._mqtt_state = MqttState.MQTT_CONNECTING
 
 # ---- MQTT Subscribe -----
     def _mqtt_req_subscribe(self):
-        if self._protected_at_cmd(f'CMQTTSUB=0,{str(len(self.sub_topic))},2', self._print_ok, self._mqtt_enter_sub_topic):  # clientIndex = 0
-            self.mqtt_is_subscribing = True
+        if self._protected_at_cmd(f'CMQTTSUB=0,{str(len(self._sub_topic))},2', self._print_ok, self._mqtt_enter_sub_topic):  # clientIndex = 0
+            self._mqtt_is_subscribing = True
 
     def _mqtt_enter_sub_topic(self):
-        logger.debug("Sub Topic: %s", self.sub_topic)
-        self.serial_at.write(self.sub_topic.encode())
+        logger.debug("Sub Topic: %s", self._sub_topic)
+        self._serial_at.write(self._sub_topic.encode())
 
 # ----- MQTT Publish ------
     def _mqtt_request_publish(self, topic: str, message: str):
-        self.pub_topic = topic
-        self.tx_message = message
-        if self.tx_message:
-            if self.lte_state == LteState.MODULE_SHUTTING_DOWN:
-                self.shut_down_timer_s = 0  # Reset shutdown timer as there is a message to send
-            self._protected_at_cmd(f"CMQTTTOPIC=0,{str(len(self.pub_topic))}", self._mqtt_request_payload, self._mqtt_enter_pub_topic)  # clientIndex = 0
+        self._pub_topic = topic
+        self._tx_message = message
+        if self._tx_message:
+            if self._lte_state == LteState.MODULE_SHUTTING_DOWN:
+                self._shut_down_timer_s = 0  # Reset shutdown timer as there is a message to send
+            self._protected_at_cmd(f"CMQTTTOPIC=0,{str(len(self._pub_topic))}", self._mqtt_request_payload, self._mqtt_enter_pub_topic)  # clientIndex = 0
 
     def _mqtt_enter_pub_topic(self):
-        logger.debug("Pub Topic: %s", self.pub_topic)
-        self.serial_at.write(self.pub_topic.encode())
+        logger.debug("Pub Topic: %s", self._pub_topic)
+        self._serial_at.write(self._pub_topic.encode())
 
     def _mqtt_request_payload(self):
-        self._protected_at_cmd(f"CMQTTPAYLOAD=0,{str(len(self.tx_message))}", self._mqtt_publish, self._mqtt_enter_message)  # clientIndex = 0
+        self._protected_at_cmd(f"CMQTTPAYLOAD=0,{str(len(self._tx_message))}", self._mqtt_publish, self._mqtt_enter_message)  # clientIndex = 0
 
     def _mqtt_enter_message(self):
-        logger.debug("Publish Message: %s\n%s", self.pub_topic, self.tx_message)
-        self.serial_at.write(self.tx_message.encode())
+        logger.debug("Publish Message: %s\n%s", self._pub_topic, self._tx_message)
+        self._serial_at.write(self._tx_message.encode())
 
     def _mqtt_publish(self):
         if self._protected_at_cmd("CMQTTPUB=0,2,60", self._print_ok, None):  # clientIndex = 0
-            self.mqtt_is_publishing = True  # Block further publishing until publish succeeds or fails.
+            self._mqtt_is_publishing = True  # Block further publishing until publish succeeds or fails.
 
 # --------- GNSS ----------
     def gnss_start(self, interval: int, one_shot: bool):
@@ -710,39 +710,39 @@ class Sim767x:
         one_shot : bool
             If oneshot.
         """
-        if self.gnss_data_callback is not None:
-            self.gnss_interval = interval
-            self.gnss_one_shot = one_shot
-            self.gnss_state = GnssState.GNSS_REQ_POWERUP
+        if self._gnss_data_callback is not None:
+            self._gnss_interval = interval
+            self._gnss_one_shot = one_shot
+            self._gnss_state = GnssState.GNSS_REQ_POWERUP
 
     def _power_up_gnss(self):
         if self._protected_at_cmd("CGNSSPWR=1", self._enable_gnss, None):
-            self.gnss_state = GnssState.GNSS_POWERING_UP
+            self._gnss_state = GnssState.GNSS_POWERING_UP
 
     def _get_gnss_info(self):
-        if self.gnss_state == GnssState.GNSS_REQ_DATA:
+        if self._gnss_state == GnssState.GNSS_REQ_DATA:
             self._protected_at_cmd("CGNSSINFO", self._print_ok, None)
 
     def _power_down_gnss(self):
         if self._protected_at_cmd("CGNSSPWR=0", self._print_ok, None):
-            self.gnss_state = GnssState.GNSS_SHUTDOWN
+            self._gnss_state = GnssState.GNSS_SHUTDOWN
 
 # GNSS Callbacks
     def _enable_gnss(self):
         self._protected_at_cmd("CGPSHOT", self._set_gnss_ready, None)
 
     def _set_gnss_ready(self):
-        self.gnss_retry_counter = 0
-        self.gnss_state = GnssState.GNSS_REQ_DATA
+        self._gnss_retry_counter = 0
+        self._gnss_state = GnssState.GNSS_REQ_DATA
 
     def _process_gnss_data(self, nmea_string: str):
         if len(nmea_string) < 20:  # Make sure it has sensible data
-            if self.gnss_one_shot:
-                self.gnss_retry_counter += 1
-                if self.gnss_retry_counter >= 5:  # Only try 5 times
-                    self.gnss_state = GnssState.GNSS_REQ_SHUTDOWN
+            if self._gnss_one_shot:
+                self._gnss_retry_counter += 1
+                if self._gnss_retry_counter >= 5:  # Only try 5 times
+                    self._gnss_state = GnssState.GNSS_REQ_SHUTDOWN
         else:
-            if self.gnss_data_callback is not None:
-                self.gnss_data_callback(nmea_string)
-                if self.gnss_one_shot:
-                    self.gnss_state = GnssState.GNSS_REQ_SHUTDOWN
+            if self._gnss_data_callback is not None:
+                self._gnss_data_callback(nmea_string)
+                if self._gnss_one_shot:
+                    self._gnss_state = GnssState.GNSS_REQ_SHUTDOWN
