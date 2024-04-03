@@ -28,7 +28,7 @@ import threading
 import json
 import shortuuid
 import zmq
-from .sim767x import SIM767X, ERROR_State
+from .sim767x import Sim767x, ErrorState
 from .constants import CONNECTION_PUB_URL
 from .device import Device
 from .iotcontrol.enums import ConnectionState
@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 class Lte767xConnection(threading.Thread):
     """Under Active Development - DOES NOT WORK!"""
 
-    def on_mqtt_connect(self, connected: bool, error_state: ERROR_State):
+    def on_mqtt_connect(self, connected: bool, error_state: ErrorState):
         if connected:
             logger.debug("connected OK")
             self.connection_state = ConnectionState.CONNECTED
@@ -152,7 +152,7 @@ class Lte767xConnection(threading.Thread):
         self._device_id_list = []
         self.serial_port = serial_port
         self.baud_rate = baud_rate
-        self.lte_con = SIM767X(self.serial_port, "", self.apn, self.baud_rate)
+        self.lte_con = Sim767x(self.serial_port, "", self.apn, self.baud_rate)
         self.lte_con.mqtt_setup(self.host, self.port, self.username, self.password)
         self.lte_con.set_callbacks(self.on_mqtt_connect, self.on_mqtt_subscribe, self.on_mqtt_receive_message)
         self.connection_state = ConnectionState.CONNECTING
