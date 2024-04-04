@@ -111,63 +111,6 @@ class SerialConnection(threading.Thread):
         """
         self._crtl_cnctn_callback = None
 
-    def set_comms_module_passthough(self, coms_device_id: str) -> None:
-        message = f"\t{coms_device_id}\tCTRL\tMODE\tPSTH\n"
-        self.serial_com.write(message.encode())
-
-    def set_comms_module_normal(self, coms_device_id: str) -> None:
-        message = f"\t{coms_device_id}\tCTRL\tMODE\tNML\n"
-        self.serial_com.write(message.encode())
-
-    def enable_comms_module_ble(self, coms_device_id: str, enable: bool) -> None:
-        if enable:
-            message = f"\t{coms_device_id}\tCTRL\tBLE\n"
-        else:
-            message = f"\t{coms_device_id}\tCTRL\tBLE\tHLT\n"
-        self.serial_com.write(message.encode())
-
-    def enable_comms_module_tcp(self, coms_device_id: str, enable: bool) -> None:
-        if enable:
-            message = f"\t{coms_device_id}\tCTRL\tTCP\n"
-        else:
-            message = f"\t{coms_device_id}\tCTRL\tTCP\tHLT\n"
-        self.serial_com.write(message.encode())
-
-    def enable_comms_module_dash(self, coms_device_id: str, enable: bool) -> None:
-        if enable:
-            message = f"\t{coms_device_id}\tCTRL\tMQTT\n"
-        else:
-            message = f"\t{coms_device_id}\tCTRL\tMQTT\tHLT\n"
-        self.serial_com.write(message.encode())
-
-    def set_comms_module_dash(self, coms_device_id: str, user_name: str, password: str) -> None:
-        message = f"\t{coms_device_id}\tDASHIO\t{user_name}\t{password}\n"
-        self.serial_com.write(message.encode())
-
-    def set_comms_module_tcp_port(self, coms_device_id: str, port: int) -> None:
-        message = f"\t{coms_device_id}\tTCP\t{port}\n"
-        self.serial_com.write(message.encode())
-
-    def set_comms_module_name(self, coms_device_id: str, name: str) -> None:
-        message = f"\t{coms_device_id}\tNAME\t{name}\n"
-        self.serial_com.write(message.encode())
-
-    def set_comms_module_wifi(self, coms_device_id: str, country_code: str, ssid: str, password: str) -> None:
-        message = f"\t{coms_device_id}\tWIFI\t{country_code}\t{ssid}\t{password}\n"
-        self.serial_com.write(message.encode())
-
-    def get_comms_module_active_connections(self, coms_device_id: str) -> None:
-        message = f"\t{coms_device_id}\tCTRL\tCNCTN\n"
-        self.serial_com.write(message.encode())
-
-    """
-        Like WHO and used to request the deviceID. Response from comms module is:
-        \t Device_ID \t CTRL \n
-    """
-    def reguest_comms_module_device_id(self) -> None:
-        message = "\tCTRL\n"
-        self.serial_com.write(message.encode())
-
     def _init_serial(self):
         try:
             self.serial_com = serial.Serial(self.serial_port, self.baud_rate, timeout=1.0)
@@ -264,7 +207,7 @@ class SerialConnection(threading.Thread):
                             logger.debug("SERIAL Rx:\n%s", message.rstrip().decode())
                             parts = message.strip().decode().split('\t')
                             if len(parts) == 2 and parts[1] == 'CTRL':
-                                if self._crtl_device_id_callback:
+                                if self._crtl_device_id_callback is not None:
                                     self._crtl_device_id_callback(parts)
                             elif len(parts) > 2 and parts[1] == 'CTRL':
                                 self.crtl_map[parts[2]](parts)

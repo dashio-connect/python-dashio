@@ -320,12 +320,11 @@ class Sim767x:
                         self._char_buffer = ""
                         have_message = True
                         break
-                    else:
-                        self._char_buffer += chars_in
-                        if self._char_buffer.startswith(">"):
-                            data = ">"
-                            self._char_buffer = ""
-                            have_message = True
+                    self._char_buffer += chars_in
+                    if self._char_buffer.startswith(">"):
+                        data = ">"
+                        self._char_buffer = ""
+                        have_message = True
 
                 data = data.replace('\r', '')
 
@@ -360,7 +359,7 @@ class Sim767x:
                                 self._run_at_callbacks = False
                                 self._lte_state = LteState.SIM_READY
 
-                        elif data.startswith("+CREG:") or data.startswith("+CEREG:") or data.startswith("+CGREG:"):  # Network Registration Status
+                        elif data.startswith(("+CREG:", "+CEREG:", "+CGREG:")):  # Network Registration Status
                             result_arr = result_str.split(',')
                             if len(result_arr) == 1:  # Unsolicited response
                                 status = int(result_arr[0])

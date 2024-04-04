@@ -41,6 +41,19 @@ from .dashconnection import DashConnection
 from .serialconnection import SerialConnection
 from .schedular import Schedular
 from .load_config import decode_cfg64, encode_cfg64, load_all_controls_from_config, get_control_dict_from_config, get_control_from_config
+from .comms_module import (
+    enable_comms_module_ble,
+    enable_comms_module_dash,
+    enable_comms_module_tcp,
+    set_comms_module_dash,
+    set_comms_module_name,
+    set_comms_module_normal,
+    set_comms_module_passthough,
+    set_comms_module_tcp_port,
+    set_comms_module_wifi,
+    get_comms_module_active_connections,
+    reguest_comms_module_device_id
+)
 # from .bleconnection import BLEConnection
 from .iotcontrol.enums import (
     Color,
@@ -98,6 +111,17 @@ __all__ = [
     'ConnectionState',
     'SerialConnection',
     'Schedular',
+    'enable_comms_module_ble',
+    'enable_comms_module_dash',
+    'enable_comms_module_tcp',
+    'set_comms_module_dash',
+    'set_comms_module_name',
+    'set_comms_module_normal',
+    'set_comms_module_passthough',
+    'set_comms_module_tcp_port',
+    'set_comms_module_wifi',
+    'get_comms_module_active_connections',
+    'reguest_comms_module_device_id',
     'decode_cfg64',
     'encode_cfg64',
     'load_all_controls_from_config',

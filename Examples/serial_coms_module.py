@@ -117,8 +117,10 @@ class TestControls:
 
     def _coms_reboot_msg(self, msg):
         logging.debug("RBT: %s", msg)
-        self.serial_con.set_comms_module_passthough(msg[0])
-        self.serial_con.enable_comms_module_ble(msg[0], True)
+        msg = dashio.set_comms_module_passthough(msg[0])
+        self.serial_con.serial_com.write(msg.encode())
+        msg = dashio.enable_comms_module_ble(msg[0], True)
+        self.serial_con.serial_com.write(msg.encode())
 
     def __init__(self):
 
