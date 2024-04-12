@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-import dashio
+import argparse
 import json
 import os
-import argparse
+
+import dashio
 
 
-def parse_commandline_arguments():
+def _parse_commandline_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('file', help="Input file name.")
     parser.add_argument("-p", "--print", dest="print", action='store_true', help="Print output.")
@@ -18,7 +19,8 @@ def parse_commandline_arguments():
 
 
 def main():
-    args = parse_commandline_arguments()
+    """The main shebang!"""
+    args = _parse_commandline_arguments()
 
     c64_filename = args.file
     json_filename = os.path.splitext(c64_filename)[0] + ".json"
@@ -27,7 +29,7 @@ def main():
         json_filename = args.out_file
 
     try:
-        with open(c64_filename, mode="r") as fp:
+        with open(c64_filename, mode="r", encoding='utf-8') as fp:
             cfg64 = fp.read()
     except FileNotFoundError:
         print("File not found")
@@ -51,9 +53,8 @@ def main():
     if args.print:
         print(cfg_json)
 
-    json_file = open(json_filename, "w")
-    json_file.write(cfg_json)
-    json_file.close()
+    with open(json_filename, "w", encoding='utf-8') as writer:
+        writer.write(cfg_json)
 
 
 if __name__ == "__main__":
