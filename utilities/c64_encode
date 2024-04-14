@@ -23,7 +23,8 @@ def _format_python(c64_str: str, width=80) -> str:
         c64_str,
         width=width,
         replace_whitespace=False,
-        drop_whitespace=False
+        drop_whitespace=False,
+        expand_tabs=False
     )
     new_s = '"\\\n"'.join(new_l)
     return '"' + new_s + '"'

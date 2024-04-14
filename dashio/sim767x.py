@@ -160,13 +160,31 @@ class Sim767x:
         """
         self._network = network
         self._apn = apn
-        self._serial_at = serial.Serial(serial_port, baud_rate)
+        self._serial_at = serial.Serial(serial_port, baud_rate,)
         self._serial_at.flush()
         self._sched = Schedular("LTE Connection Schedular")
         self._sched.add_timer(0.001, 0.0, self._run_processing)
         self._sched.add_timer(1.0, 0.25, self._run_one_second_module_tasks)
         self._sched.add_timer(1.0, 0.5, self._run_one_second_mqtt_tasks)
         self._sched.add_timer(1.0, 0.75, self._run_one_second_gnss_tasks)
+
+    def write_serial_buffer(self, data: bytes, chunk_size=64):
+        """
+        Writes data to a serial port while preventing buffer overrun.
+
+        Args:
+        - data: Data to be written to the serial port.
+        - chunk_size: Maximum chunk size to write at a time.
+        """
+        total_bytes_written = 0
+        while total_bytes_written < len(data):
+            chunk = data[total_bytes_written: total_bytes_written + chunk_size]
+            bytes_written = self._serial_at.write(chunk)
+            if bytes_written is not None:
+                total_bytes_written += bytes_written
+            # Optional: Add a delay if needed between chunks
+            time.sleep(0.1)
+        return total_bytes_written
 
     def close(self):
         """Close"""
@@ -267,7 +285,8 @@ class Sim767x:
             self._run_at_callbacks = True
 
             command = f"AT+{cmd}\r\n"
-            self._serial_at.write(command.encode())
+            self.write_serial_buffer(command.encode())
+            # self._serial_at.write(command.encode())
 
             return True
         else:
@@ -600,7 +619,8 @@ class Sim767x:
     def _set_carrier(self):
         if self._network:
             carrier_str = f'AT+COPS=4,2,"{self._network}"'  # 1 = manual (4 = manual/auto), 2 = short format. For One NZ SIM cards not roaming in NZ, Could take up to 60s
-            self._serial_at.write(carrier_str.encode())  # ??? Maybe should be protected
+            self.write_serial_buffer(carrier_str.encode())
+            # self._serial_at.write(carrier_str.encode())  # ??? Maybe should be protected
 
     def _start_pdp_context(self):
         context_str = f'CGDCONT=1,"IP","{self._apn}"'
@@ -647,14 +667,16 @@ class Sim767x:
             self._mqtt_connect()
 
     def _mqtt_enter_will_toic(self):
-        self._serial_at.write((self._will_topic).encode())
+        self.write_serial_buffer(self._will_topic.encode())
+        # self._serial_at.write(self._will_topic.encode())
 
     def _mqtt_request_will_message(self):
         temp_str = f'CMQTTWILLMSG=0,{str(len(self._will_message))},2'
         self._protected_at_cmd(temp_str, self._req_mqtt_connect, self._mqtt_enter_will_message)  # clientIndex = 0, qos = 2
 
     def _mqtt_enter_will_message(self):
-        self._serial_at.write(self._will_message.encode())
+        self.write_serial_buffer(self._will_topic.encode())
+        # self._serial_at.write(self._will_message.encode())
 
     def _req_mqtt_connect(self):
         self._mqtt_state = MqttState.MQTT_REQ_CONNECT
@@ -672,7 +694,8 @@ class Sim767x:
 
     def _mqtt_enter_sub_topic(self):
         logger.debug("Sub Topic: %s", self._sub_topic)
-        self._serial_at.write(self._sub_topic.encode())
+        self.write_serial_buffer(self._sub_topic.encode())
+        # self._serial_at.write(self._sub_topic.encode())
 
 # ----- MQTT Publish ------
     def _mqtt_request_publish(self, topic: str, message: str):
@@ -685,14 +708,16 @@ class Sim767x:
 
     def _mqtt_enter_pub_topic(self):
         logger.debug("Pub Topic: %s", self._pub_topic)
-        self._serial_at.write(self._pub_topic.encode())
+        self.write_serial_buffer(self._pub_topic.encode())
+        #  self._serial_at.write(self._pub_topic.encode())
 
     def _mqtt_request_payload(self):
         self._protected_at_cmd(f"CMQTTPAYLOAD=0,{str(len(self._tx_message))}", self._mqtt_publish, self._mqtt_enter_message)  # clientIndex = 0
 
     def _mqtt_enter_message(self):
         logger.debug("Publish Message: %s\n%s", self._pub_topic, self._tx_message)
-        self._serial_at.write(self._tx_message.encode())
+        self.write_serial_buffer(self._tx_message.encode())
+        #  self._serial_at.write(self._tx_message.encode())
 
     def _mqtt_publish(self):
         if self._protected_at_cmd("CMQTTPUB=0,2,60", self._print_ok, None):  # clientIndex = 0
