@@ -22,12 +22,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from __future__ import annotations
-from .control import Control, ControlPosition, ControlConfig, _get_color, _get_title_position, _get_knob_style, _get_color_str
-from .enums import Color, KnobStyle, TitlePosition
+from .control import Control, ControlPosition, ControlConfig, _get_color, _get_title_position, _get_knob_style, _get_color_str, _get_dial_mode
+from .enums import Color, KnobStyle, TitlePosition, DialMode
 
 
 class KnobConfig(ControlConfig):
     """KnobConfig"""
+
     def __init__(
         self,
         control_id: str,
@@ -39,7 +40,7 @@ class KnobConfig(ControlConfig):
         red_value: float,
         show_min_max: bool,
         send_only_on_release: bool,
-        dial_follows_knob: bool,
+        dial_mode: DialMode,
         dial_color: Color | str,
         knob_color: Color | str,
         control_position=None,
@@ -51,7 +52,7 @@ class KnobConfig(ControlConfig):
         self.cfg["redValue"] = red_value
         self.cfg["showMinMax"] = show_min_max
         self.cfg["sendOnlyOnRelease"] = send_only_on_release
-        self.cfg["dialFollowsKnob"] = dial_follows_knob
+        self.cfg["dialMode"] = str(dial_mode.value)
         self.cfg["dialColor"] = _get_color_str(dial_color)
         self.cfg["knobColor"] = _get_color_str(knob_color)
 
@@ -78,7 +79,7 @@ class KnobConfig(ControlConfig):
             cfg_dict["redValue"],
             cfg_dict["showMinMax"],
             cfg_dict["sendOnlyOnRelease"],
-            cfg_dict["dialFollowsKnob"],
+            _get_dial_mode(cfg_dict["dialMode"]),
             _get_color(cfg_dict["dialColor"]),
             _get_color(cfg_dict["knobColor"]),
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
@@ -110,7 +111,7 @@ class Knob(Control):
         red_value=75.0,
         show_min_max=False,
         send_only_on_release=True,
-        dial_follows_knob=False,
+        dial_mode=DialMode.FOLLOW,
         dial_color: Color | str = Color.BLUE,
         knob_color: Color | str = Color.RED,
         control_position=None,
@@ -138,8 +139,8 @@ class Knob(Control):
             Whether to show the min amd max values, by default False
         send_only_on_release : bool, optional
             Have the DashIO app send values either on release or during movement, by default True
-        dial_follows_knob : bool, optional
-            Have the DashIO app adjust the dial to match the knob value, by default False
+        dial_mode : DialMode, optional default FOLLOW
+            Have the DashIO app adjust the dial to match the knob value, by default FOLLOW
         dial_color : Color, optional
             Color of the Dial, by default Color.BLUE
         knob_color : Color, optional
@@ -163,7 +164,7 @@ class Knob(Control):
                 red_value,
                 show_min_max,
                 send_only_on_release,
-                dial_follows_knob,
+                dial_mode,
                 dial_color,
                 knob_color,
                 control_position
@@ -245,7 +246,7 @@ class Knob(Control):
             cfg_dict["redValue"],
             cfg_dict["showMinMax"],
             cfg_dict["sendOnlyOnRelease"],
-            cfg_dict["dialFollowsKnob"],
+            cfg_dict["dialMode"],
             _get_color(cfg_dict["dialColor"]),
             _get_color(cfg_dict["knobColor"]),
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),

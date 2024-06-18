@@ -542,7 +542,7 @@ class Device(threading.Thread):
         self._device_commands_dict = {}
         self._device_commands_dict['CONNECT'] = self._make_connect
         self._device_commands_dict['STATUS'] = self._make_status
-        self._device_commands_dict['CFG'] = self._make_cfg
+        self._device_commands_dict['CFG'] = self._make_cfg64
         self.controls_dict = {}
         self._cfg = {}
         self._device_id_str = f"\t{device_id}"

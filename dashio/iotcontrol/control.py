@@ -28,7 +28,7 @@ import json
 from ..constants import BAD_CHARS
 from .enums import ColorPickerStyle, DeviceViewStyle, DialNumberPosition, DirectionStyle, ChartXAxisLabelsStyle, \
     Keyboard, KnobStyle, Precision, TextAlignment, TitlePosition, Icon, Color, TextFormat, LabelStyle, SliderBarStyle, \
-    DialStyle, TimeGraphPositionOfKey, ButtonStyle, ButtonGroupStyle, MenuStyle
+    DialStyle, TimeGraphPositionOfKey, ButtonStyle, ButtonGroupStyle, MenuStyle, DialMode, BarMode, CaptionMode
 from .event import Event
 
 
@@ -56,6 +56,21 @@ def _get_color(color_str: str) -> Color | str:
 def _get_title_position(position_str: str) -> TitlePosition:
     t_pos_name = position_str.upper().replace(" ", "")
     return TitlePosition[t_pos_name]
+
+
+def _get_caption_mode(caption_mode_str: str) -> CaptionMode:
+    t_caption_mode = caption_mode_str.upper().replace(" ", "")
+    return CaptionMode[t_caption_mode]
+
+
+def _get_dial_mode(dial_mode_str: str) -> DialMode:
+    t_dial_mode = dial_mode_str.upper().replace(" ", "")
+    return DialMode[t_dial_mode]
+
+
+def _get_bar_mode(bar_mode_str: str) -> BarMode:
+    t_bar_mode = bar_mode_str.upper().replace(" ", "")
+    return BarMode[t_bar_mode]
 
 
 def _get_text_align(text_align_str: str) -> TextAlignment:
@@ -147,6 +162,7 @@ class ControlPosition:
     ControlPosition
         Used to describe a controls position.
     """
+
     def __init__(self, x_position_ratio: float, y_position_ratio: float, width_ratio: float, height_ratio: float):
         """The ControlPosition class describes the location and size of a control on a DeviceView. The
         x_postion and y_position ratio place the top left hand corner of the control. The width and height ratio
@@ -172,6 +188,7 @@ class ControlPosition:
 
 class ControlConfig:
     """Base ControlConfig"""
+
     def get_cfg_json(self) -> str:
         """Returns the CFG str for the control called when the iotdashboard app asks for a CFG
 

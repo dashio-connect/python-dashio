@@ -22,12 +22,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from __future__ import annotations
-from .control import Control, ControlPosition, ControlConfig, _get_title_position, _get_color, _get_bar_style, _get_color_str
-from .enums import Color, SliderBarStyle, TitlePosition
+from .control import Control, ControlPosition, ControlConfig, _get_title_position, _get_color, _get_bar_style, _get_color_str, _get_bar_mode
+from .enums import Color, SliderBarStyle, TitlePosition, BarMode
 
 
 class SliderConfig(ControlConfig):
     """SliderConfig"""
+
     def __init__(
         self,
         control_id: str,
@@ -39,7 +40,7 @@ class SliderConfig(ControlConfig):
         show_min_max: bool,
         slider_enabled: bool,
         send_only_on_release: bool,
-        bar_follows_slider: bool,
+        bar_mode: BarMode,
         bar_color: Color | str,
         knob_color: Color | str,
         bar_style: SliderBarStyle,
@@ -52,7 +53,7 @@ class SliderConfig(ControlConfig):
         self.cfg["showMinMax"] = show_min_max
         self.cfg["sliderEnabled"] = slider_enabled
         self.cfg["sendOnlyOnRelease"] = send_only_on_release
-        self.cfg["barFollowsSlider"] = bar_follows_slider
+        self.cfg["barMode"] = bar_mode.value
         self.cfg["barColor"] = _get_color_str(bar_color)
         self.cfg["knobColor"] = _get_color_str(knob_color)
         self.cfg["barStyle"] = bar_style.value
@@ -80,7 +81,7 @@ class SliderConfig(ControlConfig):
             cfg_dict["showMinMax"],
             cfg_dict["sliderEnabled"],
             cfg_dict["sendOnlyOnRelease"],
-            cfg_dict["barFollowsSlider"],
+            _get_bar_mode(cfg_dict["barMode"]),
             _get_color(cfg_dict["barColor"]),
             _get_color(cfg_dict["knobColor"]),
             _get_bar_style(cfg_dict["barStyle"]),
@@ -93,6 +94,7 @@ class SliderConfig(ControlConfig):
 class Slider(Control):
     """Single slider bar control
     """
+
     def __init__(
         self,
         control_id: str,
@@ -104,7 +106,7 @@ class Slider(Control):
         show_min_max=False,
         slider_enabled=True,
         send_only_on_release=True,
-        bar_follows_slider=False,
+        bar_mode=BarMode.FOLLOW,
         bar_color: Color | str = Color.BLUE,
         knob_color: Color | str = Color.RED,
         bar_style=SliderBarStyle.SEG,
@@ -135,8 +137,8 @@ class Slider(Control):
             enable slider, by default True
         send_only_on_release : bool, optional
             send only on release, by default True
-        bar_follows_slider : bool, optional
-            bar follows slider, by default False
+        bar_mode : BarMode, optional
+            bar follows slider, by default FOLLOW
         bar_color : Color, optional
             bar color, by default Color.BLUE
         knob_color : Color, optional
@@ -160,7 +162,7 @@ class Slider(Control):
                 show_min_max,
                 slider_enabled,
                 send_only_on_release,
-                bar_follows_slider,
+                bar_mode,
                 bar_color,
                 knob_color,
                 bar_style,
