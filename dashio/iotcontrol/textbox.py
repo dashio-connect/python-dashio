@@ -23,19 +23,21 @@ SOFTWARE.
 """
 from __future__ import annotations
 from ..constants import BAD_CHARS
-from .control import Control, ControlPosition, ControlConfig, _get_title_position, _get_text_align, _get_text_format, _get_precision, _get_keyboard_type, _get_color_str
+from .control import Control, ControlPosition, ControlConfig, _get_title_position, _get_text_align, _get_text_format, _get_precision, _get_keyboard_type, _get_color_str, _get_caption_mode
 from .enums import (
     Keyboard,
     Precision,
     TextAlignment,
     TextFormat,
     Color,
-    TitlePosition
+    TitlePosition,
+    CaptionMode
 )
 
 
 class TextBoxConfig(ControlConfig):
     """TextBoxConfig"""
+
     def __init__(
         self,
         control_id: str,
@@ -48,6 +50,7 @@ class TextBoxConfig(ControlConfig):
         precision: Precision,
         keyboard_type: Keyboard,
         close_keyboard_on_send: bool,
+        caption_mode: CaptionMode,
         control_position: ControlPosition | None
     ) -> None:
         super().__init__(control_id, title, control_position, title_position)
@@ -58,6 +61,7 @@ class TextBoxConfig(ControlConfig):
         self.cfg["precision"] = precision.value
         self.cfg["kbdType"] = keyboard_type.value
         self.cfg["closeKbdOnSend"] = close_keyboard_on_send
+        self.cfg["captionMode"] = caption_mode.value
 
     @classmethod
     def from_dict(cls, cfg_dict: dict):
@@ -83,6 +87,7 @@ class TextBoxConfig(ControlConfig):
             _get_precision(cfg_dict["precision"]),
             _get_keyboard_type(cfg_dict["kbdType"]),
             cfg_dict["closeKbdOnSend"],
+            _get_caption_mode(cfg_dict["captionMode"]),
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
@@ -105,6 +110,7 @@ class TextBox(Control):
         precision=Precision.OFF,
         keyboard_type=Keyboard.ALL,
         close_keyboard_on_send=True,
+        caption_mode=CaptionMode.MSG,
         control_position=None,
         column_no=1
     ):
@@ -134,6 +140,9 @@ class TextBox(Control):
             Keyboard type for the textbox, by default Keyboard.ALL
         close_keyboard_on_send : bool, optional
             Set to True to close keyboard on close, by default True
+        caption_mode: CaptionMode, optional default MSG
+            CaptionMode.MSG is for when the caption receives messages to be displayed.
+            CaptionMode.SENT is when the caption shows the last message the user has entered.
         column_no : int, optional default is 1. Must be 1..3
             The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into.
             Each control can store three configs that define how the device looks for Dash apps installed on single column
@@ -152,11 +161,14 @@ class TextBox(Control):
                 precision,
                 keyboard_type,
                 close_keyboard_on_send,
+                caption_mode,
                 control_position
             )
         )
         self._color = Color.WHITE
+        self._caption_color = Color.WHITE
         self.text = text.translate(BAD_CHARS)
+        self.caption = ""
 
     def get_state(self):
         return self._control_hdr_str + f"{self.text}\n"
@@ -185,6 +197,7 @@ class TextBox(Control):
             _get_precision(cfg_dict["precision"]),
             _get_keyboard_type(cfg_dict["kbdType"]),
             cfg_dict["closeKbdOnSend"],
+            _get_caption_mode(cfg_dict["captionMode"]),
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
             column_no
         )
@@ -210,12 +223,30 @@ class TextBox(Control):
         self.state_str = self._control_hdr_str + f"{_val}\t{color}\n"
 
     @property
+    def caption(self) -> str:
+        """Caption text
+
+        Returns
+        -------
+        str
+            Caption text
+        """
+        return self._caption
+
+    @caption.setter
+    def caption(self, val: str):
+        _val = val.translate(BAD_CHARS)
+        self._caption = _val
+        color = _get_color_str(self._caption_color)
+        self.state_str = f"\t{{device_id}}\tTXTC\t{self.control_id}\t{_val}\t{color}\n"
+
+    @property
     def color(self):
         """TextBox Color
 
         Returns
         -------
-        Text
+        Color
             Text Color
         """
         return self._color
@@ -223,3 +254,18 @@ class TextBox(Control):
     @color.setter
     def color(self, val):
         self._color = val
+
+    @property
+    def caption_color(self):
+        """TextBox Caption Color
+
+        Returns
+        -------
+        Color
+            Caption Color
+        """
+        return self._caption_color
+
+    @caption_color.setter
+    def caption_color(self, val):
+        self._caption_color = val

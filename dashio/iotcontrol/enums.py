@@ -152,6 +152,24 @@ class ButtonStyle(Enum):
     HIGHLIGHT = "highlight"
 
 
+class CaptionMode(Enum):
+    """TextBox Caption Mode"""
+    MSG = "MSG"
+    SENT = "SENT"
+
+
+class DialMode(Enum):
+    """Dial modes"""
+    MSG = "MSG"
+    FOLLOW = "FOLLOW"
+
+
+class BarMode(Enum):
+    """Dial modes"""
+    MSG = "MSG"
+    FOLLOW = "FOLLOW"
+
+
 class MenuStyle(Enum):
     """Menu Styles"""
     BASIC = "basic"
