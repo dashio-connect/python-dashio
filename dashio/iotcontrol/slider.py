@@ -255,7 +255,7 @@ class Slider(Control):
             cfg_dict["showMinMax"],
             cfg_dict["sliderEnabled"],
             cfg_dict["sendOnlyOnRelease"],
-            cfg_dict["barFollowsSlider"],
+            _get_bar_mode(cfg_dict["barMode"]),
             _get_color(cfg_dict["barColor"]),
             _get_color(cfg_dict["knobColor"]),
             _get_bar_style(cfg_dict["barStyle"]),
