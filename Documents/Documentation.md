@@ -3,7 +3,7 @@
 
 ## Device
 
-A Device is a collection of [Controls](#controls) and [DeviceViews](#deviceview) that represent an IoT device. The Device provides attributes and methods to communicate to a **Dash** app.  
+A Device is a collection of [Controls](#controls) and [DeviceViews](#deviceview) that represent an IoT device. The Device provides attributes and methods to communicate to a **Dash** app.
 
 ### Device Attributes
 
@@ -389,7 +389,7 @@ The IoT device may send messages to update both the dial and knob positions.
 * *red_value : float, optional.* The value where the red starts, by default 75.0.
 * *show_min_max : bool, optional.* Whether to show the min amd max values, by default False.
 * *send_only_on_release : bool, optional.* Have the **Dash** app send values either on release or during movement, by default True.
-* *dial_follows_knob : bool, optional.* Have the DashIO app adjust the dial to match the knob value, by default False.
+* *dialMode : DialMode, optional default FOLLOW.* Have the DashIO app adjust the dial to match the knob value, by default DialMode.FOLLOW. DialMode.MSG mode makes the Dial controlled by messages.
 * *dial_color : Color, optional.* Color of the Dial, by default Color.BLUE.
 * *knob_color : Color, optional.* Color of the Knob, by default Color.RED.
 * *control_position : ControlPosition, optional.* The position of the control on a DeviceView, by default None.
@@ -513,7 +513,7 @@ The knob of the slider may be disabled so that the slider becomes a simple bar g
 * *show_min_max : bool, optional.* show min max, by default False.
 * *slider_enabled : bool, optional.* Enable slider, by default True.
 * *send_only_on_release : bool, optional.* Send only on release, by default True.
-* *bar_follows_slider : bool, optional.* Whether the bar follows slider, by default False.
+* *barMode : BarMode, optional default FOLLOW.* Whether the bar follows slider, by default BarMode.FOLLOW. BarMode.MSG mode makes the bar controlled by messages.
 * *bar_color : Color, optional.* The bar color, by default Color.BLUE.
 * *knob_color : Color, optional.* The knob color, by default Color.RED.
 * *bar_style : SliderBarStyle, optional.* The bar style, by default SliderBarStyle.SEGMENTED
@@ -554,12 +554,16 @@ The Text Box may also allow the user to input text. Touching the control will pr
 * *precision : Precision, optional.* precision, by default Precision.OFF
 * *keyboard_type : Keyboard, optional.* Keyboard type for the textbox, by default Keyboard.ALL.
 * *close_keyboard_on_send : bool, optional.* Set to True to close keyboard on close, by default True.
+* *caption_mode : CaptionMode, optional.* default CaptionMode.MSG. CaptionMode.MSG is for when the caption receives messages to be displayed.
+CaptionMode.SENT is when the caption shows the last message the user has entered.
 * *column_no : int.* Optional default is 1. Must be 1..3. The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into. Each control can store three configs that define how the device looks for Dash apps installed on single column phones or 2 column fold out phones or 3 column tablets.
 
 #### Text Box Message Attributes
 
 * *text : str.* Sends text to the **Dash** app.
 * *color : Color.* The text color, by default Color.WHITE.
+* *caption : str.* Sends the caption text to the **Dash** app.
+* *caption_color : Color.* The caption color, by default Color.WHITE
 
 #### Text Box Methods
 
@@ -746,7 +750,7 @@ ExecStartPost=sudo /etc/init.d/bluetooth restart
 Edit:
 
 ```bash
-sudo nano /etc/bluetooth/input.conf 
+sudo nano /etc/bluetooth/input.conf
 ```
 
 Set:
