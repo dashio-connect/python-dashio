@@ -29,6 +29,7 @@ from .enums import Color, DirectionStyle, Precision, TitlePosition
 
 class DirectionConfig(ControlConfig):
     """DirectionConfig"""
+
     def __init__(
         self,
         control_id: str,
@@ -83,7 +84,7 @@ class Direction(Control):
         if isinstance(config, DirectionConfig):
             config.cfg["calAngle"] = self.cal_angle
             config.cfg["ControlID"] = self.control_id
-            self._app_columns_cfg[str(column_no)]
+            self._app_columns_cfg[str(column_no)].append(config)
 
     def __init__(
         self,

@@ -98,7 +98,7 @@ class Knob(Control):
             config.cfg["max"] = self.dial_max
             config.cfg["redValue"] = self.red_value
             config.cfg["ControlID"] = self.control_id
-            self._app_columns_cfg[str(column_no)]
+            self._app_columns_cfg[str(column_no)].append(config)
 
     def __init__(
         self,
