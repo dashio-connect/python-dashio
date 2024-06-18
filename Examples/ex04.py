@@ -1,14 +1,15 @@
 import dashio
 import time
 
-cfg64 = "pVNdr5pAEP0rN/tMjHCrbXnjQ60RxQD1Nmn6wIVVN8IuXZar1vjfOwuLeNWmTfo2OztzZnLmnBPybA+Z339oaLbwbYhOqBTHDCMT"\
-    "LfxgbnlIQwmjgrNs6kIyni1sSJWYpj7Njj4NcIbjEuoFr7CG8viATL3f11ARc0xF0+TiN5LgFcF7eGuI43QVZxU0fRxoSBBRz7Oe"\
-    "ZpS9wvcWk81WBLEgDJn9njFUNUtWEshRqLX9KPLncpEt288Jncux6zgrYYVjW3dB0D9oaAfYDssYh+4Ap9Cakjgbsyxj+7Ie3PbL"\
-    "fFtpyy01tCep2F7gBgB3uBtiQDYnsFz/DGyGnhs0vEajb5GKnCUyT6hgXCBzMBwASaSw0pTjsoRZ+mejpw8/9fSebvTRWUPuVEHM"\
-    "rWUTeP5EZUaLr000CZZfmshauU0Qek6kOh1PBe5q9fLuurYVTh15XMEzYG8MNw7JL/gxYK0NJylQUOUUFjMMSTNcs8m0l6ZVfinR"\
-    "b0Ryc285w2Y8xbzl9WVLBH4Kc7bD7f9uQ9OO9jjZqY+/tEQ8pmWtteQI3MtF3mN08nLhsKo1kkmbHR4NbP/ukCUrAagFmc/GVWlH"\
-    "nQ5KJUDEIs7lxPBnBd1IysGdWl5Nf8FxQspaxIDYHmM5Hd34bEx4KdTC/+UphfHAU7X+SXYhuHHFH512b6tnACkYoaK7q/ILaOMV"\
-    "8ysUbzSOHrv1X61VUSKkS9C1y6JO/XYULdpoouzijCfScGnNVIhFVQAAheNoe7ImmkiKZteOSqXl9SbAbxCez78B"
+cfg64 = "jVTbjpswEP2VlZ9RlWS7qcQbhJCNwiUCN6lU9YEFb7ACdmrMJukq/94xhpCbqr4NZ8bj4zlz+ETOPELmz18GmrgzZH4iVpcO+aAp"\
+    "WVGyr5A5NFDWfMdE1jtkImSg9H0TkQ/InQy0CEIbGnyilDMpeDF3oCZZBDbU5YRuchklknJkDr6MxgaSVBZkySsKGINKO8Q49FGb"\
+    "AMB6WjD+BkBFWBay4hiyiBQkqSApRU0MVFI4OICCnO99yvzkgMz3pKggJUi2SooaSr+9GGiXCMKkJtS/Cb7hSTQpfJ6pC93Q88I1"\
+    "YIeOVk/4q4H2NJP5GXkBZAv8JrzgAg5HJGu7dYitrgdy8tg8Jwgj3/IAON51H0KvUpEfDgYnJYDXKhF7ThtZK0cHvrXUgY1nbeRP"\
+    "g+86wtMfWEee7enAWa3WWhUpztTWOZXkKS759pKhbcXziRIVKm0uMiIe128EzSBTlwy2YjQyrgW/mS+FZJCUqn/8uwYdrhR2YF7d"\
+    "jdsNy/rZJelWUcvhhL6rE13VYtXA5ofb8sscFgmrGuHTY7Ml56QLdGP6BxgMxxqGzenBEdTC7p9fOLzgd9/0hoGaTcSVXZ5HSkov"\
+    "nLWmeo1wJ+oER52GOGhlmlteI9NOkJRWjSUG15N1qahkOzDg90bEhXu8qYsvpFzOp+ifa9+tW2+iHadM9pK321szKivt9QcevnaZ"\
+    "Wn6XFuct05b4D5+3j3psu3u7PI8fmfHuJ6DGj2fR8lVN+PQX"
+
 
 config_dict = dashio.decode_cfg64(cfg64)
 device = dashio.Device("aDeviceType", "aDeviceID", "aDeviceName", cfg_dict=config_dict)

@@ -389,7 +389,7 @@ The IoT device may send messages to update both the dial and knob positions.
 * *red_value : float, optional.* The value where the red starts, by default 75.0.
 * *show_min_max : bool, optional.* Whether to show the min amd max values, by default False.
 * *send_only_on_release : bool, optional.* Have the **Dash** app send values either on release or during movement, by default True.
-* *dialMode : DialMode, optional default FOLLOW.* Have the DashIO app adjust the dial to match the knob value, by default DialMode.FOLLOW. DialMode.MSG mode makes the Dial controlled by messages.
+* *dialMode : DialMode, optional default DialMode.FOLLOW.* Have the DashIO app adjust the dial to match the knob value, by default DialMode.FOLLOW. DialMode.MSG mode makes the Dial controlled by messages.
 * *dial_color : Color, optional.* Color of the Dial, by default Color.BLUE.
 * *knob_color : Color, optional.* Color of the Knob, by default Color.RED.
 * *control_position : ControlPosition, optional.* The position of the control on a DeviceView, by default None.
@@ -513,7 +513,7 @@ The knob of the slider may be disabled so that the slider becomes a simple bar g
 * *show_min_max : bool, optional.* show min max, by default False.
 * *slider_enabled : bool, optional.* Enable slider, by default True.
 * *send_only_on_release : bool, optional.* Send only on release, by default True.
-* *barMode : BarMode, optional default FOLLOW.* Whether the bar follows slider, by default BarMode.FOLLOW. BarMode.MSG mode makes the bar controlled by messages.
+* *barMode : BarMode, optional default BarMode.FOLLOW.* Whether the bar follows slider, by default BarMode.FOLLOW. BarMode.MSG mode makes the bar controlled by messages.
 * *bar_color : Color, optional.* The bar color, by default Color.BLUE.
 * *knob_color : Color, optional.* The knob color, by default Color.RED.
 * *bar_style : SliderBarStyle, optional.* The bar style, by default SliderBarStyle.SEGMENTED
