@@ -80,7 +80,9 @@ from .iotcontrol.enums import (
     ButtonStyle,
     ButtonGroupStyle,
     MenuStyle,
-    ConnectionState
+    ConnectionState,
+    BarMode,
+    DialMode
 )
 from .iotcontrol.audio_visual_display import AudioVisualDisplay
 from .iotcontrol.chart import Chart, ChartLine
@@ -143,6 +145,8 @@ __all__ = [
     'ButtonState',
     'LabelStyle',
     'KnobStyle',
+    'BarMode',
+    'DialMode',
     'ChartXAxisLabelsStyle',
     'TextFormat',
     'DirectionStyle',

@@ -77,6 +77,7 @@ class TestControls:
         parser.add_argument("-u", "--url", help="Host URL.", dest="url", default="tcp://*")
         parser.add_argument("-d", "--device_id", dest="device_id", default="00001", help="IotDashboard Device ID.")
         parser.add_argument("-p", "--port", dest="port", type=int, default=5650, help="Port number")
+        parser.add_argument("-s", "--serial", dest="serial", default="/dev/usbserial", help="Serial Device the comms module is connected on.")
         parser.add_argument(
             "-n", "--device_name", dest="device_name", default="TCPTest", help="Alias name for device."
         )
@@ -136,7 +137,7 @@ class TestControls:
         self.device = dashio.Device("ControlTest", args.device_id, args.device_name, context=context)
         # self.device.use_cfg64()
 
-        self.serial_con = dashio.SerialConnection(serial_port='/dev/tty.usbserial-14440', baud_rate=115200, context=context)
+        self.serial_con = dashio.SerialConnection(serial_port=args.serial, baud_rate=115200, context=context)
         self.serial_con.set_crtl_reboot_callback(self._coms_reboot_msg)
         self.device.config_revision = 2
         self.serial_con.add_device(self.device)
@@ -159,19 +160,19 @@ class TestControls:
         self.page_test.add_control(self.down_btn)
 
         self.sldr_cntrl = dashio.Slider(
-            "SLDR", title="Slider", bar_max=10, slider_enabled=True, red_value=10, control_position=dashio.ControlPosition(0.02, 0.13, 0.22, 0.73)
+            "SLDR", title="Slider", bar_max=10, slider_enabled=True, red_value=10, bar_mode=dashio.BarMode.MSG, control_position=dashio.ControlPosition(0.02, 0.13, 0.22, 0.73)
         )
         self.sldr_cntrl.add_receive_message_callback(self.slider_event_handler)
         self.page_test.add_control(self.sldr_cntrl)
 
         self.sldr_dbl_cntrl = dashio.Slider(
-            "SLDR_DBL", title="Slider Double", bar_max=5, slider_enabled=True, red_value=5, control_position=dashio.ControlPosition(0.78, 0.01, 0.2, 0.98)
+            "SLDR_DBL", title="Slider Double", bar_max=5, slider_enabled=True, red_value=5, bar_mode=dashio.BarMode.MSG, control_position=dashio.ControlPosition(0.78, 0.01, 0.2, 0.98)
         )
         self.sldr_dbl_cntrl.bar2_value = 0
         self.sldr_dbl_cntrl.add_receive_message_callback(self.slider_dbl_event_handler)
         self.page_test.add_control(self.sldr_dbl_cntrl)
 
-        self.knb_control = dashio.Knob("KNB", title="A Knob", dial_max=10, red_value=10, control_position=dashio.ControlPosition(0.24, 0.14, 0.54, 0.21))
+        self.knb_control = dashio.Knob("KNB", title="A Knob", dial_max=10, red_value=10, dial_mode=dashio.DialMode.MSG, control_position=dashio.ControlPosition(0.24, 0.14, 0.54, 0.21))
         self.knb_control.add_receive_message_callback(self.knob_event_handler)
         self.page_test.add_control(self.knb_control)
 
@@ -247,7 +248,7 @@ class TestControls:
 
         while not self.shutdown:
             time.sleep(1)
-            self.comp_control.direction_value = random.random() * 360
+            # self.comp_control.direction_value = random.random() * 360
 
         self.serial_con.close()
         self.device.close()
