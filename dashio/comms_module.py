@@ -13,12 +13,16 @@ def set_comms_module_normal(coms_device_id: str) -> str:
     return message
 
 
-def enable_comms_module_ble(coms_device_id: str, enable: bool) -> str:
-    """Enable/disable comms module BLE."""
-    message = f"\t{coms_device_id}\tCTRL\tBLE"
+def enable_comms_module_ble(coms_device_id: str, enable: bool, timeout=None) -> str:
+    """Enable/disable comms module BLE. If enabled with timeout the BLE will be enabled for the timeout given."""
     if not enable:
-        message += "\tHLT"
-    return message + '\n'
+        message = f"\t{coms_device_id}\tCTRL\tBLE\tHLT\n"
+        return message
+    if timeout is not None:
+        message = f"\t{coms_device_id}\tCTRL\tBLE\t{timeout}\n"
+    else:
+        message = f"\t{coms_device_id}\tCTRL\tBLE\n"
+    return message
 
 
 def enable_comms_module_tcp(coms_device_id: str, enable: bool) -> str:
@@ -67,7 +71,19 @@ def get_comms_module_active_connections(coms_device_id: str) -> str:
     return message
 
 
-def reguest_comms_module_device_id(self) -> str:
+def reguest_comms_module_device_id() -> str:
     """Request the comms module DeviceID."""
     message = "\tCTRL\n"
+    return message
+
+
+def reboot_comms_module(coms_device_id: str) -> str:
+    """Request the comms module to reset."""
+    message = f"\t{coms_device_id}\tCTRL\tREBOOT\n"
+    return message
+
+
+def comms_module_sleep(coms_device_id: str) -> str:
+    """Request the comms module to go to sleep."""
+    message = f"\t{coms_device_id}\tCTRL\tSLEEP\n"
     return message

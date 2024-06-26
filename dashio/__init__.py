@@ -52,7 +52,9 @@ from .comms_module import (
     set_comms_module_tcp_port,
     set_comms_module_wifi,
     get_comms_module_active_connections,
-    reguest_comms_module_device_id
+    reguest_comms_module_device_id,
+    reboot_comms_module,
+    comms_module_sleep
 )
 # from .bleconnection import BLEConnection
 from .iotcontrol.enums import (
@@ -124,6 +126,8 @@ __all__ = [
     'set_comms_module_wifi',
     'get_comms_module_active_connections',
     'reguest_comms_module_device_id',
+    'reboot_comms_module',
+    'comms_module_sleep',
     'decode_cfg64',
     'encode_cfg64',
     'load_all_controls_from_config',
