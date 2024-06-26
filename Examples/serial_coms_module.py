@@ -123,6 +123,11 @@ class TestControls:
         msg = dashio.enable_comms_module_ble(msg[0], True)
         self.serial_con.serial_com.write(msg.encode())
 
+    def _comms_device_id_msg(self, msg):
+        logging.debug("Comms Module Device ID: %s", msg)
+        msg = dashio.reboot_comms_module(msg[0])
+        self.serial_con.serial_com.write(msg.encode())
+
     def __init__(self):
 
         # Catch CNTRL-C signal
@@ -139,6 +144,7 @@ class TestControls:
 
         self.serial_con = dashio.SerialConnection(serial_port=args.serial, baud_rate=115200, context=context)
         self.serial_con.set_crtl_reboot_callback(self._coms_reboot_msg)
+        self.serial_con.set_crtl_device_id_callback(self._comms_device_id_msg)
         self.device.config_revision = 2
         self.serial_con.add_device(self.device)
 
@@ -245,6 +251,9 @@ class TestControls:
         self.device.add_control(self.down_btn)
         self.device.add_control(self.up_btn)
         self.device.config_revision = 1
+
+        msg = dashio.reguest_comms_module_device_id()
+        self.serial_con.serial_com.write(msg.encode())
 
         while not self.shutdown:
             time.sleep(1)

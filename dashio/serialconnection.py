@@ -79,9 +79,51 @@ class SerialConnection(threading.Thread):
         if self._crtl_cnctn_callback:
             self._crtl_cnctn_callback(msg)
 
+    def _dashio_crtl_ble_callback(self, msg):
+        if self._crtl_ble_callback:
+            self._crtl_ble_callback(msg)
+
     def _dashio_crtl_device_id_callback(self, msg):
         if self._crtl_device_id_callback:
             self._crtl_device_id_callback(msg)
+
+    def _dashio_crtl_status_callback(self, msg):
+        if self._crtl_status_callback:
+            self._crtl_status_callback(msg)
+
+    def set_crtl_ble_callback(self, callback):
+        """
+        Specify a callback function to be called when DashIO Comms module sends CRTL BLE message.
+
+        Parameters
+        ----------
+            callback:
+                The callback function. It will be invoked with one argument, the msg from the DashIO comms module.
+        """
+        self._crtl_ble_callback = callback
+
+    def unset_crtl_ble_callback(self):
+        """
+        Unset BLE callback function.
+        """
+        self._crtl_ble_callback = None
+
+    def set_crtl_status_callback(self, callback):
+        """
+        Specify a callback function to be called when DashIO Comms module sends CRTL STS message.
+
+        Parameters
+        ----------
+            callback:
+                The callback function. It will be invoked with one argument, the msg from the DashIO comms module.
+        """
+        self._crtl_status_callback = callback
+
+    def unset_crtl_status_callback(self):
+        """
+        Unset status callback function.
+        """
+        self._crtl_status_callback = None
 
     def set_crtl_connection_callback(self, callback):
         """
@@ -136,6 +178,8 @@ class SerialConnection(threading.Thread):
         self.crtl_map = {
             'REBOOT': self._dashio_crtl_reboot,
             'CNCTN': self._dashio_crtl_connection_callback,
+            'BLE': self._dashio_crtl_ble_callback,
+            'STS': self._dashio_crtl_status_callback
         }
 
         self.context = context or zmq.Context.instance()
@@ -144,6 +188,8 @@ class SerialConnection(threading.Thread):
         self._crtl_reboot_callback = None
         self._crtl_cnctn_callback = None
         self._crtl_device_id_callback = None
+        self._crtl_ble_callback = None
+        self._crtl_status_callback = None
 
         self.running = True
         self._device_id_list = []
