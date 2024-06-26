@@ -75,7 +75,7 @@ class SerialConnection(threading.Thread):
         """
         self._crtl_reboot_callback = None
 
-    def _dashio_crtl_contection_callback(self, msg):
+    def _dashio_crtl_connection_callback(self, msg):
         if self._crtl_cnctn_callback:
             self._crtl_cnctn_callback(msg)
 
@@ -135,7 +135,7 @@ class SerialConnection(threading.Thread):
 
         self.crtl_map = {
             'REBOOT': self._dashio_crtl_reboot,
-            'CNCTN': self._dashio_crtl_contection_callback,
+            'CNCTN': self._dashio_crtl_connection_callback,
         }
 
         self.context = context or zmq.Context.instance()
@@ -182,19 +182,22 @@ class SerialConnection(threading.Thread):
                 break
             if self.rx_zmq_sub in socks:
                 try:
-                    [_, data] = self.rx_zmq_sub.recv_multipart()
+                    [msg_to, data] = self.rx_zmq_sub.recv_multipart()
                 except ValueError:
                     #  If there aren't two parts continue.
                     continue
                 if not data:
                     continue
+                dest = msg_to.split(b':')[-1]
+                if dest == b"ALL":
+                    dest = b"\tALL"
                 logger.debug("SERIAL Tx:\n%s", data.decode().rstrip())
                 # be nice and split the strings up
                 lines = data.split(b'\n')
                 for line in lines:
                     if line:
                         try:
-                            self.serial_com.write(line + b'\n')
+                            self.serial_com.write(dest + line + b'\n')
                         except SerialException as e:
                             logger.debug("Serial Error: %s", str(e))
                             time.sleep(1.0)
@@ -210,8 +213,14 @@ class SerialConnection(threading.Thread):
                                 if self._crtl_device_id_callback is not None:
                                     self._crtl_device_id_callback(parts)
                             elif len(parts) > 2 and parts[1] == 'CTRL':
-                                self.crtl_map[parts[2]](parts)
-                            tx_zmq_pub.send_multipart([message, self.b_zmq_connection_uuid])
+                                try:
+                                    self.crtl_map[parts[2]](parts)
+                                except KeyError:
+                                    logger.debug("Unkown CTRL: %s", message.rstrip().decode())
+                                    continue
+                            msg_from = self.b_zmq_connection_uuid + b":" + parts[0].encode()
+                            tx_message = '\t' + '\t'.join(parts[1:]) + '\n'
+                            tx_zmq_pub.send_multipart([tx_message.encode(), msg_from])
                         except UnicodeDecodeError:
                             logger.debug("SERIAL DECODE ERROR Rx:\n%s", message.hex())
             except OSError as e:
