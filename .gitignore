@@ -132,8 +132,20 @@ dmypy.json
 
 # End of https://www.gitignore.io/api/python
 .vscode/
+.VScode*
 *.ini
 .DS_Store
 pylint.out
 .noseids
 *.c64
+*.pdf
+*.gpx
+*.zip
+*.cfg
+scratch.py
+*_debug.py
+*.service
+*_text.py
+*_test.py
+ttn.py
+a

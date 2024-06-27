@@ -32,7 +32,7 @@ import logging
 import platform
 import zmq
 
-from dashio.bleconnection import BLEConnection
+from dashio.ble_connection import BLEConnection
 
 
 class TestControls:

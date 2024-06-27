@@ -151,19 +151,19 @@ class TestControls:
         self.page_test.add_control(self.down_btn)
 
         self.sldr_cntrl = dashio.Slider(
-            "SLDR", title="Slider", bar_max=10, slider_enabled=True, red_value=10, control_position=dashio.ControlPosition(0.02, 0.13, 0.22, 0.73)
+            "SLDR", title="Slider", bar_max=10, slider_enabled=True, red_value=10, bar_mode=dashio.BarMode.MSG, control_position=dashio.ControlPosition(0.02, 0.13, 0.22, 0.73)
         )
         self.sldr_cntrl.add_receive_message_callback(self.slider_event_handler)
         self.page_test.add_control(self.sldr_cntrl)
 
         self.sldr_dbl_cntrl = dashio.Slider(
-            "SLDR_DBL", title="Slider Double", bar_max=5, slider_enabled=True, red_value=5, control_position=dashio.ControlPosition(0.78, 0.01, 0.2, 0.98)
+            "SLDR_DBL", title="Slider Double", bar_max=5, slider_enabled=True, red_value=5, bar_mode=dashio.BarMode.MSG, control_position=dashio.ControlPosition(0.78, 0.01, 0.2, 0.98)
         )
         self.sldr_dbl_cntrl.bar2_value = 0
         self.sldr_dbl_cntrl.add_receive_message_callback(self.slider_dbl_event_handler)
         self.page_test.add_control(self.sldr_dbl_cntrl)
 
-        self.knb_control = dashio.Knob("KNB", title="A Knob", dial_max=10, red_value=10, control_position=dashio.ControlPosition(0.24, 0.14, 0.54, 0.21))
+        self.knb_control = dashio.Knob("KNB", title="A Knob", dial_max=10, red_value=10, dial_mode=dashio.DialMode.MSG, control_position=dashio.ControlPosition(0.24, 0.14, 0.54, 0.21))
         self.knb_control.add_receive_message_callback(self.knob_event_handler)
         self.page_test.add_control(self.knb_control)
 

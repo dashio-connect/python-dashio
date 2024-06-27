@@ -32,7 +32,7 @@ import uuid
 import shortuuid
 
 import dashio
-from dashio import bleconnection
+from dashio import ble_connection
 
 shutdown = False
 
@@ -157,7 +157,7 @@ def main():
     device.set_wifi_callback(set_wifi_callback)
     device.set_name_callback(set_name_callback)
 
-    dash_conn = bleconnection.BLEConnection(ble_uuid=config_file_parser.get('DEFAULT', 'BLE_UUID'))
+    dash_conn = ble_connection.BLEConnection(ble_uuid=config_file_parser.get('DEFAULT', 'BLE_UUID'))
     dash_conn.add_device(device)
 
     while not shutdown:

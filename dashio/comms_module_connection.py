@@ -34,13 +34,102 @@ import serial
 from serial.serialutil import SerialException
 from .constants import CONNECTION_PUB_URL
 from .device import Device
-
+from .iotcontrol.enums import ConnectionState
 
 logger = logging.getLogger(__name__)
 
 
-class SerialConnection(threading.Thread):
-    """Under Development! - Setups and manages a connection thread to iotdashboard via a serial port."""
+class DashIOCommsModuleConnection(threading.Thread):
+    """Under Development! - Setups and manages a connection thread to iotdashboard via a DashIO Serial Comms Module."""
+
+    def set_comms_module_passthough(self):
+        """Set the comms module to passthrough."""
+        if self._conn_state != ConnectionState.DISCONNECTED:
+            message = f"\t{self._dcm_device_id}\tCTRL\tMODE\tPSTH\n"
+            self._dcm_tx(message)
+
+    def set_comms_module_normal(self) -> str:
+        """Set the comms module to normal mode."""
+        message = f"\t{self._dcm_device_id}\tCTRL\tMODE\tNML\n"
+        return message
+
+    def enable_comms_module_ble(self, enable: bool, timeout=None):
+        """Enable/disable comms module BLE. If enabled with timeout the BLE will be enabled for the timeout given."""
+        if self._conn_state == ConnectionState.CONNECTED:
+            if not enable:
+                message = f"\t{self._dcm_device_id}\tCTRL\tBLE\tHLT\n"
+                self._dcm_tx(message)
+                return
+            if timeout is not None:
+                message = f"\t{self._dcm_device_id}\tCTRL\tBLE\t{timeout}\n"
+            else:
+                message = f"\t{self._dcm_device_id}\tCTRL\tBLE\n"
+            self._dcm_tx(message)
+
+    def enable_comms_module_tcp(self, enable: bool):
+        """Enable/disable comms module TCP."""
+        if self._conn_state == ConnectionState.CONNECTED:
+            message = f"\t{self._dcm_device_id}\tCTRL\tTCP"
+            if not enable:
+                message += "\tHLT"
+            message += '\n'
+            self._dcm_tx(message)
+
+    def enable_comms_module_dash(self, enable: bool):
+        """Enable/Disable comms module DASH."""
+        if self._conn_state == ConnectionState.CONNECTED:
+            message = f"\t{self._dcm_device_id}\tCTRL\tMQTT"
+            if not enable:
+                message += "\tHLT"
+            message += '\n'
+            self._dcm_tx(message)
+
+    def set_comms_module_dash(self, user_name: str, password: str):
+        """Set username and password for comms module DASH connection."""
+        if self._conn_state == ConnectionState.CONNECTED:
+            message = f"\t{self._dcm_device_id}\tDASHIO\t{user_name}\t{password}\n"
+            message += '\n'
+            self._dcm_tx(message)
+
+    def set_comms_module_tcp_port(self, port: int):
+        """Set the comms module TCP port."""
+        if self._conn_state == ConnectionState.CONNECTED:
+            message = f"\t{self._dcm_device_id}\tTCP\t{port}\n"
+            self._dcm_tx(message)
+
+    def set_comms_module_name(self, name: str):
+        """Set the comms module NAME."""
+        if self._conn_state == ConnectionState.CONNECTED:
+            message = f"\t{self._dcm_device_id}\tNAME\t{name}\n"
+            self._dcm_tx(message)
+
+    def set_comms_module_wifi(self, country_code: str, ssid: str, password: str):
+        """Set the comms module wifi country code, ssid, and password."""
+        if self._conn_state == ConnectionState.CONNECTED:
+            message = f"\t{self._dcm_device_id}\tWIFI\t{country_code}\t{ssid}\t{password}\n"
+            self._dcm_tx(message)
+
+    def get_comms_module_active_connections(self):
+        """Get the active connections from the comms module."""
+        if self._conn_state == ConnectionState.CONNECTED:
+            message = f"\t{self._dcm_device_id}\tCTRL\tCNCTN\n"
+            self._dcm_tx(message)
+
+    def reguest_comms_module_device_id(self):
+        """Request the comms module DeviceID."""
+        message = "\tCTRL\n"
+        self._dcm_tx(message)
+
+    def reboot_comms_module(self):
+        """Request the comms module to reset."""
+        self._conn_state = ConnectionState.CONNECTING
+        message = f"\t{self._dcm_device_id}\tCTRL\tREBOOT\n"
+        self._dcm_tx(message)
+
+    def comms_module_sleep(self):
+        """Request the comms module to go to sleep."""
+        message = f"\t{self._dcm_device_id}\tCTRL\tSLEEP\n"
+        self._dcm_tx(message)
 
     def add_device(self, device: Device):
         """Add a device to the connection
@@ -54,13 +143,17 @@ class SerialConnection(threading.Thread):
             device.register_connection(self)
             self._device_id_list.append(device.device_id)
 
-    def _dashio_crtl_reboot(self, msg):
+    def _dcm_crtl_reboot(self, msg):
+        self._conn_state = ConnectionState.DISCONNECTED
+        self.reguest_comms_module_device_id()
+        self._conn_state = ConnectionState.CONNECTING
+
         if self._crtl_reboot_callback:
             self._crtl_reboot_callback(msg)
 
     def set_crtl_reboot_callback(self, callback):
         """
-        Specify a callback function to be called when DashIO Comms module sends CRTL message.
+        Specify a callback function to be called when DashIO Comms module sends CRTL message REBOOT.
 
         Parameters
         ----------
@@ -75,21 +168,72 @@ class SerialConnection(threading.Thread):
         """
         self._crtl_reboot_callback = None
 
-    def _dashio_crtl_connection_callback(self, msg):
+    def set_crtl_mode_callback(self, callback):
+        """
+        Specify a callback function to be called when DashIO Comms module sends CRTL message MODE.
+
+        Parameters
+        ----------
+            callback:
+                The callback function. It will be invoked with one argument, the msg from the DashIO comms module.
+        """
+        self._crtl_mode_callback = callback
+
+    def unset_crtl_mode_callback(self):
+        """
+        Unset the mode callback function.
+        """
+        self._crtl_mode_callback = None
+
+    def set_crtl_sleep_callback(self, callback):
+        """
+        Specify a callback function to be called when DashIO Comms module sends CRTL message SLEEP.
+
+        Parameters
+        ----------
+            callback:
+                The callback function. It will be invoked with one argument, the msg from the DashIO comms module.
+        """
+        self._crtl_sleep_callback = callback
+
+    def unset_crtl_sleep_callback(self):
+        """
+        Unset the sleep callback function.
+        """
+        self._crtl_sleep_callback = None
+
+    def _dcm_crtl_connection_callback(self, msg):
         if self._crtl_cnctn_callback:
             self._crtl_cnctn_callback(msg)
 
-    def _dashio_crtl_ble_callback(self, msg):
+    def _dcm_crtl_ble_callback(self, msg):
         if self._crtl_ble_callback:
             self._crtl_ble_callback(msg)
 
     def _dashio_crtl_device_id_callback(self, msg):
+        logger.debug("Comms Module Device ID: %s", msg[0])
+
+        if self._dcm_device_id != msg[0] or self._conn_state != ConnectionState.CONNECTED:
+            self._conn_state = ConnectionState.CONNECTING
+            self._dcm_device_id = msg[0]
+            self.set_comms_module_passthough()
         if self._crtl_device_id_callback:
             self._crtl_device_id_callback(msg)
 
-    def _dashio_crtl_status_callback(self, msg):
+    def _dcm_crtl_status_callback(self, msg):
         if self._crtl_status_callback:
             self._crtl_status_callback(msg)
+
+    def _dcm_crtl_mode_callback(self, msg):
+        if self._conn_state == ConnectionState.CONNECTING:
+            if msg[3] == 'PSTH':
+                self._conn_state = ConnectionState.CONNECTED
+        if self._crtl_mode_callback:
+            self._crtl_mode_callback(msg)
+
+    def _dcm_crtl_sleep_callback(self, msg):
+        if self._crtl_sleep_callback:
+            self._crtl_sleep_callback(msg)
 
     def set_crtl_ble_callback(self, callback):
         """
@@ -176,20 +320,26 @@ class SerialConnection(threading.Thread):
         threading.Thread.__init__(self, daemon=True)
 
         self.crtl_map = {
-            'REBOOT': self._dashio_crtl_reboot,
-            'CNCTN': self._dashio_crtl_connection_callback,
-            'BLE': self._dashio_crtl_ble_callback,
-            'STS': self._dashio_crtl_status_callback
+            'REBOOT': self._dcm_crtl_reboot,
+            'CNCTN': self._dcm_crtl_connection_callback,
+            'BLE': self._dcm_crtl_ble_callback,
+            'STS': self._dcm_crtl_status_callback,
+            'MODE': self._dcm_crtl_mode_callback,
+            'SLEEP': self._dcm_crtl_sleep_callback
         }
 
         self.context = context or zmq.Context.instance()
-        self.zmq_connection_uuid = "SERIAL:" + shortuuid.uuid()
+        self.zmq_connection_uuid = "DCM:" + shortuuid.uuid()
         self.b_zmq_connection_uuid = self.zmq_connection_uuid.encode()
+        self._conn_state = ConnectionState.DISCONNECTED
+        self._dcm_device_id = ""
         self._crtl_reboot_callback = None
         self._crtl_cnctn_callback = None
         self._crtl_device_id_callback = None
         self._crtl_ble_callback = None
         self._crtl_status_callback = None
+        self._crtl_mode_callback = None
+        self._crtl_sleep_callback = None
 
         self.running = True
         self._device_id_list = []
@@ -201,7 +351,15 @@ class SerialConnection(threading.Thread):
         self.baud_rate = baud_rate
         self._init_serial()
         self.start()
-        time.sleep(1)
+
+    def _dcm_tx(self, msg: str):
+        logger.debug("SERIAL Tx:\n%s", msg.rstrip())
+        try:
+            self.serial_com.write(msg.encode())
+        except SerialException as e:
+            logger.debug("Serial Error: %s", str(e))
+            time.sleep(1.0)
+            self._init_serial()
 
     def close(self):
         """Close the connection."""
@@ -214,12 +372,14 @@ class SerialConnection(threading.Thread):
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         # Subscribe on ALL, and my connection
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "SERIAL")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "DCM")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.zmq_connection_uuid)
         # rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
 
         poller = zmq.Poller()
         poller.register(self.rx_zmq_sub, zmq.POLLIN)
+        self.reguest_comms_module_device_id()
+        self._conn_state = ConnectionState.CONNECTING
 
         while self.running:
             try:
@@ -251,13 +411,12 @@ class SerialConnection(threading.Thread):
             try:
                 if self.serial_com.in_waiting > 0:
                     message = self.serial_com.readline()
-                    if message:
+                    if message.startswith(b'\t'):
                         try:
                             logger.debug("SERIAL Rx:\n%s", message.rstrip().decode())
                             parts = message.strip().decode().split('\t')
                             if len(parts) == 2 and parts[1] == 'CTRL':
-                                if self._crtl_device_id_callback is not None:
-                                    self._crtl_device_id_callback(parts)
+                                self._dashio_crtl_device_id_callback(parts)
                             elif len(parts) > 2 and parts[1] == 'CTRL':
                                 try:
                                     self.crtl_map[parts[2]](parts)
