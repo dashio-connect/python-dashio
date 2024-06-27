@@ -106,7 +106,7 @@ class DashIOCommsModuleConnection(threading.Thread):
     def set_comms_module_wifi(self, country_code: str, ssid: str, password: str):
         """Set the comms module wifi country code, ssid, and password."""
         if self._conn_state == ConnectionState.CONNECTED:
-            message = f"\t{self._dcm_device_id}\tWIFI\t{country_code}\t{ssid}\t{password}\n"
+            message = f"\t{self._dcm_device_id}\tWIFI\t{ssid}\t{password}\t{country_code}\n"
             self._dcm_tx(message)
 
     def get_comms_module_active_connections(self):
@@ -202,6 +202,23 @@ class DashIOCommsModuleConnection(threading.Thread):
         """
         self._crtl_sleep_callback = None
 
+    def set_crtl_dash_callback(self, callback):
+        """
+        Specify a callback function to be called when DashIO Comms module sends CRTL message MQTT.
+
+        Parameters
+        ----------
+            callback:
+                The callback function. It will be invoked with one argument, the msg from the DashIO comms module.
+        """
+        self._crtl_dash_callback = callback
+
+    def unset_crtl_dash_callback(self):
+        """
+        Unset the dash callback function.
+        """
+        self._crtl_dash_callback = None
+
     def _dcm_crtl_connection_callback(self, msg):
         if self._crtl_cnctn_callback:
             self._crtl_cnctn_callback(msg)
@@ -234,6 +251,10 @@ class DashIOCommsModuleConnection(threading.Thread):
     def _dcm_crtl_sleep_callback(self, msg):
         if self._crtl_sleep_callback:
             self._crtl_sleep_callback(msg)
+
+    def _dcm_crtl_dash_callback(self, msg):
+        if self._crtl_dash_callback:
+            self._crtl_dash_callback(msg)
 
     def set_crtl_ble_callback(self, callback):
         """
@@ -325,7 +346,8 @@ class DashIOCommsModuleConnection(threading.Thread):
             'BLE': self._dcm_crtl_ble_callback,
             'STS': self._dcm_crtl_status_callback,
             'MODE': self._dcm_crtl_mode_callback,
-            'SLEEP': self._dcm_crtl_sleep_callback
+            'SLEEP': self._dcm_crtl_sleep_callback,
+            'MQTT': self._dcm_crtl_dash_callback
         }
 
         self.context = context or zmq.Context.instance()
@@ -340,6 +362,7 @@ class DashIOCommsModuleConnection(threading.Thread):
         self._crtl_status_callback = None
         self._crtl_mode_callback = None
         self._crtl_sleep_callback = None
+        self._crtl_dash_callback = None
 
         self.running = True
         self._device_id_list = []
