@@ -116,18 +116,6 @@ class TestControls:
     def selector_ctrl_handler(self, msg):
         print(self.selector_ctrl.selection_list[int(msg[3])])
 
-    def _coms_reboot_msg(self, msg):
-        logging.debug("RBT: %s", msg)
-        msg = dashio.set_comms_module_passthough(msg[0])
-        self.serial_con.serial_com.write(msg.encode())
-        msg = dashio.enable_comms_module_ble(msg[0], True)
-        self.serial_con.serial_com.write(msg.encode())
-
-    def _comms_device_id_msg(self, msg):
-        logging.debug("Comms Module Device ID: %s", msg)
-        msg = dashio.reboot_comms_module(msg[0])
-        self.serial_con.serial_com.write(msg.encode())
-
     def __init__(self):
 
         # Catch CNTRL-C signal
@@ -142,11 +130,9 @@ class TestControls:
         self.device = dashio.Device("ControlTest", args.device_id, args.device_name, context=context)
         # self.device.use_cfg64()
 
-        self.serial_con = dashio.SerialConnection(serial_port=args.serial, baud_rate=115200, context=context)
-        self.serial_con.set_crtl_reboot_callback(self._coms_reboot_msg)
-        self.serial_con.set_crtl_device_id_callback(self._comms_device_id_msg)
+        self.dcm = dashio.DashIOCommsModuleConnection(serial_port=args.serial, baud_rate=115200, context=context)
         self.device.config_revision = 2
-        self.serial_con.add_device(self.device)
+        self.dcm.add_device(self.device)
 
         self.page_name = "TestTCP: " + platform.node()
 
@@ -252,14 +238,11 @@ class TestControls:
         self.device.add_control(self.up_btn)
         self.device.config_revision = 1
 
-        msg = dashio.reguest_comms_module_device_id()
-        self.serial_con.serial_com.write(msg.encode())
-
         while not self.shutdown:
             time.sleep(1)
             # self.comp_control.direction_value = random.random() * 360
 
-        self.serial_con.close()
+        self.dcm.close()
         self.device.close()
 
 

@@ -34,28 +34,13 @@ SOFTWARE.
 """
 
 from .device import Device
-from .tcpconnection import TCPConnection
-from .mqttconnection import MQTTConnection
-from .zmqconnection import ZMQConnection
-from .dashconnection import DashConnection
-from .serialconnection import SerialConnection
+from .tcp_connection import TCPConnection
+from .mqtt_connection import MQTTConnection
+from .zmq_connection import ZMQConnection
+from .dash_connection import DashConnection
+from .comms_module_connection import DashIOCommsModuleConnection
 from .schedular import Schedular
 from .load_config import decode_cfg64, encode_cfg64, load_all_controls_from_config, get_control_dict_from_config, get_control_from_config
-from .comms_module import (
-    enable_comms_module_ble,
-    enable_comms_module_dash,
-    enable_comms_module_tcp,
-    set_comms_module_dash,
-    set_comms_module_name,
-    set_comms_module_normal,
-    set_comms_module_passthough,
-    set_comms_module_tcp_port,
-    set_comms_module_wifi,
-    get_comms_module_active_connections,
-    reguest_comms_module_device_id,
-    reboot_comms_module,
-    comms_module_sleep
-)
 # from .bleconnection import BLEConnection
 from .iotcontrol.enums import (
     Color,
@@ -113,21 +98,8 @@ __all__ = [
     'ZMQConnection',
     'DashConnection',
     'ConnectionState',
-    'SerialConnection',
+    'DashIOCommsModuleConnection',
     'Schedular',
-    'enable_comms_module_ble',
-    'enable_comms_module_dash',
-    'enable_comms_module_tcp',
-    'set_comms_module_dash',
-    'set_comms_module_name',
-    'set_comms_module_normal',
-    'set_comms_module_passthough',
-    'set_comms_module_tcp_port',
-    'set_comms_module_wifi',
-    'get_comms_module_active_connections',
-    'reguest_comms_module_device_id',
-    'reboot_comms_module',
-    'comms_module_sleep',
     'decode_cfg64',
     'encode_cfg64',
     'load_all_controls_from_config',
