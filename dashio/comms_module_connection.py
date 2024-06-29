@@ -24,10 +24,9 @@ SOFTWARE.
 
 from __future__ import annotations
 import logging
-import socket
 import threading
 import time
-
+import json
 import shortuuid
 import zmq
 import serial
@@ -37,6 +36,8 @@ from .device import Device
 from .iotcontrol.enums import ConnectionState
 
 logger = logging.getLogger(__name__)
+
+SERIAL_TX_URL = "inproc://DASHIO_CM_PUSH_PULL_{id}"
 
 
 class DashIOCommsModuleConnection(threading.Thread):
@@ -115,6 +116,11 @@ class DashIOCommsModuleConnection(threading.Thread):
             message = f"\t{self._dcm_device_id}\tCTRL\tCNCTN\n"
             self._dcm_tx(message)
 
+    def _subscribe_comms_module_mqtt(self, device_id: str, device_type: str, device_name: str):
+        if self._conn_state == ConnectionState.CONNECTED and self._dash_connected:
+            message = f"\t{self._dcm_device_id}\tCTRL\tSUB\t{device_id}\t{device_type}\t{device_name}\n"
+            self._dcm_tx(message)
+
     def reguest_comms_module_device_id(self):
         """Request the comms module DeviceID."""
         message = "\tCTRL\n"
@@ -131,6 +137,15 @@ class DashIOCommsModuleConnection(threading.Thread):
         message = f"\t{self._dcm_device_id}\tCTRL\tSLEEP\n"
         self._dcm_tx(message)
 
+    def _send_dash_announce(self, device_id: str):
+        msg = {
+            'msgType': 'send_announce',
+            'connectionUUID': self.zmq_connection_uuid,
+            'deviceID': device_id
+        }
+        logger.debug("DASH SEND ANNOUNCE: %s", msg)
+        self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg).encode()])
+
     def add_device(self, device: Device):
         """Add a device to the connection
 
@@ -142,6 +157,9 @@ class DashIOCommsModuleConnection(threading.Thread):
         if device.device_id not in self._device_id_list:
             device.register_connection(self)
             self._device_id_list.append(device.device_id)
+
+            if self._conn_state == ConnectionState.CONNECTED and self._dash_username:
+                self._send_dash_announce(device.device_id)
 
     def _dcm_crtl_reboot(self, msg):
         self._conn_state = ConnectionState.DISCONNECTED
@@ -220,12 +238,35 @@ class DashIOCommsModuleConnection(threading.Thread):
         self._crtl_dash_callback = None
 
     def _dcm_crtl_connection_callback(self, msg):
+        logger.debug("Connections: %s:", msg)
+        self.ble_enabled = False
+        self.tcp_enabled = False
+        self.dash_enabled = False
+        if 'BLE' in msg:
+            self.ble_enabled = True
+        if 'TCP' in msg:
+            self.tcp_enabled = True
+        if 'MQTT' in msg:
+            self.dash_enabled = True
         if self._crtl_cnctn_callback:
             self._crtl_cnctn_callback(msg)
 
     def _dcm_crtl_ble_callback(self, msg):
+        if msg[3] == 'EN':
+            self.ble_enabled = True
+        elif msg[3] == 'HLT':
+            self.ble_enabled = False
         if self._crtl_ble_callback:
             self._crtl_ble_callback(msg)
+
+    def _dcm_crtl_tcp_callback(self, msg):
+        logger.debug("Comms Module TCP: %s", msg)
+        if msg[3] == 'EN':
+            self.tcp_enabled = True
+        elif msg[3] == 'HLT':
+            self.tcp_enabled = False
+        if self._crtl_tcp_callback:
+            self._crtl_tcp_callback(msg)
 
     def _dashio_crtl_device_id_callback(self, msg):
         logger.debug("Comms Module Device ID: %s", msg[0])
@@ -245,6 +286,7 @@ class DashIOCommsModuleConnection(threading.Thread):
         if self._conn_state == ConnectionState.CONNECTING:
             if msg[3] == 'PSTH':
                 self._conn_state = ConnectionState.CONNECTED
+                self.get_comms_module_active_connections()
         if self._crtl_mode_callback:
             self._crtl_mode_callback(msg)
 
@@ -253,6 +295,19 @@ class DashIOCommsModuleConnection(threading.Thread):
             self._crtl_sleep_callback(msg)
 
     def _dcm_crtl_dash_callback(self, msg):
+        logger.debug("Comms Module MQTT: %s", msg)
+        if msg[3] == 'EN':
+            self.dash_enabled = True
+            self._dash_connected = False
+        elif msg[3] == 'HLT':
+            self.dash_enabled = False
+            self._dash_connected = False
+        elif msg[3] == 'CON':
+            self._dash_connected = True
+            logger.debug("SUBSCRIBING Devices: %s", self._device_id_list)
+            for device_id in self._device_id_list:
+                logger.debug("SUB: %s", device_id)
+                self._send_dash_announce(device_id)
         if self._crtl_dash_callback:
             self._crtl_dash_callback(msg)
 
@@ -272,6 +327,23 @@ class DashIOCommsModuleConnection(threading.Thread):
         Unset BLE callback function.
         """
         self._crtl_ble_callback = None
+
+    def set_crtl_tcp_callback(self, callback):
+        """
+        Specify a callback function to be called when DashIO Comms module sends CRTL BLE message.
+
+        Parameters
+        ----------
+            callback:
+                The callback function. It will be invoked with one argument, the msg from the DashIO comms module.
+        """
+        self._crtl_tcp_callback = callback
+
+    def unset_crtl_tcp_callback(self):
+        """
+        Unset TCP callback function.
+        """
+        self._crtl_tcp_callback = None
 
     def set_crtl_status_callback(self, callback):
         """
@@ -343,6 +415,7 @@ class DashIOCommsModuleConnection(threading.Thread):
         self.crtl_map = {
             'REBOOT': self._dcm_crtl_reboot,
             'CNCTN': self._dcm_crtl_connection_callback,
+            'TCP': self._dcm_crtl_tcp_callback,
             'BLE': self._dcm_crtl_ble_callback,
             'STS': self._dcm_crtl_status_callback,
             'MODE': self._dcm_crtl_mode_callback,
@@ -352,55 +425,64 @@ class DashIOCommsModuleConnection(threading.Thread):
 
         self.context = context or zmq.Context.instance()
         self.zmq_connection_uuid = "DCM:" + shortuuid.uuid()
+
+        self.serial_transmitter = self.context.socket(zmq.PUSH)
+        self.serial_transmitter.connect(SERIAL_TX_URL.format(id=self.zmq_connection_uuid))
+
         self.b_zmq_connection_uuid = self.zmq_connection_uuid.encode()
         self._conn_state = ConnectionState.DISCONNECTED
+
         self._dcm_device_id = ""
+        self._dash_username = ""
+
         self._crtl_reboot_callback = None
         self._crtl_cnctn_callback = None
         self._crtl_device_id_callback = None
         self._crtl_ble_callback = None
+        self._crtl_tcp_callback = None
         self._crtl_status_callback = None
         self._crtl_mode_callback = None
         self._crtl_sleep_callback = None
         self._crtl_dash_callback = None
 
+        self.ble_enabled = False
+        self.dash_enabled = False
+        self.tcp_enabled = False
+
+        self._dash_connected = False
+
         self.running = True
         self._device_id_list = []
-        host_name = socket.gethostname()
-        host_list = host_name.split(".")
-        # rename for .local mDNS advertising
-        self.host_name = f"{host_list[0]}.local"
         self.serial_port = serial_port
         self.baud_rate = baud_rate
         self._init_serial()
         self.start()
 
     def _dcm_tx(self, msg: str):
-        logger.debug("SERIAL Tx:\n%s", msg.rstrip())
-        try:
-            self.serial_com.write(msg.encode())
-        except SerialException as e:
-            logger.debug("Serial Error: %s", str(e))
-            time.sleep(1.0)
-            self._init_serial()
+        self.serial_transmitter.send_string(msg)
 
     def close(self):
         """Close the connection."""
         self.running = False
 
     def run(self):
-        tx_zmq_pub = self.context.socket(zmq.PUB)
-        tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
+        self.tx_zmq_pub = self.context.socket(zmq.PUB)
+        self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
 
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         # Subscribe on ALL, and my connection
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "DCM")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.zmq_connection_uuid)
-        # rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ANNOUNCE")
+
+        #  Socket to receive SERIAL TX messages on
+        serial_receiver = self.context.socket(zmq.PULL)
+        serial_receiver.bind(SERIAL_TX_URL.format(id=self.zmq_connection_uuid))
 
         poller = zmq.Poller()
         poller.register(self.rx_zmq_sub, zmq.POLLIN)
+        poller.register(serial_receiver, zmq.POLLIN)
         self.reguest_comms_module_device_id()
         self._conn_state = ConnectionState.CONNECTING
 
@@ -418,25 +500,36 @@ class DashIOCommsModuleConnection(threading.Thread):
                 if not data:
                     continue
                 dest = msg_to.split(b':')[-1]
-                if dest == b"ALL":
-                    dest = b"\tALL"
-                logger.debug("SERIAL Tx:\n%s", data.decode().rstrip())
-                # be nice and split the strings up
+                if dest == b"ANNOUNCE":
+                    parts = data.strip().decode().split('\t')
+                    self._subscribe_comms_module_mqtt(parts[0], parts[2], parts[3])
+                    continue
                 lines = data.split(b'\n')
                 for line in lines:
                     if line:
                         try:
-                            self.serial_com.write(dest + line + b'\n')
+                            s_data = b'\t' + dest + line + b'\n'
+                            logger.debug("SERIAL Tx →\n%s", s_data.decode().rstrip())
+                            self.serial_com.write(s_data)
                         except SerialException as e:
                             logger.debug("Serial Error: %s", str(e))
                             time.sleep(1.0)
                             self._init_serial()
+            if serial_receiver in socks:
+                msg = serial_receiver.recv_string()
+                logger.debug("SERIAL Tx →\n%s", msg.rstrip())
+                try:
+                    self.serial_com.write(msg.encode())
+                except SerialException as e:
+                    logger.debug("Serial Error: %s", str(e))
+                    time.sleep(1.0)
+                    self._init_serial()
             try:
                 if self.serial_com.in_waiting > 0:
                     message = self.serial_com.readline()
                     if message.startswith(b'\t'):
                         try:
-                            logger.debug("SERIAL Rx:\n%s", message.rstrip().decode())
+                            logger.debug("SERIAL Rx ←\n%s", message.rstrip().decode())
                             parts = message.strip().decode().split('\t')
                             if len(parts) == 2 and parts[1] == 'CTRL':
                                 self._dashio_crtl_device_id_callback(parts)
@@ -448,7 +541,7 @@ class DashIOCommsModuleConnection(threading.Thread):
                                     continue
                             msg_from = self.b_zmq_connection_uuid + b":" + parts[0].encode()
                             tx_message = '\t' + '\t'.join(parts[1:]) + '\n'
-                            tx_zmq_pub.send_multipart([tx_message.encode(), msg_from])
+                            self.tx_zmq_pub.send_multipart([tx_message.encode(), msg_from])
                         except UnicodeDecodeError:
                             logger.debug("SERIAL DECODE ERROR Rx:\n%s", message.hex())
             except OSError as e:
@@ -457,5 +550,5 @@ class DashIOCommsModuleConnection(threading.Thread):
                 self._init_serial()
 
         self.serial_com.close()
-        tx_zmq_pub.close()
+        self.tx_zmq_pub.close()
         self.rx_zmq_sub.close()
