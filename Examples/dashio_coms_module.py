@@ -119,12 +119,12 @@ class TestControls:
     def _wifi_callback(self, msg):
         logging.debug("Wifi Callback: %s", msg)
         self.dcm.enable_comms_module_tcp(True)
+        self.dcm.enable_comms_module_dash(True)
         self.dcm.set_comms_module_wifi(country_code=msg[2], ssid=msg[3], password=msg[4])
         return True
 
     def _dash_callback(self, msg):
         logging.debug("Dash Callback: %s", msg)
-        self.dcm.enable_comms_module_dash(True)
         self.dcm.set_comms_module_dash(user_name=msg[2], password=msg[3])
         return True
 
@@ -251,9 +251,13 @@ class TestControls:
         self.device.add_control(self.up_btn)
         self.device.config_revision = 1
 
+        count = 0
         while not self.shutdown:
             time.sleep(1)
-            # self.comp_control.direction_value = random.random() * 360
+            count += 1
+            if count > 9:
+                self.comp_control.direction_value = random.random() * 360
+                count = 0
 
         self.dcm.close()
         self.device.close()
