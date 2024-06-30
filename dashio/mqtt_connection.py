@@ -64,7 +64,7 @@ class MQTTConnection(threading.Thread):
 
     def _on_message(self, client, obj, msg):
         data = str(msg.payload, "utf-8").strip()
-        logger.debug("MQTT RX:\n%s", data)
+        logger.debug("MQTT RX ←\n%s", data)
         self.tx_zmq_pub.send_multipart([msg.payload, self.b_connection_id])
 
     def _on_subscribe(self, client, userdata, mid, reason_codes, properties):
@@ -235,7 +235,7 @@ class MQTTConnection(threading.Thread):
                     continue
                 data_topic = f"{self.username}/{device_id}/data"
                 if self._connection_state == ConnectionState.CONNECTED:
-                    logger.debug("MQTT TX:\n%s", data.decode().rstrip())
+                    logger.debug("MQTT Tx →\n%s", data.decode().rstrip())
                     self.mqttc.publish(data_topic, data.decode())
             if self._connection_state == ConnectionState.DISCONNECTED:
                 self._disconnect_timeout = min(self._disconnect_timeout, 900)

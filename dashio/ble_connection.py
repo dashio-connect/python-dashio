@@ -45,6 +45,7 @@ logger = logging.getLogger(__name__)
 class BLEControl():
     """BLE connection control
     """
+
     def get_state(self) -> str:
         """A CFG only control"""
         return ""
@@ -202,6 +203,7 @@ class NotPermittedException(dbus.exceptions.DBusException):
 class BLEConnection(dbus.service.Object, threading.Thread):
     """BLEConnection
     """
+
     def _send_announce(self):
         msg = {
             'msgType': 'send_announce',
@@ -235,7 +237,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
 
         while self.rx_zmq_sub.getsockopt(zmq.EVENTS) & zmq.POLLIN:
             try:
-                [msg_to, data] = self.rx_zmq_sub.recv_multipart()
+                [_, data] = self.rx_zmq_sub.recv_multipart()
             except ValueError:
                 continue
             if not data:
@@ -251,7 +253,7 @@ class BLEConnection(dbus.service.Object, threading.Thread):
             for data_chunk in data_chunks:
                 sent |= self.dash_service.dash_characteristics.ble_send(data_chunk)
             if sent:
-                logger.debug("BLE TX: %s", data_str.strip())
+                logger.debug("BLE Tx →\n%s", data_str.strip())
 
         return True
 
@@ -407,6 +409,7 @@ class DashConCharacteristic(dbus.service.Object):
     """
     org.bluez.GattCharacteristic1 interface implementation
     """
+
     def __init__(self, service, chacteristic_uuid, ble_rx):
         self.path = service.path + '/char' + str(1)
         self.bus = service.get_bus()
@@ -486,6 +489,6 @@ class DashConCharacteristic(dbus.service.Object):
         rx_str = ''.join([str(v) for v in value])
         self.read_buffer += rx_str
         if rx_str[-1] == '\n':
-            logger.debug("BLE RX: %s", self.read_buffer.strip())
+            logger.debug("BLE RX ←\n%s", self.read_buffer.strip())
             self._ble_rx(self.read_buffer)
             self.read_buffer = ''

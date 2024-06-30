@@ -237,6 +237,23 @@ class DashIOCommsModuleConnection(threading.Thread):
         """
         self._crtl_dash_callback = None
 
+    def set_crtl_wifi_callback(self, callback):
+        """
+        Specify a callback function to be called when DashIO Comms module sends CRTL message WIFI.
+
+        Parameters
+        ----------
+            callback:
+                The callback function. It will be invoked with one argument, the msg from the DashIO comms module.
+        """
+        self._crtl_wifi_callback = callback
+
+    def unset_crtl_wifi_callback(self):
+        """
+        Unset the WIFI callback function.
+        """
+        self._crtl_wifi_callback = None
+
     def _dcm_crtl_connection_callback(self, msg):
         logger.debug("Connections: %s:", msg)
         self.ble_enabled = False
@@ -304,12 +321,24 @@ class DashIOCommsModuleConnection(threading.Thread):
             self._dash_connected = False
         elif msg[3] == 'CON':
             self._dash_connected = True
-            logger.debug("SUBSCRIBING Devices: %s", self._device_id_list)
             for device_id in self._device_id_list:
                 logger.debug("SUB: %s", device_id)
                 self._send_dash_announce(device_id)
         if self._crtl_dash_callback:
             self._crtl_dash_callback(msg)
+
+    def _dcm_crtl_wifi_callback(self, msg):
+        logger.debug("Comms Module WIFI: %s", msg)
+        if msg[3] == 'EN':
+            self.wifi_connected = False
+        elif msg[3] == 'HLT':
+            self.wifi_connected = False
+            self._dash_connected = False
+        elif msg[3] == 'CON':
+            self.wifi_connected = True
+
+        if self._crtl_wifi_callback:
+            self._crtl_wifi_callback(msg)
 
     def set_crtl_ble_callback(self, callback):
         """
@@ -420,7 +449,8 @@ class DashIOCommsModuleConnection(threading.Thread):
             'STS': self._dcm_crtl_status_callback,
             'MODE': self._dcm_crtl_mode_callback,
             'SLEEP': self._dcm_crtl_sleep_callback,
-            'MQTT': self._dcm_crtl_dash_callback
+            'MQTT': self._dcm_crtl_dash_callback,
+            'WIFI': self._dcm_crtl_wifi_callback,
         }
 
         self.context = context or zmq.Context.instance()
@@ -444,10 +474,12 @@ class DashIOCommsModuleConnection(threading.Thread):
         self._crtl_mode_callback = None
         self._crtl_sleep_callback = None
         self._crtl_dash_callback = None
+        self._crtl_wifi_callback = None
 
         self.ble_enabled = False
         self.dash_enabled = False
         self.tcp_enabled = False
+        self.wifi_connected = False
 
         self._dash_connected = False
 

@@ -59,7 +59,7 @@ class Lte767xConnection(threading.Thread):
 
     def _on_mqtt_receive_message(self, message: str):
         try:
-            logger.debug("LTE Rx:\n%s", message.rstrip())
+            logger.debug("LTE Rx ←\n%s", message.rstrip())
             self.tx_zmq_pub.send_multipart([message.encode(), self.b_zmq_connection_uuid])
         except UnicodeDecodeError:
             logger.debug("LTE SERIAL DECODE ERROR Rx:\n%s", message)
@@ -196,7 +196,7 @@ class Lte767xConnection(threading.Thread):
                 else:
                     data_topic = f"{self.username}/{device_id}/data"
 
-                logger.debug("LTE TX:\n%s\n%s", data_topic, data.decode().rstrip())
+                logger.debug("LTE Tx →\n%s\n%s", data_topic, data.decode().rstrip())
                 self.lte_con.publish_message(data_topic, data.decode())
 
     # ???    self.serial_com.close()

@@ -227,7 +227,7 @@ class TCPConnection(threading.Thread):
     def _service_device_messaging(self):
 
         def _zmq_tcp_send(tcp_id, data: bytearray):
-            logger.debug("TCP TX %s:\n%s", tcp_id.hex(), data.decode().rstrip())
+            logger.debug("TCP Tx %s →\n%s", tcp_id.hex(), data.decode().rstrip())
             try:
                 self.tcpsocket.send(tcp_id, zmq.SNDMORE)
                 self.tcpsocket.send(data, zmq.NOBLOCK)
@@ -265,7 +265,7 @@ class TCPConnection(threading.Thread):
             logger.debug("Added Socket ID: %s", tcp_id.hex())
             self.socket_ids.append(tcp_id)
         if message:
-            logger.debug("TCP RX: %s\n%s", tcp_id.hex(), message.decode().rstrip())
+            logger.debug("TCP Rx %s ←\n%s", tcp_id.hex(), message.decode().rstrip())
             msg_from = self.b_zmq_connection_uuid + b":" + tcp_id
             for sub_msg in message.split(b'\n'):
                 tx_zmq_pub.send_multipart([sub_msg, msg_from])

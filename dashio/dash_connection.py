@@ -161,7 +161,7 @@ class DashConnection(threading.Thread):
 
     def _on_message(self, client, obj, msg):
         data = str(msg.payload, "utf-8").strip()
-        logger.debug("DASH RX:\n%s", data)
+        logger.debug("DASH Rx ←\n%s", data)
         self.tx_zmq_pub.send_multipart([msg.payload, self._b_zmq_connection_uuid])
 
     def _on_subscribe(self, client, userdata, mid, reason_codes, properties):
@@ -373,7 +373,7 @@ class DashConnection(threading.Thread):
                     data_topic = f"{self.username}/{device_id}/announce"
                 else:
                     data_topic = f"{self.username}/{device_id}/data"
-                logger.debug("DASH TX:\n%s", data.decode().rstrip())
+                logger.debug("DASH Tx →\n%s", data.decode().rstrip())
                 self._dash_c.publish(data_topic, data.decode())
             if self.connection_state == ConnectionState.DISCONNECTED:
                 self._disconnect_timeout = min(self._disconnect_timeout, 900)

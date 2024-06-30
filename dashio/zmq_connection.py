@@ -170,14 +170,14 @@ class ZMQConnection(threading.Thread):
                 break
             if self.ext_rx_zmq_sub in socks:
                 message = self.ext_rx_zmq_sub.recv()
-                logger.debug("ZMQ Rx: %s", message.decode('utf-8').rstrip())
+                logger.debug("ZMQ Rx ←\n%s", message.decode('utf-8').rstrip())
                 self.tx_zmq_pub.send_multipart([message, self.b_zmq_connection_id])
 
             if self.rx_zmq_sub in socks:
                 [msg_to, data] = self.rx_zmq_sub.recv_multipart()
 
                 if msg_to == b'ALL':
-                    logger.debug("ZMQ Tx: %s", data.decode('utf-8').rstrip())
+                    logger.debug("ZMQ Tx →\n%s", data.decode('utf-8').rstrip())
                     ext_tx_zmq_pub.send(data)
                 elif msg_to == b'COMMAND':
                     self._zmq_command(json.loads(data))
