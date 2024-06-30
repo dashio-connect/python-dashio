@@ -118,7 +118,6 @@ class TestControls:
 
     def _wifi_callback(self, msg):
         logging.debug("Wifi Callback: %s", msg)
-        self.dcm.enable_comms_module_tcp(True)
         self.dcm.enable_comms_module_dash(True)
         self.dcm.set_comms_module_wifi(country_code=msg[2], ssid=msg[3], password=msg[4])
         return True
@@ -256,7 +255,7 @@ class TestControls:
             time.sleep(1)
             count += 1
             if count > 9:
-                self.comp_control.direction_value = random.random() * 360
+                # self.comp_control.direction_value = random.random() * 360
                 count = 0
 
         self.dcm.close()
