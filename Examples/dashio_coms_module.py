@@ -118,13 +118,12 @@ class TestControls:
 
     def _wifi_callback(self, msg):
         logging.debug("Wifi Callback: %s", msg)
-        self.dcm.enable_comms_module_dash(True)
-        self.dcm.set_comms_module_wifi(country_code=msg[2], ssid=msg[3], password=msg[4])
+        self.dcm.provision_comms_module_wifi(country_code=msg[2], ssid=msg[3], password=msg[4])
         return True
 
     def _dash_callback(self, msg):
         logging.debug("Dash Callback: %s", msg)
-        self.dcm.set_comms_module_dash(user_name=msg[2], password=msg[3])
+        self.dcm.provision_comms_module_dash(user_name=msg[2], password=msg[3])
         return True
 
     def __init__(self):
@@ -142,7 +141,7 @@ class TestControls:
         # self.device.use_cfg64()
         self.device.set_wifi_callback(self._wifi_callback)
         self.device.set_dashio_callback(self._dash_callback)
-        self.dcm = dashio.DashIOCommsModuleConnection(serial_port=args.serial, baud_rate=115200, context=context)
+        self.dcm = dashio.DashIOCommsModuleConnection(serial_port=args.serial, baud_rate=115200, enable_dash=True, enable_ble=True, context=context)
         self.device.config_revision = 2
         self.dcm.add_device(self.device)
 
