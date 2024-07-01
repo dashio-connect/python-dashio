@@ -85,29 +85,35 @@ class DashIOCommsModuleConnection(threading.Thread):
             message += '\n'
             self._dcm_tx(message)
 
-    def set_comms_module_dash(self, user_name: str, password: str):
-        """Set username and password for comms module DASH connection."""
+    def provision_comms_module_dash(self, user_name: str, password: str):
+        """Provision username and password for comms module DASH connection."""
         if self._conn_state == ConnectionState.CONNECTED:
-            message = f"\t{self._dcm_device_id}\tDASHIO\t{user_name}\t{password}\n"
+            message = f"\t{self._dcm_device_id}\tPROV\tDASHIO\t{user_name}\t{password}\n"
             message += '\n'
             self._dcm_tx(message)
 
-    def set_comms_module_tcp_port(self, port: int):
-        """Set the comms module TCP port."""
+    def provision_comms_module_tcp_port(self, port: int):
+        """Provision the comms module TCP port."""
         if self._conn_state == ConnectionState.CONNECTED:
-            message = f"\t{self._dcm_device_id}\tTCP\t{port}\n"
+            message = f"\t{self._dcm_device_id}\tPROV\tTCP\t{port}\n"
             self._dcm_tx(message)
 
-    def set_comms_module_name(self, name: str):
-        """Set the comms module NAME."""
+    def provision_comms_module_name(self, name: str):
+        """Provision the comms module NAME."""
         if self._conn_state == ConnectionState.CONNECTED:
-            message = f"\t{self._dcm_device_id}\tNAME\t{name}\n"
+            message = f"\t{self._dcm_device_id}\tPROV\tNAME\t{name}\n"
             self._dcm_tx(message)
 
-    def set_comms_module_wifi(self, country_code: str, ssid: str, password: str):
-        """Set the comms module wifi country code, ssid, and password."""
+    def provision_comms_module_wifi(self, country_code: str, ssid: str, password: str):
+        """Provision the comms module wifi country code, ssid, and password."""
         if self._conn_state == ConnectionState.CONNECTED:
-            message = f"\t{self._dcm_device_id}\tWIFI\t{ssid}\t{password}\t{country_code}\n"
+            message = f"\t{self._dcm_device_id}\tPROV\tWIFI\t{ssid}\t{password}\t{country_code}\n"
+            self._dcm_tx(message)
+
+    def provision_save_to_flash(self):
+        """Save Provision info to flash."""
+        if self._conn_state == ConnectionState.CONNECTED:
+            message = f"\t{self._dcm_device_id}\\PROV\tSAVE\n"
             self._dcm_tx(message)
 
     def get_comms_module_active_connections(self):
@@ -256,32 +262,38 @@ class DashIOCommsModuleConnection(threading.Thread):
 
     def _dcm_crtl_connection_callback(self, msg):
         logger.debug("Connections: %s:", msg)
-        self.ble_enabled = False
-        self.tcp_enabled = False
-        self.dash_enabled = False
+        self._ble_enabled = False
+        self._tcp_enabled = False
+        self._dash_enabled = False
         if 'BLE' in msg:
-            self.ble_enabled = True
+            self._ble_enabled = True
         if 'TCP' in msg:
-            self.tcp_enabled = True
+            self._tcp_enabled = True
         if 'MQTT' in msg:
-            self.dash_enabled = True
+            self._dash_enabled = True
+        if self._ble_enabled != self._enable_ble:
+            self.enable_comms_module_ble(self._enable_ble)
+        if self._tcp_enabled != self._enable_tcp:
+            self.enable_comms_module_tcp(self._enable_tcp)
+        if self._dash_enabled != self._enable_dash:
+            self.enable_comms_module_dash(self._enable_dash)
         if self._crtl_cnctn_callback:
             self._crtl_cnctn_callback(msg)
 
     def _dcm_crtl_ble_callback(self, msg):
         if msg[3] == 'EN':
-            self.ble_enabled = True
+            self._ble_enabled = True
         elif msg[3] == 'HLT':
-            self.ble_enabled = False
+            self._ble_enabled = False
         if self._crtl_ble_callback:
             self._crtl_ble_callback(msg)
 
     def _dcm_crtl_tcp_callback(self, msg):
         logger.debug("Comms Module TCP: %s", msg)
         if msg[3] == 'EN':
-            self.tcp_enabled = True
+            self._tcp_enabled = True
         elif msg[3] == 'HLT':
-            self.tcp_enabled = False
+            self._tcp_enabled = False
         if self._crtl_tcp_callback:
             self._crtl_tcp_callback(msg)
 
@@ -314,10 +326,10 @@ class DashIOCommsModuleConnection(threading.Thread):
     def _dcm_crtl_dash_callback(self, msg):
         logger.debug("Comms Module MQTT: %s", msg)
         if msg[3] == 'EN':
-            self.dash_enabled = True
+            self._dash_enabled = True
             self._dash_connected = False
         elif msg[3] == 'HLT':
-            self.dash_enabled = False
+            self._dash_enabled = False
             self._dash_connected = False
         elif msg[3] == 'CON':
             self._dash_connected = True
@@ -330,12 +342,12 @@ class DashIOCommsModuleConnection(threading.Thread):
     def _dcm_crtl_wifi_callback(self, msg):
         logger.debug("Comms Module WIFI: %s", msg)
         if msg[3] == 'EN':
-            self.wifi_connected = False
+            self._wifi_connected = False
         elif msg[3] == 'HLT':
-            self.wifi_connected = False
+            self._wifi_connected = False
             self._dash_connected = False
         elif msg[3] == 'CON':
-            self.wifi_connected = True
+            self._wifi_connected = True
 
         if self._crtl_wifi_callback:
             self._crtl_wifi_callback(msg)
@@ -426,7 +438,65 @@ class DashIOCommsModuleConnection(threading.Thread):
         except SerialException as e:
             logger.debug("Serial Err: %s", str(e))
 
-    def __init__(self, serial_port='/dev/ttyUSB0', baud_rate=115200, context: zmq.Context | None = None):
+    @property
+    def enable_tcp(self) -> bool:
+        """enable_tcp
+
+        Returns
+        -------
+        bool
+            If TCP should be enabled
+        """
+        return self._enable_tcp
+
+    @enable_tcp.setter
+    def enable_tcp(self, val: bool):
+        if val != self._enable_tcp:
+            self._enable_tcp = val
+            self.enable_comms_module_tcp(self._enable_tcp)
+
+    @property
+    def enable_ble(self) -> bool:
+        """enable_ble
+
+        Returns
+        -------
+        bool
+            If BLE should be enabled
+        """
+        return self._enable_ble
+
+    @enable_ble.setter
+    def enable_ble(self, val: bool):
+        if val != self._enable_ble:
+            self._enable_ble = val
+            self.enable_comms_module_tcp(self._enable_ble)
+
+    @property
+    def enable_dash(self) -> bool:
+        """enable_dash
+
+        Returns
+        -------
+        bool
+            If DASH should be enabled
+        """
+        return self._enable_dash
+
+    @enable_dash.setter
+    def enable_dash(self, val: bool):
+        if val != self._enable_dash:
+            self._enable_dash = val
+            self.enable_comms_module_tcp(self._enable_dash)
+
+    def __init__(
+        self, serial_port='/dev/ttyUSB0',
+        baud_rate=115200,
+        enable_tcp=False,
+        enable_dash=False,
+        enable_ble=False,
+        context: zmq.Context | None = None
+    ):
         """Serial Connection
 
         Parameters
@@ -465,6 +535,10 @@ class DashIOCommsModuleConnection(threading.Thread):
         self._dcm_device_id = ""
         self._dash_username = ""
 
+        self._enable_tcp = enable_tcp
+        self._enable_dash = enable_dash
+        self._enable_ble = enable_ble
+
         self._crtl_reboot_callback = None
         self._crtl_cnctn_callback = None
         self._crtl_device_id_callback = None
@@ -476,11 +550,11 @@ class DashIOCommsModuleConnection(threading.Thread):
         self._crtl_dash_callback = None
         self._crtl_wifi_callback = None
 
-        self.ble_enabled = False
-        self.dash_enabled = False
-        self.tcp_enabled = False
-        self.wifi_connected = False
+        self._ble_enabled = False
+        self._dash_enabled = False
+        self._tcp_enabled = False
 
+        self._wifi_connected = False
         self._dash_connected = False
 
         self.running = True
