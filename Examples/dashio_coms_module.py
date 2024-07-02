@@ -141,7 +141,7 @@ class TestControls:
         # self.device.use_cfg64()
         self.device.set_wifi_callback(self._wifi_callback)
         self.device.set_dashio_callback(self._dash_callback)
-        self.dcm = dashio.DashIOCommsModuleConnection(serial_port=args.serial, baud_rate=115200, enable_dash=True, enable_ble=True, context=context)
+        self.dcm = dashio.DashIOCommsModuleConnection(serial_port=args.serial, baud_rate=115200, enable_dash=True, enable_ble=True, ble_timeout=30, context=context)
         self.device.config_revision = 2
         self.dcm.add_device(self.device)
 
