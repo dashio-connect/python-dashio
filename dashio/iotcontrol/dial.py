@@ -29,6 +29,7 @@ from .enums import (Color, DialNumberPosition, DialStyle, Precision,
 
 class DialConfig(ControlConfig):
     """DialConfig"""
+
     def __init__(
         self,
         control_id: str,
@@ -268,4 +269,4 @@ class Dial(Control):
     def dial_value(self, val: float):
         self._dial_value = val
         self.state_str = self._control_hdr_str + f"{val}\n"
-        self._is_active = False
+        self._is_active = True

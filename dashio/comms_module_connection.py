@@ -55,7 +55,10 @@ class DashIOCommsModuleConnection(threading.Thread):
         return message
 
     def enable_comms_module_ble(self, enable: bool, timeout=None):
-        """Enable/disable comms module BLE. If enabled with timeout the BLE will be enabled for the timeout given."""
+        """Enable/disable comms module BLE. If enabled with timeout the BLE will be enabled for the timeout given.
+        Timeout values:
+            * 0 = Button control no time out.
+            * n > 0 = Turned off with timeout set to n rounded up to minimum 30 seconds, with button control."""
         if self._conn_state == ConnectionState.CONNECTED:
             if not enable:
                 message = f"\t{self._dcm_device_id}\tCTRL\tBLE\tHLT\n"
@@ -272,7 +275,7 @@ class DashIOCommsModuleConnection(threading.Thread):
         if 'MQTT' in msg:
             self._dash_enabled = True
         if self._ble_enabled != self._enable_ble:
-            self.enable_comms_module_ble(self._enable_ble)
+            self.enable_comms_module_ble(self._enable_ble, self._ble_timeout)
         if self._tcp_enabled != self._enable_tcp:
             self.enable_comms_module_tcp(self._enable_tcp)
         if self._dash_enabled != self._enable_dash:
@@ -495,6 +498,7 @@ class DashIOCommsModuleConnection(threading.Thread):
         enable_tcp=False,
         enable_dash=False,
         enable_ble=False,
+        ble_timeout=None,
         context: zmq.Context | None = None
     ):
         """Serial Connection
@@ -538,6 +542,7 @@ class DashIOCommsModuleConnection(threading.Thread):
         self._enable_tcp = enable_tcp
         self._enable_dash = enable_dash
         self._enable_ble = enable_ble
+        self._ble_timeout = ble_timeout
 
         self._crtl_reboot_callback = None
         self._crtl_cnctn_callback = None
