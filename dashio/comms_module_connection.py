@@ -46,12 +46,12 @@ class DashIOCommsModuleConnection(threading.Thread):
     def set_comms_module_passthough(self):
         """Set the comms module to passthrough."""
         if self._conn_state != ConnectionState.DISCONNECTED:
-            message = f"\t{self._dcm_device_id}\tCTRL\tMODE\tPSTH\n"
+            message = f"\t{self._dcm_device_id}\tCTRL\tINIT\tPSTH\n"
             self._dcm_tx(message)
 
     def set_comms_module_normal(self) -> str:
         """Set the comms module to normal mode."""
-        message = f"\t{self._dcm_device_id}\tCTRL\tMODE\tNML\n"
+        message = f"\t{self._dcm_device_id}\tCTRL\tINIT\tNML\n"
         return message
 
     def enable_comms_module_ble(self, enable: bool, timeout=None):
