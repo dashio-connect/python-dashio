@@ -195,22 +195,22 @@ class DashIOCommsModuleConnection(threading.Thread):
         """
         self._crtl_reboot_callback = None
 
-    def set_crtl_mode_callback(self, callback):
+    def set_crtl_init_callback(self, callback):
         """
-        Specify a callback function to be called when DashIO Comms module sends CRTL message MODE.
+        Specify a callback function to be called when DashIO Comms module sends CRTL message INIT.
 
         Parameters
         ----------
             callback:
                 The callback function. It will be invoked with one argument, the msg from the DashIO comms module.
         """
-        self._crtl_mode_callback = callback
+        self._crtl_init_callback = callback
 
-    def unset_crtl_mode_callback(self):
+    def unset_crtl_init_callback(self):
         """
-        Unset the mode callback function.
+        Unset the INIT callback function.
         """
-        self._crtl_mode_callback = None
+        self._crtl_init_callback = None
 
     def set_crtl_sleep_callback(self, callback):
         """
@@ -314,13 +314,13 @@ class DashIOCommsModuleConnection(threading.Thread):
         if self._crtl_status_callback:
             self._crtl_status_callback(msg)
 
-    def _dcm_crtl_mode_callback(self, msg):
+    def _dcm_crtl_init_callback(self, msg):
         if self._conn_state == ConnectionState.CONNECTING:
             if msg[3] == 'PSTH':
                 self._conn_state = ConnectionState.CONNECTED
                 self.get_comms_module_active_connections()
-        if self._crtl_mode_callback:
-            self._crtl_mode_callback(msg)
+        if self._crtl_init_callback:
+            self._crtl_init_callback(msg)
 
     def _dcm_crtl_sleep_callback(self, msg):
         if self._crtl_sleep_callback:
@@ -521,7 +521,7 @@ class DashIOCommsModuleConnection(threading.Thread):
             'TCP': self._dcm_crtl_tcp_callback,
             'BLE': self._dcm_crtl_ble_callback,
             'STS': self._dcm_crtl_status_callback,
-            'MODE': self._dcm_crtl_mode_callback,
+            'INIT': self._dcm_crtl_init_callback,
             'SLEEP': self._dcm_crtl_sleep_callback,
             'MQTT': self._dcm_crtl_dash_callback,
             'WIFI': self._dcm_crtl_wifi_callback,
@@ -550,7 +550,7 @@ class DashIOCommsModuleConnection(threading.Thread):
         self._crtl_ble_callback = None
         self._crtl_tcp_callback = None
         self._crtl_status_callback = None
-        self._crtl_mode_callback = None
+        self._crtl_init_callback = None
         self._crtl_sleep_callback = None
         self._crtl_dash_callback = None
         self._crtl_wifi_callback = None
