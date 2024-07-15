@@ -199,10 +199,8 @@ class Direction(Control):
         if self._is_active:
             if self._direction_text:
                 return self._control_hdr_str + f"{self._direction_value}\t{self._direction_text}\n"
-            else:
-                return self._control_hdr_str + f"{self._direction_value}\n"
-        else:
-            return self._control_hdr_str + "na\n"
+            return self._control_hdr_str + f"{self._direction_value}\n"
+        return self._control_hdr_str + "na\n"
 
     @property
     def direction_value(self) -> float:
@@ -218,11 +216,10 @@ class Direction(Control):
     @direction_value.setter
     def direction_value(self, val: float):
         self._direction_value = val
+        s_str = self._control_hdr_str + f"{self._direction_value}"
         if self._direction_text:
-            s_str = self._control_hdr_str + f"{self._direction_value}\t{self._direction_text}\n"
-        else:
-            s_str = self._control_hdr_str + f"{self._direction_value}\n"
-        self.state_str = s_str
+            s_str += f"\t{self._direction_text}"
+        self.state_str = s_str + "\n"
 
     @property
     def direction_text(self) -> str:
@@ -238,8 +235,7 @@ class Direction(Control):
     @direction_text.setter
     def direction_text(self, val: str):
         self._direction_text = val.translate(BAD_CHARS)
+        s_str = self._control_hdr_str + f"{self._direction_value}"
         if self._direction_text:
-            s_str = self._control_hdr_str + f"{self._direction_value}\t{self._direction_text}\n"
-        else:
-            s_str = self._control_hdr_str + f"{self._direction_value}\n"
-        self.state_str = s_str
+            s_str += f"\t{self._direction_text}"
+        self.state_str = s_str + '\n'
