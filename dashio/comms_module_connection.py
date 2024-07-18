@@ -648,7 +648,7 @@ class DashIOCommsModuleConnection(threading.Thread):
                                 try:
                                     self.crtl_map[parts[2]](parts)
                                 except KeyError:
-                                    logger.debug("Unkown CTRL: %s", message.rstrip().decode())
+                                    logger.debug("Unknown CTRL: %s", message.rstrip().decode())
                                     continue
                             msg_from = self.b_zmq_connection_uuid + b":" + parts[0].encode()
                             tx_message = '\t' + '\t'.join(parts[1:]) + '\n'
