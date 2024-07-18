@@ -6,7 +6,7 @@
 
 ## Getting Started
 
-* For the big picture on **DashIO**, take a look at our website: [dashio.io](https://dashio.io")
+* For the big picture on **DashIO**, take a look at our website: [dashio.io](https://dashio.io)
 
 * Create an account on [dash.dashio.io](https://dashio.io/account-create/)
 
