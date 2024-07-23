@@ -25,7 +25,7 @@ cfg64 = "jVTbjpswEP2VlZ9RlWS7qcQbhJCNwiUCN6lU9YEFb7ACdmrMJukq/94xhpCbqr4NZ8bj4zl
     "Wn6XFuct05b4D5+3j3psu3u7PI8fmfHuJ6DGj2fR8lVN+PQX"
 
 config_dict = dashio.decode_cfg64(cfg64)
-device = dashio.Device("aDeviceType", "aDeviceID", "aDeviceName", cfg_dict=config_dict)
+device = dashio.Device("aDeviceType", "aDeviceID", "Fred", cfg_dict=config_dict)
 lte_con = lte_767x_connection.Lte767xConnection("iot.lbo.gdsp.nz", "username", "password", 'dash.dashio.io', 8883, "/dev/cu.usbmodem56B30003703", 115200, None)
 lte_con.add_device(device)
 
