@@ -28,6 +28,7 @@ import logging
 import time
 from enum import Enum
 from typing import Any, Callable
+import textwrap
 
 import serial
 
@@ -37,7 +38,7 @@ logger = logging.getLogger(__name__)
 
 
 #  TODO In the serial init add AT+CGMM and throw an exception if you don't get a response or the correct response.
-#  TODO Need to include hardrired powerup/reset control
+#  TODO Need to include hardwired powerup/reset control
 
 class LteState(Enum):
     """LTE STate"""
@@ -109,6 +110,7 @@ class Sim767x:
 
     start_time = time.time()
 
+    _tx_lines = []
     _tx_message = ""
     _rx_message = ""
 
@@ -382,14 +384,14 @@ class Sim767x:
                             result_arr = result_str.split(',')
                             if len(result_arr) == 1:  # Unsolicited response
                                 status = int(result_arr[0])
-                                if status == 1 or status == 5:
+                                if status == 1 or status == 5 or status == 6:
                                     if self._lte_state != LteState.LTE_CONNECTED:
                                         self._lte_state = LteState.LTE_CONNECTED
                                         self._disconnect_timer_s = 0
                                         self._start_pdp_context()
                             else:  # Request response
                                 status = int(result_arr[1])
-                                if status == 1 or status == 5:
+                                if status == 1 or status == 5 or status == 6:
                                     if self._lte_state != LteState.LTE_CONNECTED:
                                         self._lte_state = LteState.LTE_CONNECTED
                                         self._disconnect_timer_s = 0
@@ -452,16 +454,18 @@ class Sim767x:
                                 if error == 0:
                                     if self._pub_topic in self._messages_dict:
                                         del self._messages_dict[self._pub_topic]
+                                    if self.mqtt_is_finished():
+                                        self._pub_topic = ""
+                                        self._tx_message = ""
                                 else:
                                     logger.debug("MQTT Pub: %s", error)
                                     self._req_mqtt_reconnect()
+                                    self._pub_topic = ""
+                                    self._tx_message = ""
 
                                 if self.on_mqtt_publish_callback is not None:
                                     self.on_mqtt_publish_callback(self._pub_topic, self._message_send_id, error)  # Do before topic is cleared below
                                 self._message_send_id = -1  # Probably don't need this
-
-                                self._pub_topic = ""
-                                self._tx_message = ""
                         elif data.startswith("+CMQTTRXTOPIC:"):
                             # No need to do anything with the received topic as there shoud only be one topic.
                             pass
@@ -618,7 +622,7 @@ class Sim767x:
 
     def _set_carrier(self):
         if self._network:
-            carrier_str = f'AT+COPS=4,2,"{self._network}"'  # 1 = manual (4 = manual/auto), 2 = short format. For One NZ SIM cards not roaming in NZ, Could take up to 60s
+            carrier_str = f'AT+COPS=4,2,"{self._network}\r\n"'  # 1 = manual (4 = manual/auto), 2 = short format. For One NZ SIM cards not roaming in NZ, Could take up to 60s
             self.write_serial_buffer(carrier_str.encode())
             # self._serial_at.write(carrier_str.encode())  # ??? Maybe should be protected
 
@@ -700,6 +704,13 @@ class Sim767x:
 # ----- MQTT Publish ------
     def _mqtt_request_publish(self, topic: str, message: str):
         self._pub_topic = topic
+
+        if len(message) > 380:
+            self._tx_lines = textwrap.wrap(message, width=380, replace_whitespace=False,  drop_whitespace=False, expand_tabs=False)
+            self._tx_message = self._tx_lines.pop(0)
+        else:
+            self._tx_message = message
+
         self._tx_message = message
         if self._tx_message:
             if self._lte_state == LteState.MODULE_SHUTTING_DOWN:
@@ -722,6 +733,15 @@ class Sim767x:
     def _mqtt_publish(self):
         if self._protected_at_cmd("CMQTTPUB=0,2,60", self._print_ok, None):  # clientIndex = 0
             self._mqtt_is_publishing = True  # Block further publishing until publish succeeds or fails.
+
+    def mqtt_is_finished(self):
+        if len(self._tx_lines) > 0:
+            self.tx_message = self._tx_lines.pop(0)
+#            time.sleep(0.1)  # ??? This is not good!!!
+            self._protected_at_cmd(f"CMQTTTOPIC=0,{str(len(self._pub_topic))}", lambda: self._mqtt_request_payload(), lambda: self._mqtt_enter_pub_topic())  # clientIndex = 0
+            return False
+        else:
+            return True
 
 # --------- GNSS ----------
     def gnss_start(self, interval: int, one_shot: bool):
