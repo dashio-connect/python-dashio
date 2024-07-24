@@ -519,6 +519,7 @@ class Sim767x:
 
         # LTE State
         if self._lte_state == LteState.MODULE_STARTUP:
+            self.write_serial_buffer("AT+CGMM\r\n".encode())
             logger.debug("Startup Timer: %s.", self._disconnect_timer_s)
             self._disconnect_timer_s += 1
             if self._disconnect_timer_s > 60:  # One min
