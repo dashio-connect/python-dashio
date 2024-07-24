@@ -380,7 +380,7 @@ class Sim767x:
                                 self._run_at_callbacks = False
                                 self._lte_state = LteState.SIM_READY
 
-                        if data.startswith("SIM7672G"):
+                        elif data.startswith("SIM7672G"):
                             self._run_at_callbacks = False
                             self._lte_state = LteState.SIM_READY
 
