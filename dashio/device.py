@@ -62,7 +62,7 @@ class Device(threading.Thread):
         Remove a control from the device.
 
     get_control(control_type: str, control_id: str):
-        returns the instance of a controla leaded into the device.
+        returns the instance of a control loaded into the device.
 
     remove_control(control_type, control_id) :
         Removes the control from the device.
