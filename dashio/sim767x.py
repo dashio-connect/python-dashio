@@ -394,12 +394,13 @@ class Sim767x:
                                         self._disconnect_timer_s = 0
                                         self._start_pdp_context()
                             else:  # Request response
+                                self._run_at_callbacks = False
                                 status = int(result_arr[1])
                                 if status == 1 or status == 5 or status == 6:
                                     if self._lte_state != LteState.LTE_CONNECTED:
                                         self._lte_state = LteState.LTE_CONNECTED
                                         self._disconnect_timer_s = 0
-                                        self._start_pdp_context()
+                                    self._check_pdp_context()
                                 else:  # Only do this for request response (i.e. when monitoring)
                                     self._lte_state = LteState.LTE_DISCONNECTED
                                     self._mqtt_state = MqttState.MQTT_DISCONNECTED
@@ -419,7 +420,26 @@ class Sim767x:
                             result_arr = result_str.split(',')
                             if len(result_arr) >= 3:
                                 logger.debug("Carrier: %s", result_arr[2])
+                        elif data.startswith("+CGACT:"):
+                            result_arr = result_str.split(',')
+                            if len(result_arr) >= 2:
+                                if result_arr[0] == "1":  # pdp context 0
+                                    if result_arr[0] == "1":
+                                        self._check_MQTT_client()
+                                    else:
+                                        self._start_pdp_context()
                         # MQTT
+                        elif data.startswith("+CMQTTACCQ:"):
+                            result_arr = result_str.split(',')
+                            if len(result_arr) >= 3:
+                                if result_arr[0] == "0":  # clientIndex 0
+                                    if result_arr[1] and (self._imei in result_arr[1]):
+                                        if (self._mqtt_state == MqttState.MQTT_DISCONNECTED):
+                                            logger.debug("MQTT already connected")  # ???
+                                            self._mqtt_state = MqttState.MQTT_CONNECTED  # ??? This doesn't work
+                                            # ??? self.reset_module() this causes a crash because the serial disconnects
+                                    else:
+                                        self._mqtt_start()
                         elif data.startswith("+CMQTTSTART:"):
                             error = int(result_str)
                             if error == 0:
@@ -619,11 +639,20 @@ class Sim767x:
     def _check_connection(self):
         self._protected_at_cmd("CREG?", self._print_ok, None)
 
+    def _check_pdp_context(self):
+        self._protected_at_cmd("CGACT?", self._print_ok, None)
+
+    def _check_MQTT_client(self):
+        self._protected_at_cmd("CMQTTACCQ?", self._print_ok, None)
+
     def _get_imei(self):
         self._protected_at_cmd("SIMEI?", self._set_unsolicited_network_reg_messages, None)
 
     def _set_unsolicited_network_reg_messages(self):
-        self._protected_at_cmd("CREG=1", self._set_carrier, None)
+        self._protected_at_cmd("CREG=1", self._get_network_reg_status, None)
+
+    def _get_network_reg_status(self):
+        self._protected_at_cmd("CREG?", self._set_carrier, None)
 
     def _set_carrier(self):
         if self._network:
@@ -661,7 +690,7 @@ class Sim767x:
         self._protected_at_cmd("CMQTTSTART", self._print_ok, None, 60)
 
     def _mqtt_acquire_client(self):
-        temp_str = f'CMQTTACCQ=0,"{self._imei}",1'  # clientIndex = 0, cliendID, serverType 1 = SSL/TLS, 0 = TCP
+        temp_str = f'CMQTTACCQ=0,{self._imei},1'  # clientIndex = 0, cliendID, serverType 1 = SSL/TLS, 0 = TCP
         self._protected_at_cmd(temp_str, self._mqtt_config_ssl, None)
 
     def _mqtt_config_ssl(self):

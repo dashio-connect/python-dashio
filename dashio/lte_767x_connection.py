@@ -26,8 +26,8 @@ from __future__ import annotations
 import logging
 import threading
 import json
-import shortuuid
-import zmq
+import shortuuid  # type: ignore
+import zmq  # type: ignore
 from .sim767x import Sim767x, ErrorState
 from .constants import CONNECTION_PUB_URL
 from .device import Device
