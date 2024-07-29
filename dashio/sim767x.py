@@ -160,15 +160,21 @@ class Sim767x:
         baud_rate : int
             Baud rate of the Serial connection
         """
+
+        self._serial_port = serial_port
         self._network = network
         self._apn = apn
-        self._serial_at = serial.Serial(serial_port, baud_rate,)
+        self._baud_rate = baud_rate
+        self.start_serial()
         self._serial_at.flush()
         self._sched = Schedular("LTE Connection Schedular")
         self._sched.add_timer(0.001, 0.0, self._run_processing)
         self._sched.add_timer(1.0, 0.25, self._run_one_second_module_tasks)
         self._sched.add_timer(1.0, 0.5, self._run_one_second_mqtt_tasks)
         self._sched.add_timer(1.0, 0.75, self._run_one_second_gnss_tasks)
+
+    def start_serial(self):
+        self._serial_at = serial.Serial(self._serial_port, self._baud_rate)
 
     def write_serial_buffer(self, data: bytes, chunk_size=64):
         """
@@ -325,206 +331,215 @@ class Sim767x:
         return True
 
     def _process_at_commands(self):
-        if self._serial_at.in_waiting > 0:
-            if self._more_data_coming > 0:  # Required because we can read the message through AT faster than it may arrive.
-                self._read_message(self._more_data_coming)
-            else:
-                data = ""
-                have_message = False
-                result_str = ""
-                while self._serial_at.in_waiting > 0 and not have_message:
-                    chars_in = self._serial_at.read().decode()
-                    if '\n' in chars_in:
-                        chars_arr = chars_in.split('\n')
-                        self._char_buffer += chars_arr[0]
-                        data = self._char_buffer
-                        self._char_buffer = ""
-                        have_message = True
-                        break
-                    self._char_buffer += chars_in
-                    if self._char_buffer.startswith(">"):
-                        data = ">"
-                        self._char_buffer = ""
-                        have_message = True
+        try:
+            if self._serial_at.in_waiting > 0:
+                if self._more_data_coming > 0:  # Required because we can read the message through AT faster than it may arrive.
+                    self._read_message(self._more_data_coming)
+                else:
+                    data = ""
+                    have_message = False
+                    result_str = ""
+                    while self._serial_at.in_waiting > 0 and not have_message:
+                        chars_in = self._serial_at.read().decode()
+                        if '\n' in chars_in:
+                            chars_arr = chars_in.split('\n')
+                            self._char_buffer += chars_arr[0]
+                            data = self._char_buffer
+                            self._char_buffer = ""
+                            have_message = True
+                            break
+                        self._char_buffer += chars_in
+                        if self._char_buffer.startswith(">"):
+                            data = ">"
+                            self._char_buffer = ""
+                            have_message = True
 
-                data = data.replace('\r', '')
+                    data = data.replace('\r', '')
 
-                if (have_message or data.startswith(">")) and data:
-                    logger.debug("CMD: %s", data)
+                    if (have_message or data.startswith(">")) and data:
+                        logger.debug("CMD: %s", data)
 
-                    if data.startswith("OK"):
-                        logger.debug('\n')
+                        if data.startswith("OK"):
+                            logger.debug('\n')
 
-                        if self._run_at_callbacks:
-                            self._run_at_callbacks = False
-                            if self._on_ok_callback is not None:
-                                self._on_ok_callback()
-                    elif data.startswith("ERROR"):
-                        self._more_data_coming = 0  # Just in case
-                        if self._run_at_callbacks:
-                            self._run_at_callbacks = False
-                            logger.debug("Callback - Houston - we have a problem ERROR")
-                            logger.debug("AT Error")
-                    elif data.startswith(">"):
-                        if self._run_at_callbacks:
-                            if self._on_enter_callback is not None:
-                                self._on_enter_callback()
-                    else:
-                        data_arr = data.split(':')
-                        if len(data_arr) > 1:
-                            result_str = data_arr[1]
-                            result_str = result_str.strip()
+                            if self._run_at_callbacks:
+                                self._run_at_callbacks = False
+                                if self._on_ok_callback is not None:
+                                    self._on_ok_callback()
+                        elif data.startswith("ERROR"):
+                            self._more_data_coming = 0  # Just in case
+                            if self._run_at_callbacks:
+                                self._run_at_callbacks = False
+                                logger.debug("Callback - Houston - we have a problem ERROR")
+                                logger.debug("AT Error")
+                        elif data.startswith(">"):
+                            if self._run_at_callbacks:
+                                if self._on_enter_callback is not None:
+                                    self._on_enter_callback()
+                        else:
+                            data_arr = data.split(':')
+                            if len(data_arr) > 1:
+                                result_str = data_arr[1]
+                                result_str = result_str.strip()
 
-                        if data.startswith("+CPIN:"):
-                            if result_str.startswith("READY"):  # Module has started up and is ready for AT commands
+                            if data.startswith("+CPIN:"):
+                                if result_str.startswith("READY"):  # Module has started up and is ready for AT commands
+                                    self._run_at_callbacks = False
+                                    self._lte_state = LteState.SIM_READY
+
+                            elif data.startswith("SIM7672G"):
                                 self._run_at_callbacks = False
                                 self._lte_state = LteState.SIM_READY
 
-                        elif data.startswith("SIM7672G"):
-                            self._run_at_callbacks = False
-                            self._lte_state = LteState.SIM_READY
-
-                        elif data.startswith(("+CREG:", "+CEREG:", "+CGREG:")):  # Network Registration Status
-                            result_arr = result_str.split(',')
-                            if len(result_arr) == 1:  # Unsolicited response
-                                status = int(result_arr[0])
-                                if status == 1 or status == 5 or status == 6:
-                                    if self._lte_state != LteState.LTE_CONNECTED:
-                                        self._lte_state = LteState.LTE_CONNECTED
-                                        self._disconnect_timer_s = 0
-                                        self._start_pdp_context()
-                            else:  # Request response
-                                self._run_at_callbacks = False
-                                status = int(result_arr[1])
-                                if status == 1 or status == 5 or status == 6:
-                                    if self._lte_state != LteState.LTE_CONNECTED:
-                                        self._lte_state = LteState.LTE_CONNECTED
-                                        self._disconnect_timer_s = 0
-                                    self._check_pdp_context()
-                                else:  # Only do this for request response (i.e. when monitoring)
-                                    self._lte_state = LteState.LTE_DISCONNECTED
-                                    self._mqtt_state = MqttState.MQTT_DISCONNECTED
-                                    self._error_state = ErrorState.ERR_LTE_CONNECT_FAIL_RESET
-                        elif data.startswith("+CGEV:"):
-                            if result_str.startswith("ME PDN ACT"):  # AcT = 0 (GSM)
-                                logger.debug("ME PDN ACT")
-                            elif result_str.startswith("EPS PDN ACT"):  # AcT = 7 (EUTRAN)
-                                logger.debug("EPS PDN ACT")
-                            elif result_str.startswith("ME PDN DEACT"):
-                                logger.debug("ME PDN DEACT")
-                            elif result_str.startswith("NW PDN DEACT"):
-                                logger.debug("NW PDN DEACT")
-                        elif data.startswith("+SIMEI:"):
-                            self._imei = "IMEI" + result_str
-                        elif data.startswith("+COPS:"):
-                            result_arr = result_str.split(',')
-                            if len(result_arr) >= 3:
-                                logger.debug("Carrier: %s", result_arr[2])
-                        elif data.startswith("+CGACT:"):
-                            result_arr = result_str.split(',')
-                            if len(result_arr) >= 2:
-                                if result_arr[0] == "1":  # pdp context 0
-                                    if result_arr[0] == "1":
-                                        self._check_MQTT_client()
-                                    else:
-                                        self._start_pdp_context()
-                        # MQTT
-                        elif data.startswith("+CMQTTACCQ:"):
-                            result_arr = result_str.split(',')
-                            if len(result_arr) >= 3:
-                                if result_arr[0] == "0":  # clientIndex 0
-                                    if result_arr[1] and (self._imei in result_arr[1]):
-                                        if (self._mqtt_state == MqttState.MQTT_DISCONNECTED):
-                                            logger.debug("MQTT already connected")  # ???
-                                            self._mqtt_state = MqttState.MQTT_CONNECTED  # ??? This doesn't work
-                                            # ??? self.reset_module() this causes a crash because the serial disconnects
-                                    else:
-                                        self._mqtt_start()
-                        elif data.startswith("+CMQTTSTART:"):
-                            error = int(result_str)
-                            if error == 0:
-                                self._mqtt_acquire_client()
-                            else:
-                                logger.debug("MQTT Start: %s", error)
-                                self._lte_state = LteState.MODULE_REQ_RESET
-                        elif data.startswith("+CMQTTCONNECT:"):
-                            result_arr = result_str.split(',')
-                            if len(result_arr) >= 2:
-                                error = int(result_arr[1])
+                            elif data.startswith(("+CREG:", "+CEREG:", "+CGREG:")):  # Network Registration Status
+                                result_arr = result_str.split(',')
+                                if len(result_arr) == 1:  # Unsolicited response
+                                    status = int(result_arr[0])
+                                    if status == 1 or status == 5 or status == 6:
+                                        if self._lte_state != LteState.LTE_CONNECTED:
+                                            self._lte_state = LteState.LTE_CONNECTED
+                                            self._disconnect_timer_s = 0
+                                            self._start_pdp_context()
+                                else:  # Request response
+                                    self._run_at_callbacks = False
+                                    status = int(result_arr[1])
+                                    if status == 1 or status == 5 or status == 6:
+                                        if self._lte_state != LteState.LTE_CONNECTED:
+                                            self._lte_state = LteState.LTE_CONNECTED
+                                            self._disconnect_timer_s = 0
+                                        self._check_pdp_context()
+                                    else:  # Only do this for request response (i.e. when monitoring)
+                                        self._lte_state = LteState.LTE_DISCONNECTED
+                                        self._mqtt_state = MqttState.MQTT_DISCONNECTED
+                                        self._error_state = ErrorState.ERR_LTE_CONNECT_FAIL_RESET
+                            elif data.startswith("+CGEV:"):
+                                if result_str.startswith("ME PDN ACT"):  # AcT = 0 (GSM)
+                                    logger.debug("ME PDN ACT")
+                                elif result_str.startswith("EPS PDN ACT"):  # AcT = 7 (EUTRAN)
+                                    logger.debug("EPS PDN ACT")
+                                elif result_str.startswith("ME PDN DEACT"):
+                                    logger.debug("ME PDN DEACT")
+                                elif result_str.startswith("NW PDN DEACT"):
+                                    logger.debug("NW PDN DEACT")
+                            elif data.startswith("+SIMEI:"):
+                                self._imei = "IMEI" + result_str
+                            elif data.startswith("+COPS:"):
+                                result_arr = result_str.split(',')
+                                if len(result_arr) >= 3:
+                                    logger.debug("Carrier: %s", result_arr[2])
+                            elif data.startswith("+CGACT:"):
+                                result_arr = result_str.split(',')
+                                if len(result_arr) >= 2:
+                                    if result_arr[0] == "1":  # pdp context 0
+                                        if result_arr[0] == "1":
+                                            self._check_MQTT_client()
+                                        else:
+                                            self._start_pdp_context()
+                            # MQTT
+                            elif data.startswith("+CMQTTACCQ:"):
+                                result_arr = result_str.split(',')
+                                if len(result_arr) >= 3:
+                                    if result_arr[0] == "0":  # clientIndex 0
+                                        if result_arr[1] and (self._imei in result_arr[1]):
+                                            if (self._mqtt_state == MqttState.MQTT_DISCONNECTED):
+                                                logger.debug("MQTT already connected - will reset module")
+                                                self.reset_module()
+                                        else:
+                                            self._mqtt_start()
+                            elif data.startswith("+CMQTTSTART:"):
+                                error = int(result_str)
                                 if error == 0:
-                                    self._on_mqtt_connected()
-                                    self._mqtt_reconnect_fail_counter = 0
+                                    self._mqtt_acquire_client()
                                 else:
-                                    logger.debug("MQTT Cnct: %s", error)
-                                    self._req_mqtt_reconnect()
-                        elif data.startswith("+CMQTTSUB:"):
-                            self._mqtt_is_subscribing = False
-                            result_arr = result_str.split(',')
-                            if len(result_arr) >= 2:
-                                error = int(result_arr[1])
-                                if self._on_mqtt_subscribe_callback is not None:
-                                    self._on_mqtt_subscribe_callback(self._sub_topic, error)
+                                    logger.debug("MQTT Start: %s", error)
+                                    self._lte_state = LteState.MODULE_REQ_RESET
+                            elif data.startswith("+CMQTTCONNECT:"):
+                                result_arr = result_str.split(',')
+                                if len(result_arr) >= 2:
+                                    error = int(result_arr[1])
+                                    if error == 0:
+                                        self._on_mqtt_connected()
+                                        self._mqtt_reconnect_fail_counter = 0
+                                    else:
+                                        logger.debug("MQTT Cnct: %s", error)
+                                        self._req_mqtt_reconnect()
+                            elif data.startswith("+CMQTTSUB:"):
+                                self._mqtt_is_subscribing = False
+                                result_arr = result_str.split(',')
+                                if len(result_arr) >= 2:
+                                    error = int(result_arr[1])
+                                    if self._on_mqtt_subscribe_callback is not None:
+                                        self._on_mqtt_subscribe_callback(self._sub_topic, error)
 
-                                if error == 0:
-                                    self._sub_topic = ""
-                                else:
-                                    logger.debug("MQTT Sub: %s", error)
-                                    self._req_mqtt_reconnect()
-                        elif data.startswith("+CMQTTPUB:"):
-                            self._mqtt_is_publishing = False
-                            result_arr = result_str.split(',')
-                            if len(result_arr) >= 2:
-                                error = int(result_arr[1])
-                                if error == 0:
-                                    if self._pub_topic in self._messages_dict:
-                                        del self._messages_dict[self._pub_topic]
-                                    if self.mqtt_is_finished():
+                                    if error == 0:
+                                        self._sub_topic = ""
+                                    else:
+                                        logger.debug("MQTT Sub: %s", error)
+                                        self._req_mqtt_reconnect()
+                            elif data.startswith("+CMQTTPUB:"):
+                                self._mqtt_is_publishing = False
+                                result_arr = result_str.split(',')
+                                if len(result_arr) >= 2:
+                                    error = int(result_arr[1])
+                                    if error == 0:
+                                        if self._pub_topic in self._messages_dict:
+                                            del self._messages_dict[self._pub_topic]
+                                        if self.mqtt_is_finished():
+                                            self._pub_topic = ""
+                                            self._tx_message = ""
+                                    else:
+                                        logger.debug("MQTT Pub: %s", error)
+                                        self._req_mqtt_reconnect()
                                         self._pub_topic = ""
                                         self._tx_message = ""
-                                else:
-                                    logger.debug("MQTT Pub: %s", error)
-                                    self._req_mqtt_reconnect()
-                                    self._pub_topic = ""
-                                    self._tx_message = ""
 
-                                if self.on_mqtt_publish_callback is not None:
-                                    self.on_mqtt_publish_callback(self._pub_topic, self._message_send_id, error)  # Do before topic is cleared below
-                                self._message_send_id = -1  # Probably don't need this
-                        elif data.startswith("+CMQTTRXTOPIC:"):
-                            # No need to do anything with the received topic as there shoud only be one topic.
-                            pass
-                        elif data.startswith("+CMQTTRXSTART:"):
-                            self._incoming_message = True
-                            self._rx_message = ""
-                        elif data.startswith("+CMQTTRXPAYLOAD:"):
-                            result_arr = result_str.split(',')
-                            if len(result_arr) >= 2:
-                                self._read_message(int(result_arr[1]))
-                        elif data.startswith("+CMQTTRXEND:"):
-                            self._more_data_coming = 0
-                            self._incoming_message = False
-
-                            if self._rx_message:
-                                if self._on_receive_incoming_message_callback is not None:
-                                    self._on_receive_incoming_message_callback(self._rx_message)
+                                    if self.on_mqtt_publish_callback is not None:
+                                        self.on_mqtt_publish_callback(self._pub_topic, self._message_send_id, error)  # Do before topic is cleared below
+                                    self._message_send_id = -1  # Probably don't need this
+                            elif data.startswith("+CMQTTRXTOPIC:"):
+                                # No need to do anything with the received topic as there shoud only be one topic.
+                                pass
+                            elif data.startswith("+CMQTTRXSTART:"):
+                                self._incoming_message = True
                                 self._rx_message = ""
-                        elif data.startswith("+CMQTTDISC:"):
-                            self._mqtt_state = MqttState.MQTT_DISCONNECTED
-                            if self._shut_down_timer_s >= 0:
-                                self._lte_state = LteState.MODULE_REQ_SHUTDOWN
-                        elif data.startswith("+CMQTTCONNLOST:"):
-                            self._mqtt_state = MqttState.MQTT_DISCONNECTED
-                            if self._on_mqtt_connect_callback is not None:
-                                self._on_mqtt_connect_callback(False, ErrorState.ERR_MQTT_CONNECTION_LOST)
+                            elif data.startswith("+CMQTTRXPAYLOAD:"):
+                                result_arr = result_str.split(',')
+                                if len(result_arr) >= 2:
+                                    self._read_message(int(result_arr[1]))
+                            elif data.startswith("+CMQTTRXEND:"):
+                                self._more_data_coming = 0
+                                self._incoming_message = False
 
-                            result_arr = result_str.split(',')
-                            if len(result_arr) >= 2:
-                                error = int(result_arr[1])
-                                logger.debug("MQTT Cnct Lost: %s", error)
-                                self._req_mqtt_reconnect()
-                        # GNSS
-                        elif data.startswith("+CGNSSINFO:"):
-                            self._process_gnss_data(result_str)
+                                if self._rx_message:
+                                    if self._on_receive_incoming_message_callback is not None:
+                                        self._on_receive_incoming_message_callback(self._rx_message)
+                                    self._rx_message = ""
+                            elif data.startswith("+CMQTTDISC:"):
+                                self._mqtt_state = MqttState.MQTT_DISCONNECTED
+                                if self._shut_down_timer_s >= 0:
+                                    self._lte_state = LteState.MODULE_REQ_SHUTDOWN
+                            elif data.startswith("+CMQTTCONNLOST:"):
+                                self._mqtt_state = MqttState.MQTT_DISCONNECTED
+                                if self._on_mqtt_connect_callback is not None:
+                                    self._on_mqtt_connect_callback(False, ErrorState.ERR_MQTT_CONNECTION_LOST)
+
+                                result_arr = result_str.split(',')
+                                if len(result_arr) >= 2:
+                                    error = int(result_arr[1])
+                                    logger.debug("MQTT Cnct Lost: %s", error)
+                                    self._req_mqtt_reconnect()
+                            # GNSS
+                            elif data.startswith("+CGNSSINFO:"):
+                                self._process_gnss_data(result_str)
+        except serial.SerialException:
+            logger.debug("Lost Serial Connection, will try again")
+            self._serial_at.close()
+            time.sleep(2)
+
+            self._serial_at.open()
+            self._reset_timers()
+            self._lte_state = LteState.MODULE_STARTUP
+            self._check_connection()
 
     def _read_message(self, message_len: int):
         chars_in = self._serial_at.read().decode()
@@ -657,8 +672,7 @@ class Sim767x:
     def _set_carrier(self):
         if self._network:
             carrier_str = f'AT+COPS=4,2,"{self._network}\r\n"'  # 1 = manual (4 = manual/auto), 2 = short format. For One NZ SIM cards not roaming in NZ, Could take up to 60s
-            self.write_serial_buffer(carrier_str.encode())
-            # self._serial_at.write(carrier_str.encode())  # ??? Maybe should be protected
+            self.write_serial_buffer(carrier_str.encode())  # ??? Maybe should be protected
 
     def _start_pdp_context(self):
         context_str = f'CGDCONT=1,"IP","{self._apn}"'
@@ -771,7 +785,6 @@ class Sim767x:
     def mqtt_is_finished(self):
         if len(self._tx_lines) > 0:
             self.tx_message = self._tx_lines.pop(0)
-#            time.sleep(0.1)  # ??? This is not good!!!
             self._protected_at_cmd(f"CMQTTTOPIC=0,{str(len(self._pub_topic))}", lambda: self._mqtt_request_payload(), lambda: self._mqtt_enter_pub_topic())  # clientIndex = 0
             return False
         else:
