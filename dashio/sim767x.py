@@ -29,7 +29,7 @@ import time
 from enum import Enum
 from typing import Any, Callable
 import textwrap
-
+import threading
 import serial
 
 from .schedular import Schedular
@@ -135,6 +135,7 @@ class Sim767x:
     _message_send_id = -1
     _last_command = ""  # ??? is this being used anymore
     _messages_dict = {}
+    _messages_dict_lock = threading.Lock()
 
     _username = ""
     _password = ""
@@ -168,7 +169,7 @@ class Sim767x:
         self.start_serial()
         self._serial_at.flush()
         self._sched = Schedular("LTE Connection Schedular")
-        self._sched.add_timer(0.001, 0.0, self._run_processing)
+        self._sched.add_timer(0.01, 0.0, self._run_processing)
         self._sched.add_timer(1.0, 0.25, self._run_one_second_module_tasks)
         self._sched.add_timer(1.0, 0.5, self._run_one_second_mqtt_tasks)
         self._sched.add_timer(1.0, 0.75, self._run_one_second_gnss_tasks)
@@ -280,10 +281,11 @@ class Sim767x:
 
     def publish_message(self, topic: str, message: str):
         """Publis a message"""
-        if topic not in self._messages_dict:
-            self._messages_dict[topic] = message
-        else:
-            self._messages_dict[topic] += message
+        with self._messages_dict_lock:
+            if topic not in self._messages_dict:
+                self._messages_dict[topic] = message
+            else:
+                self._messages_dict[topic] += message
 
     def _protected_at_cmd(self, cmd: str, on_ok_callback: Callable[[], None], on_enter_callback: Callable[[], None] | None, timeout_s: int = 10):
         if not self._run_at_callbacks:
@@ -325,9 +327,11 @@ class Sim767x:
             if not self._mqtt_is_subscribing and not self._mqtt_is_publishing and not self._incoming_message:  # Wait for any received message being downloaded.
                 if self._sub_topic:
                     self._mqtt_req_subscribe()
-                elif self._messages_dict:
-                    d_topic = list(self._messages_dict.keys())[0]
-                    self._mqtt_request_publish(d_topic, self._messages_dict[d_topic])
+                if self._messages_dict:
+                    with self._messages_dict_lock:
+                        d_topic = list(self._messages_dict.keys())[0]
+                        self._mqtt_request_publish(d_topic, self._messages_dict[d_topic])
+                        del self._messages_dict[d_topic]
         return True
 
     def _process_at_commands(self):
@@ -482,8 +486,9 @@ class Sim767x:
                                 if len(result_arr) >= 2:
                                     error = int(result_arr[1])
                                     if error == 0:
-                                        if self._pub_topic in self._messages_dict:
-                                            del self._messages_dict[self._pub_topic]
+                                        with self._messages_dict_lock:
+                                            if self._pub_topic in self._messages_dict:
+                                                del self._messages_dict[self._pub_topic]
                                         if self.mqtt_is_finished():
                                             self._pub_topic = ""
                                             self._tx_message = ""
@@ -759,7 +764,6 @@ class Sim767x:
         else:
             self._tx_message = message
 
-        self._tx_message = message
         if self._tx_message:
             if self._lte_state == LteState.MODULE_SHUTTING_DOWN:
                 self._shut_down_timer_s = 0  # Reset shutdown timer as there is a message to send
@@ -785,10 +789,9 @@ class Sim767x:
     def mqtt_is_finished(self):
         if len(self._tx_lines) > 0:
             self.tx_message = self._tx_lines.pop(0)
-            self._protected_at_cmd(f"CMQTTTOPIC=0,{str(len(self._pub_topic))}", lambda: self._mqtt_request_payload(), lambda: self._mqtt_enter_pub_topic())  # clientIndex = 0
+            self._protected_at_cmd(f"CMQTTTOPIC=0,{str(len(self._pub_topic))}", self._mqtt_request_payload, self._mqtt_enter_pub_topic)  # clientIndex = 0
             return False
-        else:
-            return True
+        return True
 
 # --------- GNSS ----------
     def gnss_start(self, interval: int, one_shot: bool):
