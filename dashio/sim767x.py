@@ -169,7 +169,7 @@ class Sim767x:
         self.start_serial()
         self._serial_at.flush()
         self._sched = Schedular("LTE Connection Schedular")
-        self._sched.add_timer(0.01, 0.0, self._run_processing)
+        self._sched.add_timer(0.001, 0.0, self._run_processing)
         self._sched.add_timer(1.0, 0.25, self._run_one_second_module_tasks)
         self._sched.add_timer(1.0, 0.5, self._run_one_second_mqtt_tasks)
         self._sched.add_timer(1.0, 0.75, self._run_one_second_gnss_tasks)
@@ -328,10 +328,9 @@ class Sim767x:
                 if self._sub_topic:
                     self._mqtt_req_subscribe()
                 if self._messages_dict:
-                    with self._messages_dict_lock:
-                        d_topic = list(self._messages_dict.keys())[0]
-                        self._mqtt_request_publish(d_topic, self._messages_dict[d_topic])
-                        del self._messages_dict[d_topic]
+                    self._messages_dict_lock.acquire()
+                    d_topic = list(self._messages_dict.keys())[0]
+                    self._mqtt_request_publish(d_topic, self._messages_dict[d_topic])
         return True
 
     def _process_at_commands(self):
@@ -486,9 +485,9 @@ class Sim767x:
                                 if len(result_arr) >= 2:
                                     error = int(result_arr[1])
                                     if error == 0:
-                                        with self._messages_dict_lock:
-                                            if self._pub_topic in self._messages_dict:
-                                                del self._messages_dict[self._pub_topic]
+                                        if self._pub_topic in self._messages_dict:
+                                            del self._messages_dict[self._pub_topic]
+                                            self._messages_dict_lock.release()
                                         if self.mqtt_is_finished():
                                             self._pub_topic = ""
                                             self._tx_message = ""
