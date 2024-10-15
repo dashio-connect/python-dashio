@@ -131,7 +131,12 @@ class Table(Control):
             precision, by default Precision.OFF
         font_size : int, by default 12
             The size of the font.
-
+        label_width_percent : int
+            Label width as a percent.
+        colmns : int
+            Number of table columns including the label.
+        column_headings : List
+            The headings for the table columns.
         column_no : int, optional default is 1. Must be 1..3
             The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into.
             Each control can store three configs that define how the device looks for Dash apps installed on single column
@@ -191,16 +196,16 @@ class Table(Control):
 
     def _send_row(self, table_row: TableRow) -> str:
         header_str = self._control_hdr_str
-        columns = '\t'.join(map(str, table_row.columns[:self._max_columns]))
+        columns = '\t'.join(map(str, table_row.columns[:self._max_columns - 1]))
         if table_row.units is not None:
             row_label = table_row.label
             if table_row.label is None:
                 row_label = ""
-            return f"{header_str}\t{len(self._rows)}\t{columns}\t{row_label}\t{table_row.units}\n"
+            return f"{header_str}{len(self._rows)}\t{columns}\t{row_label}\t{table_row.units}\n"
         else:
             if table_row.label is None:
-                return f"{header_str}\t{len(self._rows)}\t{columns}\n"
-            return f"{header_str}\t{len(self._rows)}\t{columns}\t{row_label}\n"
+                return f"{header_str}{len(self._rows)}\t{columns}\n"
+            return f"{header_str}{len(self._rows)}\t{columns}\t{row_label}\n"
 
     def add_table_row(self, table_row: TableRow):
         """Add a row to the table and send it"""

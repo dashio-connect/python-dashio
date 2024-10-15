@@ -54,6 +54,7 @@ class ControlName(Enum):
     LOG = "LOG"
     LBL = "LBL"
     MAP = "MAP"
+    TABLE = "TBL"
 
 
 class Icon(Enum):
