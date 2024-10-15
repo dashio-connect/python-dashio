@@ -69,7 +69,7 @@ class Selector(Control):
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
-        """Instatiates Selector from cfg dictionary
+        """Instantiates Selector from cfg dictionary
 
         Parameters
         ----------

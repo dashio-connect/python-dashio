@@ -183,7 +183,7 @@ class ButtonGroupStyle(Enum):
 
 
 class DeviceViewStyle(Enum):
-    """DeciveView Styles"""
+    """DeviceView Styles"""
     BASIC = "BASIC"
     BORDERS = "BORDERS"
 
@@ -237,11 +237,11 @@ class Keyboard(Enum):
     """Keyboards"""
     NONE = "NONE"
     ALL = "ALL"
-    NUMERIC = "NUM"
+    NUM = "NUM"
     DATE = "DATE"
     TIME = "TIME"
     DATETIME = "DATETIME"
-    INTERVAL = "INTVL"
+    INTVL = "INTVL"
     INT = "INT"
     HEX = "HEX"
 
@@ -249,10 +249,10 @@ class Keyboard(Enum):
 class TextFormat(Enum):
     """Text formats"""
     NONE = "NONE"
-    NUMBER = "NUM"
+    NUM = "NUM"
     DATETIME = "DATETIME"
-    DATELONG = "DTLONG"
-    INTERVAL = "INTVL"
+    DTLONG = "DTLONG"
+    INTVL = "INTVL"
     LOG = "LOG"
 
 

@@ -201,6 +201,7 @@ class Device(threading.Thread):
     def _send_data(self, data: str):
         if not data:
             return
+        reply_send = ""
         if isinstance(data, str):
             reply_send = data.replace("{device_id}", self.device_id)
         elif isinstance(data, list):
@@ -238,7 +239,7 @@ class Device(threading.Thread):
         c64_dict : Dict
             dictionary of the CFG loaded by decode_cfg from a CFG64 or json
         column_no: Int From 1 to 3 (default 1).
-            The DashIO app reports the size of the screen in no of columns. You can load a seperate
+            The DashIO app reports the size of the screen in no of columns. You can load a separate
             config for each reported column number.
         """
         if not 1 <= column_no <= 3:
@@ -253,6 +254,11 @@ class Device(threading.Thread):
                     else:
                         new_control = CONTROL_INSTANCE_DICT[control_type].from_cfg_dict(control, column_no=column_no)
                         self.add_control(new_control)
+            elif control_type == "CFG" and isinstance(control_list, dict):
+                logger.debug("CFG: %s", control_list)
+                if 'name' in control_list['deviceSetup']:
+                    self._set_device_setup("name", True)
+                    self.set_name_callback(self._name_callback)
 
     def add_control(self, iot_control):
         """Add a control to the device.
@@ -309,7 +315,7 @@ class Device(threading.Thread):
         if key in self.controls_dict:
             del self.controls_dict[key]
 
-    def _set_devicesetup(self, control_name: str, settable: bool):
+    def _set_device_setup(self, control_name: str, settable: bool):
         if settable:
             self._device_commands_dict[control_name.upper()] = getattr(self, '_' + control_name + '_rx_event', None)
             if control_name not in self._device_setup_list:
@@ -350,14 +356,14 @@ class Device(threading.Thread):
                 The callback function. It will be invoked with one argument, the msg from IoTDashboard.
                 The callback must return a Boolean indicating success.
         """
-        self._set_devicesetup("wifi", True)
+        self._set_device_setup("wifi", True)
         self._wifi_rx_callback = callback
 
     def unset_wifi_callback(self):
         """
         Unset the wifi_rx_callback.
         """
-        self._set_devicesetup("wifi", False)
+        self._set_device_setup("wifi", False)
         self._wifi_rx_callback = None
 
     def _wifi_rx_event(self, msg) -> str:
@@ -377,14 +383,14 @@ class Device(threading.Thread):
                 The callback function. It will be invoked with one argument, the msg from IoTDashboard.
                 The callback must return a Boolean indicating success.
         """
-        self._set_devicesetup("dashio", True)
+        self._set_device_setup("dashio", True)
         self._dashio_rx_callback = callback
 
     def unset_dashio_callback(self):
         """
         Unset the dashio callback function.
         """
-        self._set_devicesetup("dashio", False)
+        self._set_device_setup("dashio", False)
         self._dashio_rx_callback = None
 
     def _dashio_rx_event(self, msg):
@@ -404,15 +410,19 @@ class Device(threading.Thread):
                 The callback function. It will be invoked with one argument, the msg from IoTDashboard.
                 The callback must return the new name.
         """
-        self._set_devicesetup("name", True)
+        self._set_device_setup("name", True)
         self._name_rx_callback = callback
 
     def unset_name_callback(self):
         """
         Unset the name callback function.
         """
-        self._set_devicesetup("name", False)
+        self._set_device_setup("name", False)
         self._name_rx_callback = None
+
+    def _name_callback(self, msg) -> str:
+        logger.debug("Name msg: %s", msg)
+        return msg[2]
 
     def _name_rx_event(self, msg) -> str:
         if self._name_rx_callback is not None:
@@ -432,14 +442,14 @@ class Device(threading.Thread):
                 The callback function. It will be invoked with one argument, the msg from IoTDashboard.
                 The callback must return a Boolean indicating success.
         """
-        self._set_devicesetup("tcp", True)
+        self._set_device_setup("tcp", True)
         self._tcp_rx_callback = callback
 
     def unset_tcp_callback(self):
         """
         Unset the tcp callback function.
         """
-        self._set_devicesetup("tcp", False)
+        self._set_device_setup("tcp", False)
         self._tcp_rx_callback = None
 
     def _tcp_rx_event(self, msg):
@@ -459,14 +469,14 @@ class Device(threading.Thread):
                 The callback function. It will be invoked with one argument, the msg from IoTDashboard.
                 The callback must return a Boolean indicating success.
         """
-        self._set_devicesetup("mqtt", True)
+        self._set_device_setup("mqtt", True)
         self._mqtt_rx_callback = callback
 
     def unset_mqtt_callback(self):
         """
         Unset the mqtt callback function.
         """
-        self._set_devicesetup("mqtt", False)
+        self._set_device_setup("mqtt", False)
         self._mqtt_rx_callback = None
 
     def _mqtt_rx_event(self, msg):

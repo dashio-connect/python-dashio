@@ -90,6 +90,7 @@ from .iotcontrol.control import Control, ControlPosition
 from .iotcontrol.button_group import ButtonGroup
 from .iotcontrol.event_log import EventData, EventLog
 from .iotcontrol.color_picker import ColorPicker
+from .iotcontrol.table import Table, TableRow
 
 __all__ = [
     'Device',
@@ -142,6 +143,8 @@ __all__ = [
     'DataPoint',
     'DataPointArray',
     'Knob',
+    'Table',
+    'TableRow',
     'Dial',
     'Direction',
     'Map',

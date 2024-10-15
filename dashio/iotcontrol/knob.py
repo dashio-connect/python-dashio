@@ -225,7 +225,7 @@ class Knob(Control):
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
-        """Instatiates Knob from cfg dictionary
+        """Instantiates Knob from cfg dictionary
 
         Parameters
         ----------

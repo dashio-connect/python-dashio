@@ -43,7 +43,7 @@ from .iotcontrol import (
     EventLog,
     Knob, KnobConfig,
     AudioVisualDisplay, ControlConfig,
-    Map,
+    Map, Table, TableConfig
 )
 
 CONTROL_INSTANCE_DICT = {
@@ -63,7 +63,8 @@ CONTROL_INSTANCE_DICT = {
     "DIR": Direction,
     "LOG": EventLog,
     "LBL": Label,
-    "MAP": Map
+    "MAP": Map,
+    "TBL": Table
 }
 
 CONFIG_INSTANCE_DICT = {
@@ -83,7 +84,8 @@ CONFIG_INSTANCE_DICT = {
     "DIR": DirectionConfig,
     "LOG": ControlConfig,
     "LBL": ControlConfig,
-    "Map": ControlConfig
+    "Map": ControlConfig,
+    "TBL": TableConfig
 }
 
 
