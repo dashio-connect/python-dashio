@@ -200,6 +200,7 @@ class LabelStyle(Enum):
     BASIC = "BASIC"
     GROUP = "GROUP"
     BORDER = "BORDER"
+    FILL = "FILL"
 
 
 class KnobStyle(Enum):

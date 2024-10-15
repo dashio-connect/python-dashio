@@ -555,6 +555,7 @@ class Device(threading.Thread):
         self._device_commands_dict['CFG'] = self._make_cfg64
         self.controls_dict = {}
         self._cfg = {}
+        self._cfg["deviceSetup"] = ''
         self._device_id_str = f"\t{device_id}"
         self._cfg["numDeviceViews"] = 0
         if cfg_dict is not None:
