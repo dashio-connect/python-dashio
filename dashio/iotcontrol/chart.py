@@ -40,7 +40,7 @@ class ChartLine:
             self.axis_side = 'right'
 
     def get_line_data(self):
-        """Returns the line data formated for the iotdashboard app
+        """Returns the line data formatted for the iotdashboard app
 
         Returns
         -------
@@ -267,7 +267,7 @@ class Chart(Control):
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
-        """Instatiates Chart from cfg dictionary
+        """Instantiates Chart from cfg dictionary
 
         Parameters
         ----------

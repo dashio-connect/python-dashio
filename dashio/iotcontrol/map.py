@@ -50,7 +50,7 @@ class MapLocation:
         peak_speed : str, optional
             Peak speed, by default None
         course : str, optional
-            couse, by default None
+            course, by default None
         altitude : str, optional
             altitude, by default None
         distance : str, optional
@@ -179,7 +179,7 @@ class Map(Control):
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
-        """Instatiates Map from cfg dictionary
+        """Instantiates Map from cfg dictionary
 
         Parameters
         ----------

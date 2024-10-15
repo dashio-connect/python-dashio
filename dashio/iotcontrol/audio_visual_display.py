@@ -63,7 +63,7 @@ class AudioVisualDisplay(Control):
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
-        """Instatiates Button from cfg dictionary
+        """Instantiates Button from cfg dictionary
 
         Parameters
         ----------

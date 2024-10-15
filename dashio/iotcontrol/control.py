@@ -165,8 +165,8 @@ class ControlPosition:
 
     def __init__(self, x_position_ratio: float, y_position_ratio: float, width_ratio: float, height_ratio: float):
         """The ControlPosition class describes the location and size of a control on a DeviceView. The
-        x_postion and y_position ratio place the top left hand corner of the control. The width and height ratio
-        describe the controls size. The ratio is a number betwwen 0 and 1 representing the width and height of the
+        x_position and y_position ratio place the top left hand corner of the control. The width and height ratio
+        describe the controls size. The ratio is a number between 0 and 1 representing the width and height of the
         DeviceView.
 
         Parameters
@@ -258,7 +258,7 @@ class ControlConfig:
 
     @classmethod
     def from_dict(cls, cfg_dict: dict):
-        """Instatiates Dial from cfg dictionary
+        """Instantiates Dial from cfg dictionary
 
         Parameters
         ----------
@@ -281,7 +281,7 @@ class ControlConfig:
 
     @property
     def parent_id(self) -> str:
-        """The parent control or deviceview this control belongs to
+        """The parent control or device view this control belongs to
 
         Returns
         -------
@@ -367,7 +367,7 @@ class Control():
         return cfg_list
 
     def add_config(self, config, column_no=1):
-        """Add a duplicate Config for dashio Apps with wider screens"""
+        """Add a duplicate Config for DashIO Apps with wider screens"""
         config.cfg["controlID"] = self.control_id
         if 1 <= column_no <= self._cfg_max_no_columns:
             self._app_columns_cfg[str(column_no)].append(config)
@@ -389,7 +389,7 @@ class Control():
         self._message_tx_event -= callback
 
     def __init__(self, cntrl_type: str, control_id: str):
-        """Control base type - all controls have these charactoristics and methods.
+        """Control base type - all controls have these characteristics and methods.
 
         Parameters
         ----------
@@ -440,7 +440,7 @@ class Control():
     #  Use getter, setter properties to store the settings in the config dictionary
     @property
     def parent_id(self, index=0, column_no=1) -> str:
-        """The parent control or deviceview this control belongs to
+        """The parent control or device view this control belongs to
 
         Returns
         -------

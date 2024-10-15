@@ -164,12 +164,12 @@ class Direction(Control):
 
     @property
     def cal_angle(self):
-        """Retturns the calibration angle"""
+        """Returns the calibration angle"""
         return self._cal_angle
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
-        """Instatiates Direction from cfg dictionary
+        """Instantiates Direction from cfg dictionary
 
         Parameters
         ----------

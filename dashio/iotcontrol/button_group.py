@@ -135,7 +135,7 @@ class ButtonGroup(Control):
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
-        """Instatiates ButtonGroup from cfg dictionary
+        """Instantiates ButtonGroup from cfg dictionary
 
         Parameters
         ----------

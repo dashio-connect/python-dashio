@@ -125,7 +125,7 @@ class Menu(Control):
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
-        """Instatiates Menu from cfg dictionary
+        """Instantiates Menu from cfg dictionary
 
         Parameters
         ----------

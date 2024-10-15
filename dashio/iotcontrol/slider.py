@@ -234,7 +234,7 @@ class Slider(Control):
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
-        """Instatiates Slider from cfg dictionary
+        """Instantiates Slider from cfg dictionary
 
         Parameters
         ----------

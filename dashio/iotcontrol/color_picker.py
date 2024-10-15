@@ -117,7 +117,7 @@ class ColorPicker(Control):
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
-        """Instatiates ColorPicker from cfg dictionary
+        """Instantiates ColorPicker from cfg dictionary
 
         Parameters
         ----------

@@ -40,7 +40,7 @@ class EventData:
         Parameters
         ----------
 
-        lines : str max 25 lines long. Each line is seperated by '\n'
+        lines : str max 25 lines long. Each line is separated by '\n'
         color : Color, optional
             The color to display this data point on the iotdashboard app, by default Color.WHITE
         """
@@ -105,8 +105,8 @@ class EventLog(Control):
         control_position : ControlPosition, optional
             The position of the control on a DeviceView, by default None
         max_log_entries : int, optional
-            The EventLog usues a ring buffer for data entries this dfines the number of
-            entries before over wrting older entires, by default 100
+            The EventLog uses a ring buffer for data entries this defines the number of
+            entries before over writing older entires, by default 100
         column_no : int, optional default is 1. Must be 1..3
             The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into.
             Each control can store three configs that define how the device looks for Dash apps installed on single column
@@ -121,7 +121,7 @@ class EventLog(Control):
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
-        """Instatiates Menu from cfg dictionary
+        """Instantiates Menu from cfg dictionary
 
         Parameters
         ----------

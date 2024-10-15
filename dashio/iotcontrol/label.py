@@ -114,7 +114,7 @@ class Label(Control):
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
-        """Instatiates a label from cfg dictionary
+        """Instantiates a label from cfg dictionary
 
         Parameters
         ----------

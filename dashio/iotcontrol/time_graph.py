@@ -146,7 +146,7 @@ class TimeGraphLine:
         return data_str
 
     def add_data_point(self, data):
-        """Add and sends a datapoint to the line. It automatically timestamps to the current time.
+        """Add and sends a DataPoint to the line. It automatically timestamps to the current time.
 
         Parameters
         ----------
@@ -167,12 +167,12 @@ class TimeGraphLine:
         self.data.append(dp_break)
 
     def get_latest_data(self) -> str:
-        """Get the last inserted datapoint
+        """Get the last inserted DataPoint
 
         Returns
         -------
         str
-            The last datapoint
+            The last DataPoint
         """
         if self.data.empty():
             return ""
@@ -216,7 +216,7 @@ class TimeGraphConfig(ControlConfig):
 
         Returns
         -------
-        SliderConfig
+        TimeGraphConfig
         """
         tmp_cls = cls(
             cfg_dict["controlID"],
@@ -254,7 +254,7 @@ class TimeGraph(Control):
         control_position=None,
         column_no=1
     ):
-        """A Timegraph control
+        """A TimeGraph control
 
         Parameters
         ----------
@@ -332,7 +332,7 @@ class TimeGraph(Control):
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
-        """Instatiates TimeGraph from cfg dictionary
+        """Instantiates TimeGraph from cfg dictionary
 
         Parameters
         ----------

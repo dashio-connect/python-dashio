@@ -115,7 +115,7 @@ class Button(Control):
         Updates the button state, button icon and text.
 
     from_cfg_dict(cfg_dict: dict) :
-        Instatiates Button from cfg dictionary
+        Instantiates Button from cfg dictionary
     """
 
     def toggle_btn(self):
@@ -164,7 +164,7 @@ class Button(Control):
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
-        """Instatiates Button from cfg dictionary
+        """Instantiates Button from cfg dictionary
 
         Parameters
         ----------

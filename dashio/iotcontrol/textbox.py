@@ -74,7 +74,7 @@ class TextBoxConfig(ControlConfig):
 
         Returns
         -------
-        SliderConfig
+        TextBoxConfig
         """
         tmp_cls = cls(
             cfg_dict["controlID"],
@@ -129,7 +129,7 @@ class TextBox(Control):
         text : str, optional
             Text for the textbox, by default ""
         text_align : TextAlignment, optional
-            Text alaignment, by default TextAlignment.LEFT
+            Text alignment, by default TextAlignment.LEFT
         text_format : TextFormat, optional
             Format of the text, by default TextFormat.NONE
         units : str, optional
@@ -175,7 +175,7 @@ class TextBox(Control):
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
-        """Instatiates TextBox from cfg dictionary
+        """Instantiates TextBox from cfg dictionary
 
         Parameters
         ----------

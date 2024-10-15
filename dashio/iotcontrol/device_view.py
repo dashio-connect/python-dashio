@@ -110,7 +110,7 @@ class DeviceViewConfig(ControlConfig):
 
 
 class DeviceView(Control):
-    """A DeviceView provides a control that descibes appearance and style of the group of controls
+    """A DeviceView provides a control that describes appearance and style of the group of controls
         that are displayed on this DeviceView by the iotdashboard app.
 
     Attributes
@@ -126,7 +126,7 @@ class DeviceView(Control):
         The Icon representing the DeviceView
     color : Color
         The color of the DeviceView
-    share_column : Booloan
+    share_column : Boolean
         Something something
     num_columns : int
         Number of columns for DeviceView
@@ -200,7 +200,7 @@ class DeviceView(Control):
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
-        """Instatiates DeviceView from cfg dictionary
+        """Instantiates DeviceView from cfg dictionary
 
         Parameters
         ----------
