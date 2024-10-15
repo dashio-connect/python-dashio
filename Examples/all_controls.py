@@ -30,25 +30,26 @@ import time
 import json
 import dashio
 
-DEVICE_CFG64 = "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"
+DEVICE_CFG64 = "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"
 
 
 class AllControls:
@@ -123,6 +124,7 @@ class AllControls:
         self.tcp_con = dashio.TCPConnection()
         self.device = dashio.Device("AllControlsTest", args.device_id, args.device_name, cfg_dict=config_dict)
         self.device.use_cfg64()
+        self.device.config_revision = 5
         self.tcp_con.add_device(self.device)
 
         self.avd: dashio.AudioVisualDisplay = self.device.get_control(dashio.ControlName.AVD, "AV1")
