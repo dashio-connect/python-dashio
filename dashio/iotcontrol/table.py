@@ -22,12 +22,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from __future__ import annotations
+import logging
 from ..constants import BAD_CHARS
 from .control import Control, ControlPosition, ControlConfig, _get_title_position, _get_precision
 from .enums import (
     Precision,
     TitlePosition
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 class TableConfig(ControlConfig):
@@ -244,9 +248,10 @@ class Table(Control):
         row_number : int
             The row to clear
         """
-        self._rows[row_number] = None
-        header_str = self._control_hdr_str + f"{row_number}\n"
-        self.state_str = header_str
+        if 0 <= row_number < len(self._rows):
+            self._rows[row_number] = None
+            header_str = self._control_hdr_str + f"{row_number}\n"
+            self.state_str = header_str
 
     def clear_table(self):
         """Clears the table

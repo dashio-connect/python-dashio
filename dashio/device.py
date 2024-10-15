@@ -255,7 +255,6 @@ class Device(threading.Thread):
                         new_control = CONTROL_INSTANCE_DICT[control_type].from_cfg_dict(control, column_no=column_no)
                         self.add_control(new_control)
             elif control_type == "CFG" and isinstance(control_list, dict):
-                logger.debug("CFG: %s", control_list)
                 if 'name' in control_list['deviceSetup']:
                     self._set_device_setup("name", True)
                     self.set_name_callback(self._name_callback)
