@@ -277,7 +277,6 @@ class Device(threading.Thread):
         key = f"{iot_control.cntrl_type}\t{iot_control.control_id}"
 
         if key not in self.controls_dict:
-            self.inc_config_revision()
             if isinstance(iot_control, DeviceView):
                 self._cfg["numDeviceViews"] += 1
             self.controls_dict[key] = iot_control
