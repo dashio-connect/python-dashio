@@ -164,7 +164,7 @@ class Table(Control):
         self._max_columns = columns
 
     def get_state(self):
-        return "".join(map(self._send_row, self._rows))
+        return "".join([self._send_row(indx, row) for indx, row in enumerate(self._rows)])
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
@@ -194,23 +194,25 @@ class Table(Control):
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls
 
-    def _send_row(self, table_row: TableRow) -> str:
+    def _send_row(self, row_number: int, table_row: TableRow | None) -> str:
         header_str = self._control_hdr_str
+        if table_row is None:
+            return f"{header_str}{row_number}\n"
         columns = '\t'.join(map(str, table_row.columns[:self._max_columns - 1]))
         if table_row.units is not None:
             row_label = table_row.label
             if table_row.label is None:
                 row_label = ""
-            return f"{header_str}{len(self._rows)}\t{columns}\t{row_label}\t{table_row.units}\n"
+            return f"{header_str}{row_number}\t{columns}\t{row_label}\t{table_row.units}\n"
         else:
             if table_row.label is None:
-                return f"{header_str}{len(self._rows)}\t{columns}\n"
-            return f"{header_str}{len(self._rows)}\t{columns}\t{row_label}\n"
+                return f"{header_str}{row_number}\t{columns}\n"
+            return f"{header_str}{row_number}\t{columns}\t{row_label}\n"
 
     def add_table_row(self, table_row: TableRow):
         """Add a row to the table and send it"""
         self._rows.append(table_row)
-        self.state_str = self._send_row(table_row)
+        self.state_str = self._send_row(len(self._rows) - 1, table_row)
 
     def update_table_row(self, table_row: TableRow, row_number: int) -> int:
         """Update the row at row_number. If it doesn't exist then append it.
@@ -229,7 +231,27 @@ class Table(Control):
         """
         if row_number < len(self._rows):
             self._rows[row_number] = table_row
+            self.state_str = self._send_row(row_number, table_row)
             return row_number
         self._rows.append(table_row)
-        self.state_str = self._send_row(table_row)
-        return len(self._rows)
+        self.state_str = self._send_row(len(self._rows) - 1, table_row)
+        return len(self._rows - 1)
+
+    def clear_row(self, row_number: int):
+        """Clears the row at row_numer
+
+        Parameters
+        ----------
+        row_number : int
+            The row to clear
+        """
+        self._rows[row_number] = None
+        header_str = self._control_hdr_str + f"{row_number}\n"
+        self.state_str = header_str
+
+    def clear_table(self):
+        """Clears the table
+        """
+        self._rows = []
+        header_str = self._control_hdr_str + '\n'
+        self.state_str = header_str
