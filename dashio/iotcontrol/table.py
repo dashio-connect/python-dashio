@@ -143,10 +143,9 @@ class Table(Control):
             phones or 2 column fold out phones or 3 column tablets.
         """
         super().__init__("TBL", control_id)
-        if column_headings is None:
-            self.column_headings = None
-        else:
-            self.column_headings = [heading.translate(BAD_CHARS) for heading in column_headings]
+        ch = column_headings
+        if column_headings is not None:
+            ch = [heading.translate(BAD_CHARS) for heading in column_headings]
         self._app_columns_cfg[str(column_no)].append(
             TableConfig(
                 control_id,
@@ -156,7 +155,7 @@ class Table(Control):
                 font_size,
                 label_width_percent,
                 columns,
-                self.column_headings,
+                ch,
                 control_position
             )
         )
@@ -235,7 +234,7 @@ class Table(Control):
             return row_number
         self._rows.append(table_row)
         self.state_str = self._send_row(len(self._rows) - 1, table_row)
-        return len(self._rows - 1)
+        return len(self._rows)-1
 
     def clear_row(self, row_number: int):
         """Clears the row at row_numer
