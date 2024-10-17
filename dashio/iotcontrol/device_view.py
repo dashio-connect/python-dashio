@@ -47,6 +47,7 @@ class DeviceViewConfig(ControlConfig):
         control_background_transparency: int,
         num_grid_columns: int,
         num_grid_rows: int,
+        user_tappable_color: Color | str = ''
     ) -> None:
         super().__init__(control_id, title, control_position=None, title_position=None)
         self.cfg["iconName"] = icon_name.value
@@ -73,6 +74,7 @@ class DeviceViewConfig(ControlConfig):
             raise ValueError("Value must be in the range 0 to 100")
         self.cfg["gridColumns"] = num_grid_columns
         self.cfg["gridRows"] = num_grid_rows
+        self.cfg["ctrlUItapColor"] = _get_color_str(user_tappable_color)
 
     @classmethod
     def from_dict(cls, cfg_dict: dict):
