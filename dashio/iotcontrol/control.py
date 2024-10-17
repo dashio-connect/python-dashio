@@ -49,6 +49,8 @@ def _get_color_str(color: str | Color) -> str:
 
 
 def _get_color(color_str: str) -> Color | str:
+    if color_str == '':
+        return color_str
     if color_str[0] == '#':
         return color_str
     color_name = color_str.upper().replace(" ", "_")
