@@ -12,7 +12,7 @@ cfg64 = "jVTbjpswEP2VlZ9RlWS7qcQbhJCNwiUCN6lU9YEFb7ACdmrMJukq/94xhpCbqr4NZ8bj4zl
 
 
 config_dict = dashio.decode_cfg64(cfg64)
-device = dashio.Device("aDeviceType", "aDeviceID", "aDeviceName", cfg_dict=config_dict)
+device = dashio.Device("aDeviceType", "aDeviceID2", "aDeviceName1", cfg_dict=config_dict)
 tcp_con = dashio.TCPConnection()
 tcp_con.add_device(device)
 

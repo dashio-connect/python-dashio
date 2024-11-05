@@ -254,7 +254,7 @@ class TestControls:
             time.sleep(1)
             count += 1
             if count > 9:
-                # self.comp_control.direction_value = random.random() * 360
+                self.comp_control.direction_value = random.random() * 360
                 count = 0
 
         self.dcm.close()
