@@ -119,7 +119,7 @@ class Table(Control):
         control_position=None,
         column_no=1
     ):
-        """A Table control
+        """Table control
 
         Parameters
         ----------
@@ -130,14 +130,14 @@ class Table(Control):
         control_position : ControlPosition, optional
             The position of the control on a DeviceView, by default None
         title_position : TitlePosition, optional
-            Position of the title when displayed on the iotdashboard app, by default None
+            Position of the title when displayed on the **Dash** app, by default None
         precision : Precision, optional
             precision, by default Precision.OFF
         font_size : int, by default 12
             The size of the font.
         label_width_percent : int
             Label width as a percent.
-        colmns : int
+        columns : int
             Number of table columns including the label.
         column_headings : List
             The headings for the table columns.
@@ -171,7 +171,7 @@ class Table(Control):
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
-        """Instatiates TextBox from cfg dictionary
+        """Instantiates TextBox from cfg dictionary
 
         Parameters
         ----------
@@ -241,7 +241,7 @@ class Table(Control):
         return len(self._rows)-1
 
     def clear_row(self, row_number: int):
-        """Clears the row at row_numer
+        """Clears the row at row_number
 
         Parameters
         ----------

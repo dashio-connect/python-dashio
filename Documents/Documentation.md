@@ -18,10 +18,10 @@ A Device is a collection of [Controls](#controls) and [DeviceViews](#deviceview)
 * *get_control(control_type, control_id).* Returns control loaded into the device.
 * *remove_control(control_type, control_id).* Removes the control from the device.
 * *is_control_loaded(iot_control).* Returns boolean if the control is loaded in the device.
-* *use_cfg64().* Generate a CFG64 formated CFG message.
-* *use_cfg().* Generate JSON formated CFG messages.
+* *use_cfg64().* Generate a CFG64 formatted CFG message.
+* *use_cfg().* Generate JSON formatted CFG messages.
 * *close().* Close the device.
-* *add_all_c64_controls(c64_dict, column_no).* Add all controls defned in the c64_dict into the Device, the the configs are put into 1 of three column_no. Each device can store three configs that define how the device looks for Dash apps installed on single column phones or 2 column fold out phones or 3 column tablets. The default is for single column.
+* *add_all_c64_controls(c64_dict, column_no).* Add all controls defined in the c64_dict into the Device, the the configs are put into 1 of three column_no. Each device can store three configs that define how the device looks for Dash apps installed on single column phones or 2 column fold out phones or 3 column tablets. The default is for single column.
 
 ### Device Callback Methods
 
@@ -40,19 +40,19 @@ These callbacks are used to setup and configure connections by the **Dash** app.
 
 ## Controls
 
-Controls are objects that represent actions and widgets in the DashIO application. All controls have a ControlID, Title, and TitlePosition. The ControlID should be a string that can uniquely identifiy that control per device. The control Title is text that is displayed on the **Dash** app with the Contol. The TitlePosition can be either `TitlePosition.TOP`, `TitlePosition.BOTTOM`, or `TitlePosition.NONE`. Controls that are displayed have a `dashio.ControlPosition` that is composed of four size and position variables: x_position_ratio, y_position_ratio, width_ratio, height_ratio. The first two are position ratios that place the top left corner of the widget on the DeviceView. The last two are ratios that govern the size of the widget. The ratios are propertional to the size of the screen with the full size of the screen representing 1.0. All controls have a callback that is used to return messages from the **Dash** app. Controls on the **Dash** app can have a graphical duplicate that may have a different set of *Config* attributes. This is achieved by adding that controls ControlControl with add_config_columnar(ControlControl).
+Controls are objects that represent actions and widgets in the DashIO application. All controls have a ControlID, Title, and TitlePosition. The ControlID should be a string that can uniquely identify that control per device. The control Title is text that is displayed on the **Dash** app with the Control. The TitlePosition can be either `TitlePosition.TOP`, `TitlePosition.BOTTOM`, or `TitlePosition.NONE`. Controls that are displayed have a `dashio.ControlPosition` that is composed of four size and position variables: x_position_ratio, y_position_ratio, width_ratio, height_ratio. The first two are position ratios that place the top left corner of the widget on the DeviceView. The last two are ratios that govern the size of the widget. The ratios are proportional to the size of the screen with the full size of the screen representing 1.0. All controls have a callback that is used to return messages from the **Dash** app. Controls on the **Dash** app can have a graphical duplicate that may have a different set of *Config* attributes. This is achieved by adding that controls ControlControl with add_config_columnar(ControlControl).
 
 Controls have two main types of attributes.
 
 1) *Config Attributes*. These attributes define the look and placement of the control. They are used to generate the config information sent to the **Dash** app when it issues a CFG command to the device, these are set in *init*.
 
-2) *Messaging Atttributes*. Setting these attributes send messages to the **Dash** app controlling the visable appearance of the control.
+2) *Messaging Atttributes*. Setting these attributes send messages to the **Dash** app controlling the visible appearance of the control.
 
-When controls are instantiated they create a ControlControl to add to its layout. More layouts can be added by creating a ControlConfig for that control and adding it with add_config_columnar(ControlConfig) or add_config_full_page(ControlConfig). This allows you to have two layouts - a columnar layout for phones and another for tablets. If you use a add_config_full_page layout then you will need to set the number of columns it uses with set_no_culumns_full_page().
+When controls are instantiated they create a ControlControl to add to its layout. More layouts can be added by creating a ControlConfig for that control and adding it with add_config_columnar(ControlConfig) or add_config_full_page(ControlConfig). This allows you to have two layouts - a columnar layout for phones and another for tablets. If you use a add_config_full_page layout then you will need to set the number of columns it uses with set_no_columns_full_page().
 
 ### DeviceView
 
-A DeviceView provides a control that descibes appearance and style of the group of controls that are displayed on this DeviceView by the iotdashboard app.
+A DeviceView provides a control that describes appearance and style of the group of controls that are displayed on this DeviceView by the **Dash** app.
 
 #### DeviceView Attributes
 
@@ -63,12 +63,13 @@ All of these attributes are config attributes.
 * *style : DeviceViewStyle.* The style of the DeviceView.
 * *icon : Icon.* The Icon representing the DeviceView.
 * *color : Color.* The color of the DeviceView.
-* *share_column : Booloan.* If there is space can another DeviceView us it.
+* *share_column : Boolean.* If there is space can another DeviceView us it.
 * *num_columns : int.* Number of columns for DeviceView.
 * *control_title_box_color : Color.* Title box color for controls.
 * *control_title_box_transparency : int.* Title box transparency for controls.
 * *num_grid_columns : int.* The num of grid columns on the edit view.
 * *num_grid_rows : int.* The num of grid rows on the edit view.
+* *user_tappable_color : Color.*  The color of user table buttons on screen in controls
 * *column_no : int.* Optional default is 1. Must be 1..3. The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into. Each control can store three configs that define how the device looks for Dash apps installed on single column phones or 2 column fold out phones or 3 column tablets.
 
 #### DeviceView Methods
@@ -83,7 +84,7 @@ alarm = dashio.Alarm("alarm1_ID")
 alarm.send("Alarm Header", "Alarm Body")
 ```
 
-An alarm sends a notification throught the dashio mqtt server to registered phones. The ability to send alarms to specific phones, and the notification sound can be configured through the **Dash** app. Alarms are only available if you have an account registered on the **Dash** server and you send the the alarm through a dash connection.
+An alarm sends a notification through the dashio mqtt server to registered phones. The ability to send alarms to specific phones, and the notification sound can be configured through the **Dash** app. Alarms are only available if you have an account registered on the **Dash** server and you send the the alarm through a dash connection.
 
 #### Alarm Config Attributes
 
@@ -105,7 +106,7 @@ the contents of the URL. The URL may be a video or audio stream or an image.
 * *control_id : str.* An unique control identity string. The control identity string must be a unique string for each control per device
 * *title : str, optional.* Title of the control, by default None
 * *control_position : ControlPosition, optional.* The position of the control on a DeviceView, by default None
-* *title_position : TitlePosition, optional.* Position of the title when displayed on the iotdashboard app, by default None
+* *title_position : TitlePosition, optional.* Position of the title when displayed on the **Dash** app, by default None
 
 #### Audio Visual Display Message Attributes
 
@@ -155,7 +156,7 @@ When these attributes are set the button control will transmit the new value to 
 
 #### Button Callbacks
 
-* *add_receive_message_callback(callback):* Add callback to handle the message from the **Dash** app. The callback recieves a list formed by splitting the message from the **Dash** app on the tab character.
+* *add_receive_message_callback(callback):* Add callback to handle the message from the **Dash** app. The callback receives a list formed by splitting the message from the **Dash** app on the tab character.
 
 ### Button Group
 
@@ -170,7 +171,7 @@ A ButtonGroup control is used to present a popup grid or table of Button control
 * *style : ButtonGroupStyle*. Can be ButtonGroupStyle.BASIC, ButtonGroupStyle.HIGHLIGHT.
 * *text : str.* The text that appears on the ButtonGroup
 * *control_position : ControlPosition, optional.* The position of the control on a DeviceView, by default None.
-* *title_position : TitlePosition, optional.* Position of the title when displayed on the iotdashboard app, by default None
+* *title_position : TitlePosition, optional.* Position of the title when displayed on the **Dash** app, by default None
 * *icon : Icon*. Set the icon for the button.
 * *grid_view : Bool*. Defaults to True.
 * *column_no : int.* Optional default is 1. Must be 1..3. The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into. Each control can store three configs that define how the device looks for Dash apps installed on single column phones or 2 column fold out phones or 3 column tablets.
@@ -183,19 +184,18 @@ A ButtonGroup control is used to present a popup grid or table of Button control
 
 ### Color Picker
 
-A ColorPicker control is used to select a colour to send to the IoT device. The Colour Picker may
-be shown as either a spectrum or as a colour wheel and brightness slider.
+A ColorPicker control is used to select a color to send to the IoT device. The Color Picker may
+be shown as either a spectrum or as a color wheel and brightness slider.
 
 #### Color Picker Config Attributes
 
 * *control_id : str.* An unique control identity string. The control identity string must be a unique string for each control per device.
 * *title : str, optional*. Title of the control, by default None.
 * *control_position : ControlPosition, optional.* The position of the control on a DeviceView, by default None.
-* *title_position : TitlePosition, optional.* Position of the title when displayed on the iotdashboard app, by default None
+* *title_position : TitlePosition, optional.* Position of the title when displayed on the **Dash** app, by default None
 * *picker_style: ColorPickerStyle, optional.* The style of color picker to use.
 * *send_only_on_release: Boolean.* Send only on release, by default True
 * *column_no : int.* Optional default is 1. Must be 1..3. The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into. Each control can store three configs that define how the device looks for Dash apps installed on single column phones or 2 column fold out phones or 3 column tablets.
-
 
 #### Color Picker Message Attributes
 
@@ -209,7 +209,7 @@ be shown as either a spectrum or as a colour wheel and brightness slider.
 
 #### Color Picker Callbacks
 
-* *add_receive_message_callback(callback):* Add callback to handle the message from the **Dash** app. The callback recieves a list formed by splitting the message from the **Dash** app on the tab character.
+* *add_receive_message_callback(callback):* Add callback to handle the message from the **Dash** app. The callback receives a list formed by splitting the message from the **Dash** app on the tab character.
 
 ### Direction
 
@@ -222,7 +222,7 @@ A Direction display is used to graphically present a decimal direction value fro
 * *control_id : str.* An unique control identity string. The control identity string must be a unique string for each control per device.
 * *title : str, optional.* Title of the control, by default "A Control".
 * *control_position : ControlPosition, optional* The position of the control on a DeviceView, by default None
-* *title_position : TitlePosition, optional.* Position of the title when displayed on the iotdashboard app, by default None.
+* *title_position : TitlePosition, optional.* Position of the title when displayed on the **Dash** app, by default None.
 * *\style : DirectionStyle, optional.* The Direction style to display, by default DirectionStyle.DEG.
 * *pointer_color : Color, optional.* Color of the pointer, by default Color.GREEN.
 * *units : str, optional.* Units to be displayed with the value, by default "".
@@ -242,7 +242,7 @@ A Direction display is used to graphically present a decimal direction value fro
 
 #### Direction Callbacks
 
-* *add_receive_message_callback(callback):* Add callback to handle the message from the **Dash** app. The callback recieves a list formed by splitting the message from the **Dash** app on the tab character.
+* *add_receive_message_callback(callback):* Add callback to handle the message from the **Dash** app. The callback receives a list formed by splitting the message from the **Dash** app on the tab character.
 
 ### Dial
 
@@ -255,7 +255,7 @@ A Dial display is used to present a numerical value in a graphical circular dial
 * *control_id : str.* An unique control identity string. The control identity string must be a unique string for each control per device.
 * *title : str, optional.* Title of the control, by default None.
 * *control_position : ControlPosition, optional.* The position of the control on a DeviceView, by default None.
-* *title_position : TitlePosition, optional.* Position of the title when displayed on the iotdashboard app, by default None.
+* *title_position : TitlePosition, optional.* Position of the title when displayed on the **Dash** app, by default None.
 * *dial_min : float, optional.* Minimum dial position, by default 0.0.
 * *dial_max : float, optional.* Maximum dial position, by default 100.0.
 * *red_value : float, optional.* Position for red part of dial, by default 75.0.
@@ -295,22 +295,22 @@ An EventData object is a single event used by the EventLog.
 
 ##### Attributes
 
-* *lines : str.* Max 25 lines long. Each line is seperated by '\n'
-* *color : Color, optional.* The color to display this data point on the iotdashboard app, by default Color.WHITE
+* *lines : str.* Max 25 lines long. Each line is separated by '\n'
+* *color : Color, optional.* The color to display this data point on the **Dash** app, by default Color.WHITE
 
 #### Event Log Config Attributes
 
 * *control_id : str.* A unique identifier for this control
-* *title : str, optional.*  The title for this control will be displayed on the iotdashboard app, by default "An Event Log".
+* *title : str, optional.*  The title for this control will be displayed on the **Dash** app, by default "An Event Log".
 * *title_position : TitlePosition, optional.* The position of the title, by default TitlePosition.BOTTOM
 * *control_position : ControlPosition, optional.* The position of the control on a DeviceView, by default None
-* *max_log_entries : int, optional.* The EventLog usues a ring buffer for data entries this dfines the number entries before over wrting older entires, by default 100.
+* *max_log_entries : int, optional.* The EventLog uses a ring buffer for data entries this defines the number entries before over writing older entires, by default 100.
 * *column_no : int.* Optional default is 1. Must be 1..3. The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into. Each control can store three configs that define how the device looks for Dash apps installed on single column phones or 2 column fold out phones or 3 column tablets.
 
 #### Event Log Methods
 
-* *add_event_data(self, data: EventData):.* Add a data point to the log and send it to any connected iotdashboard app.
-* *send_data(self).* Send the latest log entry to any connected iotdashboard app.
+* *add_event_data(self, data: EventData):.* Add a data point to the log and send it to any connected **Dash** app.
+* *send_data(self).* Send the latest log entry to any connected **Dash** app.
 * *from_cfg_dict(cls, cfg_dict: dict):*  Instantiate an EventLog as defined from the dictionary. [See Helper Functions](#helper-functions) for tools to use the CFG64 txt generated by exporting a layout from the **Dash** app.
 
 ### Chart
@@ -345,7 +345,7 @@ An GraphLine object represents a line for a Chart.
 #### Chart Config Attributes
 
 * *control_id : str.* A unique identifier for this control.
-* *title : str, optional.* The title for this control will be displayed on the iotdashboard app, by default "A Chart".
+* *title : str, optional.* The title for this control will be displayed on the **Dash** app, by default "A Chart".
 * *title_position : TitlePosition, optional.* The position of the title, by default TitlePosition.BOTTOM.
 * *x_axis_label : str, optional.* The label for the X axis, by default "".
 * *x_axis_min : float, optional.* Min value for the X axis, by default 0.0.
@@ -381,7 +381,7 @@ The IoT device may send messages to update both the dial and knob positions.
 #### Knob Config Attributes
 
 * *control_id : str.* A unique identifier for this control.
-* *title : str, optional.* The title for this control will be displayed on the iotdashboard app, by default "A Knob".
+* *title : str, optional.* The title for this control will be displayed on the **Dash** app, by default "A Knob".
 * *title_position : TitlePosition, optional.* The position of the title, by default TitlePosition.BOTTOM.
 * *knob_style : KnobStyle, optional.* The Knob style, by default KnobStyle.NORMAL.
 * *dial_min : float, optional.* Minimum dial value, by default 0.0.
@@ -406,7 +406,7 @@ The IoT device may send messages to update both the dial and knob positions.
 
 #### Knob Callbacks
 
-* *add_receive_message_callback(callback):* Add callback to handle the message from the **Dash** app. The callback recieves a list formed by splitting the message from the **Dash** app on the tab character.
+* *add_receive_message_callback(callback):* Add callback to handle the message from the **Dash** app. The callback receives a list formed by splitting the message from the **Dash** app on the tab character.
 
 ### Label
 
@@ -419,7 +419,7 @@ A Label is a simple control to add structure to your layout on the dashboard. La
 * *control_id : str.* An unique control identity string. The control identity string must be a unique string for each control per device.
 * *title : str, optional.*  Title of the control, by default "A Label".
 * *control_position : ControlPosition, optional.* The position of the control on a DeviceView, by default None
-* *title_position : TitlePosition, optional.* Position of the title when displayed on the iotdashboard app, by default None.
+* *title_position : TitlePosition, optional.* Position of the title when displayed on the **Dash** app, by default None.
 * *color : Color, optional.* Color of the label, by default Color.WHITE.
 * *style : LabelStyle, optional.* Style of label to be displayed, by default LabelStyle.BASIC
 * *column_no : int.* Optional default is 1. Must be 1..3. The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into. Each control can store three configs that define how the device looks for Dash apps installed on single column phones or 2 column fold out phones or 3 column tablets.
@@ -450,7 +450,7 @@ Controls that can be included in a Menu control are Text Boxes, Sliders, Selecto
 * *title : str, optional.* Title of the control, by default "A Menu"
 * *style : MenuStyle*. Can be MenuStyle.BASIC, MenuStyle.HIGHLIGHT.
 * *control_position : ControlPosition, optional.* The position of the control on a DeviceView, by default None.
-* *title_position : TitlePosition, optional.* Position of the title when displayed on the iotdashboard app, by default None.
+* *title_position : TitlePosition, optional.* Position of the title when displayed on the **Dash** app, by default None.
 * *text : str, optional.* Menu text, by default "A Menu with Text".
 * *icon : Icon, optional.* Menu icon, by default Icon.MENU.
 * *column_no : int.* Optional default is 1. Must be 1..3. The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into. Each control can store three configs that define how the device looks for Dash apps installed on single column phones or 2 column fold out phones or 3 column tablets.
@@ -473,7 +473,7 @@ Feedback to the user of the dashboard is achieved when the IoT device responds t
 * *control_id : str.* An unique control identity string. The control identity string must be a unique string for each control per device.
 * *title : str, optional.* Title of the control, by default "A Selector".
 * *control_position : ControlPosition, optional.* The position of the control on a DeviceView, by default None.
-* *title_position : TitlePosition, optional.* Position of the title when displayed on the iotdashboard app, by default None.
+* *title_position : TitlePosition, optional.* Position of the title when displayed on the **Dash** app, by default None.
 * *column_no : int.* Optional default is 1. Must be 1..3. The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into. Each control can store three configs that define how the device looks for Dash apps installed on single column phones or 2 column fold out phones or 3 column tablets.
 
 #### Selector Message Attributes
@@ -489,7 +489,7 @@ Feedback to the user of the dashboard is achieved when the IoT device responds t
 
 #### Selector Callbacks
 
-* *add_receive_message_callback(callback):* Add callback to handle the message from the **Dash** app. The callback recieves a list formed by splitting the message from the **Dash** app on the tab character.
+* *add_receive_message_callback(callback):* Add callback to handle the message from the **Dash** app. The callback receives a list formed by splitting the message from the **Dash** app on the tab character.
 
 ### Slider
 
@@ -506,7 +506,7 @@ The knob of the slider may be disabled so that the slider becomes a simple bar g
 * *control_id : str.* An unique control identity string. The control identity string must be a unique string for each control per device.
 * *title : str, optional.* Title of the control, by default "A Single SLider".
 * *control_position : ControlPosition, optional.* The position of the control on a DeviceView, by default None
-* *title_position : TitlePosition, optional.* Position of the title when displayed on the iotdashboard app, by default None.
+* *title_position : TitlePosition, optional.* Position of the title when displayed on the **Dash** app, by default None.
 * *bar_min : float, optional.* The min bar value, by default 0.0.
 * *bar_max : float, optional.* The max bar vale, by default 1000.0
 * *red_value : int, optional.* Bar red value, by default 750
@@ -531,7 +531,32 @@ The knob of the slider may be disabled so that the slider becomes a simple bar g
 
 #### Slider Callbacks
 
-* *add_receive_message_callback(callback):* Add callback to handle the message from the **Dash** app. The callback recieves a list formed by splitting the message from the **Dash** app on the tab character.
+* *add_receive_message_callback(callback):* Add callback to handle the message from the **Dash** app. The callback receives a list formed by splitting the message from the **Dash** app on the tab character.
+
+### Table
+
+The table control displays rows and columns of data with an optional header row.
+
+#### Table Config Attributes
+
+* *control_id : str.* An unique control identity string. The control identity string must be a unique string for each control per device.
+* *title : str, optional.* Title of the control, by default None.
+* *control_position : ControlPosition, optional.* The position of the control on a DeviceView, by default None.
+* *title_position : TitlePosition, optional.* Position of the title when displayed on the **Dash** app, by default None.
+* *precision : Precision, optional.* precision, by default Precision.OFF
+* *font_size : int, by default 12* The size of the font.
+* *label_width_percent : int.* Label width as a percent.
+* *columns : int.* Number of table columns including the label.
+* column_headings : List, The headings for the table columns.
+* *column_no : int.* Optional default is 1. Must be 1..3. The **Dash** app reports its screen size in columns. column_no allows you to specify which column no to load into. Each control can store three configs that define how the device looks for Dash apps installed on single column phones or 2 column fold out phones or 3 column tablets.
+
+#### Table Methods
+
+* *from_cfg_dict(cls, cfg_dict: dict):*  Instantiate a Menu as defined from the dictionary. [See Helper Functions](#helper-functions) for tools to use the CFG64 txt generated by exporting a layout from the **Dash** app.
+* *add_table_row(table_row: TableRow)* Add row to the table and send it.
+* *update_table_row(table_row: TableRow, row_number: int) -> int:* Update the row at row_number. If it doesn't exist then append it. Returns the index of the updated row.
+* *clear_row(self, row_number: int):* Clears the row at row_number.
+* *clear_table(self):* Clears the table.
 
 ### Text Box
 
@@ -546,9 +571,9 @@ The Text Box may also allow the user to input text. Touching the control will pr
 * *control_id : str.* An unique control identity string. The control identity string must be a unique string for each control per device.
 * *title : str, optional.* Title of the control, by default None.
 * *control_position : ControlPosition, optional.* The position of the control on a DeviceView, by default None.
-* *title_position : TitlePosition, optional.* Position of the title when displayed on the iotdashboard app, by default None.
+* *title_position : TitlePosition, optional.* Position of the title when displayed on the **Dash** app, by default None.
 * *text : str, optional.* Text for the textbox, by default "".
-* *text_align : TextAlignment, optional.* Text alaignment, by default TextAlignment.LEFT.
+* *text_align : TextAlignment, optional.* Text alignment, by default TextAlignment.LEFT.
 * *text_format : TextFormat, optional.* Format of the text, by default TextFormat.NONE.
 * *units : str, optional.* Units, by default "".
 * *precision : Precision, optional.* precision, by default Precision.OFF
@@ -571,7 +596,7 @@ CaptionMode.SENT is when the caption shows the last message the user has entered
 
 #### Text Box Callbacks
 
-* *add_receive_message_callback(callback):* Add callback to handle the message from the **Dash** app. The callback recieves a list formed by splitting the message from the **Dash** app on the tab character.
+* *add_receive_message_callback(callback):* Add callback to handle the message from the **Dash** app. The callback receives a list formed by splitting the message from the **Dash** app on the tab character.
 
 ### Time Graph
 
@@ -613,7 +638,7 @@ A TimeGraphLine for a TimeGraph control.
 * *control_id : str.* An unique control identity string. The control identity string must be a unique string for each control per device.
 * *title : str, optional.* Title of the control, by default "A TimeGraph"
 * *control_position : ControlPosition, optional.* The position of the control on a DeviceView, by default None.
-* *title_position : TitlePosition, optional.* Position of the title when displayed on the iotdashboard app, by default None.
+* *title_position : TitlePosition, optional.* Position of the title when displayed on the **Dash** app, by default None.
 * *y_axis_label : str, optional.* Label for the Y axis, by default "Y axis".
 * *y_axis_min. : float , optional.* Min value for the Y axis, by default 0.0.
 * *y_axis_max : float, optional.* Max value for the Y axis, by default 1000.0.
