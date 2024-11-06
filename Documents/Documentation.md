@@ -67,6 +67,12 @@ All of these attributes are config attributes.
 * *num_columns : int.* Number of columns for DeviceView.
 * *control_title_box_color : Color.* Title box color for controls.
 * *control_title_box_transparency : int.* Title box transparency for controls.
+* *control_color : Color*, Set the control color, default is Color.WHITE_SMOKE.
+* *control_border_color : Color.* Set the border color, default is Color.WHITE_SMOKE.
+* *control_background_color: Color.* Set the background color, default is Color.BLACK.
+* *control_title_font_size : int.* Size of the title font, default is 16.
+* *control_max_font_size : int.* Set the maximum font size, default is 20.
+* *control_background_transparency : int.* Background transparency of controls, default is 0.
 * *num_grid_columns : int.* The num of grid columns on the edit view.
 * *num_grid_rows : int.* The num of grid rows on the edit view.
 * *user_tappable_color : Color.*  The color of user table buttons on screen in controls
