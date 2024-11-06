@@ -137,6 +137,18 @@ class DeviceView(Control):
         Title box color for controls
     control_title_box_transparency : int
         Title box transparency for controls
+    control_color : Color, default is Color.WHITE_SMOKE
+        set the control color.
+    control_border_color : Color, default is Color.WHITE_SMOKE
+        Set the border color.
+    control_background_color: Color, default is Color.BLACK,
+        Set the background color.
+    control_title_font_size : int, default is 16
+        Size of the title font.
+    control_max_font_size : int, default is 20
+        Set the maximum font size.
+    control_background_transparency : int, default is 0
+        Background transparency of controls.
     num_grid_columns : int
         The num of grid columns on the edit view
     num_grid_rows : int
