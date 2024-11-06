@@ -332,7 +332,7 @@ Each line can be independently added, deleted or changed by the IoT device. Mult
 ```python
 import dashio
 chart = dashio.Chart("chart1", "Chart")
-cl_line = dashio.ChartLine("Randon Data", dashio.ChartLineType.LINE, color=dashio.Color.BLUE)
+cl_line = dashio.ChartLine("Random Data", dashio.ChartLineType.LINE, color=dashio.Color.BLUE)
 data = np.random.normal(0, 20, 100)
 cl_line.data = data.tolist()
 chart.add_line("line_1", cl_line)
