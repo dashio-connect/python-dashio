@@ -88,13 +88,11 @@ class Button(Control):
         An unique control identity string. The control identity string must be a unique string for each control per device
     title: str
         A short title for the button group
-    text : str
-        The text that appears on the ButtonGroup
     title_position : TitlePosition
         Can be TitlePosition.BOTTOM, TitlePosition.TOP, TitlePosition.OFF
     button_enabled : boolean
         True allows the app to send button events. False disables button pushes
-    stype : ButtonStyle
+    style : ButtonStyle
         The style of the button. Options are ButtonStyle.BASIC, ButtonStyle.HIGHLIGHT
     icon_name : Icon
         Set the icon for the button
@@ -102,6 +100,8 @@ class Button(Control):
         Set the off color
     on_color : Color
         Set the on color
+    text : str
+        The text that appears on the Button.
     control_position : ControlPosition
         Set the size and position of the button on a DeviceView.
     column_no : int, optional default is 1. Must be 1..3
