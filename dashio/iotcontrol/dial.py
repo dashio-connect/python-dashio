@@ -132,7 +132,7 @@ class Dial(Control):
         control_position : ControlPosition, optional
             The position of the control on a DeviceView, by default None
         title_position : TitlePosition, optional
-            Position of the title when displayed on the iotdashboard app, by default None
+            Position of the title when displayed on the **Dash** app, by default None
         dial_min : float, optional
             Minimum dial position, by default 0.0
         dial_max : float, optional

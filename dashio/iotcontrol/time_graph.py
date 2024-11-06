@@ -117,7 +117,7 @@ class TimeGraphLine:
         return f"\t{self.name}\t{self.line_type.value}\t{self.color.value}\t{self.axis_side}\n"
 
     def get_line_from_timestamp(self, timestamp: str) -> str:
-        """Converts data from timestamp to a string formatted for the iotdashboard app
+        """Converts data from timestamp to a string formatted for the **Dash** app
 
         Returns
         -------
@@ -162,6 +162,8 @@ class TimeGraphLine:
             raise TypeError("Not a valid data point")
 
     def add_break(self):
+        """Add graph break to the line.
+        """
         self.timestamp = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
         dp_break = DataPoint("B")
         self.data.append(dp_break)
@@ -265,7 +267,7 @@ class TimeGraph(Control):
         control_position : ControlPosition, optional
             The position of the control on a DeviceView, by default None
         title_position : TitlePosition, optional
-            Position of the title when displayed on the iotdashboard app, by default None
+            Position of the title when displayed on the **Dash** app, by default None
         y_axis_label : str, optional
             Label for the Y axis, by default "Y axis"
         y_axis_min : float, optional
@@ -395,7 +397,7 @@ class TimeGraph(Control):
         return state_str
 
     def send_data(self):
-        """Sends the latest Data to the iotdashboard app.
+        """Sends the latest Data to the **Dash** app.
         """
         state_str = ""
         for key, line in self.line_dict.items():

@@ -124,7 +124,7 @@ class Knob(Control):
         control_id : str
             A unique identifier for this control
         title : str, optional
-            The title for this control will be displayed on the iotdashboard app, by default "A Knob"
+            The title for this control will be displayed on the **Dash** app, by default "A Knob"
         title_position : TitlePosition, optional
             The position of the title, by default TitlePosition.BOTTOM
         knob_style : KnobStyle, optional

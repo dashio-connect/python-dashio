@@ -49,7 +49,7 @@ class Selector(Control):
         control_position : ControlPosition, optional
             The position of the control on a DeviceView, by default None
         title_position : TitlePosition, optional
-            Position of the title when displayed on the iotdashboard app, by default None
+            Position of the title when displayed on the **Dash** app, by default None
         column_no : int, optional default is 1. Must be 1..3
             The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into.
             Each control can store three configs that define how the device looks for Dash apps installed on single column

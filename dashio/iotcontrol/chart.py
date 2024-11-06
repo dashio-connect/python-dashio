@@ -40,7 +40,7 @@ class ChartLine:
             self.axis_side = 'right'
 
     def get_line_data(self):
-        """Returns the line data formatted for the iotdashboard app
+        """Returns the line data formatted for the **Dash** app
 
         Returns
         -------
@@ -133,7 +133,7 @@ class Chart(Control):
     """
 
     def get_state(self):
-        """Called by iotdashboard"""
+        """Called by Device"""
         state_str = ""
         for key, line in self.line_dict.items():
             state_str += self._control_hdr_str + key + line.get_line_data()
@@ -166,7 +166,7 @@ class Chart(Control):
         control_id : str
             A unique identifier for this control
         title : str, optional
-            The title for this control will be displayed on the iotdashboard app, by default "A Chart"
+            The title for this control will be displayed on the **Dash** app, by default "A Chart"
         title_position : TitlePosition, optional
             The position of the title, by default TitlePosition.BOTTOM
         x_axis_label : str, optional
@@ -313,7 +313,7 @@ class Chart(Control):
         self.line_dict[line_id.translate(BAD_CHARS)] = gline
 
     def send_chart(self):
-        """Sends the chart to any connected iotdashboard app.
+        """Sends the chart to any connected  **Dash** app.
         """
         state_str = ""
         for key, line in self.line_dict.items():

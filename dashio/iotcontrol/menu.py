@@ -100,7 +100,7 @@ class Menu(Control):
         control_position : ControlPosition, optional
             The position of the control on a DeviceView, by default None
         title_position : TitlePosition, optional
-            Position of the title when displayed on the iotdashboard app, by default None
+            Position of the title when displayed on the **Dash** app, by default None
         text : str, optional
             Menu text, by default "A Menu with Text"
         icon : Icon, optional
