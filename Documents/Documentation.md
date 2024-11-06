@@ -143,6 +143,7 @@ button1.send_button(ButtonState.OFF, Icon.DOWN, "Going Down")
 * *text : str : The text that appears on the Button.
 * *button_enabled : boolean*. True allows the app to send button events. False disables button pushes.
 * *style : ButtonStyle*. Can be ButtonStyle.BASIC, ButtonStyle.HIGHLIGHT.
+* *icon_name : Icon*. Set the icon for the button, by default Icon.NONE.
 * *off_color : Color*. Set the off color.
 * *on_color : Color*. Set the on color.
 * *control_position : ControlPosition*. Set the size and position of the button on a DeviceView.
