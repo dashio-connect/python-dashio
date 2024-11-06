@@ -46,7 +46,7 @@ Controls have two main types of attributes.
 
 1) *Config Attributes*. These attributes define the look and placement of the control. They are used to generate the config information sent to the **Dash** app when it issues a CFG command to the device, these are set in *init*.
 
-2) *Messaging Atttributes*. Setting these attributes send messages to the **Dash** app controlling the visible appearance of the control.
+2) *Messaging Attributes*. Setting these attributes send messages to the **Dash** app controlling the visible appearance of the control.
 
 When controls are instantiated they create a ControlControl to add to its layout. More layouts can be added by creating a ControlConfig for that control and adding it with add_config_columnar(ControlConfig) or add_config_full_page(ControlConfig). This allows you to have two layouts - a columnar layout for phones and another for tablets. If you use a add_config_full_page layout then you will need to set the number of columns it uses with set_no_columns_full_page().
 
@@ -285,7 +285,7 @@ A Dial display is used to present a numerical value in a graphical circular dial
 
 #### Dial Callbacks
 
-* *add_receive_message_callback(callback):* Add callback to handle the message from the **Dash** app. The callback recieves a list formed by splitting the message from the **Dash** app on the tab character.
+* *add_receive_message_callback(callback):* Add callback to handle the message from the **Dash** app. The callback receives a list formed by splitting the message from the **Dash** app on the tab character.
 
 ### Event Log
 
