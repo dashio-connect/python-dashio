@@ -167,7 +167,7 @@ class Table(Control):
         self._max_columns = columns
 
     def get_state(self):
-        return "".join([self._send_row(indx, row) for indx, row in enumerate(self._rows)])
+        return "".join([self._send_row(index, row) for index, row in enumerate(self._rows)])
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict, column_no=1):

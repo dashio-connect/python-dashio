@@ -92,7 +92,7 @@ class ColorPicker(Control):
         control_position : ControlPosition, optional
             The position of the control on a DeviceView, by default None
         title_position : TitlePosition, optional
-            Position of the title when displayed on the iotdashboard app, by default None
+            Position of the title when displayed on the **Dash** app, by default None
         picker_style: ColorPickerStyle, optional
             The style of color picker to use.
         send_only_on_release: Boolean

@@ -42,7 +42,7 @@ class EventData:
 
         lines : str max 25 lines long. Each line is separated by '\n'
         color : Color, optional
-            The color to display this data point on the iotdashboard app, by default Color.WHITE
+            The color to display this data point on the **Dash** app, by default Color.WHITE
         """
         self.color = color
         self.timestamp = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
@@ -99,7 +99,7 @@ class EventLog(Control):
         control_id : str
             A unique identifier for this control
         title : str, optional
-            The title for this control will be displayed on the iotdashboard app, by default "An Event Log"
+            The title for this control will be displayed on the **Dash** app, by default "An Event Log"
         title_position : TitlePosition, optional
             The position of the title, by default TitlePosition.BOTTOM
         control_position : ControlPosition, optional
@@ -160,7 +160,7 @@ class EventLog(Control):
         return data_str
 
     def add_event_data(self, data: EventData):
-        """Add a data point to the log and send it to any connected iotdashboard app
+        """Add a data point to the log and send it to any connected **Dash** app
 
         Parameters
         ----------
@@ -172,10 +172,17 @@ class EventLog(Control):
             self.state_str = self._control_hdr_str + str(data)
 
     def send_event(self, event: EventData):
+        """Send event.
+
+        Parameters
+        ----------
+        event :  EventData
+            The data to send
+        """
         self.state_str = self._control_hdr_str + str(event)
 
     def send_latest_data(self):
-        """Send the latest log entry to any connected iotdashboard app.
+        """Send the latest log entry to any connected **Dash** app.
         """
         if self.log:
             self.state_str = self._control_hdr_str + str(self.log.get_latest())

@@ -194,7 +194,7 @@ class ControlConfig:
     """Base ControlConfig"""
 
     def get_cfg_json(self) -> str:
-        """Returns the CFG str for the control called when the iotdashboard app asks for a CFG
+        """Returns the CFG str for the control called when the **Dash** app asks for a CFG
 
         Parameters
         ----------
@@ -211,7 +211,7 @@ class ControlConfig:
         return cfg_str
 
     def get_cfg64(self) -> dict:
-        """Returns the CFG dict for the control called when the iotdashboard app asks for a CFG
+        """Returns the CFG dict for the control called when the **Dash** app asks for a CFG
 
         Parameters
         ----------
@@ -304,11 +304,11 @@ class Control():
     """Base class for controls. """
 
     def get_state(self) -> str:
-        """This is called by iotdashboard app. Controls need to implement their own version."""
+        """This is called by **Dash** app. Controls need to implement their own version."""
         return ""
 
     def get_cfg(self, data) -> list:
-        """Returns the CFG str for the control called when the iotdashboard app asks for a CFG
+        """Returns the CFG str for the control called when the **Dash** app asks for a CFG
 
         Parameters
         ----------
@@ -337,7 +337,7 @@ class Control():
         return cfg_list
 
     def get_cfg64(self, data) -> list:
-        """Returns the CFG dict for the control called when the iotdashboard app asks for a CFG
+        """Returns the CFG dict for the control called when the **Dash** app asks for a CFG
 
         Parameters
         ----------
@@ -381,7 +381,7 @@ class Control():
         self._message_rx_event += callback
 
     def remove_receive_message_callback(self, callback):
-        """Remaove a callback from receive incoming messages to the control."""
+        """Remove a callback from receive incoming messages to the control."""
         self._message_rx_event -= callback
 
     def add_transmit_message_callback(self, callback):
@@ -392,12 +392,12 @@ class Control():
         """Remove a callback for transmitted messages from the control."""
         self._message_tx_event -= callback
 
-    def __init__(self, cntrl_type: str, control_id: str):
+    def __init__(self, ctrl_type: str, control_id: str):
         """Control base type - all controls have these characteristics and methods.
 
         Parameters
         ----------
-        cntrl_type : str
+        ctrl_type : str
             The type of control to implement
         control_id : str
             An unique control identity string. The control identity string must be a unique string for each control per device
@@ -412,7 +412,7 @@ class Control():
         self._is_active = False
 
         self._cfg_max_no_columns = 3
-        self.cntrl_type = cntrl_type.translate(BAD_CHARS)
+        self.ctrl_type = ctrl_type.translate(BAD_CHARS)
         self.control_id = control_id.translate(BAD_CHARS)
         if not self.control_id:
             raise ValueError('control_id cannot be an empty string')
@@ -420,7 +420,7 @@ class Control():
         self._message_tx_event = Event()
         # This may break things but makes all controls able to be setup from tasks.
         self._message_rx_event += self._message_tx_event
-        self._control_hdr_str = f"\t{{device_id}}\t{self.cntrl_type}\t{self.control_id}\t"
+        self._control_hdr_str = f"\t{{device_id}}\t{self.ctrl_type}\t{self.control_id}\t"
 
     def del_config(self, column_no=1):
         """Deletes all the columnar config layout entries"""

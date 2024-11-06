@@ -49,10 +49,10 @@ class RingBuffer:
         """
         if self._full:
             # Get the last item in the buffer
-            indx = self.cur - 1
-            if indx < 0:
-                indx = self.max - 1
-            return self.data[indx]
+            index = self.cur - 1
+            if index < 0:
+                index = self.max - 1
+            return self.data[index]
         return self.data[-1]
 
     def empty(self) -> bool:

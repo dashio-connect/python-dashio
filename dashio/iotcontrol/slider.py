@@ -124,7 +124,7 @@ class Slider(Control):
         control_position : ControlPosition, optional
             The position of the control on a DeviceView, by default None
         title_position : TitlePosition, optional
-            Position of the title when displayed on the iotdashboard app, by default None
+            Position of the title when displayed on the **Dash** app, by default None
         bar_min : float, optional
             min bar value, by default 0.0
         bar_max : float, optional

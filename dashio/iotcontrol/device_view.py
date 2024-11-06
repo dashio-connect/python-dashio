@@ -114,7 +114,7 @@ class DeviceViewConfig(ControlConfig):
 
 class DeviceView(Control):
     """A DeviceView provides a control that describes appearance and style of the group of controls
-        that are displayed on this DeviceView by the iotdashboard app.
+        that are displayed on this DeviceView by the **Dash** app.
 
     Attributes
     ----------

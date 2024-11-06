@@ -192,7 +192,7 @@ class Button(Control):
         return tmp_cls
 
     def get_state(self):
-        """get_state is called by iotdashboard
+        """get_state is called by Device
 
         Returns
         -------
