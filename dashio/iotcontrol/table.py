@@ -109,7 +109,7 @@ class Table(Control):
     def __init__(
         self,
         control_id: str,
-        title="A Text Box",
+        title="A Table Box",
         title_position=TitlePosition.BOTTOM,
         precision=Precision.OFF,
         font_size: int = 12,
@@ -171,7 +171,7 @@ class Table(Control):
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
-        """Instantiates TextBox from cfg dictionary
+        """Instantiates Table from cfg dictionary
 
         Parameters
         ----------
@@ -180,7 +180,7 @@ class Table(Control):
 
         Returns
         -------
-        TextBox
+        Table
         """
         tmp_cls = cls(
             cfg_dict["controlID"],
