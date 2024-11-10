@@ -112,15 +112,27 @@ class ZeroconfService(threading.Thread):
             'connectionUUID': self.connection_uuid,
             'deviceID': ','.join(self.device_id_list)
         }
-        zconf_info = ServiceInfo(
-            self.fully_qualified_name,
-            f"{self.connection_uuid}._DashIO._tcp.local.",
-            addresses=[socket.inet_aton(self.local_ip_address)],
-            port=self.local_port,
-            properties=zconf_desc,
-            server=self.host_name + ".",
-        )
-        self.zeroconf.update_service(zconf_info)
+        if self.local_ipv4_address:
+            zconf_ipv4_info = ServiceInfo(
+                self.fully_qualified_name,
+                f"{self.connection_uuid}._DashIO._tcp.local.",
+                addresses=[socket.inet_aton(self.local_ipv4_address)],
+                port=self.local_port,
+                properties=zconf_desc,
+                server=self.host_name + ".",
+            )
+            self.zeroconf.update_service(zconf_ipv4_info)
+
+        if self.local_ipv6_address:
+            zconf_ipv6_info = ServiceInfo(
+                self.fully_qualified_name,
+                f"{self.connection_uuid}._DashIO._tcp.local.",
+                addresses=[socket.inet_pton(socket.AF_INET6, self.local_ipv6_address)],
+                port=self.local_port,
+                properties=zconf_desc,
+                server=self.host_name + ".",
+            )
+            self.zeroconf.update_service(zconf_ipv6_info)
 
     def add_device(self, device_id):
         """Add a device_id to the advertiser"""
@@ -139,7 +151,7 @@ class ZeroconfService(threading.Thread):
         self.zeroconf.unregister_all_services()
         self.zeroconf.close()
 
-    def __init__(self, connection_uuid: str, ip_address: str, port: int, context: zmq.Context | None = None):
+    def __init__(self, connection_uuid: str, ipv4_address: str, ipv6_address: str, port: int, context: zmq.Context | None = None):
         threading.Thread.__init__(self, daemon=True)
         self.context = context or zmq.Context.instance()
         self.connection_uuid = connection_uuid
@@ -148,7 +160,8 @@ class ZeroconfService(threading.Thread):
         host_list = host_name.split(".")
         # rename for .local mDNS advertising
         self.host_name = f"{host_list[0]}.local"
-        self.local_ip_address = ip_address
+        self.local_ipv4_address = ipv4_address
+        self.local_ipv6_address = ipv6_address
         self.local_port = port
         self.zeroconf = Zeroconf()
         self.listener = ZeroConfDashTCPListener(self.fully_qualified_name, self.connection_uuid, self.context)
@@ -161,12 +174,24 @@ class ZeroconfService(threading.Thread):
             'connectionUUID': self.connection_uuid,
             'deviceID': ','.join(self.device_id_list)
         }
-        zconf_info = ServiceInfo(
-            self.fully_qualified_name,
-            f"{self.connection_uuid}._DashIO._tcp.local.",
-            addresses=[socket.inet_aton(self.local_ip_address)],
-            port=self.local_port,
-            properties=zconf_desc,
-            server=self.host_name + ".",
-        )
-        self.zeroconf.update_service(zconf_info)
+        if self.local_ipv4_address:
+            zconf_ipv4_info = ServiceInfo(
+                self.fully_qualified_name,
+                f"{self.connection_uuid}._DashIO._tcp.local.",
+                addresses=[socket.inet_aton(self.local_ipv4_address)],
+                port=self.local_port,
+                properties=zconf_desc,
+                server=self.host_name + ".",
+            )
+            self.zeroconf.update_service(zconf_ipv4_info)
+
+        if self.local_ipv6_address:
+            zconf_ipv6_info = ServiceInfo(
+                self.fully_qualified_name,
+                f"{self.connection_uuid}._DashIO._tcp.local.",
+                addresses=[socket.inet_pton(socket.AF_INET6, self.local_ipv6_address)],
+                port=self.local_port,
+                properties=zconf_desc,
+                server=self.host_name + ".",
+            )
+            self.zeroconf.update_service(zconf_ipv6_info)
