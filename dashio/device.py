@@ -125,13 +125,13 @@ class Device(threading.Thread):
         if rx_device_id != self.device_id:
             return ""
         try:
-            cntrl_type = data_array[1]
+            ctrl_type = data_array[1]
         except KeyError:
             return ""
-        if cntrl_type in self._device_commands_dict:
-            return self._device_commands_dict[cntrl_type](data_array)
+        if ctrl_type in self._device_commands_dict:
+            return self._device_commands_dict[ctrl_type](data_array)
         try:
-            reply = self.controls_dict[cntrl_type + "\t" + data_array[2]]._message_rx_event(data_array)
+            reply = self.controls_dict[ctrl_type + "\t" + data_array[2]]._message_rx_event(data_array)
             if reply:
                 return reply.replace("{device_id}", self.device_id)
         except (KeyError, IndexError):
@@ -159,14 +159,14 @@ class Device(threading.Thread):
         cfg = {}
         cfg["CFG"] = self._cfg
         for control in self.controls_dict.values():
-            if control.cntrl_type == "ALM":
+            if control.ctrl_type == "ALM":
                 continue
-            if control.cntrl_type in ("BLE"):
-                cfg[control.cntrl_type] = control.get_cfg64(data)
+            if control.ctrl_type in ("BLE"):
+                cfg[control.ctrl_type] = control.get_cfg64(data)
                 continue
-            if control.cntrl_type not in cfg:
-                cfg[control.cntrl_type] = []
-            cfg[control.cntrl_type].extend(control.get_cfg64(data))
+            if control.ctrl_type not in cfg:
+                cfg[control.ctrl_type] = []
+            cfg[control.ctrl_type].extend(control.get_cfg64(data))
         c64_json = encode_cfg64(cfg)
         reply += c64_json + "\n"
         return reply
@@ -180,9 +180,9 @@ class Device(threading.Thread):
         reply = self._device_id_str + f"\tCFG\t{dashboard_id}\tDVCE\t{json.dumps(self._cfg)}\n"
         dvvw_str = ""
         for control in self.controls_dict.values():
-            if control.cntrl_type == "ALM":
+            if control.ctrl_type == "ALM":
                 continue
-            if control.cntrl_type == "DVVW":
+            if control.ctrl_type == "DVVW":
                 cfg_list = control.get_cfg(data)
                 for cfg in cfg_list:
                     dvvw_str += self._device_id_str + cfg
@@ -273,7 +273,7 @@ class Device(threading.Thread):
                 iot_control.add_transmit_message_callback(self._send_data)
         except AttributeError:
             pass
-        key = f"{iot_control.cntrl_type}\t{iot_control.control_id}"
+        key = f"{iot_control.ctrl_type}\t{iot_control.control_id}"
 
         if key not in self.controls_dict:
             if isinstance(iot_control, DeviceView):
@@ -309,7 +309,7 @@ class Device(threading.Thread):
         """
         if isinstance(iot_control, DeviceView):
             self._cfg["numDeviceViews"] -= 1
-        key = f"{iot_control.cntrl_type}\t{iot_control.control_id}"
+        key = f"{iot_control.ctrl_type}\t{iot_control.control_id}"
         if key in self.controls_dict:
             del self.controls_dict[key]
 

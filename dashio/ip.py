@@ -32,7 +32,7 @@ def get_local_ip_v4_address():
         test_s.connect(('10.255.255.255', 1))
         i_address = test_s.getsockname()[0]
     except socket.error:
-        i_address = '127.0.0.1'
+        i_address = ''
     finally:
         test_s.close()
     return i_address
@@ -40,10 +40,24 @@ def get_local_ip_v4_address():
 
 def get_local_ip_v6_address():
     """Find the external IP address."""
-    i_address = socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET6)[1][4][0]
+    test_s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+    try:
+        # doesn't even have to be reachable
+        test_s.connect(('google.com', 8888))
+        i_address = test_s.getsockname()[0]
+    except socket.error:
+        return ''
     return i_address
 
 
+def get_local_ip_addresses():
+    """Retrieve local IPv4 and IPv6 addresses."""
+    ipv4 = get_local_ip_v4_address()
+    ipv6 = get_local_ip_v6_address()
+    return ipv4, ipv6
+
+
 def is_port_in_use(ip_address, port):
+    "Checks if port is in use"
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as port_s:
         return port_s.connect_ex((ip_address, port)) == 0

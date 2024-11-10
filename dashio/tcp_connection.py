@@ -85,12 +85,15 @@ class TCPConnection(threading.Thread):
         self.b_zmq_connection_uuid = self.zmq_connection_uuid.encode('utf-8')
         self.use_zeroconf = use_zero_conf
 
+        self.local_ipv4 = ''
+        self.local_ipv6 = ''
         if ip_address == "*":
-            self.local_ip = ip.get_local_ip_v4_address()
+            self.local_ipv4 = ip.get_local_ip_v4_address()
+            self.local_ipv6 = ip.get_local_ip_v6_address()
         else:
-            self.local_ip = ip_address
+            self.local_ipv4 = ip_address
         self.local_port = port
-        while ip.is_port_in_use(self.local_ip, self.local_port) and use_zero_conf:
+        while ip.is_port_in_use(self.local_ipv4, self.local_port) and use_zero_conf:
             # increment port until we find one that is free.
             self.local_port += 1
         self.ext_url = "tcp://*:" + str(self.local_port)
@@ -111,7 +114,7 @@ class TCPConnection(threading.Thread):
         self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
 
         if self.use_zeroconf:
-            self.z_conf = ZeroconfService(self.zmq_connection_uuid, self.local_ip, self.local_port, self.context)
+            self.z_conf = ZeroconfService(self.zmq_connection_uuid, self.local_ipv4, self.local_ipv6, self.local_port, self.context)
 
         self.start()
 
