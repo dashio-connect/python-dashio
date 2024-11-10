@@ -65,29 +65,29 @@ class ZeroConfDashTCPListener(ServiceListener):
             }
             self._send_msg(msg)
 
-    def remove_service(self, zeroconf, service_type, name):
+    def remove_service(self, zc, type_, name):
         """Remove service"""
         connection_uuid = name.split("._", 1)[0]
-        if service_type == self.service_type and connection_uuid != self.connection_uuid:
+        if type_ == self.service_type and connection_uuid != self.connection_uuid:
             msg = {
                 'objectType': 'zeroConfDisconnect',
                 'connectionID': connection_uuid
             }
             self._send_msg(msg)
 
-    def add_service(self, zeroconf, service_type, name):
+    def add_service(self, zc, type_, name):
         """add service"""
         connection_uuid = name.split(".", 1)[0]
-        if service_type == self.service_type and connection_uuid != self.connection_uuid:
-            info = zeroconf.get_service_info(service_type, name)
+        if type_ == self.service_type and connection_uuid != self.connection_uuid:
+            info = zc.get_service_info(type_, name)
             if info:
                 self._send_info(connection_uuid, info)
 
-    def update_service(self, zeroconf, service_type, name):
+    def update_service(self, zc, type_, name):
         """update service"""
         connection_uuid = name.split(".", 1)[0]
-        if service_type == self.service_type and connection_uuid != self.connection_uuid:
-            info = zeroconf.get_service_info(service_type, name)
+        if zc == self.service_type and connection_uuid != self.connection_uuid:
+            info = zc.get_service_info(type_, name)
             if info:
                 self._send_info(connection_uuid, info)
 
