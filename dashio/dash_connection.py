@@ -366,13 +366,12 @@ class DashConnection(threading.Thread):
                     device_id = msg_l[1].decode().strip()
                 except IndexError:
                     continue
+                data_topic = f"{self.username}/{device_id}/data"
                 if control_type == b'ALM':
                     data_topic = f"{self.username}/{device_id}/alarm"
                     control_type = ""
                 elif msg_to == b"ANNOUNCE":
                     data_topic = f"{self.username}/{device_id}/announce"
-                else:
-                    data_topic = f"{self.username}/{device_id}/data"
                 logger.debug("DASH Tx →\n%s", data.decode().rstrip())
                 self._dash_c.publish(data_topic, data.decode())
             if self.connection_state == ConnectionState.DISCONNECTED:
