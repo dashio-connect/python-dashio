@@ -220,6 +220,7 @@ class Device(threading.Thread):
             pass
 
     def storage_enable(self, control_type: ControlName, control_id: str) -> None:
+        """Turn On Dash Server Storage for the Event Log, Map, or Time Graph control."""
         key = f"{control_type.value}\t{control_id}"
         if key not in self.controls_dict:
             return
@@ -227,7 +228,7 @@ class Device(threading.Thread):
             return
         payload = self._device_id_str + f"\tSTE\t{control_type.value}\t{control_id}\n"
         logger.debug("STORAGE ENABLE: %s", payload)
-        self.tx_zmq_pub.send_multipart([b"DASH", payload.encode('utf-8')])
+        self.tx_zmq_pub.send_multipart([b"ANNOUNCE", payload.encode('utf-8')])
 
     def _send_announce(self):
         payload = self._device_id_str + f"\tWHO\t{self.device_type}\t{self.device_name}\n"
