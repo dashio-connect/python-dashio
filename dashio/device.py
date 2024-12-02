@@ -171,6 +171,14 @@ class Device(threading.Thread):
         reply += c64_json + "\n"
         return reply
 
+    def _server_clk(self, data):
+        if self._clk_rx_callback is not None:
+            self._clk_rx_callback(data)
+
+    def _server_ota(self, data):
+        if self._ota_rx_callback is not None:
+            self._ota_rx_callback(data)
+
     def _make_cfg(self, data):
         try:
             dashboard_id = data[2]
@@ -223,6 +231,27 @@ class Device(threading.Thread):
 
     def _send_announce(self):
         payload = self._device_id_str + f"\tWHO\t{self.device_type}\t{self.device_name}\n"
+        logger.debug("ANNOUNCE: %s", payload.rstrip())
+        self.tx_zmq_pub.send_multipart([b"ANNOUNCE", payload.encode('utf-8')])
+
+    def request_clock(self):
+        """Requests UTC Timestamp from the Dash Server
+        """
+        payload = self._device_id_str + "\tCLK\n"
+        logger.debug("ANNOUNCE: %s", payload.rstrip())
+        self.tx_zmq_pub.send_multipart([b"ANNOUNCE", payload.encode('utf-8')])
+
+    def request_ota_build_number(self):
+        """Requests requests latest build number for over the air updates from the Dash Server
+        """
+        payload = self._device_id_str + f"\tOTA\t{self.device_type}\n"
+        logger.debug("ANNOUNCE: %s", payload.rstrip())
+        self.tx_zmq_pub.send_multipart([b"ANNOUNCE", payload.encode('utf-8')])
+
+    def request_ota(self, build_number, chunk_number):
+        """Requests requests latest ota build from the Dash Server
+        """
+        payload = self._device_id_str + f"\tOTA\t{self.device_type}\t{build_number}\t{chunk_number}\n"
         logger.debug("ANNOUNCE: %s", payload.rstrip())
         self.tx_zmq_pub.send_multipart([b"ANNOUNCE", payload.encode('utf-8')])
 
@@ -343,6 +372,42 @@ class Device(threading.Thread):
             except ValueError:
                 pass
         self._cfg["deviceSetup"] = ','.join(self._device_setup_list)
+
+    def set_clock_callback(self, callback):
+        """
+        Specify a callback function to be called when The Dash server sends clock data.
+
+        Parameters
+        ----------
+            callback:
+                The callback function. It will be invoked with one argument, the msg from dash server.
+                The callback must return a Boolean indicating success.
+        """
+        self._clk_rx_callback = callback
+
+    def unset_clock_callback(self):
+        """
+        Unset the clock rx callback.
+        """
+        self._ota_rx_callback = None
+
+    def set_ota_callback(self, callback):
+        """
+        Specify a callback function to be called when The Dash server sends ota data.
+
+        Parameters
+        ----------
+            callback:
+                The callback function. It will be invoked with one argument, the msg from dash server.
+                The callback must return a Boolean indicating success.
+        """
+        self._clk_rx_callback = callback
+
+    def unset_ota_callback(self):
+        """
+        Unset the ota rx callback.
+        """
+        self._ota_rx_callback = None
 
     def set_wifi_callback(self, callback):
         """
@@ -541,6 +606,8 @@ class Device(threading.Thread):
         self._name_rx_callback = None
         self._tcp_rx_callback = None
         self._mqtt_rx_callback = None
+        self._clk_rx_callback = None
+        self._ota_rx_callback = None
         self.device_type = device_type.translate(BAD_CHARS)
         self.device_id = device_id.translate(BAD_CHARS)
         self._b_device_id = self.device_id.encode('utf-8')
@@ -551,6 +618,8 @@ class Device(threading.Thread):
         self._device_commands_dict['CONNECT'] = self._make_connect
         self._device_commands_dict['STATUS'] = self._make_status
         self._device_commands_dict['CFG'] = self._make_cfg64
+        self._device_commands_dict['CLK'] = self._server_clk
+        self._device_commands_dict['OTA'] = self._server_ota
         self.controls_dict = {}
         self._cfg = {}
         self._cfg["deviceSetup"] = ''
