@@ -102,6 +102,24 @@ class Device(threading.Thread):
 
     unset_mqtt_callback() :
         Clears the set MQTT callback.
+
+    request_clock() :
+        Requests UTC Timestamp from the Dash Server.
+
+    set_clock_callback(callback):
+        Specify a callback function to be called when The Dash server sends clock data.
+
+    unset_clock_callback():
+        Unset the clock rx callback.
+
+    request_ota_build_number() :
+        Requests requests latest build number for over the air updates from the Dash Server
+
+    request_ota(build_number, chunk_number) :
+        Requests requests latest ota build from the Dash Server.
+
+    set_ota_callback(callback) :
+        Specify a callback function to be called when The Dash server sends ota data.
     """
 
     def _on_message(self, payload):
