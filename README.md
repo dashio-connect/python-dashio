@@ -1,6 +1,6 @@
 # python-dashio
 
-[![](https://img.shields.io/discord/1313341785430429747?color=5865F2&logo=Discord&style=flat-square)](https://discord.gg/Cn9jeX9z)
+[![](https://img.shields.io/discord/1313341785430429747?color=5865F2&logo=Discord&style=flat-square)](https://discord.gg/fqvhNV3GQB)
 ![Tests](https://github.com/dashio-connect/python-dashio/actions/workflows/tests.yml/badge.svg)
 
 **[python-dashio](https://github.com/dashio-connect/python-dashio)** - Create beautiful mobile dashboards for your python project. The python-dashio library allows easy setup of controls such as Dials, Text Boxes, Charts, Graphs, and Notifications. You can define the look and layout of the controls on your phone from your python code. There are three methods to connect to your phone; Bluetooth Low Energy (BLE - on supported platforms), TCP, and MQTT via the dash.dashio.io server.
@@ -19,7 +19,7 @@ Apple              | Android
 
 ## Discord Community
 
-Be a part of the DashIO community by joining our [Discord Server](https://discord.gg/Cn9jeX9z)
+Be a part of the DashIO community by joining our [Discord Server](https://discord.gg/fqvhNV3GQB)
 
 ## Documentation
 
