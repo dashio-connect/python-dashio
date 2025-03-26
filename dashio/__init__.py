@@ -38,6 +38,7 @@ from .tcp_connection import TCPConnection
 from .mqtt_connection import MQTTConnection
 from .zmq_connection import ZMQConnection
 from .dash_connection import DashConnection
+from .lte_767x_connection import Lte767xConnection
 from .comms_module_connection import DashIOCommsModuleConnection
 from .schedular import Schedular
 from .load_config import decode_cfg64, encode_cfg64, load_all_controls_from_config, get_control_dict_from_config, get_control_from_config
@@ -98,6 +99,7 @@ __all__ = [
     'MQTTConnection',
     'ZMQConnection',
     'DashConnection',
+    'Lte767xConnection',
     'ConnectionState',
     'DashIOCommsModuleConnection',
     'Schedular',
