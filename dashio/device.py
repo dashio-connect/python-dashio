@@ -30,7 +30,6 @@ import shortuuid
 import zmq
 
 from .constants import CONNECTION_PUB_URL, BAD_CHARS
-from .action_station import ActionStation
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.device_view import DeviceView
 from .iotcontrol.enums import ControlName
@@ -575,8 +574,6 @@ class Device(threading.Thread):
             self.connections_list.append(connection.zmq_connection_uuid)
             self.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=connection.zmq_connection_uuid))
             connection.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
-        if self._add_actions:
-            self.action_station.register_connection(connection)
 
     def de_register_connection(self, connection):
         """Connections unregistered here"""
@@ -585,16 +582,12 @@ class Device(threading.Thread):
             self.connections_list.remove(connection.zmq_connection_uuid)
             self.rx_zmq_sub.disconnect(CONNECTION_PUB_URL.format(id=connection.zmq_connection_uuid))
             connection.rx_zmq_sub.disconnect(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
-        if self._add_actions:
-            self.action_station.register_connection(connection)
-            self.action_station.de_register_connection(connection)
 
     def __init__(
         self,
         device_type: str,
         device_id: str,
         device_name: str,
-        add_actions: bool = False,
         cfg_dict: dict | None = None,
         context: zmq.Context | None = None
     ) -> None:
@@ -610,8 +603,6 @@ class Device(threading.Thread):
                 The name for this device
             cfg_dict : dict optional
                 Setup dict to cfgRev and adds controls defined in cfg_dict, defaults None
-            add_actions : boolean
-                To include actions or not, defaults false
             context : optional
                 ZMQ context. Defaults to None.
         """
@@ -649,12 +640,6 @@ class Device(threading.Thread):
             self.add_all_c64_controls(cfg_dict)
             self.use_cfg64()
 
-        self._add_actions = add_actions
-        if self._add_actions:
-            self._add_action_device_setup(True)
-            self.action_station = ActionStation(self, context=self.context)
-            time.sleep(0.5)
-            self.action_station.device_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
         self.running = True
         time.sleep(0.5)
         self.start()
@@ -724,8 +709,6 @@ class Device(threading.Thread):
 
     def close(self):
         """Close the device"""
-        if self._add_actions:
-            self.action_station.close()
         self.running = False
 
     def _local_command(self, msg_dict):
