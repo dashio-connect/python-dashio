@@ -14,7 +14,8 @@
             "editor.formatOnSave": true
         },
         "cSpell.words": [
-            "dashio"
+            "dashio",
+            "mqtt"
         ]
     },
     "extensions": {

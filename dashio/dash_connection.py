@@ -130,7 +130,7 @@ class DashConnection(threading.Thread):
     Methods
     -------
     add_device(Device) :
-        add a Deive to the connection
+        add a Device to the connection
     set_connection(username, password):
         change the connection username and password
     close() :
@@ -177,7 +177,7 @@ class DashConnection(threading.Thread):
         logger.debug(string)
 
     def add_device(self, device):
-        """Add a Device to the connextion
+        """Add a Device to the connection
 
         Parameters
         ----------

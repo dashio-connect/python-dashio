@@ -4,5 +4,3 @@ python-dateutil
 zeroconf
 shortuuid
 pyserial
-astral
-pydantic

@@ -17,7 +17,7 @@ setup(
     package_data={"dashio": ["py.typed"]},
     license="MIT",
     classifiers=["Programming Language :: Python :: 3.8", "Operating System :: OS Independent"],
-    install_requires=["paho-mqtt>=2.0.0", "pyzmq", "python-dateutil", "zeroconf", "shortuuid", "pyserial", "astral", "pydantic"],
+    install_requires=["paho-mqtt>=2.0.0", "pyzmq", "python-dateutil", "zeroconf", "shortuuid", "pyserial"],
     python_requires='>=3.8.0',
     scripts=['utilities/c64_encode', 'utilities/c64_decode'],
 )
