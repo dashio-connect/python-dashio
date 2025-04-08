@@ -193,7 +193,7 @@ while True:
 
 We've added the cfg64 string. Then decoded it with *dashio.decode_cfg64(cfg64)*. This function returns a dictionary that we can pass into Device so that it can to instantiate and add the controls.
 
-Included in the library are two commandline utilities to encode and decode cfg64 files.
+Included in the library are three commandline utilities to encode and decode cfg64 files, and to export data stored on the DashIO server.
 
 ```sh
 $ c64_decode -h
@@ -228,4 +228,29 @@ options:
                         output filename.
   -w WIDTH, --width WIDTH
                         Width of formatted output (Default 80).
+```
+
+And
+
+```sh
+$ dashio_data_exporter -h
+usage: dashio_data_exporter [-h] [-u USERNAME] [-p PASSWORD] [-d DEVICE_ID] [-c CONTROL_ID] [-t CONTROL_TYPE] [-n NUM_DAYS] [-f FORMAT] [-s] [-o]
+
+options:
+  -h, --help            show this help message and exit
+  -u, --username USERNAME
+                        DashIO Username
+  -p, --password PASSWORD
+                        DashIO Password
+  -d, --device_id DEVICE_ID
+                        The DeviceID of the device to get the data for.
+  -c, --control_id CONTROL_ID
+                        The ControlID of the control on the device to get the data for.
+  -t, --type CONTROL_TYPE
+                        Type of control, either 'TGRPH', 'MAP', 'LOG'.
+  -n, --number_of_days NUM_DAYS
+                        Number of days of data to get up to present time.
+  -f, --format FORMAT   Format of the output data, either 'raw' or 'csv'.
+  -s, --screen          Write output to stdout.
+  -o, --outfile         Write output to file(s). The filename(s) are generated from the data.
 ```
