@@ -105,12 +105,9 @@ def on_message(client, obj, msg):
 
 def on_subscribe(client, userdata, mid, reason_codes, properties):
     """Get the data on subscribe event message"""
-    if control_type == 'TGRPH':
-        get_time_graph_data()
-    elif control_type == 'MAP':
-        get_map_data()
-    elif control_type == 'LOG':
-        get_log_data()
+    msg = f"\t{device_id}\t{control_type}\t{control_id}\t{dashboard_id}\t{from_timestamp}\n"
+    control_topic = f"{username}/{device_id}/store/control"
+    mqtt_client.publish(control_topic, msg)
 
 
 def parse_line_data(rx_username: str, rx_device_id: str, line_data: list[str]) -> str:
@@ -126,7 +123,8 @@ def parse_line_data(rx_username: str, rx_device_id: str, line_data: list[str]) -
         parse_log_data(control_data)
 
 
-def format_log_json(log: str):
+def format_log_json_to_cvs(log: str) -> str:
+    """Convert the json to csv"""
     log_dict = json.loads(log)
     log_str = "{time}, {color}, ".format_map(log_dict)
     log_str += ", ".join(log_dict["lines"])
@@ -145,9 +143,11 @@ def parse_log_data(control_data: ControlData):
     elif file_format == 'cvs':
         line = f"# {control_data.device_id}, TGRPH, {control_data.control_id}"
         line += "\nTimestamp, color, lines\n"
-        line += "\n".join(format_log_json(l_str) for l_str in control_data.data)
+        line += "\n".join(format_log_json_to_cvs(l_str) for l_str in control_data.data)
         if screen:
             print(line)
+    else:
+        return
     if out_to_file:
         filename = f"{control_data.device_id}_{control_data.control_type}_{control_data.control_id}_{control_data.data[0]}.{file_format}"
         print("Writing to file: " + filename)
@@ -171,29 +171,13 @@ def parse_tgrph_data(control_data: ControlData):
         line += "\n".join(line_data)
         if screen:
             print(line)
+    else:
+        return
     if out_to_file:
         filename = f"{control_data.device_id}_{control_data.control_type}_{control_data.control_id}_{control_data.data[0]}.{file_format}"
         print("Writing to file: " + filename)
         with open(filename, "w", encoding='utf-8') as writer:
             writer.write(line)
-
-
-def get_log_data():
-    msg = f"\t{device_id}\tLOG\t{control_id}\t{dashboard_id}\t{from_timestamp}\n"
-    control_topic = f"{username}/{device_id}/store/control"
-    mqtt_client.publish(control_topic, msg)
-
-
-def get_map_data():
-    msg = f"\t{device_id}\tMAP\t{control_id}\t{dashboard_id}\t{from_timestamp}\n"
-    control_topic = f"{username}/{device_id}/store/control"
-    mqtt_client.publish(control_topic, msg)
-
-
-def get_time_graph_data():
-    msg = f"\t{device_id}\tTGRPH\t{control_id}\t{dashboard_id}\t{from_timestamp}\n"
-    control_topic = f"{username}/{device_id}/store/control"
-    mqtt_client.publish(control_topic, msg)
 
 
 def main():
