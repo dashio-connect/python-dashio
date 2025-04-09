@@ -6,6 +6,7 @@ import time
 import ssl
 import socket
 import datetime
+import json
 from dataclasses import dataclass
 import shortuuid
 import sys
@@ -122,11 +123,41 @@ def parse_line_data(rx_username: str, rx_device_id: str, line_data: list[str]) -
     elif rx_control_type == 'MAP':
         pass
     elif rx_control_type == 'LOG':
-        pass
+        parse_log_data(control_data)
+
+
+def format_log_json(log: str):
+    log_dict = json.loads(log)
+    log_str = "{time}, {color}, ".format_map(log_dict)
+    log_str += ", ".join(log_dict["lines"])
+    return log_str
+
+
+def parse_log_data(control_data: ControlData):
+    """parse the LOG data."""
+    line = ""
+    if file_format == 'raw':
+        line = f"\t{control_data.device_id}\tLOG\t{control_data.control_id}\t"
+        line += "\t".join(control_data.data)
+        line += '\n'
+        if screen:
+            print(line)
+    elif file_format == 'cvs':
+        line = f"# {control_data.device_id}, TGRPH, {control_data.control_id}"
+        line += "\nTimestamp, color, lines\n"
+        line += "\n".join(format_log_json(l_str) for l_str in control_data.data)
+        if screen:
+            print(line)
+    if out_to_file:
+        filename = f"{control_data.device_id}_{control_data.control_type}_{control_data.control_id}_{control_data.data[0]}.{file_format}"
+        print("Writing to file: " + filename)
+        with open(filename, "w", encoding='utf-8') as writer:
+            writer.write(line)
 
 
 def parse_tgrph_data(control_data: ControlData):
     """parse the TGRPH line"""
+    line = ""
     if file_format == 'raw':
         line = f"\t{control_data.device_id}\tTGRPH\t{control_data.control_id}\t"
         line += "\t".join(control_data.data)
