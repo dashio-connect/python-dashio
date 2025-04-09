@@ -148,4 +148,5 @@ scratch.py
 *_text.py
 *_test.py
 ttn.py
-a
+*.raw
+*.cvs
