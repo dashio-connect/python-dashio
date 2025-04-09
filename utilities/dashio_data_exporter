@@ -186,9 +186,12 @@ def main():
 
     from_timestamp = timestamp.isoformat()
 
+    # Setup callbacks
     mqtt_client.on_connect = on_connect
     mqtt_client.on_message = on_message
     mqtt_client.on_subscribe = on_subscribe
+
+    # Setup connection
     mqtt_client.tls_set(
         ca_certs=None,
         certfile=None,
@@ -210,6 +213,7 @@ def main():
         exit(0)
 
     mqtt_client.subscribe(data_topic, 0)
+
     mqtt_client.loop_start()
 
     while times_up >= 0:
