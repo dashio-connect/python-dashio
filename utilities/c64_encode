@@ -45,6 +45,7 @@ def main():
     args = _parse_commandline_arguments()
     json_filename = args.file
     c64_filename = os.path.splitext(json_filename)[0] + ".c64"
+    cfg64 = ""
 
     if args.out_file:
         c64_filename = args.out_file
@@ -52,12 +53,12 @@ def main():
     try:
         with open(json_filename, mode="r", encoding='utf-8') as fp:
             json_cfg = fp.read()
+            config_dict = json.loads(json_cfg)
+            cfg64 = dashio.encode_cfg64(config_dict)
 
     except FileNotFoundError:
         print("File not found")
 
-    config_dict = json.loads(json_cfg)
-    cfg64 = dashio.encode_cfg64(config_dict)
     cfg_file = open(c64_filename, "w", encoding='utf-8')
 
     out_format = args.format.upper()
