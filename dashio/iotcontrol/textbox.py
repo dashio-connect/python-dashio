@@ -51,6 +51,7 @@ class TextBoxConfig(ControlConfig):
         keyboard_type: Keyboard,
         close_keyboard_on_send: bool,
         caption_mode: CaptionMode,
+        replace: dict[str: str] | None,
         control_position: ControlPosition | None
     ) -> None:
         super().__init__(control_id, title, control_position, title_position)
@@ -62,6 +63,12 @@ class TextBoxConfig(ControlConfig):
         self.cfg["kbdType"] = keyboard_type.value
         self.cfg["closeKbdOnSend"] = close_keyboard_on_send
         self.cfg["captionMode"] = caption_mode.value
+        if replace is not None:
+            for key, val in replace.items():
+                for c in '\t\n':
+                    if (c in key) or (c in val):
+                        raise ValueError("Bad characters '\t\n' in replace dictionary.")
+            self.cfg["replace"] = replace
 
     @classmethod
     def from_dict(cls, cfg_dict: dict):
@@ -88,6 +95,7 @@ class TextBoxConfig(ControlConfig):
             _get_keyboard_type(cfg_dict["kbdType"]),
             cfg_dict["closeKbdOnSend"],
             _get_caption_mode(cfg_dict["captionMode"]),
+            cfg_dict["replace"],
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
@@ -111,6 +119,7 @@ class TextBox(Control):
         keyboard_type=Keyboard.ALL,
         close_keyboard_on_send=True,
         caption_mode=CaptionMode.MSG,
+        replace=None,
         control_position=None,
         column_no=1
     ):
@@ -143,6 +152,8 @@ class TextBox(Control):
         caption_mode: CaptionMode, optional default MSG
             CaptionMode.MSG is for when the caption receives messages to be displayed.
             CaptionMode.SENT is when the caption shows the last message the user has entered.
+        replace: { str: str }
+            Dictionary of replacement text key value replacements to be performed by the Text box in the App.
         column_no : int, optional default is 1. Must be 1..3
             The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into.
             Each control can store three configs that define how the device looks for Dash apps installed on single column
@@ -162,6 +173,7 @@ class TextBox(Control):
                 keyboard_type,
                 close_keyboard_on_send,
                 caption_mode,
+                replace,
                 control_position
             )
         )
@@ -198,6 +210,7 @@ class TextBox(Control):
             _get_keyboard_type(cfg_dict["kbdType"]),
             cfg_dict["closeKbdOnSend"],
             _get_caption_mode(cfg_dict["captionMode"]),
+            cfg_dict.get("replace"),
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
             column_no
         )

@@ -256,6 +256,7 @@ class TextFormat(Enum):
     DTLONG = "DTLONG"
     INTVL = "INTVL"
     LOG = "LOG"
+    SUBS = "SUBS"
 
 
 class TextAlignment(Enum):
