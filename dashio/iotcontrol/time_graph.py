@@ -103,6 +103,8 @@ class TimeGraphLine:
             The data is stored in a ring buffer this sets the ring buffer size, by default 60
         break_data : bool, optional
             If true draws the line with breaks between missing data, by default False
+        right_axis: bool, optional
+            Defaults to left, right if true.
         """
         self.name = name.translate(BAD_CHARS)
         self.line_type = line_type
