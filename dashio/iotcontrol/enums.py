@@ -122,6 +122,8 @@ class Icon(Enum):
     LOCATION = "Location"
     DIRECTION = "Direction"
     SWITCH = "Switch"
+    GROUP = "Group"
+    EVENT_LOG = "Event Log"
 
 
 class SoundName(Enum):

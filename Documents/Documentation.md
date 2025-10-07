@@ -497,7 +497,7 @@ Feedback to the user of the dashboard is achieved when the IoT device responds t
 * *control_position : ControlPosition, optional.* The position of the control on a DeviceView, by default None.
 * *title_position : TitlePosition, optional.* Position of the title when displayed on the **Dash** app, by default None.
 * *column_no : int.* Optional default is 1. Must be 1..3. The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into. Each control can store three configs that define how the device looks for Dash apps installed on single column phones or 2 column fold out phones or 3 column tablets.
-* *selection : list, optional.* Optional. This selection list.
+* *selection : list.* Optional. The selection list.
 
 #### Selector Message Attributes
 
