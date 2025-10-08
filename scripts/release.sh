@@ -24,12 +24,14 @@ if [[ -n $(git status -s) ]]; then
     exit 1
 fi
 
-# Check we're on main branch
+# Check we're on main/master branch
 BRANCH=$(git branch --show-current)
 if [ "$BRANCH" != "main" ] && [ "$BRANCH" != "master" ]; then
     echo -e "${RED}Error: Not on main/master branch (currently on ${BRANCH})${NC}"
     exit 1
 fi
+
+echo -e "${YELLOW}Using branch: ${BRANCH}${NC}"
 
 # Pull latest changes
 echo -e "${YELLOW}Pulling latest changes...${NC}"
@@ -74,7 +76,7 @@ git tag "v${VERSION}"
 
 # Push
 echo -e "${YELLOW}Pushing to origin...${NC}"
-git push origin main
+git push origin "$BRANCH"
 git push origin "v${VERSION}"
 
 echo -e "${GREEN}✓ Release ${VERSION} complete!${NC}"
