@@ -1,13 +1,62 @@
 [build-system]
-requires = ["setuptools>=42.0", "wheel"]
+requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "dashio"
+version = "3.5.7"
+description = "DashIO interface library"
+readme = "README.md"
+authors = [
+    {name = "James Boulton", email = "james@dashio.com"}
+]
+license = "MIT"
+classifiers = [
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "paho-mqtt>=2.0.0",
+    "pyzmq",
+    "python-dateutil",
+    "zeroconf",
+    "shortuuid",
+    "pyserial",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "pytest-cov>=2.0",
+    "flake8>=3.9",
+    "tox>=4.0",
+]
+
+[project.urls]
+Homepage = "https://dashio.io"
+Repository = "https://github.com/dashio-connect/python-dashio"
+Download = "https://github.com/dashio-connect/python-dashio"
+
+[project.scripts]
+c64_encode = "dashio.utilities.c64_encode:main"
+c64_decode = "dashio.utilities.c64_decode:main"
+dashio_data_exporter = "dashio.utilities.dashio_data_exporter:main"
+
+[tool.setuptools]
+packages = ["dashio"]
+zip-safe = false
+
+[tool.setuptools.package-data]
+dashio = ["py.typed"]
 
 [tool.pytest.ini_options]
 addopts = "--cov=dashio"
-testpaths = [
-    "tests",
-]
+testpaths = ["tests"]
 
 [tool.mypy]
 mypy_path = "dashio"
@@ -22,3 +71,7 @@ warn_return_any = true
 warn_unreachable = true
 warn_unused_configs = true
 no_implicit_reexport = true
+
+[tool.flake8]
+max-line-length = 260
+per-file-ignores = "__init__.py:F401"
