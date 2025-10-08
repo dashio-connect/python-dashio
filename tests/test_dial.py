@@ -38,12 +38,12 @@ class TestDial(unittest.TestCase):
     def test_dial_dial_fill_color(self):
         test_control = Dial("DIALID", dial_fill_color=Color.WHEAT)
         cfg_dict = self._get_cfg_dict(test_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
-        self.assertEqual(cfg_dict['dialFillColor'], '110', "CFG dialFillColor should be '110'")
+        self.assertEqual(cfg_dict['dialFillColor'], '111', "CFG dialFillColor should be '111'")
 
     def test_dial_pointer_color(self):
         test_control = Dial("DIALID", pointer_color=Color.AZURE)
         cfg_dict = self._get_cfg_dict(test_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
-        self.assertEqual(cfg_dict['pointerColor'], '136', "CFG pointerColor should be '136'")
+        self.assertEqual(cfg_dict['pointerColor'], '137', "CFG pointerColor should be '137'")
 
     def test_dial_number_position(self):
         test_control = Dial("DIALID", number_position=DialNumberPosition.LEFT)
