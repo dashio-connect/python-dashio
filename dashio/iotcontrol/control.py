@@ -331,7 +331,7 @@ class Control():
                 cfgs = self._app_columns_cfg[str(num_columns)]
                 if cfgs:
                     for cfg in cfgs:
-                        cfg_list.append(f"\tCFG\t{dashboard_id}\t{self.cntrl_type}\t{cfg.get_cfg_json()}")
+                        cfg_list.append(f"\tCFG\t{dashboard_id}\t{self.ctrl_type}\t{cfg.get_cfg_json()}")
                     break
                 num_columns = num_columns - 1
         return cfg_list
