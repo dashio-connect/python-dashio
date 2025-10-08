@@ -2,7 +2,7 @@ import json
 import unittest
 
 from dashio import Slider
-from dashio.iotcontrol.enums import Color, SliderBarStyle
+from dashio.iotcontrol.enums import Color, SliderBarStyle, BarMode
 
 
 def _get_cfg_dict(cfg_list: list):
@@ -53,9 +53,9 @@ class TestSlider(unittest.TestCase):
         self.assertEqual(cfg_dict['sendOnlyOnRelease'], True, "CFG sendOnlyOnRelease should be True")
 
     def test_slider_single_bar_cfg_bar_follows_slider(self):
-        test_control = Slider("SLIDERID", bar_follows_slider=True)
+        test_control = Slider("SLIDERID", bar_mode=BarMode.FOLLOW)
         cfg_dict = _get_cfg_dict(test_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
-        self.assertEqual(cfg_dict['barFollowsSlider'], True, "CFG barFollowsSlider should be True")
+        self.assertEqual(cfg_dict['barMode'], 'FOLLOW', "CFG barFollowsSlider should be True")
 
     def test_slider_single_bar_cfg_bar_color(self):
         test_control = Slider("SLIDERID", bar_color=Color.CHARTREUSE)

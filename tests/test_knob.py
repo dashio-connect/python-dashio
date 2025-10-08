@@ -2,7 +2,7 @@ import json
 import unittest
 
 from dashio import Knob
-from dashio.iotcontrol.enums import Color
+from dashio.iotcontrol.enums import Color, DialMode
 
 
 class TestKnob(unittest.TestCase):
@@ -46,9 +46,9 @@ class TestKnob(unittest.TestCase):
         self.assertEqual(cfg_dict['sendOnlyOnRelease'], True, "CFG sendOnlyOnRelease should be True")
 
     def test_knob_cfg_dial_follows_knob(self):
-        test_control = Knob("KNOBID", dial_follows_knob=True)
+        test_control = Knob("KNOBID", dial_mode=DialMode.FOLLOW)
         cfg_dict = self._get_cfg_dict(test_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
-        self.assertEqual(cfg_dict['dialFollowsKnob'], True, "CFG dialFollowsKnob should be True")
+        self.assertEqual(cfg_dict['dialMode'], 'FOLLOW', "CFG dial_mode should be FOLLOW")
 
     def test_knob_cfg_dial_color(self):
         test_control = Knob("KNOBID", dial_color=Color.AQUA)

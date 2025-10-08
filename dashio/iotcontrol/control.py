@@ -409,7 +409,7 @@ class Control():
             '3': []
         }
 
-        self._is_active = False
+        self._is_active = True
 
         self._cfg_max_no_columns = 3
         self.ctrl_type = ctrl_type.translate(BAD_CHARS)

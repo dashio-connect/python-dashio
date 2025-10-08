@@ -119,7 +119,7 @@ class Direction(Control):
             Units to be displayed with the value, by default ""
         precision : Precision, optional
             Precision of the value displayed, by default Precision.OFF
-        calibration_angle : int, optional
+        calibration_angle : float, optional
             Calibration angle offset, by default 0
         column_no : int, optional default is 1. Must be 1..3
             The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into.

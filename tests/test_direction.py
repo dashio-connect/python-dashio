@@ -19,7 +19,7 @@ class TestDial(unittest.TestCase):
     def test_direction_direction_text(self):
         test_control = Direction("DIRECTIONID")
         test_control.direction_text = 'THAT WAY'
-        self.assertEqual(test_control.get_state(), '\t{device_id}\tDIR\tDIRECTIONID\t0\tTHAT WAY\n', "Should be 1")
+        self.assertEqual(test_control.get_state(), '\t{device_id}\tDIR\tDIRECTIONID\t0\tTHAT WAY\n', "Should be THAT WAY")
 
     def test_direction_pointer_color(self):
         test_control = Direction("DIRECTIONID", pointer_color=Color.BLUE)
