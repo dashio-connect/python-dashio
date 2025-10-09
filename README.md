@@ -52,9 +52,23 @@ Dashio Phone               |  Dashio Tablet
 
 ## Install
 
-`pip3 install dashio`
+### From PyPI (Recommended)
 
-Or
+```sh
+pip3 install dashio
+```
+
+### From Source
+
+For development (editable install):
+
+```sh
+git clone https://github.com/dashio-connect/python-dashio.git
+cd python-dashio
+pip3 install -e .
+```
+
+For regular installation:
 
 ```sh
 git clone https://github.com/dashio-connect/python-dashio.git
