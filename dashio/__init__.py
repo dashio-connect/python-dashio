@@ -32,76 +32,49 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-try:
-    from importlib.metadata import version, PackageNotFoundError
-except ImportError:
-    # Python < 3.8
-    from importlib_metadata import version, PackageNotFoundError
-
-try:
-    __version__ = version("dashio")
-except PackageNotFoundError:
-    __version__ = "unknown"
-
-from .device import Device
-from .tcp_connection import TCPConnection
-from .mqtt_connection import MQTTConnection
-from .zmq_connection import ZMQConnection
-from .dash_connection import DashConnection
-from .lte_767x_connection import Lte767xConnection
 from .comms_module_connection import DashIOCommsModuleConnection
-from .schedular import Schedular
-from .load_config import decode_cfg64, encode_cfg64, load_all_controls_from_config, get_control_dict_from_config, get_control_from_config
-# from .bleconnection import BLEConnection
-from .iotcontrol.enums import (
-    Color,
-    Icon,
-    Precision,
-    SoundName,
-    Keyboard,
-    TextAlignment,
-    TitlePosition,
-    SliderBarStyle,
-    DialNumberPosition,
-    DialStyle,
-    ChartLineType,
-    TimeGraphLineType,
-    TimeGraphPositionOfKey,
-    ButtonState,
-    LabelStyle,
-    KnobStyle,
-    ChartXAxisLabelsStyle,
-    TextFormat,
-    DirectionStyle,
-    ColorPickerStyle,
-    ControlName,
-    ButtonStyle,
-    ButtonGroupStyle,
-    MenuStyle,
-    ConnectionState,
-    BarMode,
-    DialMode
-)
+from .dash_connection import DashConnection
+from .device import Device
+from .iotcontrol.alarm import Alarm
 from .iotcontrol.audio_visual_display import AudioVisualDisplay
-from .iotcontrol.chart import Chart, ChartLine
-from .iotcontrol.slider import Slider
-from .iotcontrol.textbox import TextBox
 from .iotcontrol.button import Button
-from .iotcontrol.time_graph import TimeGraph, TimeGraphLine, DataPoint, DataPointArray
-from .iotcontrol.knob import Knob
+from .iotcontrol.button_group import ButtonGroup
+from .iotcontrol.chart import Chart, ChartLine
+from .iotcontrol.color_picker import ColorPicker
+from .iotcontrol.control import Control, ControlPosition
+from .iotcontrol.device_view import DeviceView
 from .iotcontrol.dial import Dial
 from .iotcontrol.direction import Direction
+# from .bleconnection import BLEConnection
+from .iotcontrol.enums import (BarMode, ButtonGroupStyle, ButtonState,
+                               ButtonStyle, ChartLineType,
+                               ChartXAxisLabelsStyle, Color, ColorPickerStyle,
+                               ConnectionState, ControlName, DialMode,
+                               DialNumberPosition, DialStyle, DirectionStyle,
+                               Icon, Keyboard, KnobStyle, LabelStyle,
+                               MenuStyle, Precision, SliderBarStyle, SoundName,
+                               TextAlignment, TextFormat, TimeGraphLineType,
+                               TimeGraphPositionOfKey, TitlePosition)
+from .iotcontrol.event_log import EventData, EventLog
+from .iotcontrol.knob import Knob
+from .iotcontrol.label import Label
 from .iotcontrol.map import Map, MapLocation
-from .iotcontrol.alarm import Alarm
 from .iotcontrol.menu import Menu
 from .iotcontrol.selector import Selector
-from .iotcontrol.label import Label
-from .iotcontrol.device_view import DeviceView
-from .iotcontrol.control import Control, ControlPosition
-from .iotcontrol.button_group import ButtonGroup
-from .iotcontrol.event_log import EventData, EventLog
-from .iotcontrol.color_picker import ColorPicker
+from .iotcontrol.slider import Slider
 from .iotcontrol.table import Table, TableRow
+from .iotcontrol.textbox import TextBox
+from .iotcontrol.time_graph import (DataPoint, DataPointArray, TimeGraph,
+                                    TimeGraphLine)
+from .load_config import (decode_cfg64, encode_cfg64,
+                          get_control_dict_from_config,
+                          get_control_from_config,
+                          load_all_controls_from_config)
+from .lte_767x_connection import Lte767xConnection
+from .mqtt_connection import MQTTConnection
+from .schedular import Schedular
+from .tcp_connection import TCPConnection
+from .zmq_connection import ZMQConnection
 
 __all__ = [
     'Device',
@@ -173,3 +146,11 @@ __all__ = [
     'EventLog',
     'ColorPicker'
 ]
+
+
+from importlib.metadata import PackageNotFoundError, version
+
+try:
+    __version__ = version("dashio")
+except PackageNotFoundError:
+    __version__ = "unknown"
