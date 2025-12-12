@@ -22,14 +22,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from __future__ import annotations
-import logging
-from ..constants import BAD_CHARS
-from .control import Control, ControlPosition, ControlConfig, _get_title_position, _get_precision
-from .enums import (
-    Precision,
-    TitlePosition
-)
 
+import logging
+
+from ..constants import BAD_CHARS
+from .control import (Control, ControlConfig, ControlPosition, _get_precision,
+                      _get_title_position)
+from .enums import Precision, TitlePosition
 
 logger = logging.getLogger(__name__)
 
@@ -88,12 +87,13 @@ class TableConfig(ControlConfig):
 class TableRow:
     """A Table Row
     """
+
     def __init__(
             self,
             label: str | None = None,
             columns: list[str] | None = None,
             units: str | None = None,
-            ) -> None:
+    ) -> None:
         self.label = label
         if columns is None:
             self.columns = columns
@@ -207,10 +207,9 @@ class Table(Control):
             if table_row.label is None:
                 row_label = ""
             return f"{header_str}{row_number}\t{columns}\t{row_label}\t{table_row.units}\n"
-        else:
-            if table_row.label is None:
-                return f"{header_str}{row_number}\t{columns}\n"
-            return f"{header_str}{row_number}\t{columns}\t{row_label}\n"
+        if table_row.label is None:
+            return f"{header_str}{row_number}\t{columns}\n"
+        return f"{header_str}{row_number}\t{columns}\t{table_row.label}\n"
 
     def add_table_row(self, table_row: TableRow):
         """Add a row to the table and send it"""

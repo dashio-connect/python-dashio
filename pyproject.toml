@@ -47,8 +47,10 @@ c64_decode = "dashio.utilities.c64_decode:main"
 dashio_data_exporter = "dashio.utilities.dashio_data_exporter:main"
 
 [tool.setuptools]
-packages = ["dashio"]
 zip-safe = false
+
+[tool.setuptools.packages.find]
+where = ["."]
 
 [tool.setuptools.package-data]
 dashio = ["py.typed"]
