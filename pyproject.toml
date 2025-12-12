@@ -4,12 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dashio"
-version = "3.5.8"
+version = "3.5.9"
 description = "DashIO interface library"
 readme = "README.md"
-authors = [
-    {name = "James Boulton", email = "james@dashio.com"}
-]
+authors = [{ name = "James Boulton", email = "james@dashio.com" }]
 license = "MIT"
 classifiers = [
     "Programming Language :: Python :: 3.10",
@@ -29,12 +27,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=6.0",
-    "pytest-cov>=2.0",
-    "flake8>=3.9",
-    "tox>=4.0",
-]
+dev = ["pytest>=6.0", "pytest-cov>=2.0", "flake8>=3.9", "tox>=4.0"]
 
 [project.urls]
 Homepage = "https://dashio.io"
@@ -76,4 +69,13 @@ no_implicit_reexport = true
 [tool.flake8]
 max-line-length = 260
 per-file-ignores = "__init__.py:F401"
-exclude = [".git", "__pycache__", ".tox", "venv", ".venv", "build", "dist", "*.egg-info"]
+exclude = [
+    ".git",
+    "__pycache__",
+    ".tox",
+    "venv",
+    ".venv",
+    "build",
+    "dist",
+    "*.egg-info",
+]
