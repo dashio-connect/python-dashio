@@ -22,20 +22,21 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from __future__ import annotations
+
 import json
 import logging
 import threading
 import time
+
 import shortuuid
 import zmq
 
-from .constants import CONNECTION_PUB_URL, BAD_CHARS
+from .constants import BAD_CHARS, CONNECTION_PUB_URL
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.device_view import DeviceView
 from .iotcontrol.enums import ControlName
-from .load_config import encode_cfg64
-from .load_config import CONTROL_INSTANCE_DICT, CONFIG_INSTANCE_DICT
-
+from .load_config import (CONFIG_INSTANCE_DICT, CONTROL_INSTANCE_DICT,
+                          encode_cfg64)
 
 logger = logging.getLogger(__name__)
 
@@ -633,6 +634,7 @@ class Device(threading.Thread):
         self.controls_dict = {}
         self._cfg = {}
         self._cfg["deviceSetup"] = ''
+        self._cfg["cfgRev"] = 1
         self._device_id_str = f"\t{device_id}"
         self._cfg["numDeviceViews"] = 0
         if cfg_dict is not None:
@@ -751,4 +753,5 @@ class Device(threading.Thread):
                     self.tx_zmq_pub.send_multipart([msg_from, reply.encode('utf-8')])
         self.tx_zmq_pub.close()
         self.rx_zmq_sub.close()
+        self.context.term()
         self.context.term()
