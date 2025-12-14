@@ -22,20 +22,20 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from __future__ import annotations
+
 import json
 import logging
 import ssl
 import threading
 import time
-
 from socket import gaierror
+
 import paho.mqtt.client as mqtt
 import shortuuid
 import zmq
 
 from .constants import CONNECTION_PUB_URL
 from .iotcontrol.enums import ConnectionState
-
 
 logger = logging.getLogger(__name__)
 
@@ -341,7 +341,7 @@ class DashConnection(threading.Thread):
         control_type = ""
         while self.running:
             try:
-                socks = dict(poller.poll(1))
+                socks = dict(poller.poll(10 ))
             except zmq.error.ContextTerminated:
                 break
 
