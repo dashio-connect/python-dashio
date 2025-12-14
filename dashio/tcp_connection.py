@@ -23,6 +23,7 @@ SOFTWARE.
 """
 
 from __future__ import annotations
+
 import json
 import logging
 import threading
@@ -35,7 +36,6 @@ from . import ip
 from .constants import CONNECTION_PUB_URL
 from .device import Device
 from .zeroconf_service import ZeroconfService
-
 
 logger = logging.getLogger(__name__)
 
@@ -301,7 +301,7 @@ class TCPConnection(threading.Thread):
 
         while self.running:
             try:
-                socks = dict(poller.poll(1))
+                socks = dict(poller.poll(100))
             except zmq.error.ContextTerminated:
                 break
             if self.tcpsocket in socks:
