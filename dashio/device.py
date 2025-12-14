@@ -734,7 +734,7 @@ class Device(threading.Thread):
 
         while self.running:
             try:
-                socks = dict(poller.poll(1))
+                socks = dict(poller.poll(100))
             except zmq.error.ContextTerminated:
                 break
             if self.rx_zmq_sub in socks:
