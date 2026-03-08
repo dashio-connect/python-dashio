@@ -44,7 +44,7 @@ class SliderConfig(ControlConfig):
         bar_color: Color | str,
         knob_color: Color | str,
         bar_style: SliderBarStyle,
-        control_position: ControlPosition | None,
+        control_position: ControlPosition | None
     ) -> None:
         super().__init__(control_id, title, control_position, title_position)
         self.cfg["redValue"] = red_value

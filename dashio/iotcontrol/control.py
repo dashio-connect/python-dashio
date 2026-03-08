@@ -331,7 +331,7 @@ class Control():
                 cfgs = self._app_columns_cfg[str(num_columns)]
                 if cfgs:
                     for cfg in cfgs:
-                        cfg_list.append(f"\tCFG\t{dashboard_id}\t{self.cntrl_type}\t{cfg.get_cfg_json()}")
+                        cfg_list.append(f"\tCFG\t{dashboard_id}\t{self.ctrl_type}\t{cfg.get_cfg_json()}")
                     break
                 num_columns = num_columns - 1
         return cfg_list
@@ -409,7 +409,7 @@ class Control():
             '3': []
         }
 
-        self._is_active = False
+        self._is_active = True
 
         self._cfg_max_no_columns = 3
         self.ctrl_type = ctrl_type.translate(BAD_CHARS)

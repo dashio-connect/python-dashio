@@ -26,6 +26,44 @@ from .control import Control, ControlPosition, ControlConfig, _get_title_positio
 from .enums import TitlePosition
 
 
+class SelectorConfig(ControlConfig):
+    """SelectorConfig"""
+
+    def __init__(
+        self,
+        control_id: str,
+        title: str,
+        title_position: TitlePosition,
+        control_position: ControlPosition | None,
+        selection: list[str] | None = None
+    ) -> None:
+        super().__init__(control_id, title, control_position, title_position)
+        self.cfg["selection"] = selection
+
+    @classmethod
+    def from_dict(cls, cfg_dict: dict):
+        """Instantiates SelectorConfig from cfg dictionary
+
+        Parameters
+        ----------
+        cfg_dict : dict
+            A dictionary usually loaded from a config json from IoTDashboard App
+
+        Returns
+        -------
+        SelectorConfig
+        """
+        tmp_cls = cls(
+            cfg_dict["controlID"],
+            cfg_dict["title"],
+            _get_title_position(cfg_dict["titlePosition"]),
+            ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
+            cfg_dict.get("selection", None)
+        )
+        tmp_cls.parent_id = cfg_dict["parentID"]
+        return tmp_cls
+
+
 class Selector(Control):
     """A Selector control
     """
@@ -35,8 +73,9 @@ class Selector(Control):
         control_id: str,
         title="A Selector",
         title_position=TitlePosition.BOTTOM,
+        selection: list[str] | None = None,
         control_position=None,
-        column_no=1
+        column_no=1,
     ):
         """A Selector control
 
@@ -54,18 +93,23 @@ class Selector(Control):
             The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into.
             Each control can store three configs that define how the device looks for Dash apps installed on single column
             phones or 2 column fold out phones or 3 column tablets.
+        selection : list[str], optional default is None
+            The selection list
         """
         super().__init__("SLCTR", control_id)
+        self.selection_list = []
+        if selection is not None:
+            self.selection_list = list(map(lambda s: s.translate(BAD_CHARS), selection))
         self._app_columns_cfg[str(column_no)].append(
-            ControlConfig(
+            SelectorConfig(
                 control_id,
                 title,
+                title_position,
                 control_position,
-                title_position
+                self.selection_list
             )
         )
         self._position = 0
-        self.selection_list = []
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
@@ -84,6 +128,7 @@ class Selector(Control):
             cfg_dict["controlID"],
             cfg_dict["title"],
             _get_title_position(cfg_dict["titlePosition"]),
+            cfg_dict.get("selection", None),
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
             column_no
         )

@@ -33,9 +33,9 @@ class TestTextBox(unittest.TestCase):
         self.assertEqual(TextAlignment(cfg_dict['textAlign']), TextAlignment.CENTER, "CFG textAlign should be CENTER")
 
     def test_text_box_cfg_text_format(self):
-        test_control = TextBox("TEXTBOXID", text_format=TextFormat.NUMBER)
+        test_control = TextBox("TEXTBOXID", text_format=TextFormat.NUM)
         cfg_dict = _get_cfg_dict(test_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
-        self.assertEqual(TextFormat(cfg_dict['format']), TextFormat.NUMBER, "CFG format should be CENTER")
+        self.assertEqual(TextFormat(cfg_dict['format']), TextFormat.NUM, "CFG format should be CENTER")
 
     def test_text_box_cfg_units(self):
         test_control = TextBox("TEXTBOXID", units='Amps')
