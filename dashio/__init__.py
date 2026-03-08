@@ -75,7 +75,7 @@ from .mqtt_connection import MQTTConnection
 from .schedular import Schedular
 from .tcp_connection import TCPConnection
 from .zmq_connection import ZMQConnection
-from . import quectel_EG800Q
+from .quectel_EG800Q import EG800Q
 
 __all__ = [
     'Device',
@@ -84,6 +84,7 @@ __all__ = [
     'ZMQConnection',
     'DashConnection',
     'Lte767xConnection',
+    'EG800Q',
     'ConnectionState',
     'DashIOCommsModuleConnection',
     'Schedular',
@@ -146,7 +147,6 @@ __all__ = [
     'EventData',
     'EventLog',
     'ColorPicker',
-    'quectel_EG800Q'
 ]
 
 
