@@ -30,7 +30,7 @@ from enum import Enum
 from typing import Any, Callable
 import textwrap
 import threading
-import serial
+import serial  # type: ignore
 
 from .schedular import Schedular
 
@@ -280,7 +280,7 @@ class Sim767x:
         self._sub_topic = topic
 
     def publish_message(self, topic: str, message: str):
-        """Publis a message"""
+        """Publish a message"""
         with self._messages_dict_lock:
             if topic not in self._messages_dict:
                 self._messages_dict[topic] = message
@@ -434,10 +434,9 @@ class Sim767x:
                                 result_arr = result_str.split(',')
                                 if len(result_arr) >= 2:
                                     if result_arr[0] == "1":  # pdp context 0
-                                        if result_arr[0] == "1":
-                                            self._check_MQTT_client()
-                                        else:
-                                            self._start_pdp_context()
+                                        self._check_MQTT_client()
+                                    else:
+                                        self._start_pdp_context()
                             # MQTT
                             elif data.startswith("+CMQTTACCQ:"):
                                 result_arr = result_str.split(',')

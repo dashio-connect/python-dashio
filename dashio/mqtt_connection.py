@@ -29,9 +29,9 @@ import ssl
 import threading
 import time
 
-import paho.mqtt.client as mqtt
-import shortuuid
-import zmq
+import paho.mqtt.client as mqtt  # type: ignore
+import shortuuid  # type: ignore
+import zmq  # type: ignore
 from socket import gaierror
 from .constants import CONNECTION_PUB_URL
 
