@@ -75,6 +75,7 @@ from .mqtt_connection import MQTTConnection
 from .schedular import Schedular
 from .tcp_connection import TCPConnection
 from .zmq_connection import ZMQConnection
+from . import quectel_EG800Q
 
 __all__ = [
     'Device',
@@ -144,7 +145,8 @@ __all__ = [
     'ButtonGroup',
     'EventData',
     'EventLog',
-    'ColorPicker'
+    'ColorPicker',
+    'quectel_EG800Q'
 ]
 
 
