@@ -19,7 +19,7 @@ device_id: str = ""
 control_id: str = ""
 control_type: str = ""
 from_timestamp: str = ""
-file_format: str = 'raw'
+file_format: str = "raw"
 out_to_file: bool = False
 screen: bool = False
 
@@ -38,51 +38,15 @@ class ControlData:
 def parse_commandline_arguments():
     """Handle commandline arguments"""
     parser = argparse.ArgumentParser()
-    parser.add_argument("-u",
-                        "--username",
-                        help="DashIO Username",
-                        dest='username',
-                        default='')
-    parser.add_argument("-p",
-                        "--password",
-                        help='DashIO Password',
-                        default='')
-    parser.add_argument("-d",
-                        "--device_id",
-                        help='The DeviceID of the device to get the data for.',
-                        dest='device_id',
-                        default='')
-    parser.add_argument("-c",
-                        "--control_id",
-                        help='The ControlID of the control on the device to get the data for.',
-                        dest='control_id',
-                        default='')
-    parser.add_argument("-t",
-                        "--type",
-                        help="Type of control, either 'TGRPH', 'MAP', 'LOG'.",
-                        dest='control_type',
-                        default='TGRPH')
-    parser.add_argument("-n",
-                        "--number_of_days",
-                        help='Number of days of data to get up to present time.',
-                        dest='num_days',
-                        type=int,
-                        default=1)
-    parser.add_argument("-f",
-                        "--format",
-                        help="""Format of the output data, either 'raw' or 'csv'.""",
-                        dest='format',
-                        default='raw')
-    parser.add_argument("-s",
-                        "--screen",
-                        help="""Write output to stdout""",
-                        dest='screen',
-                        action='store_true')
-    parser.add_argument("-o",
-                        "--outfile",
-                        help="""Write output to file(s). The filename(s) are generated from the data.""",
-                        dest="out_to_file",
-                        action='store_true')
+    parser.add_argument("-u", "--username", help="DashIO Username", dest="username", default="")
+    parser.add_argument("-p", "--password", help="DashIO Password", default="")
+    parser.add_argument("-d", "--device_id", help="The DeviceID of the device to get the data for.", dest="device_id", default="")
+    parser.add_argument("-c", "--control_id", help="The ControlID of the control on the device to get the data for.", dest="control_id", default="")
+    parser.add_argument("-t", "--type", help="Type of control, either 'TGRPH', 'MAP', 'LOG'.", dest="control_type", default="TGRPH")
+    parser.add_argument("-n", "--number_of_days", help="Number of days of data to get up to present time.", dest="num_days", type=int, default=1)
+    parser.add_argument("-f", "--format", help="""Format of the output data, either 'raw' or 'csv'.""", dest="format", default="raw")
+    parser.add_argument("-s", "--screen", help="""Write output to stdout""", dest="screen", action="store_true")
+    parser.add_argument("-o", "--outfile", help="""Write output to file(s). The filename(s) are generated from the data.""", dest="out_to_file", action="store_true")
     args = parser.parse_args()
     return args
 
@@ -96,11 +60,11 @@ def on_message(client, obj, msg):
     global times_up
     times_up = 3
     l_username, l_device_id, _ = msg.topic.split("/", 2)
-    data = str(msg.payload, "utf-8").strip('\r\n\t')
-    line_data = data.split('\n')
+    data = str(msg.payload, "utf-8").strip("\r\n\t")
+    line_data = data.split("\n")
 
     for line in line_data:
-        parse_line_data(l_username, l_device_id, line.strip('\r\n\t'))
+        parse_line_data(l_username, l_device_id, line.strip("\r\n\t"))
 
 
 def on_subscribe(client, userdata, mid, reason_codes, properties):
@@ -115,15 +79,15 @@ def parse_line_data(rx_username: str, rx_device_id: str, line_data: list[str]) -
     if d_id != device_id or rx_control_id != control_id or rx_dashboard_id != dashboard_id:
         return
     control_data = ControlData(rx_username, rx_device_id, rx_control_type, rx_control_id, rx_control_data)
-    if rx_control_type == 'TGRPH':
+    if rx_control_type == "TGRPH":
         parse_tgrph_data(control_data)
-    elif rx_control_type == 'MAP':
+    elif rx_control_type == "MAP":
         pass
-    elif rx_control_type == 'LOG':
+    elif rx_control_type == "LOG":
         parse_log_data(control_data)
 
 
-def format_log_json_to_cvs(log: str) -> str:
+def format_log_json_to_csv(log: str) -> str:
     """Convert the json to csv"""
     log_dict = json.loads(log)
     log_str = "{time}, {color}, ".format_map(log_dict)
@@ -134,16 +98,16 @@ def format_log_json_to_cvs(log: str) -> str:
 def parse_log_data(control_data: ControlData):
     """parse the LOG data."""
     line = ""
-    if file_format == 'raw':
+    if file_format == "raw":
         line = f"\t{control_data.device_id}\tLOG\t{control_data.control_id}\t"
         line += "\t".join(control_data.data)
-        line += '\n'
+        line += "\n"
         if screen:
             print(line)
-    elif file_format == 'cvs':
+    elif file_format == "csv":
         line = f"# {control_data.device_id}, TGRPH, {control_data.control_id}"
         line += "\nTimestamp, color, lines\n"
-        line += "\n".join(format_log_json_to_cvs(l_str) for l_str in control_data.data)
+        line += "\n".join(format_log_json_to_csv(l_str) for l_str in control_data.data)
         if screen:
             print(line)
     else:
@@ -151,20 +115,20 @@ def parse_log_data(control_data: ControlData):
     if out_to_file:
         filename = f"{control_data.device_id}_{control_data.control_type}_{control_data.control_id}_{control_data.data[0]}.{file_format}"
         print("Writing to file: " + filename)
-        with open(filename, "w", encoding='utf-8') as writer:
+        with open(filename, "w", encoding="utf-8") as writer:
             writer.write(line)
 
 
 def parse_tgrph_data(control_data: ControlData):
     """parse the TGRPH line"""
     line = ""
-    if file_format == 'raw':
+    if file_format == "raw":
         line = f"\t{control_data.device_id}\tTGRPH\t{control_data.control_id}\t"
         line += "\t".join(control_data.data)
-        line += '\n'
+        line += "\n"
         if screen:
             print(line)
-    elif file_format == 'cvs':
+    elif file_format == "csv":
         line_id, line_name, line_type, line_color, line_axis, *line_data = control_data.data
         line = f"# {control_data.device_id}, TGRPH, {control_data.control_id}, {line_id}, {line_name}, {line_type}, {line_color}, {line_axis}\n"
         line += "\nTimestamp, Value\n"
@@ -176,7 +140,7 @@ def parse_tgrph_data(control_data: ControlData):
     if out_to_file:
         filename = f"{control_data.device_id}_{control_data.control_type}_{control_data.control_id}_{control_data.data[0]}.{file_format}"
         print("Writing to file: " + filename)
-        with open(filename, "w", encoding='utf-8') as writer:
+        with open(filename, "w", encoding="utf-8") as writer:
             writer.write(line)
 
 
@@ -238,5 +202,5 @@ def main():
     mqtt_client.loop_stop()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
