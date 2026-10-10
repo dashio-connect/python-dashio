@@ -66,7 +66,7 @@ from .iotcontrol.table import Table, TableRow
 from .iotcontrol.textbox import TextBox
 from .iotcontrol.time_graph import (DataPoint, DataPointArray, TimeGraph,
                                     TimeGraphLine)
-from .load_config import (decode_cfg64, encode_cfg64,
+from .load_config import (decode_cfg64, encode_cfg64, generate_cfg64,
                           get_control_dict_from_config,
                           get_control_from_config,
                           load_all_controls_from_config)
@@ -88,6 +88,7 @@ __all__ = [
     'Schedular',
     'decode_cfg64',
     'encode_cfg64',
+    'generate_cfg64',
     'load_all_controls_from_config',
     'get_control_dict_from_config',
     'get_control_from_config',

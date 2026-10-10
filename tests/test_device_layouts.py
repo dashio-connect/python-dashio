@@ -5,7 +5,8 @@ import unittest
 
 import zmq
 
-from dashio import Button, ControlName, ControlPosition, Device, DeviceView, Dial, TextBox, decode_cfg64, encode_cfg64
+from dashio import (Alarm, Button, ControlName, ControlPosition, Device, DeviceView, Dial, TextBox, decode_cfg64,
+                    encode_cfg64, generate_cfg64)
 
 
 def make_layout(*controls, cfg_rev=1):
@@ -170,6 +171,74 @@ class TestDeviceLayouts(unittest.TestCase):
         device.add_cfg64(cfg64, 2)
         self.assertTrue(device.is_control_loaded("DIAL", "FirstDial"))
         self.assertEqual(len(self.request_cfg(device, 2)["DIAL"]), 1)
+
+
+class TestGenerateCfg64(unittest.TestCase):
+    def setUp(self):
+        self.devices = []
+
+    def tearDown(self):
+        for device in self.devices:
+            device.close()
+
+    def make_device(self, **kwargs):
+        # A context per device, as closing a Device terminates its context.
+        device = Device("DEVICETYPE", "DEVICEID", "DEVICENAME", context=zmq.Context(), **kwargs)
+        self.devices.append(device)
+        return device
+
+    def request_cfg(self, device, num_columns):
+        reply = device._make_cfg64(["", "DEVICEID", "DASHID", str(num_columns)])
+        return decode_cfg64(reply.rstrip("\n").rpartition("\t")[2])
+
+    def button(self, title, control_position, parent_id):
+        button = Button("b1", title, control_position=control_position)
+        button.parent_id = parent_id
+        return button
+
+    def test_generate_cfg64_layout(self):
+        cfg = decode_cfg64(generate_cfg64(
+            DeviceView("v1", "View 1"),
+            DeviceView("v2", "View 2"),
+            self.button("Button", ControlPosition(0.0, 0.0, 1.0, 0.2), "v1"),
+            cfg_rev=3
+        ))
+        self.assertEqual(cfg["CFG"], {"deviceSetup": "", "cfgRev": 3, "numDeviceViews": 2})
+        self.assertEqual([view["controlID"] for view in cfg["DVVW"]], ["v1", "v2"])
+        self.assertEqual(cfg["BTTN"][0]["parentID"], "v1")
+
+    def test_generate_cfg64_skips_alarms(self):
+        cfg = decode_cfg64(generate_cfg64(DeviceView("v1", "View 1"), Alarm("a1")))
+        self.assertNotIn("ALM", cfg)
+
+    def test_generated_column_layouts(self):
+        view1 = DeviceView("v1", "View 1")
+        phone = generate_cfg64(view1, self.button("Phone", ControlPosition(0.0, 0.0, 1.0, 0.2), "v1"))
+        tablet = generate_cfg64(
+            view1,
+            DeviceView("v2", "View 2"),
+            self.button("Tablet", ControlPosition(0.5, 0.5, 0.5, 0.5), "v2")
+        )
+        device = self.make_device(cfg_dict={1: phone, 3: tablet})
+        phone_cfg = self.request_cfg(device, 2)
+        tablet_cfg = self.request_cfg(device, 3)
+        self.assertEqual(phone_cfg["BTTN"][0]["title"], "Phone")
+        self.assertEqual(phone_cfg["CFG"]["numDeviceViews"], 1)
+        self.assertEqual(tablet_cfg["BTTN"][0]["title"], "Tablet")
+        self.assertEqual(tablet_cfg["BTTN"][0]["xPositionRatio"], 0.5)
+        self.assertEqual(tablet_cfg["CFG"]["numDeviceViews"], 2)
+        self.assertEqual(sorted(device.controls_dict), ["BTTN\tb1", "DVVW\tv1", "DVVW\tv2"])
+
+    def test_device_keeps_its_own_controls(self):
+        device = self.make_device()
+        button = Button("b1", "Device Button")
+        device.add_control(button)
+        device.add_cfg64(generate_cfg64(
+            DeviceView("v1", "View 1"),
+            self.button("Layout Button", ControlPosition(0.0, 0.0, 1.0, 0.2), "v1")
+        ), 1)
+        self.assertIs(device.get_control(ControlName.BTTN, "b1"), button, "Loading a layout should not replace a control")
+        self.assertEqual(self.request_cfg(device, 1)["BTTN"][0]["title"], "Layout Button")
 
 
 if __name__ == '__main__':

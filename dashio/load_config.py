@@ -129,6 +129,29 @@ def encode_cfg64(cfg: dict) -> str:
     return base64.b64encode(tmp_z).decode()
 
 
+def generate_cfg64(*controls, cfg_rev: int = 1) -> str:
+    """Generates a CFG64 layout from controls, without needing a Device.
+
+    Use it to build a layout for each Dash app column count from controls created with that layout's
+    positions, then load each into the device with device.add_cfg64(cfg64, column_no). Controls for different
+    layouts are separate instances that share control IDs, so the layouts are independent.
+
+    Args:
+        *controls: The controls in the layout, including its DeviceViews.
+        cfg_rev (int, optional): The cfgRev for the layout. Defaults to 1.
+
+    Returns:
+        str: the layout encoded as C64 format
+    """
+    cfg = {"CFG": {"deviceSetup": "", "cfgRev": cfg_rev, "numDeviceViews": 0}}
+    for control in controls:
+        if control.ctrl_type == "ALM":
+            continue
+        cfg.setdefault(control.ctrl_type, []).extend(control.get_cfg64([]))
+    cfg["CFG"]["numDeviceViews"] = len(cfg.get("DVVW", []))
+    return encode_cfg64(cfg)
+
+
 def get_control_from_config(control_type: str, control_id: str, cfg_dict: dict):
     """Returns a control object instantiated from cfg_dict
 
