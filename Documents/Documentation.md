@@ -722,23 +722,6 @@ The TCPConnection sets up a connection to the **Dash** app within a local area n
 * *add_device(device: Device).* Adds a device to the connection.
 * *close().* Closes the connection.
 
-### MQTTConnection
-
-The MQTTConnection sets up a connection to the **Dash** app via a MQTT server.
-
-#### MQTTConnection Attributes
-
-* *host : str.* The server name of the mqtt host.
-* *port :int.* Port number to connect to.
-* *username : str* username for the mqtt connection.
-* *password : str* password for the mqtt connection.
-* *use_ssl : bool.* Whether to use ssl for the connection or not. (default: {False})
-
-#### MQTTConnection Methods
-
-* *add_device(device: Device).* Adds a device to the connection.
-* *close().* Closes the connection.
-
 ### BLEConnection
 
 The BLEConnection is only supported on Linux systems and requires bluez and dbus to be installed. It has been developed with the RaspberryPi Zero W in mind.
