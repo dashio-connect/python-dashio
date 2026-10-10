@@ -39,7 +39,7 @@ class ColorPickerConfig(ControlConfig):
         control_position: ControlPosition | None
     ) -> None:
         super().__init__(control_id, title, control_position, title_position)
-        self.cfg["style"] = style.value
+        self.cfg["pickerStyle"] = style.value.upper()
         self.cfg["sendOnlyOnRelease"] = send_only_on_release
 
     @classmethod
@@ -93,7 +93,7 @@ class ColorPicker(Control):
             The position of the control on a DeviceView, by default None
         title_position : TitlePosition, optional
             Position of the title when displayed on the **Dash** app, by default None
-        picker_style: ColorPickerStyle, optional
+        style: ColorPickerStyle, optional
             The style of color picker to use.
         send_only_on_release: Boolean
             send only on release, by default True

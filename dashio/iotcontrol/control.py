@@ -53,6 +53,9 @@ def _get_color(color_str: str) -> Color | str:
         return color_str
     if color_str[0] == '#':
         return color_str
+    # The Dash app exports color names, the library generates the color number.
+    if color_str.isdigit():
+        return Color(int(color_str))
     color_name = color_str.upper().replace(" ", "_")
     return Color[color_name]
 
