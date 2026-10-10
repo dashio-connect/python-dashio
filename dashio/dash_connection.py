@@ -138,7 +138,7 @@ class DashConnection(threading.Thread):
     """
 
     def _on_connect(self, client, userdata, flags, reason_code, properties):
-        if reason_code == 0:
+        if not reason_code.is_failure:
             self.connection_state = ConnectionState.CONNECTED
             for device_id in self._device_id_list:
                 control_topic = f"{self.username}/{device_id}/control"
@@ -166,7 +166,7 @@ class DashConnection(threading.Thread):
 
     def _on_subscribe(self, client, userdata, mid, reason_codes, properties):
         logger.debug("Subscribed: %s %s", str(mid), str(reason_codes))
-        if reason_codes[0] == 0:
+        if not reason_codes[0].is_failure:
             topic = self._subscribing_topics.get(mid, None)
             logger.debug("On sub: %s", topic)
             if topic is not None:
@@ -285,7 +285,7 @@ class DashConnection(threading.Thread):
         self.password = password
         self.host = host
         self.port = port
-        self._dash_c = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)  # type: ignore
+        self._dash_c = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, protocol=mqtt.MQTTv5)  # type: ignore
         # Assign event callbacks
 
         self._dash_c.on_message = self._on_message
@@ -367,13 +367,15 @@ class DashConnection(threading.Thread):
                 except IndexError:
                     continue
                 data_topic = f"{self.username}/{device_id}/data"
+                qos = 0
                 if control_type == b'ALM':
                     data_topic = f"{self.username}/{device_id}/alarm"
                     control_type = ""
                 elif msg_to == b"ANNOUNCE":
                     data_topic = f"{self.username}/{device_id}/announce"
+                    qos = 1
                 logger.debug("DASH Tx →\n%s", data.decode().rstrip())
-                self._dash_c.publish(data_topic, data.decode())
+                self._dash_c.publish(data_topic, data.decode(), qos=qos)
             if self.connection_state == ConnectionState.DISCONNECTED:
                 self._disconnect_timeout = min(self._disconnect_timeout, 900)
                 time.sleep(self._disconnect_timeout)
