@@ -92,13 +92,8 @@ class Knob(Control):
     """A Knob control
     """
 
-    def add_config_columnar(self, config: KnobConfig, column_no=1):
-        if isinstance(config, KnobConfig):
-            config.cfg["min"] = self.dial_min
-            config.cfg["max"] = self.dial_max
-            config.cfg["redValue"] = self.red_value
-            config.cfg["ControlID"] = self.control_id
-            self._app_columns_cfg[str(column_no)].append(config)
+    def _cfg_overrides(self) -> dict:
+        return {"min": self.dial_min, "max": self.dial_max, "redValue": self.red_value}
 
     def __init__(
         self,
@@ -115,7 +110,6 @@ class Knob(Control):
         dial_color: Color | str = Color.BLUE,
         knob_color: Color | str = Color.RED,
         control_position=None,
-        column_no=1
     ):
         """A Knob control is a control with a dial and knob.
 
@@ -147,13 +141,9 @@ class Knob(Control):
             Color of the Knob, by default Color.RED
         control_position : ControlPosition, optional
             The position of the control on a DeviceView, by default None
-        column_no : int, optional default is 1. Must be 1..3
-            The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into.
-            Each control can store three configs that define how the device looks for Dash apps installed on single column
-            phones or 2 column fold out phones or 3 column tablets.
         """
         super().__init__("KNOB", control_id)
-        self._app_columns_cfg[str(column_no)].append(
+        self._configs.append(
             KnobConfig(
                 control_id,
                 title,
@@ -224,7 +214,7 @@ class Knob(Control):
         return self._red_value
 
     @classmethod
-    def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
+    def from_cfg_dict(cls, cfg_dict: dict):
         """Instantiates Knob from cfg dictionary
 
         Parameters
@@ -250,7 +240,6 @@ class Knob(Control):
             _get_color(cfg_dict["dialColor"]),
             _get_color(cfg_dict["knobColor"]),
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
-            column_no
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls

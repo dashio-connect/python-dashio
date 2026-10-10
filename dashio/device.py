@@ -23,6 +23,7 @@ SOFTWARE.
 """
 from __future__ import annotations
 
+import copy
 import json
 import logging
 import threading
@@ -33,10 +34,12 @@ import zmq
 
 from .constants import BAD_CHARS, CONNECTION_PUB_URL
 from .iotcontrol.alarm import Alarm
+from .iotcontrol.control import Control
 from .iotcontrol.device_view import DeviceView
 from .iotcontrol.enums import ControlName
-from .load_config import (CONFIG_INSTANCE_DICT, CONTROL_INSTANCE_DICT,
-                          encode_cfg64)
+from .load_config import CONTROL_INSTANCE_DICT, decode_cfg64, encode_cfg64
+
+MAX_LAYOUT_COLUMNS = 3
 
 logger = logging.getLogger(__name__)
 
@@ -70,8 +73,17 @@ class Device(threading.Thread):
     is_control_loaded(iot_control) :
          Returns boolean if the control is loaded in the device.
 
-    add_all_c64_controls(c64_dict: dict):
-        Adds all controls defined in c64_dict into the device.
+    add_cfg64(cfg: str | dict, column_no: int = 1):
+        Loads a layout for Dash apps with column_no columns, adding any controls it defines.
+
+    remove_cfg64(column_no: int):
+        Removes the layout loaded for column_no.
+
+    get_generated_cfg_dict():
+        Returns the layout generated from the device's controls.
+
+    add_all_c64_controls(c64_dict: dict, column_no: int = 1):
+        Same as add_cfg64.
 
     set_wifi_callback(callback) :
         Set a callback function that is called when the DashIO app provides wifi provisioning information.
@@ -168,26 +180,66 @@ class Device(threading.Thread):
                 pass
         return reply
 
+    def _add_generated_cfg(self, cfg: dict, data, layout_controls: bool):
+        """Add the CFG of the device's controls to cfg. layout_controls selects the controls that make up the
+        layout (iotcontrol Controls), otherwise the non layout ones such as connection setup controls."""
+        for control in self.controls_dict.values():
+            if control.ctrl_type == "ALM" or isinstance(control, Control) != layout_controls:
+                continue
+            if control.ctrl_type == "BLE":
+                cfg[control.ctrl_type] = control.get_cfg64(data)
+                continue
+            cfg.setdefault(control.ctrl_type, []).extend(control.get_cfg64(data))
+
+    def get_generated_cfg_dict(self) -> dict:
+        """Returns the CFG dict generated from the device's controls.
+
+        This is the layout sent to the Dash app when no column layouts are loaded with add_cfg64().
+        Encode it with encode_cfg64() to export it, e.g. to load it later as a column layout.
+        """
+        cfg = {"CFG": copy.deepcopy(self._cfg)}
+        self._add_generated_cfg(cfg, [], layout_controls=True)
+        return cfg
+
+    def _select_layout_column(self, num_columns: int) -> int | None:
+        """The loaded layout to use for a Dash app with num_columns: the largest column not bigger than
+        num_columns, otherwise the smallest. None if no layouts are loaded."""
+        if not self._column_cfgs:
+            return None
+        smaller = [column for column in self._column_cfgs if column <= num_columns]
+        return max(smaller) if smaller else min(self._column_cfgs)
+
+    def _get_layout(self, data) -> dict:
+        """The CFG dict to send in reply to a Dash app CFG request."""
+        try:
+            num_columns = int(data[3])
+        except (IndexError, ValueError):
+            num_columns = 1
+        column_no = self._select_layout_column(num_columns)
+        if column_no is None:
+            cfg = {"CFG": copy.deepcopy(self._cfg)}
+            self._add_generated_cfg(cfg, data, layout_controls=True)
+        else:
+            cfg = copy.deepcopy(self._column_cfgs[column_no])
+            cfg["CFG"] = copy.deepcopy(self._cfg)
+            cfg["CFG"]["numDeviceViews"] = len(cfg.get("DVVW", []))
+            for control_type, entries in cfg.items():
+                if not isinstance(entries, list):
+                    continue
+                for entry in entries:
+                    control = self.controls_dict.get(f"{control_type}\t{entry.get('controlID')}")
+                    if isinstance(control, Control):
+                        entry.update(control._cfg_overrides())
+        self._add_generated_cfg(cfg, data, layout_controls=False)
+        return cfg
+
     def _make_cfg64(self, data):
         try:
             dashboard_id = data[2]
         except IndexError:
             return ""
-        reply = self._device_id_str + f"\tCFG\t{dashboard_id}\tC64\t"
-        cfg = {}
-        cfg["CFG"] = self._cfg
-        for control in self.controls_dict.values():
-            if control.ctrl_type == "ALM":
-                continue
-            if control.ctrl_type in ("BLE"):
-                cfg[control.ctrl_type] = control.get_cfg64(data)
-                continue
-            if control.ctrl_type not in cfg:
-                cfg[control.ctrl_type] = []
-            cfg[control.ctrl_type].extend(control.get_cfg64(data))
-        c64_json = encode_cfg64(cfg)
-        reply += c64_json + "\n"
-        return reply
+        c64_json = encode_cfg64(self._get_layout(data))
+        return self._device_id_str + f"\tCFG\t{dashboard_id}\tC64\t{c64_json}\n"
 
     def _server_clk(self, data):
         if self._clk_rx_callback is not None:
@@ -203,19 +255,18 @@ class Device(threading.Thread):
             #  no_views = data[3]
         except IndexError:
             return ""
-        reply = self._device_id_str + f"\tCFG\t{dashboard_id}\tDVCE\t{json.dumps(self._cfg)}\n"
+        layout = self._get_layout(data)
+        reply = self._device_id_str + f"\tCFG\t{dashboard_id}\tDVCE\t{json.dumps(layout.pop('CFG'))}\n"
         dvvw_str = ""
-        for control in self.controls_dict.values():
-            if control.ctrl_type == "ALM":
-                continue
-            if control.ctrl_type == "DVVW":
-                cfg_list = control.get_cfg(data)
-                for cfg in cfg_list:
-                    dvvw_str += self._device_id_str + cfg
-            else:
-                cfg_list = control.get_cfg(data)
-                for cfg in cfg_list:
-                    reply += self._device_id_str + cfg
+        for control_type, entries in layout.items():
+            if not isinstance(entries, list):
+                entries = [entries]
+            for entry in entries:
+                cfg_str = self._device_id_str + f"\tCFG\t{dashboard_id}\t{control_type}\t{json.dumps(entry)}\n"
+                if control_type == "DVVW":
+                    dvvw_str += cfg_str
+                else:
+                    reply += cfg_str
         reply += dvvw_str
         return reply
 
@@ -279,33 +330,44 @@ class Device(threading.Thread):
         key = f"{control_type}\t{control_id}"
         return key in self.controls_dict
 
-    def add_all_c64_controls(self, c64_dict: dict, column_no=1):
-        """Loads all the controls in cfg_dict into the device.
+    def add_cfg64(self, cfg: str | dict, column_no: int = 1):
+        """Load a layout for Dash apps that report column_no columns.
+
+        The Dash app reports its screen size in columns: 1 for phones, 2 for fold out phones and 3 for tablets.
+        A layout can be loaded for each. When the app asks for a CFG it is sent the layout for its column count,
+        or if there isn't one, the largest layout with fewer columns, otherwise the smallest layout. The layout
+        generated from the device's controls is only sent when no layouts are loaded.
+
+        Controls in the layout that the device doesn't have are instantiated from the layout and added.
 
         Parameters
         ----------
-        c64_dict : Dict
-            dictionary of the CFG loaded by decode_cfg from a CFG64 or json
-        column_no: Int From 1 to 3 (default 1).
-            The DashIO app reports the size of the screen in no of columns. You can load a separate
-            config for each reported column number.
+        cfg : str | dict
+            A CFG64 string, e.g. exported by the Dash app, or a dict decoded from one with decode_cfg64.
+        column_no : int, optional
+            The column count the layout is for, 1 to 3. Defaults to 1.
         """
-        if not 1 <= column_no <= 3:
-            column_no = 1
-        for control_type, control_list in c64_dict.items():
+        if not 1 <= column_no <= MAX_LAYOUT_COLUMNS:
+            raise ValueError(f"column_no must be 1 to {MAX_LAYOUT_COLUMNS}, not {column_no}")
+        cfg_dict = decode_cfg64(cfg) if isinstance(cfg, str) else copy.deepcopy(cfg)
+        for control_type, control_list in cfg_dict.items():
             if isinstance(control_list, list):
                 for control in control_list:
-                    key = f"{control_type}\t{control['controlID']}"
-                    if self.is_control_loaded(control_type, control['controlID']):
-                        cfg = CONFIG_INSTANCE_DICT[control_type].from_dict(control)
-                        self.controls_dict[key].add_config(cfg, column_no=column_no)
-                    else:
-                        new_control = CONTROL_INSTANCE_DICT[control_type].from_cfg_dict(control, column_no=column_no)
-                        self.add_control(new_control)
+                    if not self.is_control_loaded(control_type, control['controlID']):
+                        self.add_control(CONTROL_INSTANCE_DICT[control_type].from_cfg_dict(control))
             elif control_type == "CFG" and isinstance(control_list, dict):
-                if 'name' in control_list['deviceSetup']:
+                if 'name' in control_list.get('deviceSetup', ''):
                     self._set_device_setup("name", True)
                     self.set_name_callback(self._name_callback)
+        self._column_cfgs[column_no] = cfg_dict
+
+    def remove_cfg64(self, column_no: int):
+        """Remove the layout loaded for column_no. Controls added with the layout stay on the device."""
+        self._column_cfgs.pop(column_no, None)
+
+    def add_all_c64_controls(self, c64_dict: dict, column_no=1):
+        """Loads a layout and its controls into the device. Same as add_cfg64()."""
+        self.add_cfg64(c64_dict, column_no)
 
     def add_control(self, iot_control):
         """Add a control to the device.
@@ -603,7 +665,9 @@ class Device(threading.Thread):
             device_name : str
                 The name for this device
             cfg_dict : dict optional
-                Setup dict to cfgRev and adds controls defined in cfg_dict, defaults None
+                A layout decoded with decode_cfg64, loaded for 1 column. Or a dict of column number to layout,
+                each a CFG64 string or decoded dict, e.g. {1: phone_cfg64, 3: tablet_cfg64}. The layouts are
+                loaded with add_cfg64() and cfgRev is set from them. Defaults to None.
             context : optional
                 ZMQ context. Defaults to None.
         """
@@ -637,9 +701,12 @@ class Device(threading.Thread):
         self._cfg["cfgRev"] = 1
         self._device_id_str = f"\t{device_id}"
         self._cfg["numDeviceViews"] = 0
+        self._column_cfgs = {}
         if cfg_dict is not None:
-            self._cfg["cfgRev"] = cfg_dict['CFG']['cfgRev']
-            self.add_all_c64_controls(cfg_dict)
+            column_cfgs = cfg_dict if all(isinstance(key, int) for key in cfg_dict) else {1: cfg_dict}
+            for column_no, cfg in column_cfgs.items():
+                self.add_cfg64(cfg, column_no)
+            self._cfg["cfgRev"] = max(cfg.get('CFG', {}).get('cfgRev', 1) for cfg in self._column_cfgs.values())
             self.use_cfg64()
 
         self.running = True

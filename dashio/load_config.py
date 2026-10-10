@@ -188,13 +188,4 @@ def load_all_controls_from_config(device, cfg_dict):
         dictionary of the CFG loaded by decode_cfg from a CFG64 or json
 
     """
-    for control_type, control_list in cfg_dict.items():
-        if isinstance(control_list, list):
-            for control in control_list:
-                key = f"{control_type}\t{control['controlID']}"
-                if device.is_control_loaded(control_type, control['controlID']):
-                    cfg = CONFIG_INSTANCE_DICT[control_type].from_dict(control)
-                    device.control_dict[key].add_config_columnar(cfg)
-                else:
-                    new_control = CONTROL_INSTANCE_DICT[control_type].from_cfg_dict(control)
-                    device.add_control(new_control)
+    device.add_cfg64(cfg_dict)

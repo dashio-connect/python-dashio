@@ -80,11 +80,8 @@ class DirectionConfig(ControlConfig):
 class Direction(Control):
     """Direction control"""
 
-    def add_config(self, config: DirectionConfig, column_no=1):
-        if isinstance(config, DirectionConfig):
-            config.cfg["calAngle"] = self.cal_angle
-            config.cfg["ControlID"] = self.control_id
-            self._app_columns_cfg[str(column_no)].append(config)
+    def _cfg_overrides(self) -> dict:
+        return {"calAngle": self.cal_angle}
 
     def __init__(
         self,
@@ -97,7 +94,6 @@ class Direction(Control):
         precision=Precision.OFF,
         calibration_angle=0,
         control_position=None,
-        column_no=1
     ):
         """Direction Control
 
@@ -121,13 +117,9 @@ class Direction(Control):
             Precision of the value displayed, by default Precision.OFF
         calibration_angle : float, optional
             Calibration angle offset, by default 0
-        column_no : int, optional default is 1. Must be 1..3
-            The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into.
-            Each control can store three configs that define how the device looks for Dash apps installed on single column
-            phones or 2 column fold out phones or 3 column tablets.
         """
         super().__init__("DIR", control_id)
-        self._app_columns_cfg[str(column_no)].append(
+        self._configs.append(
             DirectionConfig(
                 control_id,
                 title,
@@ -168,7 +160,7 @@ class Direction(Control):
         return self._cal_angle
 
     @classmethod
-    def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
+    def from_cfg_dict(cls, cfg_dict: dict):
         """Instantiates Direction from cfg dictionary
 
         Parameters
@@ -190,7 +182,6 @@ class Direction(Control):
             _get_precision(cfg_dict["precision"]),
             cfg_dict["calAngle"],
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
-            column_no
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls

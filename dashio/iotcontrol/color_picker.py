@@ -79,7 +79,6 @@ class ColorPicker(Control):
         style=ColorPickerStyle.WHEEL,
         send_only_on_release=True,
         control_position=None,
-        column_no=1
     ):
         """ColorPicker
 
@@ -97,13 +96,9 @@ class ColorPicker(Control):
             The style of color picker to use.
         send_only_on_release: Boolean
             send only on release, by default True
-        column_no : int, optional default is 1. Must be 1..3
-            The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into.
-            Each control can store three configs that define how the device looks for Dash apps installed on single column
-            phones or 2 column fold out phones or 3 column tablets.
         """
         super().__init__("CLR", control_id)
-        self._app_columns_cfg[str(column_no)].append(
+        self._configs.append(
             ColorPickerConfig(
                 control_id,
                 title,
@@ -116,7 +111,7 @@ class ColorPicker(Control):
         self._color_value = "#4F5GA2"
 
     @classmethod
-    def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
+    def from_cfg_dict(cls, cfg_dict: dict):
         """Instantiates ColorPicker from cfg dictionary
 
         Parameters
@@ -135,7 +130,6 @@ class ColorPicker(Control):
             _get_color_picker_style(cfg_dict["pickerStyle"]),
             cfg_dict["sendOnlyOnRelease"],
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
-            column_no
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls

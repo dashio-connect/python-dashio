@@ -157,7 +157,6 @@ class Chart(Control):
         y_axis_min_rt=0.0,
         y_axis_max_rt=1000.0,
         control_position=None,
-        column_no=1
     ):
         """A Chart Control
 
@@ -189,13 +188,9 @@ class Chart(Control):
             Number of bars on the Y axis, by default 5
         control_position : ControlPosition, optional
             The position of the control on a DeviceView, by default None
-        column_no : int, optional default is 1. Must be 1..3
-            The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into.
-            Each control can store three configs that define how the device looks for Dash apps installed on single column
-            phones or 2 column fold out phones or 3 column tablets.
         """
         super().__init__("CHRT", control_id)
-        self._app_columns_cfg[str(column_no)].append(
+        self._configs.append(
             ChartConfig(
                 control_id,
                 title,
@@ -266,7 +261,7 @@ class Chart(Control):
         return self.y_axis_num_bars
 
     @classmethod
-    def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
+    def from_cfg_dict(cls, cfg_dict: dict):
         """Instantiates Chart from cfg dictionary
 
         Parameters
@@ -295,7 +290,6 @@ class Chart(Control):
             cfg_dict.get("yAxisMinRt", 0.0),
             cfg_dict.get("yAxisMaxRt", 1000.0),
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
-            column_no
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls

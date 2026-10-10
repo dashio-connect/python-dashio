@@ -323,21 +323,11 @@ class Control():
         str
             The CFG for this control
         """
-        cfg_list = []
         try:
-            num_columns = int(data[3])
             dashboard_id = data[2]
-        except (IndexError, ValueError):
-            return cfg_list
-        if 1 <= num_columns <= self._cfg_max_no_columns:
-            while num_columns >= 1:
-                cfgs = self._app_columns_cfg[str(num_columns)]
-                if cfgs:
-                    for cfg in cfgs:
-                        cfg_list.append(f"\tCFG\t{dashboard_id}\t{self.ctrl_type}\t{cfg.get_cfg_json()}")
-                    break
-                num_columns = num_columns - 1
-        return cfg_list
+        except IndexError:
+            return []
+        return [f"\tCFG\t{dashboard_id}\t{self.ctrl_type}\t{cfg.get_cfg_json()}" for cfg in self._configs]
 
     def get_cfg64(self, data) -> list:
         """Returns the CFG dict for the control called when the **Dash** app asks for a CFG
@@ -352,32 +342,17 @@ class Control():
         dict
             The CFG dict for this control
         """
-        cfg_list = []
-        try:
-            num_columns = int(data[3])
-        except (IndexError, ValueError):
-            return []
-        if 1 <= num_columns <= self._cfg_max_no_columns:
-            cfgs = self._app_columns_cfg[str(num_columns)]
-            if cfgs:
-                for cfg in cfgs:
-                    cfg_list.append(cfg.get_cfg64())
-                return cfg_list
-            num_columns = 1
-            while num_columns <= 3:
-                cfgs = self._app_columns_cfg[str(num_columns)]
-                if cfgs:
-                    for cfg in cfgs:
-                        cfg_list.append(cfg.get_cfg64())
-                    break
-                num_columns = num_columns + 1
-        return cfg_list
+        return [cfg.get_cfg64() for cfg in self._configs]
 
-    def add_config(self, config, column_no=1):
-        """Add a duplicate Config for DashIO Apps with wider screens"""
+    def _cfg_overrides(self) -> dict:
+        """CFG values owned by the control rather than the layout. Applied to every layout of the control."""
+        return {}
+
+    def add_config(self, config):
+        """Add another Config so the control appears more than once in the layout, e.g. on two DeviceViews."""
         config.cfg["controlID"] = self.control_id
-        if 1 <= column_no <= self._cfg_max_no_columns:
-            self._app_columns_cfg[str(column_no)].append(config)
+        config.cfg.update(self._cfg_overrides())
+        self._configs.append(config)
 
     def add_receive_message_callback(self, callback):
         """Add a callback to receive incoming messages to the control."""
@@ -405,16 +380,11 @@ class Control():
         control_id : str
             An unique control identity string. The control identity string must be a unique string for each control per device
         """
-        # List to store control CFG json
-        self._app_columns_cfg = {
-            '1': [],
-            '2': [],
-            '3': []
-        }
+        # The control's layout entries. Layouts for different Dash app column counts are held by the Device.
+        self._configs = []
 
         self._is_active = True
 
-        self._cfg_max_no_columns = 3
         self.ctrl_type = ctrl_type.translate(BAD_CHARS)
         self.control_id = control_id.translate(BAD_CHARS)
         if not self.control_id:
@@ -425,9 +395,9 @@ class Control():
         self._message_rx_event += self._message_tx_event
         self._control_hdr_str = f"\t{{device_id}}\t{self.ctrl_type}\t{self.control_id}\t"
 
-    def del_config(self, column_no=1):
-        """Deletes all the columnar config layout entries"""
-        self._app_columns_cfg[str(column_no)] = []
+    def del_config(self):
+        """Deletes all the config layout entries"""
+        self._configs = []
 
     @property
     def state_str(self) -> str:
@@ -446,21 +416,16 @@ class Control():
 
     #  Use getter, setter properties to store the settings in the config dictionary
     @property
-    def parent_id(self, index=0, column_no=1) -> str:
-        """The parent control or device view this control belongs to
+    def parent_id(self) -> str:
+        """The parent control or device view of the control's first layout entry
 
         Returns
         -------
         str
             The parent_id
         """
-        if not 1 <= column_no <= self._cfg_max_no_columns:
-            column_no = 1
-        return self._app_columns_cfg[str(column_no)][index]["parentID"]
+        return self._configs[0].parent_id
 
     @parent_id.setter
-    def parent_id(self, val: str, index=0, column_no=1):
-        _val = val.translate(BAD_CHARS)
-        if not 1 <= column_no <= self._cfg_max_no_columns:
-            column_no = 1
-        self._app_columns_cfg[str(column_no)][index].parent_id = _val
+    def parent_id(self, val: str):
+        self._configs[0].parent_id = val

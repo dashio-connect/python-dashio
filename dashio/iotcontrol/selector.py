@@ -75,7 +75,6 @@ class Selector(Control):
         title_position=TitlePosition.BOTTOM,
         selection: list[str] | None = None,
         control_position=None,
-        column_no=1,
     ):
         """A Selector control
 
@@ -89,10 +88,6 @@ class Selector(Control):
             The position of the control on a DeviceView, by default None
         title_position : TitlePosition, optional
             Position of the title when displayed on the **Dash** app, by default None
-        column_no : int, optional default is 1. Must be 1..3
-            The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into.
-            Each control can store three configs that define how the device looks for Dash apps installed on single column
-            phones or 2 column fold out phones or 3 column tablets.
         selection : list[str], optional default is None
             The selection list
         """
@@ -100,7 +95,7 @@ class Selector(Control):
         self.selection_list = []
         if selection is not None:
             self.selection_list = list(map(lambda s: s.translate(BAD_CHARS), selection))
-        self._app_columns_cfg[str(column_no)].append(
+        self._configs.append(
             SelectorConfig(
                 control_id,
                 title,
@@ -112,7 +107,7 @@ class Selector(Control):
         self._position = 0
 
     @classmethod
-    def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
+    def from_cfg_dict(cls, cfg_dict: dict):
         """Instantiates Selector from cfg dictionary
 
         Parameters
@@ -130,7 +125,6 @@ class Selector(Control):
             _get_title_position(cfg_dict["titlePosition"]),
             cfg_dict.get("selection", None),
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
-            column_no
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls

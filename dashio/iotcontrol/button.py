@@ -104,10 +104,6 @@ class Button(Control):
         The text that appears on the Button.
     control_position : ControlPosition
         Set the size and position of the button on a DeviceView.
-    column_no : int, optional default is 1. Must be 1..3
-        The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into.
-        Each control can store three configs that define how the device looks for Dash apps installed on single column
-        phones or 2 column fold out phones or 3 column tablets.
 
     Methods
     -------
@@ -141,10 +137,9 @@ class Button(Control):
         off_color: Color | str = Color.RED,
         text="",
         control_position: ControlPosition | None = None,
-        column_no=1
     ):
         super().__init__("BTTN", control_id)
-        self._app_columns_cfg[str(column_no)].append(
+        self._configs.append(
             ButtonConfig(
                 control_id,
                 title,
@@ -163,7 +158,7 @@ class Button(Control):
         self._icon_name = icon_name
 
     @classmethod
-    def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
+    def from_cfg_dict(cls, cfg_dict: dict):
         """Instantiates Button from cfg dictionary
 
         Parameters
@@ -186,7 +181,6 @@ class Button(Control):
             _get_color(cfg_dict["offColor"]),
             cfg_dict["text"],
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
-            column_no
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls

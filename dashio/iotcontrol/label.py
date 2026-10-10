@@ -77,7 +77,6 @@ class Label(Control):
         color: Color | str = Color.WHITE,
         style=LabelStyle.BASIC,
         control_position=None,
-        column_no=1
     ):
         """Label
 
@@ -95,10 +94,6 @@ class Label(Control):
             Color of the label, by default Color.WHITE
         style : LabelStyle, optional
             Style of label to be displayed, by default LabelStyle.BASIC
-        column_no : int, optional default is 1. Must be 1..3
-            The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into.
-            Each control can store three configs that define how the device looks for Dash apps installed on single column
-            phones or 2 column fold out phones or 3 column tablets.
         """
         super().__init__("LBL", control_id)
         control_config = LabelConfig(
@@ -109,11 +104,11 @@ class Label(Control):
             style,
             control_position
         )
-        self._app_columns_cfg[str(column_no)].append(control_config)
+        self._configs.append(control_config)
         self._state_str = ""
 
     @classmethod
-    def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
+    def from_cfg_dict(cls, cfg_dict: dict):
         """Instantiates a label from cfg dictionary
 
         Parameters
@@ -132,7 +127,6 @@ class Label(Control):
             _get_color(cfg_dict["color"]),
             _get_label_style(cfg_dict["style"]),
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
-            column_no
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls

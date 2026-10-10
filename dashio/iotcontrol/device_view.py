@@ -155,10 +155,6 @@ class DeviceView(Control):
         The num of grid rows on the edit view
     user_tappable_color : Color
         The color of user table buttons on screen in controls
-    column_no : int, optional default is 1. Must be 1..3
-        The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into.
-        Each control can store three configs that define how the device looks for Dash apps installed on single column
-        phones or 2 column fold out phones or 3 column tablets.
 
 
     Methods
@@ -190,10 +186,9 @@ class DeviceView(Control):
         num_grid_columns=22,
         num_grid_rows=32,
         user_tappable_color='',
-        column_no=1
     ):
         super().__init__("DVVW", control_id)
-        self._app_columns_cfg[str(column_no)].append(
+        self._configs.append(
             DeviceViewConfig(
                 control_id,
                 title,
@@ -218,7 +213,7 @@ class DeviceView(Control):
         self._state_str = ""
 
     @classmethod
-    def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
+    def from_cfg_dict(cls, cfg_dict: dict):
         """Instantiates DeviceView from cfg dictionary
 
         Parameters
@@ -249,7 +244,6 @@ class DeviceView(Control):
             cfg_dict["gridColumns"],
             cfg_dict["gridRows"],
             _get_color(cfg_dict.get("ctrlUItapColor", '')),
-            column_no
         )
 
     def add_control(self, control):

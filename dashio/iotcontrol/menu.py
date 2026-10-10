@@ -87,7 +87,6 @@ class Menu(Control):
         style=MenuStyle.BASIC,
         icon_name=Icon.MENU,
         control_position=None,
-        column_no=1
     ):
         """A Menu control
 
@@ -105,13 +104,9 @@ class Menu(Control):
             Menu text, by default "A Menu with Text"
         icon : Icon, optional
             Menu icon, by default Icon.MENU
-        column_no : int, optional default is 1. Must be 1..3
-            The Dash App reports its screen size in columns. column_no allows you to specify which column no to load into.
-            Each control can store three configs that define how the device looks for Dash apps installed on single column
-            phones or 2 column fold out phones or 3 column tablets.
         """
         super().__init__("MENU", control_id)
-        self._app_columns_cfg[str(column_no)].append(
+        self._configs.append(
             MenuConfig(
                 control_id,
                 title,
@@ -124,7 +119,7 @@ class Menu(Control):
         )
 
     @classmethod
-    def from_cfg_dict(cls, cfg_dict: dict, column_no=1):
+    def from_cfg_dict(cls, cfg_dict: dict):
         """Instantiates Menu from cfg dictionary
 
         Parameters
@@ -144,7 +139,6 @@ class Menu(Control):
             _get_menu_style(cfg_dict.get("style", "basic")),
             _get_icon(cfg_dict.get("iconName", "None")),
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
-            column_no
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
         return tmp_cls
