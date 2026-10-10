@@ -46,11 +46,11 @@ def parse_commandline_arguments():
         nargs="?",
         help="""increase verbosity:
                         0 = only warnings, 1 = info, 2 = debug.
-                        No number means info. Default is no verbosity.""",
+                        No number means info. Default is info.""",
     )
-    parser.add_argument("-s", "--server", help="Server URL.", dest="server", default="localhost")
+    parser.add_argument("-s", "--server", help="Server URL.", dest="server", default="dash.dashio.io")
     parser.add_argument(
-        "-p", "--port", type=int, help="Port number.", default=1883, dest="port",
+        "-p", "--port", type=int, help="Port number.", default=8883, dest="port",
     )
     parser.add_argument(
         "-c", "--connection_name", dest="connection", default="NETWORK_TRAFFIC", help="IotDashboard Connection name"
@@ -82,7 +82,7 @@ def main():
     print(f"          Data topic: {args.username}/{args.device_id}/data")
 
     device = dashio.Device("Test Map", args.device_id, args.device_name)
-    dash_conn = dashio.DashConnection(args.username, args.password)
+    dash_conn = dashio.DashConnection(args.username, args.password, host=args.server, port=args.port)
     dash_conn.add_device(device)
 
     my_map = dashio.Map("MAP1", title="A cool map")
@@ -93,6 +93,7 @@ def main():
     while not SHUTDOWN:
         time.sleep(1)
 
+    dash_conn.close()
     device.close()
 
 

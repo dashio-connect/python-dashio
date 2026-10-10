@@ -72,7 +72,7 @@ class TestControls:
             nargs="?",
             help="""increase verbosity:
                             0 = only warnings, 1 = info, 2 = debug.
-                            No number means info. Default is no verbosity.""",
+                            No number means info. Default is info.""",
         )
         parser.add_argument("-u", "--url", help="Host URL.", dest="url", default="tcp://*")
         parser.add_argument("-d", "--device_id", dest="device_id", default="00002", help="IotDashboard Device ID.")

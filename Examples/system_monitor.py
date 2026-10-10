@@ -80,7 +80,7 @@ def parse_commandline_arguments():
         nargs="?",
         help="""increase verbosity:
                         0 = only warnings, 1 = info, 2 = debug.
-                        No number means info. Default is no verbosity.""",
+                        No number means info. Default is info.""",
     )
     parser.add_argument("-s", "--server", help="Server URL.", dest="server", default="dash.dashio.io")
     parser.add_argument(
@@ -137,7 +137,9 @@ def main():
     )
     dash_conn = dashio.DashConnection(
         config_file_parser.get('DEFAULT', 'username'),
-        config_file_parser.get('DEFAULT', 'password')
+        config_file_parser.get('DEFAULT', 'password'),
+        host=args.server,
+        port=args.port
     )
     dash_conn.add_device(device)
 
@@ -230,6 +232,7 @@ def main():
             # Only send if changed.
             hd_dial.dial_value = disk_usage
 
+    dash_conn.close()
     device.close()
 
 

@@ -69,15 +69,14 @@ class TestControls:
             nargs="?",
             help="""increase verbosity:
                             0 = only warnings, 1 = info, 2 = debug.
-                            No number means info. Default is no verbosity.""",
+                            No number means info. Default is info.""",
         )
         parser.add_argument("-s", "--server", help="Server URL.", dest="server", default="dash.dashio.io")
-        parser.add_argument("-q", "--hostname", help="Host URL.", dest="hostname", default="tcp://*")
         parser.add_argument(
             "-t", "--device_type", dest="device_type", default="TestDualTCPDash", help="IotDashboard device type"
         )
         parser.add_argument(
-            "-p", "--port", type=int, help="Port number.", default=5650, dest="port",
+            "-p", "--port", type=int, help="TCP port number.", default=5650, dest="port",
         )
         parser.add_argument("-d", "--device_id", dest="device_id", default="00001", help="IotDashboard Device ID.")
         parser.add_argument(
@@ -153,7 +152,7 @@ class TestControls:
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
 
-        self.device = dashio.Device(args.device_type, args.device_id, args.device_name, add_actions=True)
+        self.device = dashio.Device(args.device_type, args.device_id, args.device_name)
 
         self.device.set_dashio_callback(self.dashio_handler)
         self.device.set_wifi_callback(self.wifi_handler)
@@ -161,8 +160,8 @@ class TestControls:
         self.device.set_tcp_callback(self.tcp_handler)
         self.device.set_mqtt_callback(self.mqtt_handler)
         self.device.use_cfg64()
-        self.dash_con = dashio.DashConnection(args.username, args.password)
-        self.tcp_con = dashio.TCPConnection()
+        self.dash_con = dashio.DashConnection(args.username, args.password, host=args.server)
+        self.tcp_con = dashio.TCPConnection(port=args.port)
         self.tcp_con.add_device(self.device)
         self.dash_con.add_device(self.device)
 
@@ -292,6 +291,8 @@ class TestControls:
             time.sleep(5)
             self.comp_control.direction_value = random.random() * 360
 
+        self.tcp_con.close()
+        self.dash_con.close()
         self.device.close()
 
 

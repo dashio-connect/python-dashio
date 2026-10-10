@@ -74,7 +74,7 @@ def parse_commandline_arguments():
         nargs="?",
         help="""increase verbosity:
                         0 = only warnings, 1 = info, 2 = debug.
-                        No number means info. Default is no verbosity.""",
+                        No number means info. Default is info.""",
     )
     parser.add_argument("-u", "--username", help="Dashio Username", dest="username", default="")
     parser.add_argument("-w", "--password", help="DashIO Password", dest="password", default="")
@@ -175,6 +175,7 @@ def main():
     while not SHUTDOWN:
         time.sleep(1)
 
+    dash_conn.close()
     device.close()
 
 

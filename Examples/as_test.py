@@ -66,7 +66,7 @@ class ActionStationOnly:
             nargs="?",
             help="""increase verbosity:
                             0 = only warnings, 1 = info, 2 = debug.
-                            No number means info. Default is no verbosity.""",
+                            No number means info. Default is info.""",
         )
         parser.add_argument("-u", "--url", help="Host URL.", dest="url", default="tcp://*")
         parser.add_argument("-d", "--device_id", dest="device_id", default="098876jzdcjh21312", help="IotDashboard Device ID.")
@@ -89,7 +89,7 @@ class ActionStationOnly:
         logging.info("    Device ID: %s", args.device_id)
         logging.info("  Device Name: %s", args.device_name)
         context = zmq.Context.instance()
-        self.device = dashio.Device("ActionStationTest", args.device_id, args.device_name, add_actions=True, context=context)
+        self.device = dashio.Device("ActionStationTest", args.device_id, args.device_name, context=context)
         #  self.device.use_cfg64()
 
         self.tcp_con = dashio.TCPConnection(context=context)

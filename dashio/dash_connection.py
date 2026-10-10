@@ -225,6 +225,8 @@ class DashConnection(threading.Thread):
         try:
             self._dash_c.connect(self.host, self.port)
             self.connection_state = ConnectionState.CONNECTING
+            # Start the network loop only once a host is set, otherwise paho's thread dies with "Invalid host".
+            self._dash_c.loop_start()
         except (gaierror, ConnectionRefusedError) as error:
             logger.debug("No connection to server: %s", str(error))
 
@@ -325,8 +327,6 @@ class DashConnection(threading.Thread):
             self._del_device_rx(msg_dict)
 
     def run(self):
-        self._dash_c.loop_start()
-
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
         self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
 

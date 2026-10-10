@@ -224,7 +224,7 @@ class TestEventLog:
             nargs="?",
             help="""increase verbosity:
                             0 = only warnings, 1 = info, 2 = debug.
-                            No number means info. Default is no verbosity.""",
+                            No number means info. Default is info.""",
         )
         parser.add_argument(
             "-t", "--device_type", dest="device_type", default="TestEventLog", help="IotDashboard Device type"
@@ -266,6 +266,7 @@ class TestEventLog:
             event_d = dashio.EventData(f"Count: {count}\n{insult}", color=random.choice(list(dashio.Color)))
             event_l.add_event_data(event_d)
             count += 1
+        dash_conn.close()
         device.close()
 
 

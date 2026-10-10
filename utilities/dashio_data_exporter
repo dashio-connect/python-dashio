@@ -14,7 +14,7 @@ import paho.mqtt.client as mqtt
 
 mqtt_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 dashboard_id: str = shortuuid.uuid()
-username: str = ""
+control_topic: str = ""
 device_id: str = ""
 control_id: str = ""
 control_type: str = ""
@@ -39,6 +39,7 @@ def parse_commandline_arguments():
     """Handle commandline arguments"""
     parser = argparse.ArgumentParser()
     parser.add_argument("-u", "--username", help="DashIO Username", dest="username", default="")
+    parser.add_argument("-a", "--shared-username", help="DashIO Shared By Username", dest="shared_by_username", default="")
     parser.add_argument("-p", "--password", help="DashIO Password", default="")
     parser.add_argument("-d", "--device_id", help="The DeviceID of the device to get the data for.", dest="device_id", default="")
     parser.add_argument("-c", "--control_id", help="The ControlID of the control on the device to get the data for.", dest="control_id", default="")
@@ -70,7 +71,6 @@ def on_message(client, obj, msg):
 def on_subscribe(client, userdata, mid, reason_codes, properties):
     """Get the data on subscribe event message"""
     msg = f"\t{device_id}\t{control_type}\t{control_id}\t{dashboard_id}\t{from_timestamp}\n"
-    control_topic = f"{username}/{device_id}/store/control"
     mqtt_client.publish(control_topic, msg)
 
 
@@ -148,8 +148,8 @@ def main():
     """The Main"""
 
     args = parse_commandline_arguments()
-    global username, control_id, device_id, control_id, from_timestamp, file_format, out_to_file, control_type, screen, times_up
-    username = args.username
+    global control_id, device_id, control_id, from_timestamp, file_format, out_to_file, control_type, screen, times_up, control_topic
+
     control_id = args.control_id
     device_id = args.device_id
     file_format = args.format.lower()
@@ -183,8 +183,11 @@ def main():
     mqtt_client.username_pw_set(args.username, args.password)
 
     # MQTT Topic to the receive the data.
+    control_topic = f"{args.username}/{device_id}/store/control"
     data_topic = f"{args.username}/{args.device_id}/store/data"
-
+    if args.shared_by_username != "":
+        data_topic = f"{args.shared_by_username}/{args.device_id}/store/data"
+        control_topic = f"{args.username}/{device_id}/store/control"
     try:
         mqtt_client.connect("dash.dashio.io", 8883)
     except (socket.gaierror, ConnectionRefusedError) as error:

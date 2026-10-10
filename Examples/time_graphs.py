@@ -69,11 +69,11 @@ class TestControls:
             nargs="?",
             help="""increase verbosity:
                             0 = only warnings, 1 = info, 2 = debug.
-                            No number means info. Default is no verbosity.""",
+                            No number means info. Default is info.""",
         )
-        parser.add_argument("-s", "--server", help="Server URL.", dest="server", default="mqtt://localhost")
+        parser.add_argument("-s", "--server", help="Server URL.", dest="server", default="dash.dashio.io")
         parser.add_argument(
-            "-p", "--port", type=int, help="Port number.", default=1883, dest="port",
+            "-p", "--port", type=int, help="Port number.", default=8883, dest="port",
         )
         parser.add_argument(
             "-c", "--connection_name", dest="connection", default="TestMQTT", help="IotDashboard Connection name"
@@ -104,7 +104,7 @@ class TestControls:
         logging.info("          Data topic: %s/%s/%s/data", args.username, args.connection, args.device_id)
 
         device = dashio.Device(args.connection, args.device_id, args.device_name)
-        dash_conn = dashio.DashConnection(args.username, args.password)
+        dash_conn = dashio.DashConnection(args.username, args.password, host=args.server, port=args.port)
         dash_conn.add_device(device)
 
         self.gph_15_minutes = dashio.TimeGraph(
@@ -190,6 +190,7 @@ class TestControls:
             sleep_time = LOGGER_PERIOD - sleep_time
             time.sleep(sleep_time)
 
+        dash_conn.close()
         device.close()
 
 

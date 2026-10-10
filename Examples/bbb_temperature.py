@@ -71,11 +71,11 @@ class BBB_Temperature:
             nargs="?",
             help="""increase verbosity:
                             0 = only warnings, 1 = info, 2 = debug.
-                            No number means info. Default is no verbosity.""",
+                            No number means info. Default is info.""",
         )
         parser.add_argument("-s", "--server", help="Server URL.", dest="server", default="dash.dashio.io")
         parser.add_argument(
-            "-p", "--port", type=int, help="Port number.", default=1883, dest="port",
+            "-p", "--port", type=int, help="Port number.", default=8883, dest="port",
         )
         parser.add_argument(
             "-c", "--device_type", dest="device_type", default="Temperature", help="Device type"
@@ -112,7 +112,7 @@ class BBB_Temperature:
         logging.info("       Control topic: %s/%s/control", args.username, args.device_id)
         logging.info("          Data topic: %s/%s/data", args.username, args.device_id)
 
-        dash_con = dashio.DashConnection(args.username, args.password)
+        dash_con = dashio.DashConnection(args.username, args.password, host=args.server, port=args.port)
         device = dashio.Device(args.device_type, args.device_id, args.device_name)
         dash_con.add_device(device)
 
@@ -242,6 +242,7 @@ class BBB_Temperature:
             _, sleep_time = divmod(seconds_left, LOGGER_PERIOD)
             sleep_time = LOGGER_PERIOD - sleep_time
             time.sleep(sleep_time)
+        dash_con.close()
         device.close()
 
 

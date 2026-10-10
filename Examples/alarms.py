@@ -67,15 +67,14 @@ class TestControls:
             nargs="?",
             help="""increase verbosity:
                             0 = only warnings, 1 = info, 2 = debug.
-                            No number means info. Default is no verbosity.""",
+                            No number means info. Default is info.""",
         )
         parser.add_argument("-s", "--server", help="Server URL.", dest="server", default="dash.dashio.io")
-        parser.add_argument("-q", "--hostname", help="Host URL.", dest="hostname", default="tcp://*")
         parser.add_argument(
             "-t", "--device_type", dest="device_type", default="TestAlarms", help="IotDashboard device type"
         )
         parser.add_argument(
-            "-p", "--port", type=int, help="Port number.", default=5650, dest="port",
+            "-p", "--port", type=int, help="Port number.", default=8883, dest="port",
         )
         parser.add_argument("-d", "--device_id", dest="device_id", default="101010101010101", help="IotDashboard Device ID.")
         parser.add_argument(
@@ -113,7 +112,7 @@ class TestControls:
         logging.info("          Data topic: %s/%s/data", args.username, args.device_id)
 
         device = dashio.Device(args.device_type, args.device_id, args.device_name)
-        dash_conn = dashio.DashConnection(args.username, args.password)
+        dash_conn = dashio.DashConnection(args.username, args.password, host=args.server, port=args.port)
         dash_conn.add_device(device)
 
         self.tadevice_view = dashio.DeviceView("testAlarm", "Test Alarm")
@@ -161,6 +160,7 @@ class TestControls:
         while not self.shutdown:
             time.sleep(1)
 
+        dash_conn.close()
         device.close()
 
 
