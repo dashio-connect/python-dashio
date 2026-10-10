@@ -818,7 +818,6 @@ class Device(threading.Thread):
                 if reply != "":
                     #  logger.debug("DEVICE TX: %s ,%s", msg_from, data)
                     self.tx_zmq_pub.send_multipart([msg_from, reply.encode('utf-8')])
+        # Only close the device's sockets. The context is shared with other devices and connections.
         self.tx_zmq_pub.close()
         self.rx_zmq_sub.close()
-        self.context.term()
-        self.context.term()

@@ -3,8 +3,6 @@ import json
 import pathlib
 import unittest
 
-import zmq
-
 from dashio import (Alarm, Button, ControlName, ControlPosition, Device, DeviceView, Dial, TextBox, decode_cfg64,
                     encode_cfg64, generate_cfg64)
 
@@ -51,8 +49,7 @@ class TestDeviceLayouts(unittest.TestCase):
             device.close()
 
     def make_device(self, **kwargs):
-        # A context per device, as closing a Device terminates its context.
-        device = Device("DEVICETYPE", "DEVICEID", "DEVICENAME", context=zmq.Context(), **kwargs)
+        device = Device("DEVICETYPE", "DEVICEID", "DEVICENAME", **kwargs)
         self.devices.append(device)
         return device
 
@@ -182,8 +179,7 @@ class TestGenerateCfg64(unittest.TestCase):
             device.close()
 
     def make_device(self, **kwargs):
-        # A context per device, as closing a Device terminates its context.
-        device = Device("DEVICETYPE", "DEVICEID", "DEVICENAME", context=zmq.Context(), **kwargs)
+        device = Device("DEVICETYPE", "DEVICEID", "DEVICENAME", **kwargs)
         self.devices.append(device)
         return device
 
