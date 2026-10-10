@@ -67,7 +67,7 @@ class DashControl():
             dashboard_id = data[2]
         except IndexError:
             return ""
-        cfg_str = f"\tCFG\t{dashboard_id}\t" + self.cntrl_type + "\t" + json.dumps(self._cfg) + "\n"
+        cfg_str = f"\tCFG\t{dashboard_id}\t" + self.ctrl_type + "\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
 
     def get_cfg64(self, data: list) -> dict:
@@ -81,7 +81,7 @@ class DashControl():
         return self._cfg
 
     def __init__(self, control_id, username="", servername=""):
-        self.cntrl_type = "DASHIO"
+        self.ctrl_type = "DASHIO"
         self._cfg = {}
         self._cfg["controlID"] = control_id
         self.control_id = control_id

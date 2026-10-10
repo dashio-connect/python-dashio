@@ -57,7 +57,7 @@ class BLEControl():
             dashboard_id = data[2]
         except IndexError:
             return ""
-        cfg_str = f"\tCFG\t{dashboard_id}\t" + self.cntrl_type + "\t" + json.dumps(self._cfg) + "\n"
+        cfg_str = f"\tCFG\t{dashboard_id}\t" + self.ctrl_type + "\t" + json.dumps(self._cfg) + "\n"
         return cfg_str
 
     def get_cfg64(self, data) -> dict:
@@ -72,7 +72,7 @@ class BLEControl():
 
     def __init__(self, control_id, service_uuid="", read_uuid="", write_uuid=""):
         self._cfg = {}
-        self.cntrl_type = "BLE"
+        self.ctrl_type = "BLE"
         self._cfg["controlID"] = control_id
         self.control_id = control_id
         self.service_uuid = service_uuid

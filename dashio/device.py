@@ -186,10 +186,12 @@ class Device(threading.Thread):
         for control in self.controls_dict.values():
             if control.ctrl_type == "ALM" or isinstance(control, Control) != layout_controls:
                 continue
-            if control.ctrl_type == "BLE":
-                cfg[control.ctrl_type] = control.get_cfg64(data)
+            control_cfg = control.get_cfg64(data)
+            # Connection setup controls, e.g. BLE and DASHIO, have a single CFG dict rather than a list.
+            if isinstance(control_cfg, dict):
+                cfg[control.ctrl_type] = control_cfg
                 continue
-            cfg.setdefault(control.ctrl_type, []).extend(control.get_cfg64(data))
+            cfg.setdefault(control.ctrl_type, []).extend(control_cfg)
 
     def get_generated_cfg_dict(self) -> dict:
         """Returns the CFG dict generated from the device's controls.
