@@ -22,6 +22,7 @@ from_timestamp: str = ""
 file_format: str = "raw"
 out_to_file: bool = False
 screen: bool = False
+connect_failed: bool = False
 
 times_up = 3
 
@@ -54,7 +55,10 @@ def parse_commandline_arguments():
 
 def on_connect(client, userdata, flags, reason_code, properties):
     """print connection result"""
+    global connect_failed
     print("Connect code: ", str(reason_code))
+    if reason_code.is_failure:
+        connect_failed = True
 
 
 def on_message(client, obj, msg):
@@ -74,8 +78,11 @@ def on_subscribe(client, userdata, mid, reason_codes, properties):
     mqtt_client.publish(control_topic, msg)
 
 
-def parse_line_data(rx_username: str, rx_device_id: str, line_data: list[str]) -> str:
-    d_id, rx_control_type, rx_control_id, rx_dashboard_id, *rx_control_data = line_data.split("\t")
+def parse_line_data(rx_username: str, rx_device_id: str, line_data: str) -> None:
+    fields = line_data.split("\t")
+    if len(fields) < 4:
+        return
+    d_id, rx_control_type, rx_control_id, rx_dashboard_id, *rx_control_data = fields
     if d_id != device_id or rx_control_id != control_id or rx_dashboard_id != dashboard_id:
         return
     control_data = ControlData(rx_username, rx_device_id, rx_control_type, rx_control_id, rx_control_data)
@@ -105,7 +112,7 @@ def parse_log_data(control_data: ControlData):
         if screen:
             print(line)
     elif file_format == "csv":
-        line = f"# {control_data.device_id}, TGRPH, {control_data.control_id}"
+        line = f"# {control_data.device_id}, LOG, {control_data.control_id}"
         line += "\nTimestamp, color, lines\n"
         line += "\n".join(format_log_json_to_csv(l_str) for l_str in control_data.data)
         if screen:
@@ -113,7 +120,8 @@ def parse_log_data(control_data: ControlData):
     else:
         return
     if out_to_file:
-        filename = f"{control_data.device_id}_{control_data.control_type}_{control_data.control_id}_{control_data.data[0]}.{file_format}"
+        # LOG entries are JSON, so unlike TGRPH there is no short id to put in the filename.
+        filename = f"{control_data.device_id}_{control_data.control_type}_{control_data.control_id}.{file_format}"
         print("Writing to file: " + filename)
         with open(filename, "w", encoding="utf-8") as writer:
             writer.write(line)
@@ -148,7 +156,7 @@ def main():
     """The Main"""
 
     args = parse_commandline_arguments()
-    global control_id, device_id, control_id, from_timestamp, file_format, out_to_file, control_type, screen, times_up, control_topic
+    global control_id, device_id, from_timestamp, file_format, out_to_file, control_type, screen, times_up, control_topic
 
     control_id = args.control_id
     device_id = args.device_id
@@ -157,11 +165,7 @@ def main():
     out_to_file = args.out_to_file
     screen = args.screen
 
-    # Check python version and do the right thing.
-    if sys.version_info[1] > 11:
-        timestamp = (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=args.num_days)).replace(microsecond=0, tzinfo=datetime.timezone.utc)
-    else:
-        timestamp = (datetime.datetime.utcnow() - datetime.timedelta(days=args.num_days)).replace(microsecond=0, tzinfo=datetime.timezone.utc)
+    timestamp = (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=args.num_days)).replace(microsecond=0)
 
     from_timestamp = timestamp.isoformat()
 
@@ -182,27 +186,27 @@ def main():
     mqtt_client.tls_insecure_set(False)
     mqtt_client.username_pw_set(args.username, args.password)
 
-    # MQTT Topic to the receive the data.
-    control_topic = f"{args.username}/{device_id}/store/control"
-    data_topic = f"{args.username}/{args.device_id}/store/data"
-    if args.shared_by_username != "":
-        data_topic = f"{args.shared_by_username}/{args.device_id}/store/data"
-        control_topic = f"{args.username}/{device_id}/store/control"
+    # MQTT Topics to request and receive the data. A shared device's store is under the owner's username.
+    device_owner = args.shared_by_username or args.username
+    control_topic = f"{device_owner}/{device_id}/store/control"
+    data_topic = f"{device_owner}/{device_id}/store/data"
     try:
         mqtt_client.connect("dash.dashio.io", 8883)
     except (socket.gaierror, ConnectionRefusedError) as error:
-        print("Exiting, No connection to server: %s", str(error))
-        exit(0)
+        print(f"Exiting, No connection to server: {error}")
+        sys.exit(1)
 
     mqtt_client.subscribe(data_topic, 0)
 
     mqtt_client.loop_start()
 
-    while times_up >= 0:
+    while times_up >= 0 and not connect_failed:
         time.sleep(1)
         times_up -= 1
 
     mqtt_client.loop_stop()
+    if connect_failed:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
