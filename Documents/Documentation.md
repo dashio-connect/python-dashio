@@ -726,6 +726,14 @@ The DashConnection sets up a connection to the **Dash** app via the **Dash** mqt
 2. data storage for TimeGraphs, EventLogs, and Maps.
 3. Sharing devices with other users.
 
+The connection tells the **Dash** app when its devices go online and offline, so the app can reconnect sooner:
+
+* When the connection is made, it sends ONLINE for each device, and for a device added later when it is added.
+* close() sends OFFLINE for each device before disconnecting.
+* If the connection is lost, e.g. the program stops unexpectedly, the Dash server publishes OFFLINE for the first device on the connection after offline_delay seconds, unless the connection is restored first. This is the connection's MQTT Last Will and Testament. An MQTT connection has a single will, so it only covers the first device, and it is set when the connection is made, so it doesn't cover devices added later.
+
+The connection connects a moment after it is created, so add the devices straight after creating it.
+
 #### DashConnection Attributes
 
 * *username : str* username for the dash server connection.
@@ -734,11 +742,12 @@ The DashConnection sets up a connection to the **Dash** app via the **Dash** mqt
 * *port :int, optional.* Port number to connect to. Defaults to 8883,
 * *use_ssl : bool, optional.* Whether to use ssl for the connection or not. default: True.
 * *context : zmq.Context, optional.* The ZMQ context, by default the shared zmq.Context.instance().
+* *offline_delay : int, optional.* If the connection is lost, the Dash server publishes OFFLINE for the first device after this many seconds, unless the connection is restored first. 0 publishes it straight away. Defaults to 10.
 
 #### DashConnection Methods
 
 * *add_device(device: Device).* Adds a device to the connection.
-* *close().* Closes the connection.
+* *close().* Sends OFFLINE for each device, then closes the connection.
 * *set_connection(username: str, password)* Changes the connection to the DashIO server.
   * *username : str.* username for the server.
   * *password : str.* password for the server.

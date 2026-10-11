@@ -31,6 +31,8 @@ import time
 from socket import gaierror
 
 import paho.mqtt.client as mqtt
+from paho.mqtt.packettypes import PacketTypes
+from paho.mqtt.properties import Properties
 import shortuuid
 import zmq
 
@@ -148,6 +150,8 @@ class DashConnection(threading.Thread):
             for device_id in self._device_id_rx_list:
                 data_topic = f"{self.username}/{device_id}/data"
                 result, mid = self._dash_c.subscribe(data_topic, 0)
+            for device_id in self._device_id_list:
+                self._send_online_state(device_id, "ONLINE")
             self._disconnect_timeout = 1.0
             logger.debug("connected OK")
         else:
@@ -192,6 +196,7 @@ class DashConnection(threading.Thread):
                 result, mid = self._dash_c.subscribe(control_topic, 0)
                 if result == mqtt.MQTT_ERR_SUCCESS:
                     self._subscribing_topics[mid] = control_topic
+                self._send_online_state(device.device_id, "ONLINE")
 
     def _add_device_rx(self, msg_dict):
         """Connect to another device"""
@@ -219,11 +224,38 @@ class DashConnection(threading.Thread):
         logger.debug("DASH SEND ANNOUNCE: %s", msg)
         self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg).encode()])
 
+    def _send_online_state(self, device_id: str, state: str):
+        """Publish ONLINE or OFFLINE for device_id to its data topic."""
+        return self._dash_c.publish(f"{self.username}/{device_id}/data", f"\t{device_id}\t{state}\n", qos=1)
+
+    def _set_will(self):
+        """Set the MQTT Last Will and Testament: the Dash server publishes OFFLINE if the connection is lost.
+
+        An MQTT connection has a single will on a single topic, so it is for the first device on the connection.
+        The will is fixed when connecting, so devices added later aren't included. close() sends OFFLINE for
+        every device.
+        """
+        if not self._device_id_list:
+            self._dash_c.will_clear()
+            return
+        device_id = self._device_id_list[0]
+        properties = None
+        if self.offline_delay > 0:
+            properties = Properties(PacketTypes.WILLMESSAGE)
+            properties.WillDelayInterval = self.offline_delay
+        self._dash_c.will_set(f"{self.username}/{device_id}/data", f"\t{device_id}\tOFFLINE\n", qos=1, retain=False, properties=properties)
+
     def connect(self):
         """Connect to the server."""
         logger.debug("Connecting..")
+        self._set_will()
+        properties = None
+        if self.offline_delay > 0:
+            # The server only waits the will delay if it keeps the session that long.
+            properties = Properties(PacketTypes.CONNECT)
+            properties.SessionExpiryInterval = self.offline_delay
         try:
-            self._dash_c.connect(self.host, self.port)
+            self._dash_c.connect(self.host, self.port, properties=properties)
             self.connection_state = ConnectionState.CONNECTING
             # Start the network loop only once a host is set, otherwise paho's thread dies with "Invalid host".
             self._dash_c.loop_start()
@@ -251,7 +283,8 @@ class DashConnection(threading.Thread):
         host='dash.dashio.io',
         port=8883,
         use_ssl=True,
-        context: zmq.Context | None = None
+        context: zmq.Context | None = None,
+        offline_delay: int = 10
     ):
         """
         Setups and manages a connection thread to the Dash Server.
@@ -268,6 +301,11 @@ class DashConnection(threading.Thread):
                 password for the dash connection.
             use_ssl : Boolean
                 Defaults to True.
+            context : zmq.Context, optional
+                ZMQ context. Defaults to the shared zmq.Context.instance().
+            offline_delay : int, optional
+                If the connection is lost, the Dash server publishes OFFLINE for the first device after this many
+                seconds, unless the connection is restored first. 0 publishes it straight away. Defaults to 10.
         """
 
         threading.Thread.__init__(self, daemon=True)
@@ -279,7 +317,7 @@ class DashConnection(threading.Thread):
         self._device_id_list = []
         self._device_id_rx_list = []
         self._subscribing_topics = {}
-        # self.LWD = "OFFLINE"
+        self.offline_delay = offline_delay
         self.running = True
         self.username = username
         self.password = password
@@ -305,18 +343,24 @@ class DashConnection(threading.Thread):
             self._dash_c.tls_insecure_set(False)
 
         self._dash_c.username_pw_set(self.username, self.password)
-        # self.dash_c.on_log = self.__on_log
-        # self._dash_c.will_set(self.data_topic, self.LWD, qos=1, retain=False)
-        # Connect
-        if username and password:
-            self.connect()
+        # The connection thread connects, a moment after it starts, so the devices added straight after creating
+        # the connection are included in the will.
         # Start subscribe, with QoS level 0
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         self._disconnect_timeout = 1.0
         self.start()
 
     def close(self):
-        """Close the connection."""
+        """Send OFFLINE for every device, then close the connection."""
+        if self.connection_state == ConnectionState.CONNECTED:
+            messages = [self._send_online_state(device_id, "OFFLINE") for device_id in self._device_id_list]
+            for message in messages:
+                try:
+                    message.wait_for_publish(timeout=2.0)
+                except (RuntimeError, ValueError) as error:
+                    logger.debug("OFFLINE not sent: %s", error)
+            # A normal disconnect, so the server doesn't also publish the will.
+            self._dash_c.disconnect()
         self.running = False
 
     def _dash_command(self, msg_dict: dict):
