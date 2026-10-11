@@ -1,9 +1,11 @@
 # python-dashio
 
-[![](https://img.shields.io/discord/1313341785430429747?color=5865F2&logo=Discord&style=flat-square)](https://discord.gg/fqvhNV3GQB)
-![Tests](https://github.com/dashio-connect/python-dashio/actions/workflows/tests.yml/badge.svg)
+[![PyPI](https://img.shields.io/pypi/v/dashio)](https://pypi.org/project/dashio/)
+[![Python](https://img.shields.io/pypi/pyversions/dashio)](https://pypi.org/project/dashio/)
+[![Tests](https://github.com/dashio-connect/python-dashio/actions/workflows/tests.yml/badge.svg)](https://github.com/dashio-connect/python-dashio/actions/workflows/tests.yml)
+[![Discord](https://img.shields.io/discord/1313341785430429747?color=5865F2&logo=Discord&style=flat-square)](https://discord.gg/fqvhNV3GQB)
 
-**[python-dashio](https://github.com/dashio-connect/python-dashio)** - Create beautiful mobile dashboards for your python project. The python-dashio library allows easy setup of controls such as Dials, Text Boxes, Charts, Graphs, and Notifications. You can define the look and layout of the controls on your phone from your python code. There are three methods to connect to your phone; Bluetooth Low Energy (BLE - on supported platforms), TCP, and MQTT via the dash.dashio.io server.
+**[python-dashio](https://github.com/dashio-connect/python-dashio)** - Create beautiful mobile dashboards for your python project. The python-dashio library allows easy setup of controls such as Dials, Text Boxes, Charts, Graphs, and Notifications. You can define the look and layout of the controls on your phone from your python code. Connect to your phone over TCP on your local network, or from anywhere through the Dash server (dash.dashio.io), which also sends notifications, stores data and lets you share your devices. Bluetooth Low Energy (BLE) is available on Linux, and is experimental.
 
 ## Getting Started
 
@@ -37,7 +39,7 @@ There are plenty of examples in the github repository under the Examples directo
 
 ## Dash IoT Application
 
-The **Dash** app is free and available for both Apple and Android devices. Use it to create beautiful and powerful user interfaces to you IoT devices.
+The **Dash** app is free and available for both Apple and Android devices. Use it to create beautiful and powerful user interfaces to your IoT devices.
 
 Dashio Phone               |  Dashio Tablet
 :-------------------------:|:-------------------------:
@@ -45,13 +47,7 @@ Dashio Phone               |  Dashio Tablet
 
 ## Requirements
 
-* python3.11 and above
-* paho-mqtt
-* pyzmq
-* python-dateutil
-* zeroconf
-* shortuuid
-* pyserial
+Python 3.11 or later. pip installs the other dependencies: paho-mqtt, pyzmq, python-dateutil, zeroconf, shortuuid and pyserial.
 
 ## Install
 
@@ -85,7 +81,7 @@ This guide covers the **DashIO** python library. For information on the [***Dash
 
 ### Basics
 
-So what is **DashIO**? It is a quick effortless way to connect your IoT device to your phone. It allows easy setup of controls such as Dials, Text Boxes, Maps, Graphs, Notifications..., from your Device. You can define the look and layout of the controls on your phone from your IoT device. There are three ways to connect to your phone: TCP on your local network, the Dash MQTT server, and BLE. What's Dash then? Dash is a mqtt server with extra bits added in to allow you to send notifications, share your devices, and save your settings from your phone via the **Dash** app.
+So what is **DashIO**? It is a quick, effortless way to connect your IoT device to your phone, with controls such as Dials, Text Boxes, Maps, Graphs and Notifications set up from your device. What's Dash then? Dash is an MQTT server with extra features: it sends notifications, stores time graph, event log and map data, lets you share your devices, and saves your settings from the **Dash** app.
 
 Show me some code.
 
@@ -139,9 +135,9 @@ while True:
     time.sleep(5)
 ```
 
-First we altered the instantiation of a Dial by including a control_position. This allows us to place the control at a set location. The added lines instantiated a DeviceView control, which we than added the dial control. Finally we added the DeviceView to the device.
+First we altered the instantiation of a Dial by including a control_position. This allows us to place the control at a set location. The added lines instantiated a DeviceView control, to which we then added the dial control. Finally we added the DeviceView to the device.
 
-The next piece of the puzzle to consider is how do we get data from the DashIO app? Lets add a Knob and connect it to the Dial:
+The next piece of the puzzle to consider is how do we get data from the DashIO app? Let's add a Knob and connect it to the Dial:
 
 ```python
 # Examples/ex03.py
@@ -172,9 +168,44 @@ while True:
 
 First we added a function that sets the dial value. Next we added a Knob control and added our new function to be called when it receives data from the DashIO app. We also add it to the DeviceView and to the device. Now when the knob in the DashIO app is moved the dial is set to the same value.
 
+### Connecting From Anywhere
+
+A TCPConnection only works on your local network. To reach your device from anywhere, connect it through the Dash server with a DashConnection, using your Dash account username and password. The Dash server can also send notifications to your phone, with an Alarm:
+
+```python
+# Examples/ex06.py
+import dashio
+import random
+import time
+
+device = dashio.Device("aDeviceType", "aDeviceID3", "aDeviceName")
+dash_con = dashio.DashConnection("your_dash_username", "your_dash_password")
+dash_con.add_device(device)
+
+first_dial_control = dashio.Dial("FirstDial", control_position=dashio.ControlPosition(0.24, 0.36, 0.54, 0.26))
+device.add_control(first_dial_control)
+dv = dashio.DeviceView("aDeviceViewID", "A Dial")
+dv.add_control(first_dial_control)
+device.add_control(dv)
+
+alarm = dashio.Alarm("HighAlarm")
+device.add_control(alarm)
+
+high = False
+while True:
+    value = random.random() * 100
+    first_dial_control.dial_value = value
+    if value > 90 and not high:
+        alarm.send("High value", f"The dial is at {value:.0f}")
+    high = value > 90
+    time.sleep(5)
+```
+
+The alarm is sent when the dial goes above 90. A device can use a TCPConnection and a DashConnection at the same time. The Dash server can also store the data of time graphs, event logs and maps, with *device.storage_enable()*. See the [Documentation](Documents/Documentation.md#dashconnection).
+
 ### Using the Config64
 
-The **Dash** app can generate a CFG64 text string that defines the controls, the controls layout, and device parameters for the Device. The CFG64 string can be used in a number of ways. If we run the example above and using the **Dash** app to export a layout we can use the layout to setup the device and controls.
+The **Dash** app can generate a CFG64 text string that defines the controls, the controls layout, and device parameters for the Device. For example, run ex03 above, arrange its controls in the **Dash** app, and export the layout. The layout can then set up the device and its controls:
 
 ```python
 # Examples/ex04.py
@@ -212,66 +243,18 @@ We've added the cfg64 string. Then decoded it with *dashio.decode_cfg64(cfg64)*.
 
 The **Dash** app reports its screen size in columns: 1 for phones, 2 for fold out phones and 3 for tablets. A device can hold a layout for each, e.g. `cfg_dict={1: phone_cfg64, 3: tablet_cfg64}`, and layouts can also be built in code with *dashio.generate_cfg64()*. See [Layouts](Documents/Documentation.md#layouts).
 
-The **Dash** app only fetches a new layout when the device's cfgRev changes, so increase *device.config_revision* whenever the layout changes.
+The **Dash** app only fetches a new layout when the device's cfgRev changes, so increase *device.config_revision* whenever the layout changes. *device.get_cfg_hash()* helps tell when it has changed.
 
-Included in the library are three commandline utilities to encode and decode cfg64 files, and to export data stored on the DashIO server.
+### Command Line Utilities
 
-```sh
-$ c64_decode -h
-usage: c64_decode [-h] [-p] [-o OUT_FILE] [-i INDENT] [-c] file
+The library installs three command line utilities. Run any of them with `-h` for its options.
 
-positional arguments:
-  file                 Input file name.
+| Command | What it does |
+|---------|--------------|
+| `c64_decode layout.c64` | Decode a CFG64 layout, e.g. one exported from the **Dash** app, to JSON. |
+| `c64_encode layout.json` | Encode a JSON layout to CFG64, optionally formatted for C or Python code with `-f`. |
+| `dashio_data_exporter -u USERNAME -p PASSWORD -d DEVICE_ID -c CONTROL_ID` | Export time graph or event log data stored on the Dash server. See [the data exporter guide](Documents/dashio_data_exporter.md). |
 
-options:
-  -h, --help           show this help message and exit
-  -p, --print          Print output.
-  -o, --out OUT_FILE   output filename.
-  -i, --indent INDENT  Indent depth (Default 4).
-  -c, --compact        Remove empty keys
-```
+## License
 
-And
-
-```sh
-$ c64_encode -h
-usage: c64_encode [-h] [-f FORMAT] [-o OUT_FILE] [-w WIDTH] file
-
-positional arguments:
-  file                 Input file name.
-
-options:
-  -h, --help           show this help message and exit
-  -f, --format FORMAT  Format output. Options: 'None', 'C', 'Python' (Default 'None').
-  -o, --out OUT_FILE   output filename.
-  -w, --width WIDTH    Width of formatted output (Default 80).
-```
-
-And
-
-```sh
-$ dashio_data_exporter -h
-usage: dashio_data_exporter [-h] [-u USERNAME] [-a SHARED_BY_USERNAME] [-p PASSWORD] [-d DEVICE_ID] [-c CONTROL_ID] [-t CONTROL_TYPE] [-n NUM_DAYS] [-f FORMAT] [-s] [-o]
-
-options:
-  -h, --help            show this help message and exit
-  -u, --username USERNAME
-                        DashIO Username
-  -a, --shared-username SHARED_BY_USERNAME
-                        DashIO Shared By Username
-  -p, --password PASSWORD
-                        DashIO Password
-  -d, --device_id DEVICE_ID
-                        The DeviceID of the device to get the data for.
-  -c, --control_id CONTROL_ID
-                        The ControlID of the control on the device to get the data for.
-  -t, --type CONTROL_TYPE
-                        Type of control, either 'TGRPH', 'MAP', 'LOG'.
-  -n, --number_of_days NUM_DAYS
-                        Number of days of data to get up to present time.
-  -f, --format FORMAT   Format of the output data, either 'raw' or 'csv'.
-  -s, --screen          Write output to stdout
-  -o, --outfile         Write output to file(s). The filename(s) are generated from the data.
-```
-
-See [Documents/dashio_data_exporter.md](Documents/dashio_data_exporter.md) for more on the data exporter.
+MIT, see [LICENSE](LICENSE).
