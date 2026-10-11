@@ -26,20 +26,21 @@ Settings changed in the app are saved to `greenhouse.ini`, so they survive a res
 - **Manual mode:** the Heater, Fan and Lights buttons switch the outputs directly.
 - **Alarms:** sent for frost risk (below 4°C), overheating (above 35°C) and very high humidity (above 95%). An alarm is sent once when its condition starts, and logged when it clears.
 - **Event log:** records every change, whether automatic or from the app.
-- **Time graphs:** temperature, target and humidity, one point a minute.
+- **Climate graph:** temperature and target on the left axis and humidity on the right axis, one point a minute. Temperature and target share one line of `[temperature, target]` arrays, and the app chooses their colors.
 
 ## What it shows
 
 - **Layouts for each screen size.**
   - `make_controls()` creates the controls for a layout.
-  - It's called once for the controls the device uses, positioned for phones, and again for a tablet layout.
+  - The layouts are in the `LAYOUTS` table, one for each number of columns.
+  - `make_controls()` is called once for the controls the device uses, positioned for phones, and again for the fold-out and tablet layouts.
   - `generate_cfg64()` turns each set of controls into a layout, and `add_cfg64()` loads it for its column count.
-  - Phones and fold-out phones (1 and 2 columns) get three views. Tablets (3 columns) get one view three columns wide.
+  - Phones (1 column) get three views. Fold-out phones (2 columns) get one view two columns wide, with the climate and controls on the left and the history on the right. Tablets (3 columns) get one view three columns wide.
 - **TCP and Dash connections together**, from one device.
 - **Dash server storage:** `storage_enable()` keeps the time graph and event log history on the Dash server. You can export it with the `dashio_data_exporter` utility, for example:
 
   ```bash
-  dashio_data_exporter -u USERNAME -p PASSWORD -d DEVICE_ID -c temperature_graph -t TGRPH -n 7 -f csv -o
+  dashio_data_exporter -u USERNAME -p PASSWORD -d DEVICE_ID -c climate_graph -t TGRPH -n 7 -f csv -o
   ```
 
   The device ID is in `greenhouse.ini`.

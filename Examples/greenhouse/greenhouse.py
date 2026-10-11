@@ -4,7 +4,8 @@
 Controls the heater, fan and lights of a greenhouse from its temperature and humidity, and lets you monitor
 and adjust it from the Dash app. It shows how to:
 
-- Build separate phone and tablet layouts in code with generate_cfg64() and load them with add_cfg64().
+- Build a layout for phones, fold out phones and tablets in code with generate_cfg64(), and load each with
+  add_cfg64() so the Dash app gets the layout for its screen.
 - Connect over TCP on the local network and, with a DashIO account, through the Dash server at the same time.
 - Store time graph and event log data on the Dash server, so the history can be viewed or exported with
   dashio_data_exporter.
@@ -46,46 +47,71 @@ MODES = ["Auto", "Manual"]
 PROVISIONING_MENU = "PROV"
 MENU_POSITION = (0.25, 0.25, 0.15, 0.1)  # A Menu in the provisioning menu isn't drawn, but needs a position.
 
-# The layouts: control key -> (DeviceView key, (x, y, width, height)). Positions are ratios of the view size.
-# The phone layout spreads the controls over three views. The tablet layout puts them all on one view that
-# is three columns wide.
-PHONE_VIEWS = {
-    "climate": ("Climate", 1),
-    "controls": ("Controls", 1),
-    "history": ("History", 1),
-}
-PHONE_LAYOUT = {
-    "temperature": ("climate", (0.0, 0.0, 0.5, 0.3)),
-    "humidity": ("climate", (0.5, 0.0, 0.5, 0.3)),
-    "target": ("climate", (0.2, 0.32, 0.6, 0.4)),
-    "status": ("climate", (0.0, 0.75, 1.0, 0.1)),
-    "mode": ("controls", (0.0, 0.0, 1.0, 0.12)),
-    "heater": ("controls", (0.0, 0.15, 0.33, 0.2)),
-    "fan": ("controls", (0.335, 0.15, 0.33, 0.2)),
-    "lights": ("controls", (0.67, 0.15, 0.33, 0.2)),
-    "temperature_graph": ("history", (0.0, 0.0, 1.0, 0.33)),
-    "humidity_graph": ("history", (0.0, 0.34, 1.0, 0.3)),
-    "event_log": ("history", (0.0, 0.66, 1.0, 0.34)),
-}
-TABLET_VIEWS = {
-    "greenhouse": ("Greenhouse", 3),
-}
-TABLET_LAYOUT = {
-    "temperature": ("greenhouse", (0.0, 0.0, 0.16, 0.25)),
-    "humidity": ("greenhouse", (0.17, 0.0, 0.16, 0.25)),
-    "target": ("greenhouse", (0.0, 0.27, 0.33, 0.33)),
-    "status": ("greenhouse", (0.0, 0.62, 0.33, 0.08)),
-    "mode": ("greenhouse", (0.35, 0.0, 0.3, 0.1)),
-    "heater": ("greenhouse", (0.35, 0.12, 0.095, 0.15)),
-    "fan": ("greenhouse", (0.4525, 0.12, 0.095, 0.15)),
-    "lights": ("greenhouse", (0.555, 0.12, 0.095, 0.15)),
-    "event_log": ("greenhouse", (0.35, 0.3, 0.3, 0.7)),
-    "temperature_graph": ("greenhouse", (0.67, 0.0, 0.33, 0.5)),
-    "humidity_graph": ("greenhouse", (0.67, 0.5, 0.33, 0.5)),
+# A layout for each number of columns the Dash app reports: 1 for phones, 2 for fold out phones and 3 for
+# tablets. Each layout is (views, positions):
+#   views: DeviceView key -> (title, number of columns the view is wide)
+#   positions: control key -> (DeviceView key, (x, y, width, height)), as ratios of the view's size
+LAYOUTS = {
+    # Phones: three views, one column wide.
+    1: (
+        {
+            "climate": ("Climate", 1),
+            "controls": ("Controls", 1),
+            "history": ("History", 1),
+        },
+        {
+            "temperature": ("climate", (0.0, 0.0, 0.5, 0.3)),
+            "humidity": ("climate", (0.5, 0.0, 0.5, 0.3)),
+            "target": ("climate", (0.2, 0.32, 0.6, 0.4)),
+            "status": ("climate", (0.0, 0.75, 1.0, 0.1)),
+            "mode": ("controls", (0.0, 0.0, 1.0, 0.12)),
+            "heater": ("controls", (0.0, 0.15, 0.33, 0.2)),
+            "fan": ("controls", (0.335, 0.15, 0.33, 0.2)),
+            "lights": ("controls", (0.67, 0.15, 0.33, 0.2)),
+            "climate_graph": ("history", (0.0, 0.0, 1.0, 0.55)),
+            "event_log": ("history", (0.0, 0.57, 1.0, 0.43)),
+        },
+    ),
+    # Fold out phones: one view, two columns wide. Climate and controls on the left, history on the right.
+    2: (
+        {
+            "greenhouse": ("Greenhouse", 2),
+        },
+        {
+            "temperature": ("greenhouse", (0.0, 0.0, 0.24, 0.22)),
+            "humidity": ("greenhouse", (0.25, 0.0, 0.24, 0.22)),
+            "target": ("greenhouse", (0.05, 0.24, 0.39, 0.3)),
+            "status": ("greenhouse", (0.0, 0.56, 0.49, 0.07)),
+            "mode": ("greenhouse", (0.0, 0.65, 0.49, 0.1)),
+            "heater": ("greenhouse", (0.0, 0.77, 0.16, 0.15)),
+            "fan": ("greenhouse", (0.165, 0.77, 0.16, 0.15)),
+            "lights": ("greenhouse", (0.33, 0.77, 0.16, 0.15)),
+            "climate_graph": ("greenhouse", (0.51, 0.0, 0.49, 0.6)),
+            "event_log": ("greenhouse", (0.51, 0.62, 0.49, 0.38)),
+        },
+    ),
+    # Tablets: one view, three columns wide. Climate, then controls and events, then history.
+    3: (
+        {
+            "greenhouse": ("Greenhouse", 3),
+        },
+        {
+            "temperature": ("greenhouse", (0.0, 0.0, 0.16, 0.25)),
+            "humidity": ("greenhouse", (0.17, 0.0, 0.16, 0.25)),
+            "target": ("greenhouse", (0.0, 0.27, 0.33, 0.33)),
+            "status": ("greenhouse", (0.0, 0.62, 0.33, 0.08)),
+            "mode": ("greenhouse", (0.35, 0.0, 0.3, 0.1)),
+            "heater": ("greenhouse", (0.35, 0.12, 0.095, 0.15)),
+            "fan": ("greenhouse", (0.4525, 0.12, 0.095, 0.15)),
+            "lights": ("greenhouse", (0.555, 0.12, 0.095, 0.15)),
+            "event_log": ("greenhouse", (0.35, 0.3, 0.3, 0.7)),
+            "climate_graph": ("greenhouse", (0.67, 0.0, 0.33, 1.0)),
+        },
+    ),
 }
 
 
-def make_controls(views: dict, layout: dict) -> dict:
+def make_controls(views: dict, positions: dict) -> dict:
     """Creates the DeviceViews and controls, positioned for a layout.
 
     It is called once for the controls the device uses, and again for each other layout. Controls for
@@ -97,12 +123,11 @@ def make_controls(views: dict, layout: dict) -> dict:
         controls[f"view_{key}"] = dashio.DeviceView(f"view_{key}", title, num_columns=num_columns)
 
     def place(key, control):
-        view_key, position = layout[key]
-        controls[f"view_{view_key}"].add_control(control)
+        controls[f"view_{positions[key][0]}"].add_control(control)
         controls[key] = control
 
     def position(key):
-        return dashio.ControlPosition(*layout[key][1])
+        return dashio.ControlPosition(*positions[key][1])
 
     place("temperature", dashio.Dial(
         "temperature", "Temperature", dial_min=0.0, dial_max=40.0, red_value=30.0, units="°C",
@@ -149,19 +174,15 @@ def make_controls(views: dict, layout: dict) -> dict:
         settings.add_control(control)
         controls[key] = control
 
-    temperature_graph = dashio.TimeGraph(
-        "temperature_graph", "Temperature", y_axis_label="°C", y_axis_min=0.0, y_axis_max=40.0,
-        control_position=position("temperature_graph")
+    # One graph: temperature and target on the left axis, humidity on the right axis. Temperature and target
+    # share a line of [temperature, target] arrays, and the Dash app chooses a color for each.
+    climate_graph = dashio.TimeGraph(
+        "climate_graph", "Climate", y_axis_label="°C", y_axis_min=0.0, y_axis_max=40.0,
+        y_axis_label_rt="%", y_axis_min_rt=0.0, y_axis_max_rt=100.0, control_position=position("climate_graph")
     )
-    temperature_graph.add_line("temperature", dashio.TimeGraphLine("Temperature", color=dashio.Color.RED))
-    temperature_graph.add_line("target", dashio.TimeGraphLine("Target", color=dashio.Color.GRAY))
-    place("temperature_graph", temperature_graph)
-    humidity_graph = dashio.TimeGraph(
-        "humidity_graph", "Humidity", y_axis_label="%", y_axis_min=0.0, y_axis_max=100.0,
-        control_position=position("humidity_graph")
-    )
-    humidity_graph.add_line("humidity", dashio.TimeGraphLine("Humidity", color=dashio.Color.DODGER_BLUE))
-    place("humidity_graph", humidity_graph)
+    climate_graph.add_line("temperatures", dashio.TimeGraphLine(["Temperature", "Target"], color=None))
+    climate_graph.add_line("humidity", dashio.TimeGraphLine("Humidity", color=dashio.Color.DODGER_BLUE, right_axis=True))
+    place("climate_graph", climate_graph)
     place("event_log", dashio.EventLog("event_log", "Events", control_position=position("event_log")))
     return controls
 
@@ -241,15 +262,16 @@ class GreenhouseController:
         self.active_alarms = set()
 
         self.device = dashio.Device("Greenhouse", settings.get("DEVICE", "device_id"), settings.get("DEVICE", "device_name"))
-        self.controls = make_controls(PHONE_VIEWS, PHONE_LAYOUT)
+        # The device's own controls use the phone layout. Each layout, including that one, is loaded for its
+        # number of columns, so the Dash app gets the layout for its screen.
+        self.controls = make_controls(*LAYOUTS[1])
         for control in self.controls.values():
             self.device.add_control(control)
         self.alarm = dashio.Alarm("greenhouse_alarm")
         self.device.add_control(self.alarm)
-
-        # Phone and fold out apps (1 and 2 columns) get the phone layout, tablets (3 columns) the tablet layout.
-        self.device.add_cfg64(dashio.generate_cfg64(*self.controls.values()), 1)
-        self.device.add_cfg64(dashio.generate_cfg64(*make_controls(TABLET_VIEWS, TABLET_LAYOUT).values()), 3)
+        for num_columns, layout in LAYOUTS.items():
+            controls = self.controls if num_columns == 1 else make_controls(*layout)
+            self.device.add_cfg64(dashio.generate_cfg64(*controls.values()), num_columns)
 
         self.controls["target"].add_receive_message_callback(self.target_handler)
         self.controls["mode"].add_receive_message_callback(self.mode_handler)
@@ -304,8 +326,7 @@ class GreenhouseController:
         """Send the initial state and turn on Dash server storage for the history."""
         self.send_settings()
         for control_type, control_id in (
-            (dashio.ControlName.TGRPH, "temperature_graph"),
-            (dashio.ControlName.TGRPH, "humidity_graph"),
+            (dashio.ControlName.TGRPH, "climate_graph"),
             (dashio.ControlName.LOG, "event_log"),
         ):
             self.device.storage_enable(control_type, control_id)
@@ -389,13 +410,10 @@ class GreenhouseController:
         """Add a point to the time graphs. Called by the Schedular every GRAPH_PERIOD seconds."""
         try:
             with self.lock:
-                temperature_graph = self.controls["temperature_graph"]
-                temperature_graph.line_dict["temperature"].add_data_point(self.temperature)
-                temperature_graph.line_dict["target"].add_data_point(self.target)
-                temperature_graph.send_data()
-                humidity_graph = self.controls["humidity_graph"]
-                humidity_graph.line_dict["humidity"].add_data_point(self.humidity)
-                humidity_graph.send_data()
+                climate_graph = self.controls["climate_graph"]
+                climate_graph.line_dict["temperatures"].add_data_point([self.temperature, self.target])
+                climate_graph.line_dict["humidity"].add_data_point(self.humidity)
+                climate_graph.send_data()
         except Exception:  # pylint: disable=broad-except
             logging.exception("Graph error")
         return True
