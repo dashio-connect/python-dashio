@@ -27,11 +27,13 @@ For all documentation and software guides: [dashio.io/documents](https://dashio.
 
 For the **DashIO** Python guide: [dashio.io/guide-python](https://dashio.io/guide-python)
 
-For the **DashIO** Python library: [dashio.io/python-library]("https://dashio.io/python-library/)
+For the **DashIO** Python library: [dashio.io/python-library](https://dashio.io/python-library/)
+
+The library reference is in [Documents/Documentation.md](Documents/Documentation.md).
 
 ## Examples
 
-There are plenty of examples in the github repository under the Examples directory.
+There are plenty of examples in the github repository under the Examples directory. For complete applications, see [Examples/greenhouse](Examples/greenhouse) and [Examples/server_monitor](Examples/server_monitor).
 
 ## Dash IoT Application
 
@@ -43,12 +45,13 @@ Dashio Phone               |  Dashio Tablet
 
 ## Requirements
 
-* python3.6 and above
+* python3.11 and above
 * paho-mqtt
 * pyzmq
 * python-dateutil
 * zeroconf
 * shortuuid
+* pyserial
 
 ## Install
 
@@ -82,7 +85,7 @@ This guide covers the **DashIO** python library. For information on the [***Dash
 
 ### Basics
 
-So what is **DashIO**? It is a quick effortless way to connect your IoT device to your phone. It allows easy setup of controls such as Dials, Text Boxes, Maps, Graphs, Notifications..., from your Device. You can define the look and layout of the controls on your phone from your IoT device. There are three methods to connect to your phone tcp, mqtt, dash, and BLE. What's Dash then? Dash is a mqtt server with extra bits added in to allow you to send notifications, share your devices, and save your settings from your phone via the **Dash** app.
+So what is **DashIO**? It is a quick effortless way to connect your IoT device to your phone. It allows easy setup of controls such as Dials, Text Boxes, Maps, Graphs, Notifications..., from your Device. You can define the look and layout of the controls on your phone from your IoT device. There are three ways to connect to your phone: TCP on your local network, the Dash MQTT server, and BLE. What's Dash then? Dash is a mqtt server with extra bits added in to allow you to send notifications, share your devices, and save your settings from your phone via the **Dash** app.
 
 Show me some code.
 
@@ -111,7 +114,7 @@ This is about the fewest lines of code to get talking to the app. There is a lot
 
 These attributes describe the device to the app and allow you to distinguish one of your devices from another.
 
-The next two lines create a TCP connection and then add the device to the connection. This device is discoverable by the Dash app. You can also discover your IoT device using a third party Bonjour/Zeroconf discovery tool. The mDNS service will be "DashIO.tcp."
+The next two lines create a TCP connection and then add the device to the connection. This device is discoverable by the Dash app. You can also discover your IoT device using a third party Bonjour/Zeroconf discovery tool. The mDNS service will be "_DashIO._tcp."
 
 Though this device is discoverable by the app it would be nice to have the DashIO app automatically setup a new DeviceView and place your control on the new DeviceView. To do that we need to add a few more lines of code:
 
@@ -159,7 +162,7 @@ def knob_event_handler(msg):
     first_dial_control.dial_value = float(msg[3])
 
 aknob = dashio.Knob("aKNB", control_position=dashio.ControlPosition(0.24, 0.14, 0.54, 0.26))
-aknob.add_receive_message_callback += knob_event_handler
+aknob.add_receive_message_callback(knob_event_handler)
 dv.add_control(aknob)
 device.add_control(aknob)
 
@@ -188,7 +191,7 @@ cfg64 ="jVTbjpswEP2VlZ9RlWS7qcQbhJCNwiUCN6lU9YEFb7ACdmrMJukq/94xhpCbqr4NZ8bj4zlz
     "Wn6XFuct05b4D5+3j3psu3u7PI8fmfHuJ6DGj2fR8lVN+PQX"
 
 config_dict = dashio.decode_cfg64(cfg64)
-device = dashio.Device("aDeviceType", "aDeviceID", "aDeviceName", cfg_dict=config_dict)
+device = dashio.Device("aDeviceType", "aDeviceID2", "aDeviceName1", cfg_dict=config_dict)
 tcp_con = dashio.TCPConnection()
 tcp_con.add_device(device)
 
@@ -205,7 +208,11 @@ while True:
     time.sleep(1)
 ```
 
-We've added the cfg64 string. Then decoded it with *dashio.decode_cfg64(cfg64)*. This function returns a dictionary that we can pass into Device so that it can to instantiate and add the controls.
+We've added the cfg64 string. Then decoded it with *dashio.decode_cfg64(cfg64)*. This function returns a dictionary that we can pass into Device so that it can instantiate and add the controls.
+
+The **Dash** app reports its screen size in columns: 1 for phones, 2 for fold out phones and 3 for tablets. A device can hold a layout for each, e.g. `cfg_dict={1: phone_cfg64, 3: tablet_cfg64}`, and layouts can also be built in code with *dashio.generate_cfg64()*. See [Layouts](Documents/Documentation.md#layouts).
+
+The **Dash** app only fetches a new layout when the device's cfgRev changes, so increase *device.config_revision* whenever the layout changes.
 
 Included in the library are three commandline utilities to encode and decode cfg64 files, and to export data stored on the DashIO server.
 
@@ -248,12 +255,14 @@ And
 
 ```sh
 $ dashio_data_exporter -h
-usage: dashio_data_exporter [-h] [-u USERNAME] [-p PASSWORD] [-d DEVICE_ID] [-c CONTROL_ID] [-t CONTROL_TYPE] [-n NUM_DAYS] [-f FORMAT] [-s] [-o]
+usage: dashio_data_exporter [-h] [-u USERNAME] [-a SHARED_BY_USERNAME] [-p PASSWORD] [-d DEVICE_ID] [-c CONTROL_ID] [-t CONTROL_TYPE] [-n NUM_DAYS] [-f FORMAT] [-s] [-o]
 
 options:
   -h, --help            show this help message and exit
   -u, --username USERNAME
                         DashIO Username
+  -a, --shared-username SHARED_BY_USERNAME
+                        DashIO Shared By Username
   -p, --password PASSWORD
                         DashIO Password
   -d, --device_id DEVICE_ID
@@ -268,3 +277,5 @@ options:
   -s, --screen          Write output to stdout.
   -o, --outfile         Write output to file(s). The filename(s) are generated from the data.
 ```
+
+See [Documents/dashio_data_exporter.md](Documents/dashio_data_exporter.md) for more on the data exporter.

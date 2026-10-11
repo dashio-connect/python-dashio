@@ -1,11 +1,18 @@
 # How to Access Data from the DashIO Server
 
-This guide explains how to retrieve data from the DashIO server for time graphs, maps, and logs using the utility `dashio_data_exporter` included in the dashio library package.
+This guide explains how to export the data the Dash server stores for time graphs and event logs, using the `dashio_data_exporter` utility included with the dashio library.
+
+The Dash server stores a control's data once the device has turned on storage for it with `device.storage_enable()`, for example:
+
+```python
+device.storage_enable(dashio.ControlName.TGRPH, "temperature_graph")
+```
 
 ## Prerequisites
 
-- Python 3
-- DashIO library package
+- Python 3.11 or later
+- The dashio library
+- A DashIO account
 
 ## Installation
 
@@ -13,12 +20,12 @@ This guide explains how to retrieve data from the DashIO server for time graphs,
 pip3 install dashio
 ```
 
-The data retrieval script is included as a utility in the dashio package.
+This installs the `dashio_data_exporter` command. From a copy of the repository, you can also run it as `python3 utilities/dashio_data_exporter`.
 
 ## Basic Usage
 
 ```bash
-python -m dashio.utilities.get_data -u USERNAME -p PASSWORD -d DEVICE_ID -c CONTROL_ID [options]
+dashio_data_exporter -u USERNAME -p PASSWORD -d DEVICE_ID -c CONTROL_ID [options]
 ```
 
 ## Command Line Arguments
@@ -27,63 +34,78 @@ python -m dashio.utilities.get_data -u USERNAME -p PASSWORD -d DEVICE_ID -c CONT
 |----------|-------------|
 | `-u`, `--username` | Your DashIO username |
 | `-p`, `--password` | Your DashIO password |
-| `-d`, `--device_id` | The ID of the device to access |
-| `-c`, `--control_id` | The ID of the control to access |
-| `-t`, `--type` | Control type: `TGRPH` (time graph), `MAP`, or `LOG` (default: `TGRPH`) |
-| `-n`, `--number_of_days` | Number of days of data to retrieve (default: 1) |
+| `-a`, `--shared-username` | For a device shared with you, the username of the account that shared it |
+| `-d`, `--device_id` | The ID of the device |
+| `-c`, `--control_id` | The ID of the control |
+| `-t`, `--type` | Control type: `TGRPH` (time graph) or `LOG` (event log) (default: `TGRPH`) |
+| `-n`, `--number_of_days` | Number of days of data to export, up to now (default: 1) |
 | `-f`, `--format` | Output format: `raw` or `csv` (default: `raw`) |
-| `-s`, `--screen` | Display output to the screen |
-| `-o`, `--outfile` | Write output to file(s) |
+| `-s`, `--screen` | Write the output to the screen |
+| `-o`, `--outfile` | Write the output to file(s) |
+
+`-t` also accepts `MAP`, but map data isn't exported yet and produces no output.
 
 ## Examples
 
-### Retrieving Time Graph Data
+### Time Graph Data
 
 ```bash
-python -m dashio.utilities.get_data -u myusername -p mypassword -d mydevice -c mygraph -t TGRPH -n 3 -s
+dashio_data_exporter -u myusername -p mypassword -d mydevice -c mygraph -t TGRPH -n 3 -s
 ```
 
-This retrieves 3 days of time graph data for the specified device and control, displaying the output on screen.
+This exports 3 days of time graph data for the device's control and shows it on the screen.
 
-### Saving Map Data to a File
+### Event Log Data
 
 ```bash
-python -m dashio.utilities.get_data -u myusername -p mypassword -d mydevice -c mymap -t MAP -f csv -o
+dashio_data_exporter -u myusername -p mypassword -d mydevice -c mylog -t LOG -f csv -o
 ```
 
-This retrieves map data in CSV format and saves it to a file.
+This exports a day of event log data as CSV and saves it to a file.
 
-### Getting Log Data
+### A Device Shared With You
 
 ```bash
-python -m dashio.utilities.get_data -u myusername -p mypassword -d mydevice -c mylog -t LOG -s -o
+dashio_data_exporter -u myusername -p mypassword -a ownerusername -d theirdevice -c theirgraph -t TGRPH -s
 ```
 
-This retrieves log data, displaying it on screen and saving it to a file.
+Log in with your own username and password, and give the username of the account that shared the device with `-a`.
 
 ## Output File Naming
 
-When using the `-o` option, files are named using the pattern:
-```
-[device_id]_[control_type]_[control_id]_[line_id].[format]
-```
+With the `-o` option, files are named:
 
-## Understanding Output Formats
+- Time graphs: `[device_id]_TGRPH_[control_id]_[line_id].[format]`, a file for each line.
+- Event logs: `[device_id]_LOG_[control_id].[format]`
+
+## Output Formats
 
 ### Raw Format
 
-The raw format preserves the original structure from the server with tab-separated values:
-```
+The raw format keeps the tab separated structure the server sends:
+
+```text
 [device_id]  [control_type]  [control_id]  [data...]
 ```
 
 ### CSV Format
 
-The CSV format converts time graph data to a more readable format:
-```
+For time graphs, a file for each line:
+
+```text
 # [device_id], TGRPH, [control_id], [line_id], [line_name], [line_type], [line_color], [line_axis]
+
 Timestamp, Value
 [timestamp], [value]
 [timestamp], [value]
+...
+```
+
+For event logs:
+
+```text
+# [device_id], LOG, [control_id]
+Timestamp, color, lines
+[timestamp], [color], [line 1], [line 2]...
 ...
 ```
