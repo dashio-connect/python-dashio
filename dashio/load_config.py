@@ -142,6 +142,14 @@ def generate_cfg64(*controls, cfg_rev: int = 1) -> str:
 
     Returns:
         str: the layout encoded as C64 format
+
+    Example:
+        view = dashio.DeviceView("main", "Main")
+        dial = dashio.Dial("temp", "Temperature", control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.3))
+        view.add_control(dial)
+        device.add_control(view)
+        device.add_control(dial)
+        device.add_cfg64(dashio.generate_cfg64(view, dial), 1)
     """
     cfg = {"CFG": {"deviceSetup": "", "cfgRev": cfg_rev, "numDeviceViews": 0}}
     for control in controls:

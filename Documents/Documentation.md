@@ -44,7 +44,7 @@ The app is sent the layout for its column count. If there isn't one it is sent t
 
 A layout is usually exported from the **Dash** app. A layout can also be generated from the controls' parameters: get_generated_cfg_dict() returns it, and it is sent to the app when no layouts are loaded. Export a generated layout with encode_cfg64(device.get_generated_cfg_dict()) to load it later as a column layout.
 
-To create the layouts in code, build each one with generate_cfg64() from controls created with that layout's positions. Controls for different layouts are separate instances that share control IDs. The device keeps the controls already added to it, and adds controls it doesn't have from the first layout that defines them.
+To create the layouts in code, build each one with generate_cfg64() from controls created with that layout's positions. Controls for different layouts are separate instances that share control IDs. The device keeps the controls already added to it, and adds controls it doesn't have from the first layout that defines them. See [generate_cfg64](#generate_cfg64controls-cfg_rev-int--1---str) for more examples.
 
 ```python
 view1 = dashio.DeviceView("view1", "Main")
@@ -855,7 +855,71 @@ Encodes cfg dictionary into C64 string.
 
 ### **generate_cfg64(\*controls, cfg_rev: int = 1) -> str:**
 
-Generates a CFG64 layout from controls, including the layout's DeviceViews, without needing a Device. Load it into a device with add_cfg64(cfg64, column_no). See [Layouts](#layouts).
+Generates a CFG64 layout from controls, without needing a Device. Use it to build layouts in code, e.g. a layout for each screen size, and load each into a device with add_cfg64(cfg64, column_no). See [Layouts](#layouts).
+
+* *\*controls.* Every control in the layout, including its DeviceViews and the controls in its Menus and ButtonGroups. Put each control on its DeviceView with `view.add_control(control)`, which sets the control's parent. Alarms are skipped, as they aren't part of a layout.
+* *cfg_rev : int, optional.* The layout's cfgRev, by default 1. It is only used when the layout is passed to Device with cfg_dict, which sets the device's cfgRev from its layouts.
+
+Returns the layout as a CFG64 string.
+
+The layout holds each control's settings when generate_cfg64() is called, e.g. its position and colors. To change the layout, change the controls, or create new ones, and generate it again.
+
+#### Example: save a layout to a file
+
+```python
+view = dashio.DeviceView("main", "Main")
+dial = dashio.Dial("temp", "Temperature", dial_max=40.0, units="°C", control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.3))
+view.add_control(dial)
+
+with open("layout.c64", "w", encoding="utf-8") as c64_file:
+    c64_file.write(dashio.generate_cfg64(view, dial))
+```
+
+The file can be loaded with `add_cfg64(open("layout.c64").read(), 1)`, or decoded to JSON to inspect it with `c64_decode layout.c64`.
+
+#### Example: a layout for each screen size
+
+Create the controls once for each layout, with that layout's positions, using the same control IDs. The device uses one set of controls, so add those to the device before loading the layouts. That way the controls you attach callbacks to are the ones the device uses.
+
+```python
+def make_controls(num_columns, dial_position, knob_position):
+    view = dashio.DeviceView("main", "Thermostat", num_columns=num_columns)
+    dial = dashio.Dial("temp", "Temperature", dial_max=40.0, control_position=dashio.ControlPosition(*dial_position))
+    knob = dashio.Knob("target", "Target", dial_max=40.0, control_position=dashio.ControlPosition(*knob_position))
+    view.add_control(dial)
+    view.add_control(knob)
+    return view, dial, knob
+
+
+phone = make_controls(1, (0.0, 0.0, 1.0, 0.4), (0.2, 0.45, 0.6, 0.4))
+tablet = make_controls(3, (0.0, 0.0, 0.3, 0.6), (0.35, 0.0, 0.3, 0.6))
+
+device = dashio.Device("Thermostat", "thermostat1", "Thermostat")
+for control in phone:
+    device.add_control(control)
+device.add_cfg64(dashio.generate_cfg64(*phone), 1)  # Phones and fold out phones.
+device.add_cfg64(dashio.generate_cfg64(*tablet), 3)  # Tablets.
+
+view, dial, knob = phone
+knob.add_receive_message_callback(lambda msg: print("Target:", msg[3]))
+```
+
+A Menu works the same way: pass the Menu and the controls added to it. A Menu whose parent is `"PROV"` appears in the **Dash** app's device provisioning menu, see [Menu](#menu).
+
+#### Example: keep cfgRev up to date
+
+The **Dash** app only fetches a new layout when the device's cfgRev changes. Layouts built in code are rebuilt each time the program starts, so save the CFG's hash with cfgRev and increase cfgRev when the hash changes:
+
+```python
+cfg_hash = device.get_cfg_hash()
+if cfg_hash != saved_cfg_hash:
+    saved_cfg_rev += 1
+    saved_cfg_hash = cfg_hash
+    # Save saved_cfg_rev and saved_cfg_hash, e.g. in a settings file.
+device.config_revision = saved_cfg_rev
+```
+
+The [greenhouse](../Examples/greenhouse) and [server monitor](../Examples/server_monitor) examples use generate_cfg64() for each screen size, with a Menu in the provisioning menu, and keep cfgRev up to date.
 
 ### **get_control_from_config(control_type: str, control_id: str, cfg_dict: dict):**
 
