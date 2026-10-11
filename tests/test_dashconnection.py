@@ -13,8 +13,10 @@ class TestDashConnection(unittest.TestCase):
         return json.loads(json_str)
 
     def test_dash_connection_username(self):
-        test_connection = DashConnection("USERNAME", "PASSWORD")
+        # Connect to localhost so the test doesn't contact the Dash server.
+        test_connection = DashConnection("USERNAME", "PASSWORD", host="localhost")
         self.assertEqual(test_connection.username, 'USERNAME', "username type should be USERNAME")
+        test_connection.close()
 
     def test_dash_control_cfg_in_device(self):
         device = Device("DEVICETYPE", "DEVICEID", "DEVICENAME", context=zmq.Context())
