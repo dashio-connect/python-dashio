@@ -129,6 +129,38 @@ class TestDeviceLayouts(unittest.TestCase):
         device.add_cfg64(phone_layout(), 1)
         self.assertEqual(self.request_cfg(device, 1)["SETUP"], [{"controlID": "s1", "setting": "on"}])
 
+    def test_name_setup_from_layout_ignores_case(self):
+        layout = phone_layout()
+        layout["CFG"]["deviceSetup"] = "BLE,TCP,NAME,WIFI"
+        device = self.make_device()
+        device.add_cfg64(layout, 1)
+        self.assertEqual(device._cfg["deviceSetup"], "name", "NAME in an app layout should turn on renaming")
+
+    def test_cfg_hash_same_for_same_cfg(self):
+        first = self.make_device(cfg_dict={1: phone_layout(), 3: tablet_layout()})
+        second = self.make_device(cfg_dict={1: phone_layout(), 3: tablet_layout()})
+        self.assertEqual(first.get_cfg_hash(), second.get_cfg_hash())
+
+    def test_cfg_hash_ignores_cfg_rev(self):
+        device = self.make_device(cfg_dict=phone_layout())
+        cfg_hash = device.get_cfg_hash()
+        device.config_revision = 7
+        self.assertEqual(device.get_cfg_hash(), cfg_hash)
+
+    def test_cfg_hash_changes_with_cfg(self):
+        device = self.make_device(cfg_dict=phone_layout())
+        cfg_hash = device.get_cfg_hash()
+        device.add_cfg64(tablet_layout(), 3)
+        self.assertNotEqual(device.get_cfg_hash(), cfg_hash, "Adding a column layout should change the hash")
+        cfg_hash = device.get_cfg_hash()
+        moved = tablet_layout()
+        moved["BTTN"][0]["xPositionRatio"] = 0.25
+        device.add_cfg64(moved, 3)
+        self.assertNotEqual(device.get_cfg_hash(), cfg_hash, "Moving a control should change the hash")
+        cfg_hash = device.get_cfg_hash()
+        device.set_name_callback(lambda msg: msg[2])
+        self.assertNotEqual(device.get_cfg_hash(), cfg_hash, "Changing deviceSetup should change the hash")
+
     def test_cfg_rev_from_layouts(self):
         device = self.make_device(cfg_dict={1: phone_layout(), 3: tablet_layout(cfg_rev=4)})
         self.assertEqual(device.config_revision, 4)

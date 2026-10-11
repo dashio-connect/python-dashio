@@ -24,6 +24,7 @@ A Device is a collection of [Controls](#controls) and [DeviceViews](#deviceview)
 * *add_cfg64(cfg, column_no=1).* Load a layout, as a CFG64 string or a dict from decode_cfg64, for **Dash** apps that report column_no columns. Controls in the layout that the device doesn't have are added. See [Layouts](#layouts).
 * *remove_cfg64(column_no).* Remove the layout loaded for column_no.
 * *get_generated_cfg_dict().* Returns the layout generated from the device's controls as a dict. Encode it with encode_cfg64() to export it.
+* *get_cfg_hash().* Returns a hash of the CFG the device sends to Dash apps of every column count, without cfgRev. The **Dash** app only fetches a new CFG when cfgRev changes, so increase cfgRev whenever the CFG changes. Code that builds its layouts when it starts can save the hash with cfgRev and increase cfgRev when the hash changes. See the greenhouse and server monitor examples.
 * *add_all_c64_controls(c64_dict, column_no=1).* Same as add_cfg64.
 
 ### Layouts

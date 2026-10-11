@@ -24,6 +24,7 @@ SOFTWARE.
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 import logging
 import threading
@@ -203,6 +204,20 @@ class Device(threading.Thread):
         self._add_generated_cfg(cfg, [], layout_controls=True)
         return cfg
 
+    def get_cfg_hash(self) -> str:
+        """Returns a hash of the CFG the device sends to Dash apps of every column count, without cfgRev.
+
+        The Dash app only fetches a new CFG when the device's cfgRev changes, so cfgRev must be increased
+        whenever the CFG changes. Code that builds its layouts when it starts can save this hash with cfgRev,
+        and increase cfgRev when the hash changes.
+        """
+        cfgs = []
+        for num_columns in range(1, MAX_LAYOUT_COLUMNS + 1):
+            cfg = self._get_layout(["", self.device_id, "", str(num_columns)])
+            del cfg["CFG"]["cfgRev"]
+            cfgs.append(cfg)
+        return hashlib.sha256(json.dumps(cfgs, sort_keys=True).encode()).hexdigest()
+
     def _select_layout_column(self, num_columns: int) -> int | None:
         """The loaded layout to use for a Dash app with num_columns: the largest column not bigger than
         num_columns, otherwise the smallest. None if no layouts are loaded."""
@@ -358,7 +373,7 @@ class Device(threading.Thread):
                     if not self.is_control_loaded(control_type, control['controlID']):
                         self.add_control(CONTROL_INSTANCE_DICT[control_type].from_cfg_dict(control))
             elif control_type == "CFG" and isinstance(control_list, dict):
-                if 'name' in control_list.get('deviceSetup', ''):
+                if 'name' in control_list.get('deviceSetup', '').lower().split(','):
                     self._set_device_setup("name", True)
                     self.set_name_callback(self._name_callback)
         self._column_cfgs[column_no] = cfg_dict
