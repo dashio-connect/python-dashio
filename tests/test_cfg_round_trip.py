@@ -39,7 +39,6 @@ class TestCfgRoundTrip(unittest.TestCase):
         new_cfg = new_picker.get_cfg64(["", "DEVICEID", "DASHID", "1"])[0]
         self.assertEqual(new_cfg["pickerStyle"], "SPECTRUM", "pickerStyle should survive a round trip")
 
-
     def test_table_without_column_headings(self):
         table = Table("TBL1", columns=3, control_position=ControlPosition(0.1, 0.2, 0.3, 0.4))
         cfg = table.get_cfg64(["", "DEVICEID", "DASHID", "1"])[0]

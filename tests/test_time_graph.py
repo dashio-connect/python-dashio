@@ -41,7 +41,6 @@ class TestTimeGraph(unittest.TestCase):
         cfg_dict = _get_cfg_dict(test_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
         self.assertEqual(cfg_dict['yAxisNumBars'], 3, "CFG yAxisNumBars should be 3")
 
-
     def test_time_graph_line_format(self):
         line = TimeGraphLine("Temperature", color=Color.RED, right_axis=True)
         self.assertEqual(line.get_line_format(), f"\tTemperature\tLINE\t{Color.RED.value}\tright\n")

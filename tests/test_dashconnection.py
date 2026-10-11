@@ -16,7 +16,6 @@ class TestDashConnection(unittest.TestCase):
         test_connection = DashConnection("USERNAME", "PASSWORD")
         self.assertEqual(test_connection.username, 'USERNAME', "username type should be USERNAME")
 
-
     def test_dash_control_cfg_in_device(self):
         device = Device("DEVICETYPE", "DEVICEID", "DEVICENAME", context=zmq.Context())
         self.assertTrue(device.add_control(DashControl("DASH1", "USERNAME", "dash.dashio.io")))
