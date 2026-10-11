@@ -10,14 +10,14 @@ readme = "README.md"
 authors = [{ name = "James Boulton", email = "james@dashio.com" }]
 license = "MIT"
 classifiers = [
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Operating System :: OS Independent",
 ]
 
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "paho-mqtt>=2.0.0",
     "pyzmq",

@@ -4,20 +4,32 @@ on:
   - pull_request
 jobs:
   test:
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
+      # Run every Python version even if one fails, to see all the failures.
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest]
-        python-version: ["3.11", "3.12", "3.13"]
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10.3.0
         with:
           enable-cache: false
       - name: Set up Python ${{ matrix.python-version }}
         run: uv python install ${{ matrix.python-version }}
-      - name: Install tox
-        run: uv tool install tox --with tox-uv
       - name: Run tests
-        run: uvx tox
+        # Only this job's Python version, e.g. tox -e py313.
+        run: uvx --with tox-uv tox -e py$(echo ${{ matrix.python-version }} | tr -d .)
+  flake8:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.3.0
+        with:
+          enable-cache: false
+      - name: Set up Python
+        run: uv python install 3.14
+      - name: Run flake8
+        run: uvx --with tox-uv tox -e flake8
