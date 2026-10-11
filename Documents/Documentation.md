@@ -657,16 +657,16 @@ A TimeGraphLine for a TimeGraph control.
 
 ##### Time Graph Line Attributes
 
-* *name : str, optional.* The name of the line, by default "".
+* *name : str | list[str], optional.* The name of the line, by default "". For a line of arrays, a list with a name for each value in the array, e.g. ["Temperature", "Target"].
 * *line_type : TimeGraphLineType, optional.* Which line type to use, by default TimeGraphLineType.LINE.
-* *color : Color, optional.* The color of the line, by default Color.BLACK.
+* *color : Color | None, optional.* The color of the line, by default Color.BLACK. None lets the **Dash** app choose, e.g. for a line of arrays.
 * *max_data_points : int, optional.* The data is stored in a ring buffer this sets the ring buffer size, by default 60
 * *break_data : bool, optional.* If true draws the line with breaks between missing data, by default False
 * *right_axis : bool, optional.* If true use the right axis, by default False.
 
 ##### Time Graph Line Methods
 
-* *add_data_point(data_point : DataPoint):.* Adds a DataPoint to the TimeGraphLine.
+* *add_data_point(data_point):.* Adds a data point to the TimeGraphLine: an int, float, str, DataPoint, or DataPointArray. A list is added as a DataPointArray, e.g. [21.3, 20.0] for a line of arrays.
 
 #### Time Graph Config Attributes
 

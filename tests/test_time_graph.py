@@ -1,7 +1,7 @@
 import json
 import unittest
 
-from dashio import TimeGraph
+from dashio import Color, TimeGraph, TimeGraphLine
 
 
 def _get_cfg_dict(cfg_list: list):
@@ -40,6 +40,24 @@ class TestTimeGraph(unittest.TestCase):
         test_control = TimeGraph("TIMEGRAPHID", y_axis_num_bars=3)
         cfg_dict = _get_cfg_dict(test_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
         self.assertEqual(cfg_dict['yAxisNumBars'], 3, "CFG yAxisNumBars should be 3")
+
+
+    def test_time_graph_line_format(self):
+        line = TimeGraphLine("Temperature", color=Color.RED, right_axis=True)
+        self.assertEqual(line.get_line_format(), f"\tTemperature\tLINE\t{Color.RED.value}\tright\n")
+
+    def test_time_graph_array_line_format(self):
+        line = TimeGraphLine(["Temperature", "Target"], color=None)
+        self.assertEqual(line.get_line_format(), "\t[Temperature,Target]\tLINE\t\tleft\n", "An array line has a name per value and no color")
+
+    def test_time_graph_array_data_point(self):
+        test_control = TimeGraph("TIMEGRAPHID")
+        test_control.add_line("temps", TimeGraphLine(["Temperature", "Target"], color=None))
+        test_control.line_dict["temps"].add_data_point([21.3, 20.0])
+        sent = []
+        test_control._message_tx_event += sent.append
+        test_control.send_data()
+        self.assertTrue(sent[0].rstrip("\n").endswith(",[21.3,20.0]"), "A list should be sent as an array data point")
 
 
 if __name__ == '__main__':

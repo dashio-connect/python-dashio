@@ -82,9 +82,9 @@ class TimeGraphLine:
     """
     def __init__(
         self,
-        name: str = "",
+        name: str | list[str] = "",
         line_type: TimeGraphLineType = TimeGraphLineType.LINE,
-        color: Color = Color.BLACK,
+        color: Color | None = Color.BLACK,
         max_data_points: int = 60,
         break_data: bool = False,
         right_axis: bool = False
@@ -93,12 +93,14 @@ class TimeGraphLine:
 
         Parameters
         ----------
-        name : str, optional
-            The name of the line, by default ""
+        name : str | list[str], optional
+            The name of the line, by default "". For a line of arrays, a list with a name for each value in the
+            array, e.g. ["Temperature", "Target"].
         line_type : TimeGraphLineType, optional
             Which line type to use, by default TimeGraphLineType.LINE
-        color : Color, optional
-            The color of the line, by default Color.BLACK
+        color : Color | None, optional
+            The color of the line, by default Color.BLACK. None lets the **Dash** app choose, e.g. for a line
+            of arrays.
         max_data_points : int, optional
             The data is stored in a ring buffer this sets the ring buffer size, by default 60
         break_data : bool, optional
@@ -106,6 +108,8 @@ class TimeGraphLine:
         right_axis: bool, optional
             Defaults to left, right if true.
         """
+        if isinstance(name, list):
+            name = "[" + ",".join(name) + "]"
         self.name = name.translate(BAD_CHARS)
         self.line_type = line_type
         self.color = color
@@ -115,8 +119,12 @@ class TimeGraphLine:
         if right_axis:
             self.axis_side = 'right'
 
+    def _line_header(self) -> str:
+        color = "" if self.color is None else self.color.value
+        return f"\t{self.name}\t{self.line_type.value}\t{color}\t{self.axis_side}"
+
     def get_line_format(self):
-        return f"\t{self.name}\t{self.line_type.value}\t{self.color.value}\t{self.axis_side}\n"
+        return self._line_header() + "\n"
 
     def get_line_from_timestamp(self, timestamp: str) -> str:
         """Converts data from timestamp to a string formatted for the **Dash** app
@@ -126,7 +134,7 @@ class TimeGraphLine:
         str
             Formatted line data
         """
-        data_str = f"\t{self.name}\t{self.line_type.value}\t{self.color.value}\t{self.axis_side}"
+        data_str = self._line_header()
 
         try:
             d_stamp = dateutil.parser.isoparse(timestamp)
@@ -152,11 +160,13 @@ class TimeGraphLine:
 
         Parameters
         ----------
-            data_point : str, int, float, DataPoint, DataPointArray
-                A data point to add to the line.
+            data_point : str, int, float, list, DataPoint, DataPointArray
+                A data point to add to the line. A list is added as a DataPointArray.
         """
         if isinstance(data, DataPoint) or isinstance(data, DataPointArray):
             self.data.append(data)
+        elif isinstance(data, list):
+            self.data.append(DataPointArray(data))
         elif isinstance(data, str) or isinstance(data, float) or isinstance(data, int) or isinstance(data, bool):
             data_p = DataPoint(data)
             self.data.append(data_p)
