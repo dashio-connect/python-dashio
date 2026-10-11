@@ -70,19 +70,15 @@ from .load_config import (decode_cfg64, encode_cfg64, generate_cfg64,
                           get_control_dict_from_config,
                           get_control_from_config,
                           load_all_controls_from_config)
-from .lte_767x_connection import Lte767xConnection
 from .schedular import Schedular
 from .tcp_connection import TCPConnection
 from .zmq_connection import ZMQConnection
-from .quectel_EG800Q import EG800Q
 
 __all__ = [
     'Device',
     'TCPConnection',
     'ZMQConnection',
     'DashConnection',
-    'Lte767xConnection',
-    'EG800Q',
     'ConnectionState',
     'DashIOCommsModuleConnection',
     'Schedular',
