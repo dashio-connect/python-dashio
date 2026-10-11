@@ -49,7 +49,7 @@ class TableConfig(ControlConfig):
         control_position: ControlPosition | None
     ) -> None:
         super().__init__(control_id, title, control_position, title_position)
-        ch = [heading.translate(BAD_CHARS) for heading in column_headings]
+        ch = [heading.translate(BAD_CHARS) for heading in column_headings or []]
         self.cfg["fontSize"] = font_size
         self.cfg["labelWidthPcnt"] = label_width_percent
         self.cfg["columns"] = columns

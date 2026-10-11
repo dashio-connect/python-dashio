@@ -1,6 +1,6 @@
 import unittest
 
-from dashio import Button, Color, ColorPicker, ColorPickerStyle, ControlPosition
+from dashio import Button, Color, ColorPicker, ColorPickerStyle, ControlPosition, Table
 from dashio.iotcontrol.control import _get_color
 
 
@@ -38,6 +38,14 @@ class TestCfgRoundTrip(unittest.TestCase):
         new_picker = ColorPicker.from_cfg_dict(cfg)
         new_cfg = new_picker.get_cfg64(["", "DEVICEID", "DASHID", "1"])[0]
         self.assertEqual(new_cfg["pickerStyle"], "SPECTRUM", "pickerStyle should survive a round trip")
+
+
+    def test_table_without_column_headings(self):
+        table = Table("TBL1", columns=3, control_position=ControlPosition(0.1, 0.2, 0.3, 0.4))
+        cfg = table.get_cfg64(["", "DEVICEID", "DASHID", "1"])[0]
+        self.assertEqual(cfg["colHeadings"], [], "A Table without column headings should have none")
+        cfg["parentID"] = "VIEW1"
+        self.assertEqual(Table.from_cfg_dict(cfg).get_cfg64([])[0]["columns"], 3, "columns should survive a round trip")
 
 
 if __name__ == '__main__':
