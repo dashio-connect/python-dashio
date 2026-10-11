@@ -2,6 +2,7 @@
 import argparse
 import json
 import os
+import sys
 
 import dashio
 
@@ -32,7 +33,7 @@ def main():
         with open(c64_filename, mode="r", encoding='utf-8') as fp:
             cfg64 = fp.read()
     except FileNotFoundError:
-        print("File not found")
+        sys.exit(f"File not found: {c64_filename}")
 
     # Remove formatting for different languages
     cfg64 = cfg64.translate({ord(i): None for i in '"\n \\;'})

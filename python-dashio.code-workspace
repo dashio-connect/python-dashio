@@ -117,7 +117,7 @@
       {
         "label": "Run Flake8",
         "type": "shell",
-        "command": "flake8 dashio tests utilities",
+        "command": "flake8 dashio tests",
         "group": "test",
         "presentation": {
           "reveal": "always",

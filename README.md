@@ -218,18 +218,17 @@ Included in the library are three commandline utilities to encode and decode cfg
 
 ```sh
 $ c64_decode -h
-usage: c64_decode [-h] [-p] [-o OUT_FILE] [-i INDENT] file
+usage: c64_decode [-h] [-p] [-o OUT_FILE] [-i INDENT] [-c] file
 
 positional arguments:
-  file                  Input file name.
+  file                 Input file name.
 
 options:
-  -h, --help            show this help message and exit
-  -p, --print           Print output.
-  -o OUT_FILE, --out OUT_FILE
-                        output filename.
-  -i INDENT, --indent INDENT
-                        Indent depth (Default 4).
+  -h, --help           show this help message and exit
+  -p, --print          Print output.
+  -o, --out OUT_FILE   output filename.
+  -i, --indent INDENT  Indent depth (Default 4).
+  -c, --compact        Remove empty keys
 ```
 
 And
@@ -239,16 +238,13 @@ $ c64_encode -h
 usage: c64_encode [-h] [-f FORMAT] [-o OUT_FILE] [-w WIDTH] file
 
 positional arguments:
-  file                  Input file name.
+  file                 Input file name.
 
 options:
-  -h, --help            show this help message and exit
-  -f FORMAT, --format FORMAT
-                        Format output. Options: 'None', 'C', 'Python'.
-  -o OUT_FILE, --out OUT_FILE
-                        output filename.
-  -w WIDTH, --width WIDTH
-                        Width of formatted output (Default 80).
+  -h, --help           show this help message and exit
+  -f, --format FORMAT  Format output. Options: 'None', 'C', 'Python' (Default 'None').
+  -o, --out OUT_FILE   output filename.
+  -w, --width WIDTH    Width of formatted output (Default 80).
 ```
 
 And
@@ -274,7 +270,7 @@ options:
   -n, --number_of_days NUM_DAYS
                         Number of days of data to get up to present time.
   -f, --format FORMAT   Format of the output data, either 'raw' or 'csv'.
-  -s, --screen          Write output to stdout.
+  -s, --screen          Write output to stdout
   -o, --outfile         Write output to file(s). The filename(s) are generated from the data.
 ```
 

@@ -20,7 +20,7 @@ device.storage_enable(dashio.ControlName.TGRPH, "temperature_graph")
 pip3 install dashio
 ```
 
-This installs the `dashio_data_exporter` command. From a copy of the repository, you can also run it as `python3 utilities/dashio_data_exporter`.
+This installs the `dashio_data_exporter` command. You can also run it as `python3 -m dashio.utilities.dashio_data_exporter`.
 
 ## Basic Usage
 

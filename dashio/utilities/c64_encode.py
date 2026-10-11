@@ -2,6 +2,7 @@
 import argparse
 import json
 import os
+import sys
 import textwrap
 
 import dashio
@@ -57,7 +58,7 @@ def main():
             cfg64 = dashio.encode_cfg64(config_dict)
 
     except FileNotFoundError:
-        print("File not found")
+        sys.exit(f"File not found: {json_filename}")
 
     cfg_file = open(c64_filename, "w", encoding='utf-8')
 
