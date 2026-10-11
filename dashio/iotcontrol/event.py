@@ -70,11 +70,17 @@ class Event:
             raise ValueError("Handler is not handling this event, so cannot unhandle it.") from not_in_set
         return self
 
-    def fire(self, *args, **kargs):
+    def fire(self, *args, **kargs) -> str:
         """Runs all the handlers
+
+        Returns
+        -------
+        str
+            The strings returned by the handlers joined together, e.g. replies to send to the **Dash** app.
+            Handlers that return anything else are ignored.
         """
-        for handler in self.handlers:
-            handler(*args, **kargs)
+        replies = [handler(*args, **kargs) for handler in self.handlers]
+        return "".join(reply for reply in replies if isinstance(reply, str))
 
     def get_handler_count(self):
         """Returns the number of handlers

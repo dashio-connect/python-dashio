@@ -143,15 +143,12 @@ class EventLog(Control):
             from_date = dateutil.parser.isoparse(msg[4])
         except (IndexError, ValueError):
             return ""
-        data_str += self._control_hdr_str + dashboard_id
-        has_data = False
         for log in self.log.get():
             if log.timestamp > from_date:
                 data_str += "\t" + log.to_json()
-                has_data = True
-        if has_data:
-            data_str += "\n"
-        return data_str
+        if not data_str:
+            return ""
+        return self._control_hdr_str + dashboard_id + data_str + "\n"
 
     def add_event_data(self, data: EventData):
         """Add a data point to the log and send it to any connected **Dash** app

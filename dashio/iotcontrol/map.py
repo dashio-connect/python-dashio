@@ -126,7 +126,7 @@ class MapTrack:
         """
         reply = f"\t{self.track_id}\t{self.text}\t{self.color.value}"
         for loc in self.locations:
-            reply += f"\t{loc.map_to_json()}"
+            reply += f"\t{loc.to_json()}"
         return reply
 
     def get_last_location(self) -> str:
@@ -199,10 +199,10 @@ class Map(Control):
         try:
             dashboard_id = msg[3]
             from_timestamp = parser.isoparse(msg[4])
-        except IndexError:
+        except (IndexError, ValueError):
             return ""
         if self.tracks:
-            for _, value in self.tracks:
+            for value in self.tracks.values():
                 if value.track_start_time > from_timestamp:
                     reply += self._control_hdr_str + dashboard_id + value.get_track() + "\n"
         return reply
@@ -219,7 +219,7 @@ class Map(Control):
         if track_id in self.tracks:
             self.tracks[track_id].add_location(location)
         else:
-            self.tracks[track_id] = MapTrack("track_id")
+            self.tracks[track_id] = MapTrack(track_id)
             self.tracks[track_id].add_location(location)
         self.send_location(location, track_id)
 
