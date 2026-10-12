@@ -47,6 +47,9 @@ MODES = ["Auto", "Manual"]
 PROVISIONING_MENU = "PROV"
 MENU_POSITION = (0.25, 0.25, 0.15, 0.1)  # A Menu in the provisioning menu isn't drawn, but needs a position.
 
+# Control IDs are kept under 8 characters, which the Dash app works best with. The code refers to the controls by
+# longer names, the keys of the dict make_controls() returns.
+
 # A layout for each number of columns the Dash app reports: 1 for phones, 2 for fold out phones and 3 for
 # tablets. Each layout is (views, positions):
 #   views: DeviceView key -> (title, number of columns the view is wide)
@@ -55,57 +58,57 @@ LAYOUTS = {
     # Phones: three views, one column wide.
     1: (
         {
-            "climate": ("Climate", 1),
-            "controls": ("Controls", 1),
-            "history": ("History", 1),
+            "clim": ("Climate", 1),
+            "ctrl": ("Controls", 1),
+            "hist": ("History", 1),
         },
         {
-            "temperature": ("climate", (0.0, 0.0, 0.5, 0.3)),
-            "humidity": ("climate", (0.5, 0.0, 0.5, 0.3)),
-            "target": ("climate", (0.2, 0.32, 0.6, 0.4)),
-            "status": ("climate", (0.0, 0.75, 1.0, 0.1)),
-            "mode": ("controls", (0.0, 0.0, 1.0, 0.12)),
-            "heater": ("controls", (0.0, 0.15, 0.33, 0.2)),
-            "fan": ("controls", (0.335, 0.15, 0.33, 0.2)),
-            "lights": ("controls", (0.67, 0.15, 0.33, 0.2)),
-            "climate_graph": ("history", (0.0, 0.0, 1.0, 0.55)),
-            "event_log": ("history", (0.0, 0.57, 1.0, 0.43)),
+            "temperature": ("clim", (0.0, 0.0, 0.5, 0.3)),
+            "humidity": ("clim", (0.5, 0.0, 0.5, 0.3)),
+            "target": ("clim", (0.2, 0.32, 0.6, 0.4)),
+            "status": ("clim", (0.0, 0.75, 1.0, 0.1)),
+            "mode": ("ctrl", (0.0, 0.0, 1.0, 0.12)),
+            "heater": ("ctrl", (0.0, 0.15, 0.33, 0.2)),
+            "fan": ("ctrl", (0.335, 0.15, 0.33, 0.2)),
+            "lights": ("ctrl", (0.67, 0.15, 0.33, 0.2)),
+            "climate_graph": ("hist", (0.0, 0.0, 1.0, 0.55)),
+            "event_log": ("hist", (0.0, 0.57, 1.0, 0.43)),
         },
     ),
     # Fold out phones: one view, two columns wide. Climate and controls on the left, history on the right.
     2: (
         {
-            "greenhouse": ("Greenhouse", 2),
+            "main": ("Greenhouse", 2),
         },
         {
-            "temperature": ("greenhouse", (0.0, 0.0, 0.24, 0.22)),
-            "humidity": ("greenhouse", (0.25, 0.0, 0.24, 0.22)),
-            "target": ("greenhouse", (0.05, 0.24, 0.39, 0.3)),
-            "status": ("greenhouse", (0.0, 0.56, 0.49, 0.07)),
-            "mode": ("greenhouse", (0.0, 0.65, 0.49, 0.1)),
-            "heater": ("greenhouse", (0.0, 0.77, 0.16, 0.15)),
-            "fan": ("greenhouse", (0.165, 0.77, 0.16, 0.15)),
-            "lights": ("greenhouse", (0.33, 0.77, 0.16, 0.15)),
-            "climate_graph": ("greenhouse", (0.51, 0.0, 0.49, 0.6)),
-            "event_log": ("greenhouse", (0.51, 0.62, 0.49, 0.38)),
+            "temperature": ("main", (0.0, 0.0, 0.24, 0.22)),
+            "humidity": ("main", (0.25, 0.0, 0.24, 0.22)),
+            "target": ("main", (0.05, 0.24, 0.39, 0.3)),
+            "status": ("main", (0.0, 0.56, 0.49, 0.07)),
+            "mode": ("main", (0.0, 0.65, 0.49, 0.1)),
+            "heater": ("main", (0.0, 0.77, 0.16, 0.15)),
+            "fan": ("main", (0.165, 0.77, 0.16, 0.15)),
+            "lights": ("main", (0.33, 0.77, 0.16, 0.15)),
+            "climate_graph": ("main", (0.51, 0.0, 0.49, 0.6)),
+            "event_log": ("main", (0.51, 0.62, 0.49, 0.38)),
         },
     ),
     # Tablets: one view, three columns wide. Climate, then controls and events, then history.
     3: (
         {
-            "greenhouse": ("Greenhouse", 3),
+            "main": ("Greenhouse", 3),
         },
         {
-            "temperature": ("greenhouse", (0.0, 0.0, 0.16, 0.25)),
-            "humidity": ("greenhouse", (0.17, 0.0, 0.16, 0.25)),
-            "target": ("greenhouse", (0.0, 0.27, 0.33, 0.33)),
-            "status": ("greenhouse", (0.0, 0.62, 0.33, 0.08)),
-            "mode": ("greenhouse", (0.35, 0.0, 0.3, 0.1)),
-            "heater": ("greenhouse", (0.35, 0.12, 0.095, 0.15)),
-            "fan": ("greenhouse", (0.4525, 0.12, 0.095, 0.15)),
-            "lights": ("greenhouse", (0.555, 0.12, 0.095, 0.15)),
-            "event_log": ("greenhouse", (0.35, 0.3, 0.3, 0.7)),
-            "climate_graph": ("greenhouse", (0.67, 0.0, 0.33, 1.0)),
+            "temperature": ("main", (0.0, 0.0, 0.16, 0.25)),
+            "humidity": ("main", (0.17, 0.0, 0.16, 0.25)),
+            "target": ("main", (0.0, 0.27, 0.33, 0.33)),
+            "status": ("main", (0.0, 0.62, 0.33, 0.08)),
+            "mode": ("main", (0.35, 0.0, 0.3, 0.1)),
+            "heater": ("main", (0.35, 0.12, 0.095, 0.15)),
+            "fan": ("main", (0.4525, 0.12, 0.095, 0.15)),
+            "lights": ("main", (0.555, 0.12, 0.095, 0.15)),
+            "event_log": ("main", (0.35, 0.3, 0.3, 0.7)),
+            "climate_graph": ("main", (0.67, 0.0, 0.33, 1.0)),
         },
     ),
 }
@@ -120,7 +123,7 @@ def make_controls(views: dict, positions: dict) -> dict:
     """
     controls = {}
     for key, (title, num_columns) in views.items():
-        controls[f"view_{key}"] = dashio.DeviceView(f"view_{key}", title, num_columns=num_columns)
+        controls[f"view_{key}"] = dashio.DeviceView(f"dv_{key}", title, num_columns=num_columns)
 
     def place(key, control):
         controls[f"view_{positions[key][0]}"].add_control(control)
@@ -130,11 +133,11 @@ def make_controls(views: dict, positions: dict) -> dict:
         return dashio.ControlPosition(*positions[key][1])
 
     place("temperature", dashio.Dial(
-        "temperature", "Temperature", dial_min=0.0, dial_max=40.0, red_value=30.0, units="°C",
+        "temp", "Temperature", dial_min=0.0, dial_max=40.0, red_value=30.0, units="°C",
         precision=dashio.Precision.ONE, control_position=position("temperature")
     ))
     place("humidity", dashio.Dial(
-        "humidity", "Humidity", dial_min=0.0, dial_max=100.0, red_value=85.0, units="%",
+        "humid", "Humidity", dial_min=0.0, dial_max=100.0, red_value=85.0, units="%",
         dial_fill_color=dashio.Color.DODGER_BLUE, control_position=position("humidity")
     ))
     place("target", dashio.Knob(
@@ -160,16 +163,21 @@ def make_controls(views: dict, positions: dict) -> dict:
     ))
 
     # The settings are changed less often, so they go in the Dash app's device provisioning menu.
-    settings = dashio.Menu("settings", "Greenhouse Settings", text="Greenhouse Settings", icon_name=dashio.Icon.COG,
+    settings = dashio.Menu("setup", "Greenhouse Settings", text="Greenhouse Settings", icon_name=dashio.Icon.COG,
                            control_position=dashio.ControlPosition(*MENU_POSITION))
     settings.parent_id = PROVISIONING_MENU
     controls["settings"] = settings
     for key, control in (
         ("max_humidity", dashio.Slider(
-            "max_humidity", "Max Humidity %", bar_min=40.0, bar_max=95.0, red_value=90.0, show_min_max=True
+            "maxhum", "Max Humidity %", bar_min=40.0, bar_max=95.0, red_value=90.0, show_min_max=True
         )),
-        ("lights_on", dashio.TextBox("lights_on", "Lights On (HH:MM)", keyboard_type=dashio.Keyboard.TIME)),
-        ("lights_off", dashio.TextBox("lights_off", "Lights Off (HH:MM)", keyboard_type=dashio.Keyboard.TIME)),
+        # Date/Time format, so the Dash app shows the time nicely and offers a date/time entry keyboard.
+        ("lights_on", dashio.TextBox(
+            "lt_on", "Lights On", text_format=dashio.TextFormat.DATETIME, keyboard_type=dashio.Keyboard.TIME
+        )),
+        ("lights_off", dashio.TextBox(
+            "lt_off", "Lights Off", text_format=dashio.TextFormat.DATETIME, keyboard_type=dashio.Keyboard.TIME
+        )),
     ):
         settings.add_control(control)
         controls[key] = control
@@ -177,24 +185,39 @@ def make_controls(views: dict, positions: dict) -> dict:
     # One graph: temperature and target on the left axis, humidity on the right axis. Temperature and target
     # share a line of [temperature, target] arrays, and the Dash app chooses a color for each.
     climate_graph = dashio.TimeGraph(
-        "climate_graph", "Climate", y_axis_label="°C", y_axis_min=0.0, y_axis_max=40.0,
+        "graph", "Climate", y_axis_label="°C", y_axis_min=0.0, y_axis_max=40.0,
         y_axis_label_rt="%", y_axis_min_rt=0.0, y_axis_max_rt=100.0, control_position=position("climate_graph")
     )
     climate_graph.add_line("temperatures", dashio.TimeGraphLine(["Temperature", "Target"], color=None))
     climate_graph.add_line("humidity", dashio.TimeGraphLine("Humidity", color=dashio.Color.DODGER_BLUE, right_axis=True))
     place("climate_graph", climate_graph)
-    place("event_log", dashio.EventLog("event_log", "Events", control_position=position("event_log")))
+    place("event_log", dashio.EventLog("events", "Events", control_position=position("event_log")))
     return controls
 
 
 def parse_time(text: str) -> str | None:
-    """Returns text as HH:MM, or None if it isn't a time. Accepts HH:MM or an ISO date time."""
-    for parse in (lambda t: datetime.datetime.strptime(t, "%H:%M"), datetime.datetime.fromisoformat):
+    """Returns text as local HH:MM, or None if it isn't a time.
+
+    Accepts an ISO 8601 time, as the Dash app sends from a Date/Time text box, e.g. "16:30:00+1300", an ISO 8601
+    date time, or HH:MM.
+    """
+    text = text.strip()
+    try:
+        when = datetime.datetime.fromisoformat(text)
+    except ValueError:
         try:
-            return parse(text.strip()).strftime("%H:%M")
+            when = datetime.datetime.combine(datetime.date.today(), datetime.time.fromisoformat(text))
         except ValueError:
-            continue
-    return None
+            return None
+    if when.tzinfo is not None:
+        when = when.astimezone()  # The lights times are local.
+    return when.strftime("%H:%M")
+
+
+def iso_time(hh_mm: str) -> str:
+    """Local time HH:MM as an ISO 8601 time with its UTC offset, e.g. "16:30:00+1300", for a Date/Time text box."""
+    when = datetime.datetime.combine(datetime.date.today(), datetime.time.fromisoformat(hh_mm)).astimezone()
+    return when.strftime("%H:%M:%S%z")
 
 
 def update_config_revision(device: dashio.Device, settings: "Settings"):
@@ -267,7 +290,7 @@ class GreenhouseController:
         self.controls = make_controls(*LAYOUTS[1])
         for control in self.controls.values():
             self.device.add_control(control)
-        self.alarm = dashio.Alarm("greenhouse_alarm")
+        self.alarm = dashio.Alarm("alarm")
         self.device.add_control(self.alarm)
         for num_columns, layout in LAYOUTS.items():
             controls = self.controls if num_columns == 1 else make_controls(*layout)
@@ -319,15 +342,15 @@ class GreenhouseController:
         self.controls["target"].knob_value = self.target
         self.controls["mode"].position = MODES.index(self.settings.get("SETTINGS", "mode"))
         self.controls["max_humidity"].slider_value = self.max_humidity
-        self.controls["lights_on"].text = self.settings.get("SETTINGS", "lights_on")
-        self.controls["lights_off"].text = self.settings.get("SETTINGS", "lights_off")
+        self.controls["lights_on"].text = iso_time(self.settings.get("SETTINGS", "lights_on"))
+        self.controls["lights_off"].text = iso_time(self.settings.get("SETTINGS", "lights_off"))
 
     def start(self):
         """Send the initial state and turn on Dash server storage for the history."""
         self.send_settings()
         for control_type, control_id in (
-            (dashio.ControlName.TGRPH, "climate_graph"),
-            (dashio.ControlName.LOG, "event_log"),
+            (dashio.ControlName.TGRPH, self.controls["climate_graph"].control_id),
+            (dashio.ControlName.LOG, self.controls["event_log"].control_id),
         ):
             self.device.storage_enable(control_type, control_id)
         self.log_event(f"Started in {self.settings.get('SETTINGS', 'mode')} mode", dashio.Color.LIME)
@@ -452,14 +475,14 @@ class GreenhouseController:
 
     def lights_time_handler(self, msg):
         with self.lock:
-            key = msg[2]
+            key = "lights_on" if msg[2] == self.controls["lights_on"].control_id else "lights_off"
             lights_time = parse_time(msg[3])
             if lights_time is None:
                 self.log_event(f"Not a time: {msg[3]}", dashio.Color.ORANGE)
             else:
                 self.settings.set("SETTINGS", key, lights_time)
                 self.log_event(f"{'Lights on' if key == 'lights_on' else 'Lights off'} at {lights_time}")
-            self.controls[key].text = self.settings.get("SETTINGS", key)
+            self.controls[key].text = iso_time(self.settings.get("SETTINGS", key))
 
     def name_handler(self, msg) -> str:
         name = msg[2]

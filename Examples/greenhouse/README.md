@@ -40,7 +40,7 @@ Settings changed in the app are saved to `greenhouse.ini`, so they survive a res
 - **Dash server storage:** `storage_enable()` keeps the time graph and event log history on the Dash server. You can export it with the `dashio_data_exporter` utility, for example:
 
   ```bash
-  dashio_data_exporter -u USERNAME -p PASSWORD -d DEVICE_ID -c climate_graph -t TGRPH -n 7 -f csv -o
+  dashio_data_exporter -u USERNAME -p PASSWORD -d DEVICE_ID -c graph -t TGRPH -n 7 -f csv -o
   ```
 
   The device ID is in `greenhouse.ini`.

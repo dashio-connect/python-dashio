@@ -41,36 +41,39 @@ TABLE_PERIOD = 30.0  # Seconds between process and system table updates.
 NUM_PROCESSES = 8  # Processes shown in the process table.
 DISK_PATH = os.path.abspath(os.sep)  # The disk to monitor, / or C:\
 
+# Control IDs are kept under 8 characters, which the Dash app works best with. The code refers to the controls by
+# longer names, the keys of the dict make_controls() returns.
+
 # The layouts: control key -> (DeviceView key, (x, y, width, height)). Positions are ratios of the view size.
 # The phone layout spreads the controls over three views. The tablet layout puts them all on one view that
 # is three columns wide.
 PHONE_VIEWS = {
-    "overview": ("Overview", 1),
-    "history": ("History", 1),
-    "processes": ("Processes", 1),
+    "over": ("Overview", 1),
+    "hist": ("History", 1),
+    "proc": ("Processes", 1),
 }
 PHONE_LAYOUT = {
-    "cpu": ("overview", (0.0, 0.0, 0.33, 0.2)),
-    "memory": ("overview", (0.335, 0.0, 0.33, 0.2)),
-    "disk": ("overview", (0.67, 0.0, 0.33, 0.2)),
-    "system": ("overview", (0.0, 0.22, 1.0, 0.6)),
-    "usage_graph": ("history", (0.0, 0.0, 1.0, 0.5)),
-    "network_graph": ("history", (0.0, 0.5, 1.0, 0.5)),
-    "processes": ("processes", (0.0, 0.0, 1.0, 0.6)),
-    "event_log": ("processes", (0.0, 0.62, 1.0, 0.38)),
+    "cpu": ("over", (0.0, 0.0, 0.33, 0.2)),
+    "memory": ("over", (0.335, 0.0, 0.33, 0.2)),
+    "disk": ("over", (0.67, 0.0, 0.33, 0.2)),
+    "system": ("over", (0.0, 0.22, 1.0, 0.6)),
+    "usage_graph": ("hist", (0.0, 0.0, 1.0, 0.5)),
+    "network_graph": ("hist", (0.0, 0.5, 1.0, 0.5)),
+    "processes": ("proc", (0.0, 0.0, 1.0, 0.6)),
+    "event_log": ("proc", (0.0, 0.62, 1.0, 0.38)),
 }
 TABLET_VIEWS = {
-    "server": ("Server", 3),
+    "main": ("Server", 3),
 }
 TABLET_LAYOUT = {
-    "cpu": ("server", (0.0, 0.0, 0.105, 0.2)),
-    "memory": ("server", (0.11, 0.0, 0.105, 0.2)),
-    "disk": ("server", (0.22, 0.0, 0.105, 0.2)),
-    "system": ("server", (0.0, 0.22, 0.33, 0.6)),
-    "usage_graph": ("server", (0.34, 0.0, 0.32, 0.5)),
-    "network_graph": ("server", (0.34, 0.5, 0.32, 0.5)),
-    "processes": ("server", (0.67, 0.0, 0.33, 0.6)),
-    "event_log": ("server", (0.67, 0.62, 0.33, 0.38)),
+    "cpu": ("main", (0.0, 0.0, 0.105, 0.2)),
+    "memory": ("main", (0.11, 0.0, 0.105, 0.2)),
+    "disk": ("main", (0.22, 0.0, 0.105, 0.2)),
+    "system": ("main", (0.0, 0.22, 0.33, 0.6)),
+    "usage_graph": ("main", (0.34, 0.0, 0.32, 0.5)),
+    "network_graph": ("main", (0.34, 0.5, 0.32, 0.5)),
+    "processes": ("main", (0.67, 0.0, 0.33, 0.6)),
+    "event_log": ("main", (0.67, 0.62, 0.33, 0.38)),
 }
 
 # A Menu whose parent is PROV appears in the Dash app's device provisioning menu instead of on a DeviceView.
@@ -94,7 +97,7 @@ def make_controls(views: dict, layout: dict, alarm_levels: dict) -> dict:
     """
     controls = {}
     for key, (title, num_columns) in views.items():
-        controls[f"view_{key}"] = dashio.DeviceView(f"view_{key}", title, num_columns=num_columns)
+        controls[f"view_{key}"] = dashio.DeviceView(f"dv_{key}", title, num_columns=num_columns)
 
     def place(key, control):
         controls[f"view_{layout[key][0]}"].add_control(control)
@@ -113,34 +116,34 @@ def make_controls(views: dict, layout: dict, alarm_levels: dict) -> dict:
     ))
 
     # The alarm levels are changed less often, so they go in the Dash app's device provisioning menu.
-    alarm_levels = dashio.Menu("alarm_levels", "Alarm Levels", text="Alarm Levels", icon_name=dashio.Icon.BELL,
+    alarm_levels = dashio.Menu("levels", "Alarm Levels", text="Alarm Levels", icon_name=dashio.Icon.BELL,
                                control_position=dashio.ControlPosition(*MENU_POSITION))
     alarm_levels.parent_id = PROVISIONING_MENU
     controls["alarm_levels"] = alarm_levels
     for key, (name, _, _) in ALARMS.items():
-        slider = dashio.Slider(f"{key}_level", f"{name} Alarm %", bar_min=50.0, bar_max=100.0, show_min_max=True)
+        slider = dashio.Slider(f"{key}L", f"{name} Alarm %", bar_min=50.0, bar_max=100.0, show_min_max=True)
         alarm_levels.add_control(slider)
         controls[f"{key}_level"] = slider
 
     usage_graph = dashio.TimeGraph(
-        "usage_graph", "CPU and Memory", y_axis_label="%", y_axis_min=0.0, y_axis_max=100.0,
+        "usage", "CPU and Memory", y_axis_label="%", y_axis_min=0.0, y_axis_max=100.0,
         control_position=position("usage_graph")
     )
     usage_graph.add_line("cpu", dashio.TimeGraphLine("CPU", color=dashio.Color.RED))
     usage_graph.add_line("memory", dashio.TimeGraphLine("Memory", color=dashio.Color.DODGER_BLUE))
     place("usage_graph", usage_graph)
     network_graph = dashio.TimeGraph(
-        "network_graph", "Network", y_axis_label="kB/s", y_axis_min=0.0, y_axis_max=1000.0,
+        "network", "Network", y_axis_label="kB/s", y_axis_min=0.0, y_axis_max=1000.0,
         control_position=position("network_graph")
     )
     network_graph.add_line("received", dashio.TimeGraphLine("Received", color=dashio.Color.LIME))
     network_graph.add_line("sent", dashio.TimeGraphLine("Sent", color=dashio.Color.ORANGE))
     place("network_graph", network_graph)
     place("processes", dashio.Table(
-        "processes", "Busiest Processes", columns=3, label_width_percent=50,
+        "procs", "Busiest Processes", columns=3, label_width_percent=50,
         column_headings=["Process", "CPU %", "Mem %"], control_position=position("processes")
     ))
-    place("event_log", dashio.EventLog("event_log", "Events", control_position=position("event_log")))
+    place("event_log", dashio.EventLog("events", "Events", control_position=position("event_log")))
     return controls
 
 
@@ -237,7 +240,7 @@ class ServerMonitor:
         self.controls = make_controls(PHONE_VIEWS, PHONE_LAYOUT, alarm_levels)
         for control in self.controls.values():
             self.device.add_control(control)
-        self.alarm = dashio.Alarm("server_alarm")
+        self.alarm = dashio.Alarm("alarm")
         self.device.add_control(self.alarm)
 
         # Phone and fold out apps (1 and 2 columns) get the phone layout, tablets (3 columns) the tablet layout.
@@ -277,9 +280,9 @@ class ServerMonitor:
         for key in ALARMS:
             self.controls[f"{key}_level"].slider_value = self.alarm_level(key)
         for control_type, control_id in (
-            (dashio.ControlName.TGRPH, "usage_graph"),
-            (dashio.ControlName.TGRPH, "network_graph"),
-            (dashio.ControlName.LOG, "event_log"),
+            (dashio.ControlName.TGRPH, self.controls["usage_graph"].control_id),
+            (dashio.ControlName.TGRPH, self.controls["network_graph"].control_id),
+            (dashio.ControlName.LOG, self.controls["event_log"].control_id),
         ):
             self.device.storage_enable(control_type, control_id)
         self.log_event("Monitor started", dashio.Color.LIME)
@@ -384,7 +387,7 @@ class ServerMonitor:
 
     def alarm_level_handler(self, msg):
         with self.lock:
-            key = msg[2].removesuffix("_level")
+            key = msg[2].removesuffix("L")  # The alarm level sliders' IDs are cpuL, memoryL and diskL.
             level = round(float(msg[3]))
             self.settings.set("ALARMS", f"{key}_level", level)
             self.controls[f"{key}_level"].slider_value = level
