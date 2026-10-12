@@ -41,6 +41,8 @@ from .iotcontrol.enums import ConnectionState
 
 logger = logging.getLogger(__name__)
 
+MAX_BATCH_LENGTH = 4096  # A batch is published before it would grow past this, as in the DashIO firmware.
+
 
 class DashControl():
     """Class to stare dash connection info
@@ -224,6 +226,32 @@ class DashConnection(threading.Thread):
         logger.debug("DASH SEND ANNOUNCE: %s", msg)
         self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg).encode()])
 
+    def _queue_publish(self, topic: str, payload: str, qos: int):
+        """Publish payload, batched with other messages for the same topic for batch_delay seconds."""
+        if self.batch_delay <= 0:
+            logger.debug("DASH Tx →\n%s", payload.rstrip())
+            self._dash_c.publish(topic, payload, qos=qos)
+            return
+        with self._batch_lock:
+            pending, pending_qos = self._batch.pop(topic, ("", 0))
+            if pending and len(pending) + len(payload) > MAX_BATCH_LENGTH:
+                logger.debug("DASH Tx →\n%s", pending.rstrip())
+                self._dash_c.publish(topic, pending, qos=pending_qos)
+                pending, pending_qos = "", 0
+            if not self._batch:
+                self._batch_start = time.monotonic()
+            self._batch[topic] = (pending + payload, max(pending_qos, qos))
+
+    def _flush_batch(self, force: bool = False):
+        """Publish the batched messages, once they have waited batch_delay seconds, or straight away if force."""
+        with self._batch_lock:
+            if not self._batch or (not force and time.monotonic() - self._batch_start < self.batch_delay):
+                return
+            batch, self._batch = self._batch, {}
+        for topic, (payload, qos) in batch.items():
+            logger.debug("DASH Tx →\n%s", payload.rstrip())
+            self._dash_c.publish(topic, payload, qos=qos)
+
     def _send_online_state(self, device_id: str, state: str):
         """Publish ONLINE or OFFLINE for device_id to its data topic."""
         return self._dash_c.publish(f"{self.username}/{device_id}/data", f"\t{device_id}\t{state}\n", qos=1)
@@ -284,7 +312,8 @@ class DashConnection(threading.Thread):
         port=8883,
         use_ssl=True,
         context: zmq.Context | None = None,
-        offline_delay: int = 10
+        offline_delay: int = 10,
+        batch_delay: float = 0.05
     ):
         """
         Setups and manages a connection thread to the Dash Server.
@@ -306,6 +335,10 @@ class DashConnection(threading.Thread):
             offline_delay : int, optional
                 If the connection is lost, the Dash server publishes OFFLINE for the first device after this many
                 seconds, unless the connection is restored first. 0 publishes it straight away. Defaults to 10.
+            batch_delay : float, optional
+                Messages for the same topic sent within this many seconds are published together, so a device
+                updating several controls makes one publish. Alarms are published straight away. 0 publishes each
+                message straight away. Defaults to 0.05.
         """
 
         threading.Thread.__init__(self, daemon=True)
@@ -318,6 +351,10 @@ class DashConnection(threading.Thread):
         self._device_id_rx_list = []
         self._subscribing_topics = {}
         self.offline_delay = offline_delay
+        self.batch_delay = batch_delay
+        self._batch = {}  # Topic -> (messages, qos) waiting to be published.
+        self._batch_start = 0.0
+        self._batch_lock = threading.Lock()
         self.running = True
         self.username = username
         self.password = password
@@ -353,6 +390,7 @@ class DashConnection(threading.Thread):
     def close(self):
         """Send OFFLINE for every device, then close the connection."""
         if self.connection_state == ConnectionState.CONNECTED:
+            self._flush_batch(force=True)
             messages = [self._send_online_state(device_id, "OFFLINE") for device_id in self._device_id_list]
             for message in messages:
                 try:
@@ -381,8 +419,6 @@ class DashConnection(threading.Thread):
         self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.zmq_connection_uuid)
         poller = zmq.Poller()
         poller.register(self.rx_zmq_sub, zmq.POLLIN)
-        data_topic = ""
-        control_type = ""
         while self.running:
             try:
                 socks = dict(poller.poll(10))
@@ -404,28 +440,27 @@ class DashConnection(threading.Thread):
                     self._dash_command(json.loads(data))
                     continue
                 msg_l = data.split(b'\t')
-                if len(msg_l) > 3:
-                    control_type = msg_l[2]
                 try:
                     device_id = msg_l[1].decode().strip()
                 except IndexError:
                     continue
-                data_topic = f"{self.username}/{device_id}/data"
-                qos = 0
+                control_type = msg_l[2] if len(msg_l) > 2 else b""
                 if control_type == b'ALM':
-                    data_topic = f"{self.username}/{device_id}/alarm"
-                    control_type = ""
+                    # Each alarm is a push notification, so it's published straight away.
+                    logger.debug("DASH Tx →\n%s", data.decode().rstrip())
+                    self._dash_c.publish(f"{self.username}/{device_id}/alarm", data.decode(), qos=0)
                 elif msg_to == b"ANNOUNCE":
-                    data_topic = f"{self.username}/{device_id}/announce"
-                    qos = 1
-                logger.debug("DASH Tx →\n%s", data.decode().rstrip())
-                self._dash_c.publish(data_topic, data.decode(), qos=qos)
+                    self._queue_publish(f"{self.username}/{device_id}/announce", data.decode(), 1)
+                else:
+                    self._queue_publish(f"{self.username}/{device_id}/data", data.decode(), 0)
+            self._flush_batch()
             if self.connection_state == ConnectionState.DISCONNECTED:
                 self._disconnect_timeout = min(self._disconnect_timeout, 900)
                 time.sleep(self._disconnect_timeout)
                 self.connect()
                 self._disconnect_timeout = self._disconnect_timeout * 2
 
+        self._flush_batch(force=True)
         self._dash_c.loop_stop()
         self.tx_zmq_pub.close()
         self.rx_zmq_sub.close()

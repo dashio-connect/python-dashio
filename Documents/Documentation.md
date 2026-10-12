@@ -751,6 +751,7 @@ The connection connects a moment after it is created, so add the devices straigh
 * *use_ssl : bool, optional.* Whether to use ssl for the connection or not. default: True.
 * *context : zmq.Context, optional.* The ZMQ context, by default the shared zmq.Context.instance().
 * *offline_delay : int, optional.* If the connection is lost, the Dash server publishes OFFLINE for the first device after this many seconds, unless the connection is restored first. 0 publishes it straight away. Defaults to 10.
+* *batch_delay : float, optional.* Messages for the same topic sent within this many seconds are published together, so a device updating several controls makes one publish to the Dash server instead of one for each. Alarms are published straight away. 0 publishes each message straight away. Defaults to 0.05.
 
 #### DashConnection Methods
 
