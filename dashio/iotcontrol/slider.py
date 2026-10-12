@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from __future__ import annotations
-from .control import Control, ControlPosition, ControlConfig, _get_title_position, _get_color, _get_bar_style, _get_color_str, _get_bar_mode
+from .control import Control, ControlPosition, ControlConfig, format_value, _get_title_position, _get_color, _get_bar_style, _get_color_str, _get_bar_mode
 from .enums import Color, SliderBarStyle, TitlePosition, BarMode
 
 
@@ -171,8 +171,8 @@ class Slider(Control):
         self._bar2_value = None
         self._slider_value = 0.0
 
-        self._slider_state_str = self._control_hdr_str + f"{self._slider_value}\n"
-        self._bar_state_str = self._control_id_bar + f"{self._bar1_value}\n"
+        self._slider_state_str = self._control_hdr_str + f"{format_value(self._slider_value)}\n"
+        self._bar_state_str = self._control_id_bar + f"{format_value(self._bar1_value)}\n"
         self._bar_slider_state_str = self._slider_state_str + self._bar_state_str
 
         self._bar_min = bar_min
@@ -194,13 +194,13 @@ class Slider(Control):
         self._is_active = active
         if active:
             if self._bar2_value is None:
-                self._bar_state_str = self._control_id_bar + f"{self._bar1_value}\n"
+                self._bar_state_str = self._control_id_bar + f"{format_value(self._bar1_value)}\n"
             else:
-                self._bar_state_str = self._control_id_bar + "{:.2f}\t{:.2f}\n".format(self._bar1_value, self._bar2_value)
+                self._bar_state_str = self._control_id_bar + f"{format_value(self._bar1_value)}\t{format_value(self._bar2_value)}\n"
             self._message_tx_event(self._bar_state_str)
-            self._slider_state_str = self._control_hdr_str + f"{self._slider_value}\n"
+            self._slider_state_str = self._control_hdr_str + f"{format_value(self._slider_value)}\n"
             self._message_tx_event(self._slider_state_str)
-            self._slider_state_str = self._control_hdr_str + f"{self._slider_value}\n"
+            self._slider_state_str = self._control_hdr_str + f"{format_value(self._slider_value)}\n"
             self._bar_slider_state_str = self._slider_state_str + self._bar_state_str
         else:
             if self._bar2_value is None:
@@ -278,13 +278,13 @@ class Slider(Control):
         self._bar1_value = val
         if not self._is_active:
             self._is_active = True
-            self._slider_state_str = self._control_hdr_str + f"{self._slider_value}\n"
+            self._slider_state_str = self._control_hdr_str + f"{format_value(self._slider_value)}\n"
             self._message_tx_event(self._slider_state_str)
 
         if self._bar2_value is None:
-            self._bar_state_str = self._control_id_bar + f"{self._bar1_value}\n"
+            self._bar_state_str = self._control_id_bar + f"{format_value(self._bar1_value)}\n"
         else:
-            self._bar_state_str = self._control_id_bar + "{:.2f}\t{:.2f}\n".format(self._bar1_value, self._bar2_value)
+            self._bar_state_str = self._control_id_bar + f"{format_value(self._bar1_value)}\t{format_value(self._bar2_value)}\n"
         self._message_tx_event(self._bar_state_str)
         self._bar_slider_state_str = self._slider_state_str + self._bar_state_str
 
@@ -304,13 +304,13 @@ class Slider(Control):
         self._bar2_value = val
         if not self._is_active:
             self._is_active = True
-            self._slider_state_str = self._control_hdr_str + f"{self._slider_value}\n"
+            self._slider_state_str = self._control_hdr_str + f"{format_value(self._slider_value)}\n"
             self._message_tx_event(self._slider_state_str)
 
         if self._bar2_value is None:
-            self._bar_state_str = self._control_id_bar + f"{self._bar1_value}\n"
+            self._bar_state_str = self._control_id_bar + f"{format_value(self._bar1_value)}\n"
         else:
-            self._bar_state_str = self._control_id_bar + "{:.2f}\t{:.2f}\n".format(self._bar1_value, self._bar2_value)
+            self._bar_state_str = self._control_id_bar + f"{format_value(self._bar1_value)}\t{format_value(self._bar2_value)}\n"
         self._message_tx_event(self._bar_state_str)
         self._bar_slider_state_str = self._slider_state_str + self._bar_state_str
 
@@ -330,11 +330,11 @@ class Slider(Control):
         if not self._is_active:
             self._is_active = True
             if self._bar2_value is None:
-                self._bar_state_str = self._control_id_bar + f"{self._bar1_value}\n"
+                self._bar_state_str = self._control_id_bar + f"{format_value(self._bar1_value)}\n"
             else:
-                self._bar_state_str = self._control_id_bar + "{:.2f}\t{:.2f}\n".format(self._bar1_value, self._bar2_value)
+                self._bar_state_str = self._control_id_bar + f"{format_value(self._bar1_value)}\t{format_value(self._bar2_value)}\n"
         self._message_tx_event(self._bar_state_str)
         self._slider_value = val
-        self._slider_state_str = self._control_hdr_str + f"{self._slider_value}\n"
+        self._slider_state_str = self._control_hdr_str + f"{format_value(self._slider_value)}\n"
         self._message_tx_event(self._slider_state_str)
         self._bar_slider_state_str = self._slider_state_str + self._bar_state_str

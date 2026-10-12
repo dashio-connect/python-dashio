@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from __future__ import annotations
-from .control import Control, ControlPosition, ControlConfig, _get_color, _get_title_position, _get_knob_style, _get_color_str, _get_dial_mode
+from .control import Control, ControlPosition, ControlConfig, format_value, _get_color, _get_title_position, _get_knob_style, _get_color_str, _get_dial_mode
 from .enums import Color, KnobStyle, TitlePosition, DialMode
 
 
@@ -164,8 +164,8 @@ class Knob(Control):
         self._control_id_dial = f"\t{{device_id}}\tKBDL\t{control_id}\t"
         self._knob_value = 0
         self._knob_dial_value = 0
-        self._state_str_knob = self._control_hdr_str + f"{self._knob_value}\n"
-        self._state_str_dial = self._control_id_dial + f"{self._knob_dial_value}\n"
+        self._state_str_knob = self._control_hdr_str + f"{format_value(self._knob_value)}\n"
+        self._state_str_dial = self._control_id_dial + f"{format_value(self._knob_dial_value)}\n"
         self._knob_dial_state_str = self._state_str_knob + self._state_str_dial
 
         self._dial_min = dial_min
@@ -186,9 +186,9 @@ class Knob(Control):
         the current knob and dial values."""
         self._is_active = active
         if active:
-            self._state_str_knob = self._control_hdr_str + f"{self._knob_value}\n"
+            self._state_str_knob = self._control_hdr_str + f"{format_value(self._knob_value)}\n"
             self._message_tx_event(self._state_str_knob)
-            self._state_str_dial = self._control_id_dial + f"{self._knob_dial_value}\n"
+            self._state_str_dial = self._control_id_dial + f"{format_value(self._knob_dial_value)}\n"
             self._message_tx_event(self._state_str_dial)
             self._knob_dial_state_str = self._state_str_knob + self._state_str_dial
         else:
@@ -263,9 +263,9 @@ class Knob(Control):
         self._knob_value = val
         if not self._is_active:
             self._is_active = True
-            self._state_str_dial = self._control_id_dial + f"{self._knob_dial_value}\n"
+            self._state_str_dial = self._control_id_dial + f"{format_value(self._knob_dial_value)}\n"
             self._message_tx_event(self._state_str_dial)
-        self._state_str_knob = self._control_hdr_str + f"{self._knob_value}\n"
+        self._state_str_knob = self._control_hdr_str + f"{format_value(self._knob_value)}\n"
         self._message_tx_event(self._state_str_knob)
         self._knob_dial_state_str = self._state_str_knob + self._state_str_dial
 
@@ -285,8 +285,8 @@ class Knob(Control):
         self._knob_dial_value = val
         if not self._is_active:
             self._is_active = True
-            self._state_str_knob = self._control_hdr_str + f"{self._knob_value}\n"
+            self._state_str_knob = self._control_hdr_str + f"{format_value(self._knob_value)}\n"
             self._message_tx_event(self._state_str_knob)
-        self._state_str_dial = self._control_id_dial + f"{self._knob_dial_value}\n"
+        self._state_str_dial = self._control_id_dial + f"{format_value(self._knob_dial_value)}\n"
         self._message_tx_event(self._state_str_dial)
         self._knob_dial_state_str = self._state_str_knob + self._state_str_dial

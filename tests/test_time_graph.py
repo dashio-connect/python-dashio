@@ -56,7 +56,7 @@ class TestTimeGraph(unittest.TestCase):
         sent = []
         test_control._message_tx_event += sent.append
         test_control.send_data()
-        self.assertTrue(sent[0].rstrip("\n").endswith(",[21.3,20.0]"), "A list should be sent as an array data point")
+        self.assertTrue(sent[0].rstrip("\n").endswith(",[21.3,20]"), "A list should be sent as an array data point")
 
 
 if __name__ == '__main__':

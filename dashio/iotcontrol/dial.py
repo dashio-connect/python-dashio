@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from __future__ import annotations
-from .control import Control, ControlPosition, ControlConfig, _get_color, _get_title_position, _get_dial_number_position, _get_dial_style, _get_precision, _get_color_str
+from .control import Control, ControlPosition, ControlConfig, format_value, PRECISION_SIGNIFICANT_DIGITS, _get_color, _get_title_position, _get_dial_number_position, _get_dial_style, _get_precision, _get_color_str
 from .enums import (Color, DialNumberPosition, DialStyle, Precision,
                     TitlePosition)
 
@@ -186,7 +186,7 @@ class Dial(Control):
         the current dial value."""
         self._is_active = active
         if active:
-            self.state_str = self._control_hdr_str + f"{self._dial_value}\n"
+            self.state_str = self._control_hdr_str + f"{format_value(self._dial_value, PRECISION_SIGNIFICANT_DIGITS)}\n"
         else:
             self.state_str = self._control_hdr_str + "na\n"
 
@@ -240,7 +240,7 @@ class Dial(Control):
 
     def get_state(self):
         if self._is_active:
-            return self._control_hdr_str + f"{self._dial_value}\n"
+            return self._control_hdr_str + f"{format_value(self._dial_value, PRECISION_SIGNIFICANT_DIGITS)}\n"
         return self._control_hdr_str + "na\n"
 
     @property
@@ -257,5 +257,5 @@ class Dial(Control):
     @dial_value.setter
     def dial_value(self, val: float):
         self._dial_value = val
-        self.state_str = self._control_hdr_str + f"{val}\n"
+        self.state_str = self._control_hdr_str + f"{format_value(val, PRECISION_SIGNIFICANT_DIGITS)}\n"
         self._is_active = True

@@ -24,6 +24,8 @@ SOFTWARE.
 
 from __future__ import annotations
 import json
+import math
+import numbers
 
 from ..constants import BAD_CHARS, MAX_CONTROL_ID_LENGTH
 from .enums import ColorPickerStyle, DeviceViewStyle, DialNumberPosition, DirectionStyle, ChartXAxisLabelsStyle, \
@@ -35,6 +37,39 @@ from .event import Event
 def _get_icon(icon_str: str) -> Icon:
     icon_name = icon_str.upper().replace(" ", "_")
     return Icon[icon_name]
+
+
+DEFAULT_SIGNIFICANT_DIGITS = 5  # For controls without a precision setting, as the DashIO firmware does ("%.5g").
+PRECISION_SIGNIFICANT_DIGITS = 6  # For controls with a precision setting: the most the Dash app shows.
+
+
+def format_value(value, digits: int = DEFAULT_SIGNIFICANT_DIGITS) -> str:
+    """Format a control's value for a message.
+
+    Numbers are sent to digits significant digits, in exponent notation if they are very large or small, so they
+    fit the control. Values smaller than 1e-11 are sent as 0, and None as NA (not available). Integers, booleans
+    and text are sent as they are.
+
+    Parameters
+    ----------
+    value
+        The value.
+    digits : int, optional
+        Significant digits. Controls with a precision setting, which the Dash app applies, use 6, the most the app
+        shows. Defaults to 5.
+    """
+    if value is None:
+        return "NA"
+    if isinstance(value, bool) or not isinstance(value, numbers.Real):
+        return str(value)
+    if isinstance(value, numbers.Integral):
+        return str(int(value))
+    value = float(value)
+    if math.isnan(value):
+        return "nan"
+    if abs(value) < 1e-11:
+        return "0"
+    return f"{value:.{digits}g}"
 
 
 def _get_color_str(color: str | Color) -> str:

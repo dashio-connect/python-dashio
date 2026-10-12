@@ -23,7 +23,7 @@ SOFTWARE.
 """
 from __future__ import annotations
 from ..constants import BAD_CHARS
-from .control import Control, ControlPosition, ControlConfig, _get_color, _get_title_position, _get_direction_style, _get_precision, _get_color_str
+from .control import Control, ControlPosition, ControlConfig, format_value, _get_color, _get_title_position, _get_direction_style, _get_precision, _get_color_str
 from .enums import Color, DirectionStyle, Precision, TitlePosition
 
 
@@ -150,7 +150,7 @@ class Direction(Control):
         the current direction value."""
         self._is_active = active
         if active:
-            self.state_str = self._control_hdr_str + f"{self._direction_value}\n"
+            self.state_str = self._control_hdr_str + f"{format_value(self._direction_value)}\n"
         else:
             self.state_str = self._control_hdr_str + "na\n"
 
@@ -189,8 +189,8 @@ class Direction(Control):
     def get_state(self) -> str:
         if self._is_active:
             if self._direction_text:
-                return self._control_hdr_str + f"{self._direction_value}\t{self._direction_text}\n"
-            return self._control_hdr_str + f"{self._direction_value}\n"
+                return self._control_hdr_str + f"{format_value(self._direction_value)}\t{self._direction_text}\n"
+            return self._control_hdr_str + f"{format_value(self._direction_value)}\n"
         return self._control_hdr_str + "na\n"
 
     @property
@@ -207,7 +207,7 @@ class Direction(Control):
     @direction_value.setter
     def direction_value(self, val: float):
         self._direction_value = val
-        s_str = self._control_hdr_str + f"{self._direction_value}"
+        s_str = self._control_hdr_str + f"{format_value(self._direction_value)}"
         if self._direction_text:
             s_str += f"\t{self._direction_text}"
         self.state_str = s_str + "\n"
@@ -226,7 +226,7 @@ class Direction(Control):
     @direction_text.setter
     def direction_text(self, val: str):
         self._direction_text = val.translate(BAD_CHARS)
-        s_str = self._control_hdr_str + f"{self._direction_value}"
+        s_str = self._control_hdr_str + f"{format_value(self._direction_value)}"
         if self._direction_text:
             s_str += f"\t{self._direction_text}"
         self.state_str = s_str + '\n'

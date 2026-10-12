@@ -27,7 +27,7 @@ import datetime
 import dateutil.parser
 
 from ..constants import BAD_CHARS
-from .control import Control, ControlPosition, ControlConfig, _get_title_position
+from .control import Control, ControlPosition, ControlConfig, format_value, _get_title_position
 from .enums import Color, TimeGraphLineType, TitlePosition
 from .ring_buffer import RingBuffer
 from .event import Event
@@ -52,7 +52,7 @@ class DataPointArray:
         self.data_point = data
 
     def __str__(self):
-        dp_str = ','.join([str(i) for i in self.data_point])
+        dp_str = ','.join([format_value(i) for i in self.data_point])
         return f"{self.timestamp.isoformat()},[{dp_str}]"
 
 
@@ -74,7 +74,7 @@ class DataPoint:
         self.data_point = data
 
     def __str__(self):
-        return f"{self.timestamp.isoformat()},{self.data_point}"
+        return f"{self.timestamp.isoformat()},{format_value(self.data_point)}"
 
 
 class TimeGraphLine:

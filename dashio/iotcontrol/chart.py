@@ -23,7 +23,7 @@ SOFTWARE.
 """
 from __future__ import annotations
 from ..constants import BAD_CHARS
-from .control import Control, ControlPosition, ControlConfig, _get_title_position, _get_chart_x_axis_labels_style
+from .control import Control, ControlPosition, ControlConfig, format_value, _get_title_position, _get_chart_x_axis_labels_style
 from .enums import Color, ChartLineType, ChartXAxisLabelsStyle, TitlePosition
 
 
@@ -48,7 +48,7 @@ class ChartLine:
             The formatted line data
         """
         data_str = f"\t{self.name}\t{self.line_type.value}\t{self.color.value}\t{self.axis_side}\t"
-        data_str += "\t".join(map(str, self.data))
+        data_str += "\t".join(map(format_value, self.data))
         data_str += "\n"
         return data_str
 

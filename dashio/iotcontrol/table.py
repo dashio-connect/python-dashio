@@ -26,7 +26,7 @@ from __future__ import annotations
 import logging
 
 from ..constants import BAD_CHARS
-from .control import (Control, ControlConfig, ControlPosition, _get_precision,
+from .control import (Control, ControlConfig, ControlPosition, format_value, PRECISION_SIGNIFICANT_DIGITS, _get_precision,
                       _get_title_position)
 from .enums import Precision, TitlePosition
 
@@ -91,14 +91,15 @@ class TableRow:
     def __init__(
             self,
             label: str | None = None,
-            columns: list[str] | None = None,
+            columns: list[str | int | float] | None = None,
             units: str | None = None,
     ) -> None:
         self.label = label
         if columns is None:
             self.columns = columns
         else:
-            self.columns = [column.translate(BAD_CHARS) for column in columns]
+            # A column can be text or a number.
+            self.columns = [column.translate(BAD_CHARS) if isinstance(column, str) else column for column in columns]
         self.units = units
 
 
@@ -195,7 +196,7 @@ class Table(Control):
         header_str = self._control_hdr_str
         if table_row is None:
             return f"{header_str}{row_number}\n"
-        columns = '\t'.join(map(str, table_row.columns[:self._max_columns - 1]))
+        columns = '\t'.join(format_value(column, PRECISION_SIGNIFICANT_DIGITS) for column in table_row.columns[:self._max_columns - 1])
         if table_row.units is not None:
             row_label = table_row.label
             if table_row.label is None:
