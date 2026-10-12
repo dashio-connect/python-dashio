@@ -747,6 +747,8 @@ The connection tells the **Dash** app when its devices go online and offline, so
 
 The connection connects a moment after it is created, so add the devices straight after creating it.
 
+If the connection fails, or is lost, it tries again, waiting twice as long after each failed attempt, up to 15 minutes, until it logs in. Without a username and password it doesn't connect; set them with set_connection().
+
 #### DashConnection Attributes
 
 * *username : str* username for the dash server connection.
@@ -762,7 +764,7 @@ The connection connects a moment after it is created, so add the devices straigh
 
 * *add_device(device: Device).* Adds a device to the connection.
 * *close().* Sends OFFLINE for each device, then closes the connection.
-* *set_connection(username: str, password)* Changes the connection to the DashIO server.
+* *set_connection(username: str, password)* Changes the username and password, and connects again with them.
   * *username : str.* username for the server.
   * *password : str.* password for the server.
 

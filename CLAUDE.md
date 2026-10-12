@@ -61,6 +61,7 @@ Notes for working on python-dashio, the Python library for the DashIO protocol a
   - `close()` sends OFFLINE for each device.
   - Its Last Will is OFFLINE for the first device only, because an MQTT connection has a single will, with `offline_delay` (WillDelayInterval plus SessionExpiryInterval).
   - Messages for the same topic are batched for `batch_delay` (default 0.05 seconds) into one publish, up to 4096 characters, as the firmware's LTE code does. Alarms aren't batched.
+  - Reconnecting is left to paho's network thread (`connect_async` and `loop_start`), whose wait doubles after each failed attempt, up to `RECONNECT_MAX_DELAY`, and only resets after a successful login. The run loop only makes the first connection, and doesn't connect without a username and password. `set_connection()` stops paho's thread and connects again.
   - Announce messages are sent at QoS 1. LWT is best effort; the Dash server also has its own last-connected check.
 - **`Device.close()` doesn't terminate the ZMQ context,** which is shared by default.
 - **`PKG` messages** (not in the protocol PDF): `\t<device_id>\tPKG\tJAOS\t<json>\n` packages several messages into one.

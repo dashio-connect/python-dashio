@@ -28,7 +28,6 @@ import logging
 import ssl
 import threading
 import time
-from socket import gaierror
 
 import paho.mqtt.client as mqtt
 from paho.mqtt.packettypes import PacketTypes
@@ -42,6 +41,7 @@ from .iotcontrol.enums import ConnectionState
 logger = logging.getLogger(__name__)
 
 MAX_BATCH_LENGTH = 4096  # A batch is published before it would grow past this, as in the DashIO firmware.
+RECONNECT_MAX_DELAY = 900  # The longest wait in seconds between attempts to connect to the Dash server.
 
 
 class DashControl():
@@ -154,16 +154,14 @@ class DashConnection(threading.Thread):
                 result, mid = self._dash_c.subscribe(data_topic, 0)
             for device_id in self._device_id_list:
                 self._send_online_state(device_id, "ONLINE")
-            self._disconnect_timeout = 1.0
             logger.debug("connected OK")
         else:
-            logger.debug("Bad connection Returned code=%s", reason_code)
+            # paho retries, waiting twice as long after each failure.
+            logger.warning("The Dash server refused the connection: %s", reason_code)
 
     def _on_disconnect(self, client, userdata, disconnect_flags, reason_code, properties):
         logger.debug("disconnecting reason  %s", reason_code)
-        self._dash_c.username_pw_set(self.username, self.password)
         self.connection_state = ConnectionState.DISCONNECTED
-        self._disconnect_timeout = 1.0
 
     def _on_message(self, client, obj, msg):
         data = str(msg.payload, "utf-8").strip()
@@ -274,7 +272,14 @@ class DashConnection(threading.Thread):
         self._dash_c.will_set(f"{self.username}/{device_id}/data", f"\t{device_id}\tOFFLINE\n", qos=1, retain=False, properties=properties)
 
     def connect(self):
-        """Connect to the server."""
+        """Connect to the server.
+
+        paho's network thread makes the connection and reconnects if it fails or is lost, waiting twice as long
+        after each failure, up to RECONNECT_MAX_DELAY seconds, until it logs in.
+        """
+        if not self.username or not self.password:
+            logger.warning("Not connecting to the Dash server without a username and password")
+            return
         logger.debug("Connecting..")
         self._set_will()
         properties = None
@@ -282,16 +287,15 @@ class DashConnection(threading.Thread):
             # The server only waits the will delay if it keeps the session that long.
             properties = Properties(PacketTypes.CONNECT)
             properties.SessionExpiryInterval = self.offline_delay
-        try:
-            self._dash_c.connect(self.host, self.port, properties=properties)
+        self._dash_c.username_pw_set(self.username, self.password)
+        self._dash_c.connect_async(self.host, self.port, properties=properties)
+        if self.connection_state == ConnectionState.DISCONNECTED:
             self.connection_state = ConnectionState.CONNECTING
-            # Start the network loop only once a host is set, otherwise paho's thread dies with "Invalid host".
-            self._dash_c.loop_start()
-        except (gaierror, ConnectionRefusedError) as error:
-            logger.debug("No connection to server: %s", str(error))
+        # Start the network loop only once a host is set, otherwise paho's thread dies with "Invalid host".
+        self._dash_c.loop_start()
 
     def set_connection(self, username: str, password: str):
-        """Changes the connection to the DashIO server
+        """Changes the username and password, and connects again with them.
 
         Parameters
         ----------
@@ -302,7 +306,11 @@ class DashConnection(threading.Thread):
         """
         self.username = username
         self.password = password
+        # Stop paho's network thread, then connect again with the new credentials.
         self._dash_c.disconnect()
+        self._dash_c.loop_stop()
+        self.connection_state = ConnectionState.DISCONNECTED
+        self._connect_at = time.monotonic()
 
     def __init__(
         self,
@@ -379,12 +387,11 @@ class DashConnection(threading.Thread):
             )
             self._dash_c.tls_insecure_set(False)
 
-        self._dash_c.username_pw_set(self.username, self.password)
-        # The connection thread connects, a moment after it starts, so the devices added straight after creating
+        self._dash_c.reconnect_delay_set(1, RECONNECT_MAX_DELAY)
+        # The connection thread connects a moment after it starts, so the devices added straight after creating
         # the connection are included in the will.
-        # Start subscribe, with QoS level 0
+        self._connect_at: float | None = time.monotonic() + 1.0
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
-        self._disconnect_timeout = 1.0
         self.start()
 
     def close(self):
@@ -454,11 +461,9 @@ class DashConnection(threading.Thread):
                 else:
                     self._queue_publish(f"{self.username}/{device_id}/data", data.decode(), 0)
             self._flush_batch()
-            if self.connection_state == ConnectionState.DISCONNECTED:
-                self._disconnect_timeout = min(self._disconnect_timeout, 900)
-                time.sleep(self._disconnect_timeout)
+            if self._connect_at is not None and time.monotonic() >= self._connect_at:
+                self._connect_at = None
                 self.connect()
-                self._disconnect_timeout = self._disconnect_timeout * 2
 
         self._flush_batch(force=True)
         self._dash_c.loop_stop()
