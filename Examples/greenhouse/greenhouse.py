@@ -365,12 +365,16 @@ class GreenhouseController:
 
     def set_outputs(self, heater: bool, fan: bool, lights: bool, reason: str):
         """Switch the outputs, and update the buttons and event log for any that changed."""
-        for name, old, new in (("Heater", self.heater, heater), ("Fan", self.fan, fan), ("Lights", self.lights, lights)):
+        for name, old, new in (("heater", self.heater, heater), ("fan", self.fan, fan), ("lights", self.lights, lights)):
             if old != new:
-                self.log_event(f"{name} {'on' if new else 'off'} ({reason})", dashio.Color.YELLOW)
+                self.log_event(f"{name.capitalize()} {'on' if new else 'off'} ({reason})", dashio.Color.YELLOW)
+                self.controls[name].btn_state = dashio.ButtonState.ON if new else dashio.ButtonState.OFF
         self.heater, self.fan, self.lights = heater, fan, lights
         self.greenhouse.set_outputs(heater, fan, lights)
-        for name, state in (("heater", heater), ("fan", fan), ("lights", lights)):
+
+    def send_buttons(self):
+        """Send the outputs' button states, e.g. as feedback when a button press is refused."""
+        for name, state in (("heater", self.heater), ("fan", self.fan), ("lights", self.lights)):
             self.controls[name].btn_state = dashio.ButtonState.ON if state else dashio.ButtonState.OFF
 
     def auto_control(self):
@@ -460,7 +464,7 @@ class GreenhouseController:
             name = msg[2]
             if self.auto:
                 self.log_event(f"Switch to Manual mode to control the {name}", dashio.Color.ORANGE)
-                self.set_outputs(self.heater, self.fan, self.lights, "auto")  # Restore the button.
+                self.send_buttons()
                 return
             outputs = {"heater": self.heater, "fan": self.fan, "lights": self.lights}
             outputs[name] = not outputs[name]
