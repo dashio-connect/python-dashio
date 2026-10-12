@@ -149,7 +149,7 @@ class TestControls:
         self.page_test.add_control(self.up_btn)
 
         self.down_btn = dashio.Button(
-            "DOWN_BTN",
+            "downBtn",
             title="Down",
             icon_name=dashio.Icon.DOWN,
             on_color=dashio.Color.GREEN,
@@ -171,7 +171,7 @@ class TestControls:
         self.page_test.add_control(self.sldr_cntrl)
 
         self.sldr_dbl_cntrl = dashio.Slider(
-            "SLDR_DBL",
+            "sldrDbl",
             title="Slider Double",
             bar_max=5,
             slider_enabled=True,
@@ -226,7 +226,7 @@ class TestControls:
         self.page_test.add_control(self.comp_control)
 
         self.selector_ctrl = dashio.Selector(
-            "TestSelector", "A Selector", control_position=dashio.ControlPosition(0.24, 0.01, 0.54, 0.13)
+            "testSel", "A Selector", control_position=dashio.ControlPosition(0.24, 0.01, 0.54, 0.13)
         )
         self.selector_ctrl.add_receive_message_callback(self.selector_ctrl_handler)
         self.selector_ctrl.add_selection("First")

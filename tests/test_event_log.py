@@ -19,14 +19,14 @@ class TestEventLog(unittest.TestCase):
         self.assertEqual(Color(int(test_str_list[1])), Color.WHITE, "Color whould be WHITE")
 
     def test_event_log_control_type(self):
-        test_control = EventLog("EVENTLOGID")
+        test_control = EventLog("LOGID")
         test_str_list = test_control._control_hdr_str.split('\t')
         self.assertEqual(test_str_list[2], 'LOG', "control type should be LOG")
 
     def test_event_log_control_id(self):
-        test_control = EventLog("EVENTLOGID")
+        test_control = EventLog("LOGID")
         test_str_list = test_control._control_hdr_str.split('\t')
-        self.assertEqual(test_str_list[3], 'EVENTLOGID', "control_id type should be EVENTLOGID")
+        self.assertEqual(test_str_list[3], 'LOGID', "control_id type should be LOGID")
 
 
 if __name__ == '__main__':

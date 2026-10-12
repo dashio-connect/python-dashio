@@ -118,7 +118,7 @@ class TestColorPicker:
         self.connection = args.connection
         self.page_name = "Color Picker: " + platform.node()
 
-        self.page_test = dashio.DeviceView("Color Picker", self.page_name)
+        self.page_test = dashio.DeviceView("clrPick", self.page_name)
         self.c_picker = dashio.ColorPicker("CPKR1", control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.45))
         self.c_picker.add_receive_message_callback(self.color_picker_handler)
         self.page_test.add_control(self.c_picker)

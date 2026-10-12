@@ -145,7 +145,7 @@ def main():
 
     monitor_page = dashio.DeviceView("monpg", "Dash Server Monitor")
     gph_network = dashio.TimeGraph(
-        "NETWORKGRAPH",
+        "netGrph",
         title=f"Server Network Traffic: {args.device_name}",
         y_axis_label="Kbytes",
         y_axis_min=0.0,
@@ -193,7 +193,7 @@ def main():
         gph_cpu.add_line(f"CPU:{cpu}", line)
 
     hd_dial = dashio.Dial(
-        "HD_USAGE",
+        "hdUsage",
         title="Disk Usage",
         dial_min=0.0,
         dial_max=100.0,

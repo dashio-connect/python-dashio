@@ -30,26 +30,27 @@ import time
 import json
 import dashio
 
-DEVICE_CFG64 = "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"
+DEVICE_CFG64 = "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"\
+    "+et/"
 
 
 class AllControls:
@@ -130,7 +131,7 @@ class AllControls:
         self.avd: dashio.AudioVisualDisplay = self.device.get_control(dashio.ControlName.AVD, "AV1")
         self.avd.url = "https://bit.ly/swswift"
         self.comp_control: dashio.Direction = self.device.get_control(dashio.ControlName.DIR, "COMP1")
-        self.selector_ctrl: dashio.Selector = self.device.get_control(dashio.ControlName.SLCTR, "TestSelector")
+        self.selector_ctrl: dashio.Selector = self.device.get_control(dashio.ControlName.SLCTR, "testSel")
         self.selector_ctrl.add_selection("First")
         self.selector_ctrl.add_selection("Second")
         self.selector_ctrl.add_selection("Third")

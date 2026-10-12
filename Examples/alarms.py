@@ -115,9 +115,9 @@ class TestControls:
         dash_conn = dashio.DashConnection(args.username, args.password, host=args.server, port=args.port)
         dash_conn.add_device(device)
 
-        self.tadevice_view = dashio.DeviceView("testAlarm", "Test Alarm")
+        self.tadevice_view = dashio.DeviceView("almView", "Test Alarm")
         self.alarm_btn1 = dashio.Button(
-            "ALARM_BTN1",
+            "almBtn1",
             title="A1",
             icon_name=dashio.Icon.BELL,
             on_color=dashio.Color.RED,
@@ -128,7 +128,7 @@ class TestControls:
         device.add_control(self.alarm_btn1)
 
         self.alarm_btn2 = dashio.Button(
-            "ALARM_BTN2",
+            "almBtn2",
             title="A2",
             icon_name=dashio.Icon.BELL,
             on_color=dashio.Color.RED,
@@ -139,7 +139,7 @@ class TestControls:
         self.tadevice_view.add_control(self.alarm_btn2)
 
         self.alarm_btn3 = dashio.Button(
-            "ALARM_BTN3",
+            "almBtn3",
             title="A3",
             icon_name=dashio.Icon.BELL,
             on_color=dashio.Color.RED,
@@ -149,9 +149,9 @@ class TestControls:
         device.add_control(self.alarm_btn3)
         self.tadevice_view.add_control(self.alarm_btn3)
 
-        self.alarm1_ctrl = dashio.Alarm("TestingAlarms1")
-        self.alarm2_ctrl = dashio.Alarm("TestingAlarms2")
-        self.alarm3_ctrl = dashio.Alarm("TestingAlarms3")
+        self.alarm1_ctrl = dashio.Alarm("alarm1")
+        self.alarm2_ctrl = dashio.Alarm("alarm2")
+        self.alarm3_ctrl = dashio.Alarm("alarm3")
         device.add_control(self.alarm1_ctrl)
         device.add_control(self.alarm2_ctrl)
         device.add_control(self.alarm3_ctrl)

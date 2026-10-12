@@ -6,13 +6,13 @@ device = dashio.Device("aDeviceType", "aDeviceID3", "aDeviceName")
 dash_con = dashio.DashConnection("your_dash_username", "your_dash_password")
 dash_con.add_device(device)
 
-first_dial_control = dashio.Dial("FirstDial", control_position=dashio.ControlPosition(0.24, 0.36, 0.54, 0.26))
+first_dial_control = dashio.Dial("dial1", control_position=dashio.ControlPosition(0.24, 0.36, 0.54, 0.26))
 device.add_control(first_dial_control)
-dv = dashio.DeviceView("aDeviceViewID", "A Dial")
+dv = dashio.DeviceView("aView", "A Dial")
 dv.add_control(first_dial_control)
 device.add_control(dv)
 
-alarm = dashio.Alarm("HighAlarm")
+alarm = dashio.Alarm("hiAlarm")
 device.add_control(alarm)
 
 high = False

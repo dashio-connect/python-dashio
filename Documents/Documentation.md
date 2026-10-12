@@ -85,7 +85,7 @@ These callbacks are used to setup and configure connections by the **Dash** app.
 
 ## Controls
 
-Controls are objects that represent actions and widgets in the DashIO application. All controls have a ControlID, Title, and TitlePosition. The ControlID should be a string that can uniquely identify that control per device. The control Title is text that is displayed on the **Dash** app with the Control. The TitlePosition can be `TitlePosition.TOP`, `TitlePosition.TOPLEFT`, `TitlePosition.BOTTOM` (the default), or `TitlePosition.NONE`. Controls that are displayed have a `dashio.ControlPosition` that is composed of four size and position variables: x_position_ratio, y_position_ratio, width_ratio, height_ratio. The first two are position ratios that place the top left corner of the widget on the DeviceView. The last two are ratios that govern the size of the widget. The ratios are proportional to the size of the screen with the full size of the screen representing 1.0. All controls have a callback that is used to return messages from the **Dash** app. Controls on the **Dash** app can have a graphical duplicate that may have a different set of *Config* attributes. This is achieved by adding another ControlConfig with add_config(ControlConfig).
+Controls are objects that represent actions and widgets in the DashIO application. All controls have a ControlID, Title, and TitlePosition. The ControlID should be a string that can uniquely identify that control per device. A ControlID can be at most 7 characters, as the **Dash** app requires. A longer ControlID raises a ValueError. The control Title is text that is displayed on the **Dash** app with the Control. The TitlePosition can be `TitlePosition.TOP`, `TitlePosition.TOPLEFT`, `TitlePosition.BOTTOM` (the default), or `TitlePosition.NONE`. Controls that are displayed have a `dashio.ControlPosition` that is composed of four size and position variables: x_position_ratio, y_position_ratio, width_ratio, height_ratio. The first two are position ratios that place the top left corner of the widget on the DeviceView. The last two are ratios that govern the size of the widget. The ratios are proportional to the size of the screen with the full size of the screen representing 1.0. All controls have a callback that is used to return messages from the **Dash** app. Controls on the **Dash** app can have a graphical duplicate that may have a different set of *Config* attributes. This is achieved by adding another ControlConfig with add_config(ControlConfig).
 
 Controls have two main types of attributes.
 
@@ -130,7 +130,7 @@ All of these attributes are config attributes.
 ### Alarm
 
 ```python
-alarm = dashio.Alarm("alarm1_ID")
+alarm = dashio.Alarm("alarm1")
 alarm.send("Alarm Header", "Alarm Body")
 ```
 
@@ -173,7 +173,7 @@ The control can change the button icon and text of the control on the **Dash** a
 <img src="https://raw.githubusercontent.com/dashio-connect/python-dashio/master/Documents/Buttons.jpeg" width="200"/>
 
 ```python
-button1 = Button("button1_id", "Button Title")
+button1 = Button("button1", "Button Title")
 button1.btn_state = ButtonState.ON
 button1.send_button(ButtonState.ON, Icon.UP, "Going Up")
 button1.send_button(ButtonState.OFF, Icon.DOWN, "Going Down")
@@ -508,7 +508,7 @@ When the user taps the Menu, the **Dash** app asks the device for the current va
 A Menu whose parent is `"PROV"` appears in the **Dash** app's device provisioning menu instead of on a DeviceView, which suits settings that are changed less often:
 
 ```python
-settings = dashio.Menu("settings", "Settings", control_position=dashio.ControlPosition(0.25, 0.25, 0.15, 0.1))
+settings = dashio.Menu("setup", "Settings", control_position=dashio.ControlPosition(0.25, 0.25, 0.15, 0.1))
 settings.parent_id = "PROV"
 ```
 

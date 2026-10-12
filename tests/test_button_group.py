@@ -12,14 +12,14 @@ def _get_cfg_dict(cfg_str):
 class TestButtonGroup(unittest.TestCase):
 
     def test_button_group_control_type(self):
-        test_control = ButtonGroup("BGROUPID")
+        test_control = ButtonGroup("BGRPID")
         test_str_list = test_control._control_hdr_str.split('\t')
         self.assertEqual(test_str_list[2], 'BTGP', "control type should be BTGP")
 
     def test_button_group_control_id(self):
-        test_control = ButtonGroup("BGROUPID")
+        test_control = ButtonGroup("BGRPID")
         test_str_list = test_control._control_hdr_str.split('\t')
-        self.assertEqual(test_str_list[3], 'BGROUPID', "control type should be BGROUPID")
+        self.assertEqual(test_str_list[3], 'BGRPID', "control type should be BGRPID")
 
 
 if __name__ == '__main__':

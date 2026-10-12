@@ -56,8 +56,8 @@ class SenseGraphTS:
 
         self.page_name = "SenseHat: " + platform.node()
         self.page1_thp = dashio.DeviceView("SHDials", "SenseHat Dials", icon=dashio.Icon.WEATHER)
-        self.page2_thp = dashio.DeviceView("SHTemperature", "Temperature Humidity", icon=dashio.Icon.TEMPERATURE)
-        self.page3_thp = dashio.DeviceView("SHPressure", "SenseHat Pressure", icon=dashio.Icon.FAN)
+        self.page2_thp = dashio.DeviceView("shTemp", "Temperature Humidity", icon=dashio.Icon.TEMPERATURE)
+        self.page3_thp = dashio.DeviceView("shPress", "SenseHat Pressure", icon=dashio.Icon.FAN)
         self.temperature_dial = dashio.Dial(
             "tempC",
             "Temperature",
@@ -97,7 +97,7 @@ class SenseGraphTS:
             max_data_points=100
         )
         self.temp_hum = dashio.TimeGraph(
-            "temp_hum",
+            "tempHum",
             "Temperature Humidity",
             control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.4),
             y_axis_label='Temperature',
@@ -127,7 +127,7 @@ class SenseGraphTS:
             max_data_points=100
         )
         self.pressure_graph = dashio.TimeGraph(
-            "shpress_graph",
+            "pGraph",
             "SenseHat Pressure",
             control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.4),
             y_axis_min=900,

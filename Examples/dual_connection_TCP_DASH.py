@@ -180,7 +180,7 @@ class TestControls:
         self.page_test.add_control(self.up_btn)
 
         self.down_btn = dashio.Button(
-            "DOWN_BTN",
+            "downBtn",
             on_color=dashio.Color.GREEN,
             title="Down",
             text="",
@@ -202,7 +202,7 @@ class TestControls:
         self.page_test.add_control(self.sldr_cntrl)
 
         self.sldr_dbl_cntrl = dashio.Slider(
-            "SLDR_DBL",
+            "sldrDbl",
             bar_max=5,
             slider_enabled=True,
             red_value=5,
@@ -252,7 +252,7 @@ class TestControls:
         self.page_test.add_control(self.comp_control)
 
         self.selector_ctrl = dashio.Selector(
-            "TestSelector",
+            "testSel",
             "A Selector",
             control_position=dashio.ControlPosition(0.24, 0.01, 0.54, 0.13)
         )

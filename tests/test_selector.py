@@ -12,14 +12,14 @@ def _get_cfg_dict(cfg_list: list):
 class TestSelector(unittest.TestCase):
 
     def test_selector_control_type(self):
-        test_control = Selector("SELECTORID")
+        test_control = Selector("SELID")
         test_str_list = test_control._control_hdr_str.split('\t')
         self.assertEqual(test_str_list[2], 'SLCTR', "control type should be SLCTR")
 
     def test_selector_control_id(self):
-        test_control = Selector("SELECTORID")
+        test_control = Selector("SELID")
         test_str_list = test_control._control_hdr_str.split('\t')
-        self.assertEqual(test_str_list[3], 'SELECTORID', "control type should be SELECTORID")
+        self.assertEqual(test_str_list[3], 'SELID', "control type should be SELID")
 
 
 if __name__ == '__main__':

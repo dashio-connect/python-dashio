@@ -156,7 +156,7 @@ class TestControls:
         self.page_test.add_control(self.up_btn)
 
         self.down_btn = dashio.Button(
-            "DOWN_BTN", title="Down", icon_name=dashio.Icon.DOWN, control_position=dashio.ControlPosition(0.02, 0.86, 0.22, 0.12)
+            "downBtn", title="Down", icon_name=dashio.Icon.DOWN, control_position=dashio.ControlPosition(0.02, 0.86, 0.22, 0.12)
         )
         self.down_btn.icon_name = dashio.Icon.DOWN
         self.down_btn.add_receive_message_callback(self.down_btn_event_handler)
@@ -169,7 +169,7 @@ class TestControls:
         self.page_test.add_control(self.sldr_cntrl)
 
         self.sldr_dbl_cntrl = dashio.Slider(
-            "SLDR_DBL", title="Slider Double", bar_max=5, slider_enabled=True, red_value=5, bar_mode=dashio.BarMode.MSG, control_position=dashio.ControlPosition(0.78, 0.01, 0.2, 0.98)
+            "sldrDbl", title="Slider Double", bar_max=5, slider_enabled=True, red_value=5, bar_mode=dashio.BarMode.MSG, control_position=dashio.ControlPosition(0.78, 0.01, 0.2, 0.98)
         )
         self.sldr_dbl_cntrl.bar2_value = 0
         self.sldr_dbl_cntrl.add_receive_message_callback(self.slider_dbl_event_handler)
@@ -202,7 +202,7 @@ class TestControls:
         self.text_cntrl.add_receive_message_callback(self.text_cntrl_message_handler)
         self.page_test.add_control(self.text_cntrl)
 
-        self.alarm_ctrl = dashio.Alarm("TestingAlarms")
+        self.alarm_ctrl = dashio.Alarm("alarm")
         self.device.add_control(self.alarm_ctrl)
         self.comp_control = dashio.Direction(
             "COMP1",
@@ -216,7 +216,7 @@ class TestControls:
         self.page_test.add_control(self.comp_control)
 
         self.selector_ctrl = dashio.Selector(
-            "TestSelector", "A Selector", control_position=dashio.ControlPosition(0.24, 0.01, 0.54, 0.13)
+            "testSel", "A Selector", control_position=dashio.ControlPosition(0.24, 0.01, 0.54, 0.13)
         )
         self.selector_ctrl.add_receive_message_callback(self.selector_ctrl_handler)
         self.selector_ctrl.add_selection("First")

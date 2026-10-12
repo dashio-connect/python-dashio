@@ -198,7 +198,7 @@ class TestDeviceLayouts(unittest.TestCase):
         )
         device = self.make_device()
         device.add_cfg64(cfg64, 2)
-        self.assertTrue(device.is_control_loaded("DIAL", "FirstDial"))
+        self.assertTrue(device.is_control_loaded("DIAL", "dial1"))
         self.assertEqual(len(self.request_cfg(device, 2)["DIAL"]), 1)
 
 

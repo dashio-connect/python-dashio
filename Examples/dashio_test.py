@@ -133,7 +133,7 @@ def main():
         config_file_parser.get('DEFAULT', 'password')
     )
     dash_conn.add_device(device)
-    dview = dashio.DeviceView('Dashio_pg1', 'DashIO Public Test')
+    dview = dashio.DeviceView('pg1', 'DashIO Public Test')
 
     up_button = dashio.Button(
         'up',

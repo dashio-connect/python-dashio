@@ -43,6 +43,7 @@ Notes for working on python-dashio, the Python library for the DashIO protocol a
 
 ## Protocol and library rules
 
+- **Control IDs are at most 7 characters.** `Control.__init__` raises `ValueError` for longer IDs (`MAX_CONTROL_ID_LENGTH` in `constants.py`). The greenhouse and server monitor examples use longer descriptive names for their controls as dict keys, but the IDs sent to the app are short. Layouts the app exports already use short IDs.
 - **cfgRev must change whenever the CFG changes.** The Dash app only fetches a new CFG when the device reports a different cfgRev. Code that builds its layouts at startup should save `device.get_cfg_hash()` with cfgRev and increase cfgRev when the hash changes, as the examples do.
 - **Enum and style values written into a CFG are UPPER CASE by convention.** The app ignores case. Many enums still emit mixed or lower case values; only ColorPicker's `pickerStyle` was converted.
 - **Layouts:**
@@ -62,6 +63,14 @@ Notes for working on python-dashio, the Python library for the DashIO protocol a
   - Its Last Will is OFFLINE for the first device only, because an MQTT connection has a single will, with `offline_delay` (WillDelayInterval plus SessionExpiryInterval).
   - Announce messages are sent at QoS 1. LWT is best effort; the Dash server also has its own last-connected check.
 - **`Device.close()` doesn't terminate the ZMQ context,** which is shared by default.
+- **`PKG` messages** (not in the protocol PDF): `\t<device_id>\tPKG\tJAOS\t<json>\n` packages several messages into one.
+  - The payload is a compact JSON array of strings, each a message without its leading `\t<device_id>\t` and trailing `\n`.
+  - `JAOS` is the only encoding.
+  - A new package is started once a package's messages pass 1000 characters.
+  - `dashio/package.py`'s `make_packages()` builds them.
+  - `STATUS` replies send `NAME` as a normal message, then the controls' states packaged as `PKG`, like the C++ firmware.
+  - `STATUS` leaves out controls that are inside a Menu or ButtonGroup **everywhere** they appear, in their own configs and every loaded layout. Their values are sent when the Menu or ButtonGroup is tapped, because the app asks every time. A control on a DeviceView in any layout must stay in `STATUS`, because STATUS doesn't know which layout the app has. This is `Device._menu_only_controls()`.
+  - The device replies to `MENU` and `BTGP` (a Menu or ButtonGroup being tapped) with the state of every control whose parent is that Menu or ButtonGroup, packaged as `PKG`. The controls are found by `parentID`, in the controls and in the loaded layouts.
 - **`deviceSetup`:** the app accepts `dash` or `dashio`. `numDeviceViews` is the number of `DVVW` entries.
 - **Colours** in a CFG can be names, hex or index strings. The library writes index numbers, and `_get_color` reads names and numbers.
 
@@ -102,10 +111,14 @@ Notes for working on python-dashio, the Python library for the DashIO protocol a
 - **Device reset:** `device.set_reset_callback()` advertises `rst` and replies `RST` before calling the callback.
 - **Name requests:** an empty `NAME` (a request for the current name) is always answered.
 - **TCPConnection:** `TCPConnection(use_zero_conf=False).add_device()` no longer crashes.
+- **Control IDs limited to 7 characters:** enforced, with all the tests and examples shortened, including the CFG64 embedded in `ex04`, `ex05_SIM767X` and `all_controls`. This is a breaking change.
+- **The greenhouse lights times:** Date/Time text boxes, sent and read as ISO 8601 times such as `16:30:00+1300`.
+- **Announce:** includes cfgRev. Without it, the app took the announce as cfgRev 0.
+- **Menu and ButtonGroup taps:** answered with the state of their controls, packaged as `PKG`.
+- **`STATUS` replies:** packaged as `PKG`, after the `NAME` message, without controls that are only inside Menus or ButtonGroups.
 
 ## Open items
 
-- **Next:** reply to the app's `MENU` and `BTGP` update requests, which it sends when a Menu or ButtonGroup is tapped, with the current values of their controls. This will use `PKG`, an undocumented message that packages several messages into one, intended for menu and status replies. James is getting the `PKG` details from another code base.
 - **Protocol gaps still open:**
   - history requests for the most recent *n* points
   - OTA progress to the app

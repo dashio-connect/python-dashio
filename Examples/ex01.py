@@ -5,7 +5,7 @@ import time
 device = dashio.Device("aDeviceType", "aDeviceID", "aDeviceName")
 tcp_con = dashio.TCPConnection()
 tcp_con.add_device(device)
-first_dial_control = dashio.Dial("FirstDial")
+first_dial_control = dashio.Dial("dial1")
 device.add_control(first_dial_control)
 
 while True:

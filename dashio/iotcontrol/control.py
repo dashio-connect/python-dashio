@@ -25,7 +25,7 @@ SOFTWARE.
 from __future__ import annotations
 import json
 
-from ..constants import BAD_CHARS
+from ..constants import BAD_CHARS, MAX_CONTROL_ID_LENGTH
 from .enums import ColorPickerStyle, DeviceViewStyle, DialNumberPosition, DirectionStyle, ChartXAxisLabelsStyle, \
     Keyboard, KnobStyle, Precision, TextAlignment, TitlePosition, Icon, Color, TextFormat, LabelStyle, SliderBarStyle, \
     DialStyle, TimeGraphPositionOfKey, ButtonStyle, ButtonGroupStyle, MenuStyle, DialMode, BarMode, CaptionMode
@@ -389,6 +389,9 @@ class Control():
         self.control_id = control_id.translate(BAD_CHARS)
         if not self.control_id:
             raise ValueError('control_id cannot be an empty string')
+        if len(self.control_id) > MAX_CONTROL_ID_LENGTH:
+            raise ValueError(f"control_id '{self.control_id}' is {len(self.control_id)} characters, "
+                             f"the maximum is {MAX_CONTROL_ID_LENGTH}")
         self._message_rx_event = Event()
         self._message_tx_event = Event()
         # This may break things but makes all controls able to be setup from tasks.

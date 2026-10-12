@@ -4,10 +4,10 @@ import time
 device = dashio.Device("aDeviceType", "aDeviceID", "aDeviceName")
 tcp_con = dashio.TCPConnection()
 tcp_con.add_device(device)
-first_dial_control = dashio.Dial("FirstDial", control_position=dashio.ControlPosition(0.24, 0.36, 0.54, 0.26))
+first_dial_control = dashio.Dial("dial1", control_position=dashio.ControlPosition(0.24, 0.36, 0.54, 0.26))
 device.add_control(first_dial_control)
 
-dv = dashio.DeviceView("aDeviceViewID", "A Dial")
+dv = dashio.DeviceView("aView", "A Dial")
 dv.add_control(first_dial_control)
 device.add_control(dv)
 

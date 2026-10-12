@@ -94,7 +94,7 @@ import time
 device = dashio.Device("aDeviceType", "aDeviceID", "aDeviceName")
 tcp_con = dashio.TCPConnection()
 tcp_con.add_device(device)
-first_dial_control = dashio.Dial("FirstDial")
+first_dial_control = dashio.Dial("dial1")
 device.add_control(first_dial_control)
 
 while True:
@@ -123,10 +123,10 @@ import time
 device = dashio.Device("aDeviceType", "aDeviceID", "aDeviceName")
 tcp_con = dashio.TCPConnection()
 tcp_con.add_device(device)
-first_dial_control = dashio.Dial("FirstDial", control_position=dashio.ControlPosition(0.24, 0.36, 0.54, 0.26))
+first_dial_control = dashio.Dial("dial1", control_position=dashio.ControlPosition(0.24, 0.36, 0.54, 0.26))
 device.add_control(first_dial_control)
 
-dv_dial = dashio.DeviceView("aDeviceViewID", "A Dial")
+dv_dial = dashio.DeviceView("aView", "A Dial")
 dv_dial.add_control(first_dial_control)
 device.add_control(dv_dial)
 
@@ -147,15 +147,17 @@ import time
 device = dashio.Device("aDeviceType", "aDeviceID", "aDeviceName")
 tcp_con = dashio.TCPConnection()
 tcp_con.add_device(device)
-first_dial_control = dashio.Dial("FirstDial", control_position=dashio.ControlPosition(0.24, 0.36, 0.54, 0.26))
+first_dial_control = dashio.Dial("dial1", control_position=dashio.ControlPosition(0.24, 0.36, 0.54, 0.26))
 device.add_control(first_dial_control)
 
-dv = dashio.DeviceView("aDeviceViewID", "A Dial")
+dv = dashio.DeviceView("aView", "A Dial")
 dv.add_control(first_dial_control)
 device.add_control(dv)
 
+
 def knob_event_handler(msg):
     first_dial_control.dial_value = float(msg[3])
+
 
 aknob = dashio.Knob("aKNB", control_position=dashio.ControlPosition(0.24, 0.14, 0.54, 0.26))
 aknob.add_receive_message_callback(knob_event_handler)
@@ -182,13 +184,13 @@ device = dashio.Device("aDeviceType", "aDeviceID3", "aDeviceName")
 dash_con = dashio.DashConnection("your_dash_username", "your_dash_password")
 dash_con.add_device(device)
 
-first_dial_control = dashio.Dial("FirstDial", control_position=dashio.ControlPosition(0.24, 0.36, 0.54, 0.26))
+first_dial_control = dashio.Dial("dial1", control_position=dashio.ControlPosition(0.24, 0.36, 0.54, 0.26))
 device.add_control(first_dial_control)
-dv = dashio.DeviceView("aDeviceViewID", "A Dial")
+dv = dashio.DeviceView("aView", "A Dial")
 dv.add_control(first_dial_control)
 device.add_control(dv)
 
-alarm = dashio.Alarm("HighAlarm")
+alarm = dashio.Alarm("hiAlarm")
 device.add_control(alarm)
 
 high = False
@@ -212,14 +214,15 @@ The **Dash** app can generate a CFG64 text string that defines the controls, the
 import dashio
 import time
 
-cfg64 ="jVTbjpswEP2VlZ9RlWS7qcQbhJCNwiUCN6lU9YEFb7ACdmrMJukq/94xhpCbqr4NZ8bj4zlz+ETOPELmz18GmrgzZH4iVpcO+aAp"\
-    "WVGyr5A5NFDWfMdE1jtkImSg9H0TkQ/InQy0CEIbGnyilDMpeDF3oCZZBDbU5YRuchklknJkDr6MxgaSVBZkySsKGINKO8Q49FGb"\
-    "AMB6WjD+BkBFWBay4hiyiBQkqSApRU0MVFI4OICCnO99yvzkgMz3pKggJUi2SooaSr+9GGiXCMKkJtS/Cb7hSTQpfJ6pC93Q88I1"\
-    "YIeOVk/4q4H2NJP5GXkBZAv8JrzgAg5HJGu7dYitrgdy8tg8Jwgj3/IAON51H0KvUpEfDgYnJYDXKhF7ThtZK0cHvrXUgY1nbeRP"\
-    "g+86wtMfWEee7enAWa3WWhUpztTWOZXkKS759pKhbcXziRIVKm0uMiIe128EzSBTlwy2YjQyrgW/mS+FZJCUqn/8uwYdrhR2YF7d"\
-    "jdsNy/rZJelWUcvhhL6rE13VYtXA5ofb8sscFgmrGuHTY7Ml56QLdGP6BxgMxxqGzenBEdTC7p9fOLzgd9/0hoGaTcSVXZ5HSkov"\
-    "nLWmeo1wJ+oER52GOGhlmlteI9NOkJRWjSUG15N1qahkOzDg90bEhXu8qYsvpFzOp+ifa9+tW2+iHadM9pK321szKivt9QcevnaZ"\
-    "Wn6XFuct05b4D5+3j3psu3u7PI8fmfHuJ6DGj2fR8lVN+PQX"
+cfg64 = "jVTbjtowEP0VlOeqImyXSn1LCLCIXFDiQqWqD97ESywSmzrOAl3x7+sxOAk3qW/jM+Pxseccf1jeLLZ+9H7/+dKzRpOpCj8sVpce"\
+    "eacpWVKyqxRkq2SmkYTIeqsQy1JQ+raOyTvkj2o1DyMXOn1YKWdS8GLmQSGehy4U54SucxljSbmC+18HQwVKKguy4BVVKINqN0Io"\
+    "CiyTAsjpzRl/BagiLItYcYhYTAqCK0hLUROVKils70NRzncBZQHeK+ANFxWkBcmWuKhhw/dntd5iQZg8E4RbQvuM4iLgmT50Evl+"\
+    "tAJ0b+h1qH9T+I5mMm+xZ8A2iuiIF1xAi5hkpmuDucABSMrD6XJhFAeOD9Dh9hwbepb6Ina/f9Qj8ptpJb7XxM7SM2HgLEzoomkT"\
+    "B+Pwp4nR+Bcyse/6JvSWy9V5gFK0nFc5laSXlHxzSd11ktlIy0BVu1xkRDzasxY0U7m6ZKCmwQA2XWjEjIAqOMSl7p/8rdWUrqTg"\
+    "qddsztysWdZ5WpxuNMFcbTud1uoD6hG0cfn+dks3iwRmldZHejhLqklPFOmE/gMu9vCcUELrwAOoV/5pb2t32d5rfsMGXivm2nhP"\
+    "Az11P5o2Hn2JUauAEYrbYaOwmeTM8U+T3AqS0upkrv71s4M0betE+JWIrg/98QRdTHsxG1uPjNNI9MKIW06Z7GjCaL9mVFbmC7n7"\
+    "K1y7FXhOaFFcW+v/fg8jmUdGvmO8p+EDg99+Lno+aBovXvTjHz8B"
+
 
 config_dict = dashio.decode_cfg64(cfg64)
 device = dashio.Device("aDeviceType", "aDeviceID2", "aDeviceName1", cfg_dict=config_dict)
@@ -227,11 +230,13 @@ tcp_con = dashio.TCPConnection()
 tcp_con.add_device(device)
 
 aknob: dashio.Knob = device.get_control(dashio.ControlName.KNOB, "aKNB")
-first_dial_control: dashio.Dial = device.get_control(dashio.ControlName.DIAL, "FirstDial")
+first_dial_control: dashio.Dial = device.get_control(dashio.ControlName.DIAL, "dial1")
+
 
 def knob_event_handler(msg):
     aknob.knob_dial_value = float(msg[3])
     first_dial_control.dial_value = float(msg[3])
+
 
 aknob.add_receive_message_callback(knob_event_handler)
 

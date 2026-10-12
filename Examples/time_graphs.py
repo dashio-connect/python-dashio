@@ -108,7 +108,7 @@ class TestControls:
         dash_conn.add_device(device)
 
         self.gph_15_minutes = dashio.TimeGraph(
-            "TestGraph",
+            "tGraph",
             f"Test: {args.connection}",
             y_axis_label="Units",
             y_axis_min=-10,
