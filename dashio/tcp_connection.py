@@ -62,7 +62,8 @@ class TCPConnection(threading.Thread):
         if device.device_id not in self.local_device_id_list:
             device.register_connection(self)
             self.local_device_id_list.append(device.device_id)
-            self.z_conf.add_device(device.device_id)
+            if self.use_zeroconf:
+                self.z_conf.add_device(device.device_id)
 
     def __init__(self, ip_address="*", port=5650, use_zero_conf=True, context: zmq.Context | None = None):
         """TCP Connection
