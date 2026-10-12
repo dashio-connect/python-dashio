@@ -39,6 +39,7 @@ from .iotcontrol.control import Control
 from .iotcontrol.device_view import DeviceView
 from .iotcontrol.enums import ControlName
 from .load_config import CONTROL_INSTANCE_DICT, decode_cfg64, encode_cfg64
+from .package import make_packages
 
 MAX_LAYOUT_COLUMNS = 3
 
@@ -161,29 +162,81 @@ class Device(threading.Thread):
             return ""
         try:
             ctrl_type = data_array[1]
-        except KeyError:
+        except IndexError:
             return ""
         if ctrl_type in self._device_commands_dict:
             return self._device_commands_dict[ctrl_type](data_array)
         try:
             reply = self.controls_dict[ctrl_type + "\t" + data_array[2]]._message_rx_event(data_array)
-            if reply:
-                return reply.replace("{device_id}", self.device_id)
         except (KeyError, IndexError):
-            pass
-        return ""
+            return ""
+        if ctrl_type in ("MENU", "BTGP"):
+            # Tapping a Menu or ButtonGroup asks for the current values of its controls.
+            reply += self._get_child_states(data_array[2])
+        return reply.replace("{device_id}", self.device_id)
+
+    def _get_child_states(self, parent_id: str) -> str:
+        """The current state of the controls in a Menu or ButtonGroup, packaged as PKG messages.
+
+        The controls are found by parent: controls added to the Menu or ButtonGroup in code, and controls whose
+        parent is it in a loaded layout.
+        """
+        children = {
+            key for key, control in self.controls_dict.items()
+            if isinstance(control, Control) and any(cfg.cfg.get("parentID") == parent_id for cfg in control._configs)
+        }
+        for layout in self._column_cfgs.values():
+            for control_type, entries in layout.items():
+                if isinstance(entries, list):
+                    children.update(f"{control_type}\t{entry.get('controlID')}" for entry in entries if entry.get("parentID") == parent_id)
+        states = ""
+        for key in sorted(children):
+            if key not in self.controls_dict:
+                continue
+            try:
+                states += self.controls_dict[key].get_state()
+            except (TypeError, KeyError):
+                pass
+        return make_packages(self.device_id, states.replace("{device_id}", self.device_id))
 
     def _make_connect(self, _):
         return self._device_id_str + "\tCONNECT\n"
 
+    def _menu_only_controls(self) -> set:
+        """The keys of the controls that are inside a Menu or ButtonGroup everywhere they appear.
+
+        Their values are sent when the Menu or ButtonGroup is tapped, so they're left out of the STATUS reply. A
+        control that is on a DeviceView anywhere, in its own configs or in any loaded layout, isn't included.
+        """
+        containers = {control.control_id for control in self.controls_dict.values() if control.ctrl_type in ("MENU", "BTGP")}
+        placements = {}
+        for key, control in self.controls_dict.items():
+            if isinstance(control, Control):
+                placements[key] = [cfg.cfg.get("parentID", "") for cfg in control._configs]
+        for layout in self._column_cfgs.values():
+            for control_type, entries in layout.items():
+                if not isinstance(entries, list):
+                    continue
+                for entry in entries:
+                    if control_type in ("MENU", "BTGP"):
+                        containers.add(entry.get("controlID"))
+                    key = f"{control_type}\t{entry.get('controlID')}"
+                    if key in placements:
+                        placements[key].append(entry.get("parentID", ""))
+        return {key for key, parents in placements.items() if parents and all(parent in containers for parent in parents)}
+
     def _make_status(self, _):
-        reply = f"\t{self.device_id}\tNAME\t{self._device_name}\n"
-        for value in self.controls_dict.values():
+        menu_only = self._menu_only_controls()
+        states = ""
+        for key, value in self.controls_dict.items():
+            if key in menu_only:
+                continue  # Sent when its Menu or ButtonGroup is tapped.
             try:
-                reply += value.get_state().replace("{device_id}", self.device_id)
+                states += value.get_state().replace("{device_id}", self.device_id)
             except (TypeError, KeyError):
                 pass
-        return reply
+        # The controls' states are packaged into PKG messages, so a device with many controls sends a few messages.
+        return f"\t{self.device_id}\tNAME\t{self._device_name}\n" + make_packages(self.device_id, states)
 
     def _add_generated_cfg(self, cfg: dict, data, layout_controls: bool):
         """Add the CFG of the device's controls to cfg. layout_controls selects the controls that make up the

@@ -5,6 +5,8 @@
 
 A Device is a collection of [Controls](#controls) and [DeviceViews](#deviceview) that represent an IoT device. The Device provides attributes and methods to communicate to a **Dash** app.
 
+When the **Dash** app connects, it asks the device for the current state of all its controls. The device replies with its name, then the states packaged into PKG messages, a few messages instead of one for each control. Controls that are inside a Menu or ButtonGroup everywhere they appear are left out: their values are sent when the Menu or ButtonGroup is tapped. A control that is on a DeviceView in any layout is always included.
+
 ### Device Attributes
 
 * *device_type : str.* The type of device (e.g. TempSensor, GPS...). If you have lots of devices that do the same thing keep this constant across your devices.
@@ -210,6 +212,8 @@ When these attributes are set the button control will transmit the new value to 
 ### Button Group
 
 A ButtonGroup control is used to present a popup grid or table of Button controls. The Button Group does not receive or send messages directly, but presents Button controls that send and receive messages.
+
+When the user taps the ButtonGroup, the **Dash** app asks the device for the current values of its buttons. The device replies automatically, with the state of each control whose parent is the ButtonGroup, packaged into one PKG message (several for a large ButtonGroup). Receive callbacks added to the ButtonGroup are still called.
 
 <img src="https://raw.githubusercontent.com/dashio-connect/python-dashio/master/Documents/ButtonGroup.jpeg" width="200"/>
 
@@ -498,6 +502,8 @@ Multiple IoT devices can be shown on a single Map.
 A Menu control is used to present a popup table of user adjustable controls and is ideal for presenting a list of IoT device setup parameters. The Menu does not receive messages directly, but presents a list of other controls (sub-controls) that send and receive messages of their own.
 
 Controls that can be included in a Menu control are Text Boxes, Sliders, Selectors and Buttons. The **Dash** app sorts the controls in a menu by their control IDs: numbers, then uppercase, then lowercase.
+
+When the user taps the Menu, the **Dash** app asks the device for the current values of its controls. The device replies automatically, with the state of each control whose parent is the Menu, packaged into one PKG message (several for a large Menu). Receive callbacks added to the Menu are still called.
 
 A Menu whose parent is `"PROV"` appears in the **Dash** app's device provisioning menu instead of on a DeviceView, which suits settings that are changed less often:
 
