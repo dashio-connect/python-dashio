@@ -47,13 +47,14 @@ from .iotcontrol.dial import Dial
 from .iotcontrol.direction import Direction
 # from .bleconnection import BLEConnection
 from .iotcontrol.enums import (BarMode, ButtonGroupStyle, ButtonState,
-                               ButtonStyle, ChartLineType,
+                               ButtonStyle, CaptionMode, ChartLineType,
                                ChartXAxisLabelsStyle, Color, ColorPickerStyle,
-                               ConnectionState, ControlName, DialMode,
-                               DialNumberPosition, DialStyle, DirectionStyle,
-                               Icon, Keyboard, KnobStyle, LabelStyle,
-                               MenuStyle, Precision, SliderBarStyle, SoundName,
-                               TextAlignment, TextFormat, TimeGraphLineType,
+                               ConnectionState, ControlName, DeviceViewStyle,
+                               DialMode, DialNumberPosition, DialStyle,
+                               DirectionStyle, Icon, Keyboard, KnobStyle,
+                               LabelStyle, MenuStyle, Precision,
+                               SliderBarStyle, SoundName, TextAlignment,
+                               TextFormat, TimeGraphLineType,
                                TimeGraphPositionOfKey, TitlePosition)
 from .iotcontrol.event_log import EventData, EventLog
 from .iotcontrol.knob import Knob
@@ -114,6 +115,8 @@ __all__ = [
     'ButtonStyle',
     'ButtonGroupStyle',
     'MenuStyle',
+    'CaptionMode',
+    'DeviceViewStyle',
     'AudioVisualDisplay',
     'Chart',
     'ChartLine',
