@@ -71,6 +71,13 @@ class TestDeviceSetup(unittest.TestCase):
         self.command("\tDEVICEID\tRST\n")
         self.assertEqual(self.events, [], "A device without a reset callback ignores RST")
 
+    def test_announce_and_who_reply_include_cfg_rev(self):
+        self.device.config_revision = 5
+        who = "\tDEVICEID\tWHO\tDEVICETYPE\tDEVICENAME\t5\n"
+        self.assertEqual(self.command("\tWHO\n"), who)
+        self.device._send_announce()
+        self.assertIn(("sent", who), self.events, "The announce must include cfgRev, or the app takes it as 0")
+
 
 if __name__ == '__main__':
     unittest.main()

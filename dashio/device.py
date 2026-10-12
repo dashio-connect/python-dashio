@@ -156,9 +156,7 @@ class Device(threading.Thread):
         data_array = data.split("\t")
         rx_device_id = data_array[0]
         if rx_device_id == "WHO":
-            if 'cfgRev' in self._cfg:
-                return self._device_id_str + f"\tWHO\t{self.device_type}\t{self.device_name}\t{self._cfg['cfgRev']}\n"
-            return self._device_id_str + f"\tWHO\t{self.device_type}\t{self.device_name}\n"
+            return self._who_message()
         if rx_device_id != self.device_id:
             return ""
         try:
@@ -322,8 +320,15 @@ class Device(threading.Thread):
         logger.debug("STORAGE ENABLE: %s", payload)
         self.tx_zmq_pub.send_multipart([b"ANNOUNCE", payload.encode('utf-8')])
 
+    def _who_message(self) -> str:
+        """The WHO message, used to reply to WHO and to announce the device.
+
+        It always includes cfgRev: the Dash app takes a WHO without one as cfgRev 0.
+        """
+        return self._device_id_str + f"\tWHO\t{self.device_type}\t{self.device_name}\t{self._cfg['cfgRev']}\n"
+
     def _send_announce(self):
-        payload = self._device_id_str + f"\tWHO\t{self.device_type}\t{self.device_name}\n"
+        payload = self._who_message()
         logger.debug("ANNOUNCE: %s", payload.rstrip())
         self.tx_zmq_pub.send_multipart([b"ANNOUNCE", payload.encode('utf-8')])
 
