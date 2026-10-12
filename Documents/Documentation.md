@@ -68,7 +68,7 @@ These callbacks are used to setup and configure connections by the **Dash** app.
 * *unset_wifi_callback():* Clears the wifi callback.
 * *set_dashio_callback(callback):* Set a callback function that is called when the DashIO app provides Dash server provisioning information.
 * *unset_dashio_callback():* Clears the set Dash callback.
-* *set_name_callback(callback):* Set a callback function that is called when the DashIO app provides Name provisioning information. The callback must return the new name.
+* *set_name_callback(callback):* Set a callback function that is called when the DashIO app provides Name provisioning information. The callback must return the new name. The device answers requests for its current name itself, with or without a name callback.
 * *unset_name_callback():* Clears the set Name callback.
 * *set_tcp_callback(callback):* Set a callback function that is called when the DashIO app provides TCP provisioning information.
 * *unset_tcp_callback():* Clears the set TCP callback.
@@ -78,6 +78,8 @@ These callbacks are used to setup and configure connections by the **Dash** app.
 * *unset_clock_callback():* Clears the clock callback.
 * *set_ota_callback(callback):* Set a callback function that is called when the Dash server sends firmware information or a firmware block.
 * *unset_ota_callback():* Clears the OTA callback.
+* *set_reset_callback(callback):* Set a callback function that is called when the DashIO app asks the device to reset. The device replies to the app before calling it, as the protocol requires, so the callback should reset the device, e.g. after a short delay so the reply reaches the app.
+* *unset_reset_callback():* Clears the reset callback.
 
 ## Controls
 

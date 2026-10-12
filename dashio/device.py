@@ -86,6 +86,12 @@ class Device(threading.Thread):
     add_all_c64_controls(c64_dict: dict, column_no: int = 1):
         Same as add_cfg64.
 
+    set_reset_callback(callback) :
+        Set a callback function that is called when the DashIO app asks the device to reset.
+
+    unset_reset_callback() :
+        Unset the reset callback.
+
     set_wifi_callback(callback) :
         Set a callback function that is called when the DashIO app provides wifi provisioning information.
 
@@ -507,6 +513,36 @@ class Device(threading.Thread):
         """
         self._ota_rx_callback = None
 
+    def set_reset_callback(self, callback):
+        """
+        Specify a callback function to be called when the Dash app asks the device to reset.
+
+        Setting it tells the Dash app that the device can be reset. The device replies to the Dash app before
+        calling the callback, as the protocol requires, so the callback should reset the device, e.g. after a
+        short delay so the reply reaches the app.
+
+        Parameters
+        ----------
+            callback:
+                The callback function. It will be invoked with one argument, the msg from the Dash app.
+        """
+        self._set_device_setup("rst", True)
+        self._rst_rx_callback = callback
+
+    def unset_reset_callback(self):
+        """
+        Unset the reset callback function.
+        """
+        self._set_device_setup("rst", False)
+        self._rst_rx_callback = None
+
+    def _rst_rx_event(self, msg) -> str:
+        if self._rst_rx_callback is not None:
+            data = self._device_id_str + "\tRST\n"
+            self.tx_zmq_pub.send_multipart([b"ALL", data.encode('utf-8')])
+            self._rst_rx_callback(msg)
+        return ""
+
     def set_wifi_callback(self, callback):
         """
         Specify a callback function to be called when IoTDashboard sets wifi parameters.
@@ -580,12 +616,17 @@ class Device(threading.Thread):
         """
         self._set_device_setup("name", False)
         self._name_rx_callback = None
+        # Keep answering requests for the device name.
+        self._device_commands_dict['NAME'] = self._name_rx_event
 
     def _name_callback(self, msg) -> str:
         logger.debug("Name msg: %s", msg)
         return msg[2]
 
     def _name_rx_event(self, msg) -> str:
+        if len(msg) < 3 or not msg[2]:
+            # An empty name is a request for the current name.
+            return self._device_id_str + f"\tNAME\t{self._device_name}\n"
         if self._name_rx_callback is not None:
             name = self._name_rx_callback(msg)
             if name:
@@ -712,6 +753,8 @@ class Device(threading.Thread):
         self._device_commands_dict['CFG'] = self._make_cfg64
         self._device_commands_dict['CLK'] = self._server_clk
         self._device_commands_dict['OTA'] = self._server_ota
+        self._device_commands_dict['NAME'] = self._name_rx_event
+        self._rst_rx_callback = None
         self.controls_dict = {}
         self._cfg = {}
         self._cfg["deviceSetup"] = ''
