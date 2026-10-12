@@ -150,3 +150,6 @@ scratch.py
 ttn.py
 *.raw
 *.cvs
+
+# Claude Code personal notes
+CLAUDE.local.md

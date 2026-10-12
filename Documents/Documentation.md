@@ -80,7 +80,7 @@ These callbacks are used to setup and configure connections by the **Dash** app.
 * *unset_clock_callback():* Clears the clock callback.
 * *set_ota_callback(callback):* Set a callback function that is called when the Dash server sends firmware information or a firmware block.
 * *unset_ota_callback():* Clears the OTA callback.
-* *set_reset_callback(callback):* Set a callback function that is called when the DashIO app asks the device to reset. The device replies to the app before calling it, as the protocol requires, so the callback should reset the device, e.g. after a short delay so the reply reaches the app.
+* *set_reset_callback(callback):* Set a callback function that is called when the DashIO app asks the device to reset. The device replies to the app before calling it, as the protocol requires, so the callback should reset the device, e.g. after a short delay so the reply reaches the app. The callback receives the message from the app: `msg[2] == "FRST"` is a request for a factory reset, e.g. to clear saved settings as well.
 * *unset_reset_callback():* Clears the reset callback.
 
 ## Controls
