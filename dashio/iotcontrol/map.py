@@ -168,6 +168,7 @@ class Map(Control):
         super().__init__("MAP", control_id)
         self._configs.append(ControlConfig(control_id, title, control_position, title_position))
         self.tracks = {}
+        self._store = None  # The device's DashStore, set when the Map is added to a Device with a store.
 
         self._message_rx_event = Event()
         self._message_rx_event += self._get_tracks_from_timestamp
@@ -201,6 +202,18 @@ class Map(Control):
             from_timestamp = parser.isoparse(msg[4])
         except (IndexError, ValueError):
             return ""
+        if self._store is not None:
+            # Every location after the requested time, including tracks stored before the program restarted.
+            for track_id in self._store.sub_ids("MAP", self.control_id):
+                entries = self._store.entries("MAP", self.control_id, track_id, from_timestamp)
+                if not entries:
+                    continue
+                track = self.tracks.get(track_id) or MapTrack(track_id)
+                reply += self._control_hdr_str + dashboard_id + f"\t{track.track_id}\t{track.text}\t{track.color.value}"
+                for entry in entries:
+                    reply += "\t" + json.dumps({"time": entry.time.isoformat(), **entry.data})
+                reply += "\n"
+            return reply
         if self.tracks:
             for value in self.tracks.values():
                 if value.track_start_time > from_timestamp:
@@ -221,6 +234,8 @@ class Map(Control):
         else:
             self.tracks[track_id] = MapTrack(track_id)
             self.tracks[track_id].add_location(location)
+        if self._store is not None:
+            self._store.add("MAP", self.control_id, track_id, location.timestamp, {key: value for key, value in location._map_loc.items() if key != "time"})
         self.send_location(location, track_id)
 
     def send_location(self, location: MapLocation, track_id: str = ""):

@@ -62,6 +62,47 @@ tablet = dashio.generate_cfg64(view1, tablet_button)
 device = dashio.Device("PumpController", "pump1", "Pump", cfg_dict={1: phone, 3: tablet})
 ```
 
+### Local Storage
+
+A DashStore keeps the data of a device's TimeGraph, EventLog and Map controls in an sqlite database, so it isn't lost when the program stops:
+
+```python
+store = dashio.DashStore("greenhouse.db", max_entries=100000, max_days=31)
+device = dashio.Device("Greenhouse", device_id, "Greenhouse", store=store)
+```
+
+With a store:
+
+* Every data point added to a TimeGraphLine, event added to an EventLog and location added to a Map is stored.
+* The **Dash** app's history requests are answered from the store, including data stored before the program restarted. Without a store, the history is kept in each control's ring buffer. For controls with `storage_enable()`, history requests over local connections aren't answered, so the app gets the history from the Dash server.
+* When the device connects to the **Dash** server through a DashConnection, it sends the server the data the server is missing, e.g. data stored while the connection was down. This is the DashIO store and forward (SDU) protocol, as in the DashIO firmware: the device lists its stored lines, tracks and logs, the server replies with the newest timestamp it holds for each, and the device sends the newer entries in packets of up to 4096 bytes, each acknowledged by the server.
+
+#### Devices that connect now and then
+
+The main use of a DashStore is a device that keeps its connection down most of the time, e.g. to save power on LTE, and connects every so often:
+
+```python
+connection = dashio.DashConnection(username, password, auto_connect=False)
+connection.add_device(device)
+device.set_store_sync_callback(lambda completed: connection.disconnect())
+...
+connection.connect()  # e.g. every 15 minutes
+```
+
+While disconnected, the data is kept in the store. When the device connects, the Dash server is sent what it missed, then the store sync callback is called and the device can disconnect. Disconnect from your own thread after a time limit as well, in case the sync doesn't finish. An always on TCPConnection lets the **Dash** app provision the device on the local network, as an IoT device usually does over BLE: get its layout, set the Dash server username and password with set_dashio_callback(), and set the connection interval in its provisioning menu. See [Examples/intermittent_connection.py](../Examples/intermittent_connection.py).
+
+#### DashStore Attributes
+
+* *path : str, optional.* The sqlite database file. Defaults to ":memory:", which isn't kept after the program stops.
+* *max_entries : int, optional.* The most entries kept. The oldest are deleted to make room. Defaults to 100000.
+* *max_days : float | None, optional.* Entries older than this many days are deleted. None keeps them, up to max_entries. Defaults to 31.
+
+#### DashStore Methods
+
+* *entries(control_type: str, control_id: str, sub_id: str = "", after=0) -> list[StoreEntry].* The entries for a TimeGraph line, Map track or EventLog ("TGRPH", "MAP" or "LOG") later than after, a datetime or seconds since the epoch. sub_id is the line or track ID, "" for an EventLog.
+* *clear().* Delete every entry.
+* *close().* Close the database.
+
 ### Device Callback Methods
 
 These callbacks are used to setup and configure connections by the **Dash** app. Setting these callbacks advertises to the **Dash** app that the connection can be modified.
@@ -82,6 +123,8 @@ These callbacks are used to setup and configure connections by the **Dash** app.
 * *unset_ota_callback():* Clears the OTA callback.
 * *set_reset_callback(callback):* Set a callback function that is called when the DashIO app asks the device to reset. The device replies to the app before calling it, as the protocol requires, so the callback should reset the device, e.g. after a short delay so the reply reaches the app. The callback receives the message from the app: `msg[2] == "FRST"` is a request for a factory reset, e.g. to clear saved settings as well.
 * *unset_reset_callback():* Clears the reset callback.
+* *set_store_sync_callback(callback):* Set a callback for the end of each sync of the device's [DashStore](#local-storage) with the Dash server. A sync starts each time the device connects to the Dash server. The callback is called on the device thread with True when the server has everything, and False when the sync fails, e.g. the server doesn't reply. Raises ValueError if the device has no store.
+* *unset_store_sync_callback():* Clears the store sync callback.
 
 ## Controls
 
@@ -343,7 +386,7 @@ Each event contains the time of the event, the color to display the event and th
 
 Multiple IoT devices can be shown on a single Event Log control.
 
-The **Dash** app asks for the events since the last one it has. They can be kept by the device, in the EventLog's ring buffer, or stored on the Dash server by calling `device.storage_enable(dashio.ControlName.LOG, control_id)`.
+The **Dash** app asks for the events since the last one it has. They can be kept by the device, in the EventLog's ring buffer or a [DashStore](#local-storage), or stored on the Dash server by calling `device.storage_enable(dashio.ControlName.LOG, control_id)`.
 
 #### Event Data
 
@@ -676,7 +719,7 @@ A Time Graph display is used to present time-series graphical data on the DashIO
 
 Each line can be independently added, deleted or changed by the IoT device. Multiple IoT devices can add lines to a single Time Graph control.
 
-The **Dash** app asks for the data since the last point it has. The data can be kept by the device, in each TimeGraphLine's ring buffer, or stored on the Dash server by calling `device.storage_enable(dashio.ControlName.TGRPH, control_id)`.
+The **Dash** app asks for the data since the last point it has. The data can be kept by the device, in each TimeGraphLine's ring buffer or a [DashStore](#local-storage), or stored on the Dash server by calling `device.storage_enable(dashio.ControlName.TGRPH, control_id)`.
 
 <img src="https://raw.githubusercontent.com/dashio-connect/python-dashio/master/Documents/TimeGraph.jpeg" width="200"/>
 
@@ -759,11 +802,14 @@ If the connection fails, or is lost, it tries again, waiting twice as long after
 * *context : zmq.Context, optional.* The ZMQ context, by default the shared zmq.Context.instance().
 * *offline_delay : int, optional.* If the connection is lost, the Dash server publishes OFFLINE for the first device after this many seconds, unless the connection is restored first. 0 publishes it straight away. Defaults to 10.
 * *batch_delay : float, optional.* Messages for the same topic sent within this many seconds are published together, so a device updating several controls makes one publish to the Dash server instead of one for each. Alarms are published straight away. 0 publishes each message straight away. Defaults to 0.05.
+* *auto_connect : bool, optional.* Connect when created. False waits for connect(), e.g. for a device that only connects now and then. Defaults to True.
 
 #### DashConnection Methods
 
 * *add_device(device: Device).* Adds a device to the connection.
 * *close().* Sends OFFLINE for each device, then closes the connection.
+* *connect().* Connect to the Dash server, e.g. with auto_connect=False or after disconnect(). If the connection fails or is lost, it tries again until it logs in or disconnect() is called.
+* *disconnect().* Sends OFFLINE for each device and disconnects, until connect() is called. While disconnected on purpose, the devices' messages are dropped rather than sent when the connection is made: a device with a DashStore sends the server the history it missed, and the Dash app gets current values from the device. Requests to the server, such as storage_enable()'s STE, are kept and sent when connected.
 * *set_connection(username: str, password)* Changes the username and password, and connects again with them.
   * *username : str.* username for the server.
   * *password : str.* password for the server.

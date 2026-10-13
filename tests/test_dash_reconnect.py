@@ -3,7 +3,7 @@ import threading
 import time
 import unittest
 
-from dashio import DashConnection
+from dashio import ControlName, DashConnection, Device, Dial, TimeGraph
 from dashio.iotcontrol.enums import ConnectionState
 
 
@@ -80,6 +80,74 @@ class TestDashReconnect(unittest.TestCase):
         connection.set_connection("USERNAME", "PASSWORD")
         time.sleep(0.5)
         self.assertTrue(self.server.attempts, "Connects once the credentials are set")
+
+
+class TestPlannedDisconnect(unittest.TestCase):
+    """auto_connect=False, connect() and disconnect(), for devices that only connect now and then."""
+
+    def setUp(self):
+        self.server = RefusingServer()
+        self.connection = DashConnection("USERNAME", "PASSWORD", host="127.0.0.1", port=self.server.port, use_ssl=False, auto_connect=False)
+        self.connection._dash_c.reconnect_delay_set(0.2, 10)
+
+    def tearDown(self):
+        self.connection.close()
+        self.connection.join(timeout=5)
+        self.server.stop()
+
+    def test_connects_only_when_asked(self):
+        time.sleep(1.5)
+        self.assertEqual(self.server.attempts, [], "auto_connect=False waits for connect()")
+        self.connection.connect()
+        time.sleep(0.5)
+        self.assertTrue(self.server.attempts)
+        self.connection.disconnect()
+        attempts = len(self.server.attempts)
+        time.sleep(1.5)
+        self.assertEqual(len(self.server.attempts), attempts, "No attempts after disconnect()")
+        self.assertEqual(self.connection.connection_state, ConnectionState.DISCONNECTED)
+
+    def test_messages_dropped_while_disconnected(self):
+        published = []
+        self.connection._dash_c.publish = lambda topic, payload, qos=0, **kwargs: published.append(payload)
+        device = Device("TestType", "DEV1", "Test")
+        dial = Dial("D1")
+        device.add_control(dial)
+        self.connection.add_device(device)
+        time.sleep(0.8)  # Let the device and connection threads connect.
+        try:
+            dial.dial_value = 5
+            time.sleep(0.3)
+            # As if connected: a backlog from while disconnected would be published now.
+            self.connection._planned_disconnect = False
+            self.connection.connection_state = ConnectionState.CONNECTED
+            time.sleep(0.3)
+            self.assertEqual([payload for payload in published if "DIAL" in payload], [])
+            dial.dial_value = 6
+            time.sleep(0.3)
+            self.assertEqual([payload for payload in published if "DIAL" in payload], ["\tDEV1\tDIAL\tD1\t6\n"])
+        finally:
+            self.connection.connection_state = ConnectionState.DISCONNECTED
+            device.close()
+
+    def test_requests_to_the_server_kept_while_disconnected(self):
+        published = []
+        self.connection._dash_c.publish = lambda topic, payload, qos=0, **kwargs: published.append((topic, payload))
+        device = Device("TestType", "DEV1", "Test")
+        graph = TimeGraph("TG1")
+        device.add_control(graph)
+        self.connection.add_device(device)
+        time.sleep(0.8)  # Let the device and connection threads connect.
+        try:
+            device.storage_enable(ControlName.TGRPH, "TG1")
+            time.sleep(0.3)
+            self.connection._planned_disconnect = False
+            self.connection.connection_state = ConnectionState.CONNECTED
+            time.sleep(0.3)
+            self.assertEqual(published, [("USERNAME/DEV1/announce", "\tDEV1\tSTE\tTGRPH\tTG1\n")], "STE is sent once connected")
+        finally:
+            self.connection.connection_state = ConnectionState.DISCONNECTED
+            device.close()
 
 
 if __name__ == '__main__':

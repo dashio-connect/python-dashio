@@ -42,6 +42,7 @@ logger = logging.getLogger(__name__)
 
 MAX_BATCH_LENGTH = 4096  # A batch is published before it would grow past this, as in the DashIO firmware.
 RECONNECT_MAX_DELAY = 900  # The longest wait in seconds between attempts to connect to the Dash server.
+MAX_PENDING_ANNOUNCES = 100  # Requests to the server, such as STE, kept during a planned disconnect.
 
 
 class DashControl():
@@ -216,13 +217,15 @@ class DashConnection(threading.Thread):
             del self._device_id_rx_list[device_id]
 
     def _send_dash_announce(self, device_id: str):
-        msg = {
-            'msgType': 'send_announce',
-            'connectionUUID': self.zmq_connection_uuid,
-            'deviceID': device_id
-        }
-        logger.debug("DASH SEND ANNOUNCE: %s", msg)
-        self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg).encode()])
+        """Ask the device to announce itself, then to send its store's timestamp request, if it has a store."""
+        for msg_type in ('send_announce', 'send_store_request'):
+            msg = {
+                'msgType': msg_type,
+                'connectionUUID': self.zmq_connection_uuid,
+                'deviceID': device_id
+            }
+            logger.debug("DASH SEND ANNOUNCE: %s", msg)
+            self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg).encode()])
 
     def _queue_publish(self, topic: str, payload: str, qos: int):
         """Publish payload, batched with other messages for the same topic for batch_delay seconds."""
@@ -272,11 +275,41 @@ class DashConnection(threading.Thread):
         self._dash_c.will_set(f"{self.username}/{device_id}/data", f"\t{device_id}\tOFFLINE\n", qos=1, retain=False, properties=properties)
 
     def connect(self):
-        """Connect to the server.
+        """Connect to the Dash server, e.g. with auto_connect=False or after disconnect().
 
-        paho's network thread makes the connection and reconnects if it fails or is lost, waiting twice as long
-        after each failure, up to RECONNECT_MAX_DELAY seconds, until it logs in.
+        The connection thread connects straight away. If the connection fails or is lost, it tries again, waiting
+        twice as long after each failure, up to RECONNECT_MAX_DELAY seconds, until it logs in or disconnect() is
+        called.
         """
+        self._planned_disconnect = False
+        if self.connection_state == ConnectionState.DISCONNECTED:
+            self._connect_at = time.monotonic()
+
+    def disconnect(self):
+        """Send OFFLINE for every device and disconnect from the Dash server, until connect() is called.
+
+        For devices that only connect now and then, e.g. to save power on an LTE connection. While disconnected,
+        the devices' messages aren't sent or kept: a device with a DashStore sends the server the history it
+        missed when it connects again, and the Dash app gets current values from the device.
+        """
+        self._planned_disconnect = True
+        self._connect_at = None
+        if self.connection_state == ConnectionState.CONNECTED:
+            self._flush_batch(force=True)
+            messages = [self._send_online_state(device_id, "OFFLINE") for device_id in self._device_id_list]
+            for message in messages:
+                try:
+                    message.wait_for_publish(timeout=2.0)
+                except (RuntimeError, ValueError) as error:
+                    logger.debug("OFFLINE not sent: %s", error)
+        # A normal disconnect, so the server doesn't also publish the will.
+        self._dash_c.disconnect()
+        if threading.current_thread() is not self._dash_c._thread:
+            self._dash_c.loop_stop()
+        self.connection_state = ConnectionState.DISCONNECTED
+
+    def _connect(self):
+        """Start paho's network thread, which connects and reconnects if the connection fails or is lost."""
         if not self.username or not self.password:
             logger.warning("Not connecting to the Dash server without a username and password")
             return
@@ -306,6 +339,7 @@ class DashConnection(threading.Thread):
         """
         self.username = username
         self.password = password
+        self._planned_disconnect = False
         # Stop paho's network thread, then connect again with the new credentials.
         self._dash_c.disconnect()
         self._dash_c.loop_stop()
@@ -321,7 +355,8 @@ class DashConnection(threading.Thread):
         use_ssl=True,
         context: zmq.Context | None = None,
         offline_delay: int = 10,
-        batch_delay: float = 0.05
+        batch_delay: float = 0.05,
+        auto_connect: bool = True
     ):
         """
         Setups and manages a connection thread to the Dash Server.
@@ -347,6 +382,9 @@ class DashConnection(threading.Thread):
                 Messages for the same topic sent within this many seconds are published together, so a device
                 updating several controls makes one publish. Alarms are published straight away. 0 publishes each
                 message straight away. Defaults to 0.05.
+            auto_connect : bool, optional
+                Connect when created. False waits for connect(), e.g. for a device that only connects now and then.
+                Defaults to True.
         """
 
         threading.Thread.__init__(self, daemon=True)
@@ -390,22 +428,18 @@ class DashConnection(threading.Thread):
         self._dash_c.reconnect_delay_set(1, RECONNECT_MAX_DELAY)
         # The connection thread connects a moment after it starts, so the devices added straight after creating
         # the connection are included in the will.
-        self._connect_at: float | None = time.monotonic() + 1.0
+        self.auto_connect = auto_connect
+        # A disconnect asked for with disconnect(), or before connect() with auto_connect=False. Unlike a lost
+        # connection, the devices' messages are dropped rather than sent when the connection is made.
+        self._planned_disconnect = not auto_connect
+        self._pending_announces = []  # Announce messages from a planned disconnect, published when connected.
+        self._connect_at: float | None = time.monotonic() + 1.0 if auto_connect else None
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         self.start()
 
     def close(self):
         """Send OFFLINE for every device, then close the connection."""
-        if self.connection_state == ConnectionState.CONNECTED:
-            self._flush_batch(force=True)
-            messages = [self._send_online_state(device_id, "OFFLINE") for device_id in self._device_id_list]
-            for message in messages:
-                try:
-                    message.wait_for_publish(timeout=2.0)
-                except (RuntimeError, ValueError) as error:
-                    logger.debug("OFFLINE not sent: %s", error)
-            # A normal disconnect, so the server doesn't also publish the will.
-            self._dash_c.disconnect()
+        self.disconnect()
         self.running = False
 
     def _dash_command(self, msg_dict: dict):
@@ -432,7 +466,7 @@ class DashConnection(threading.Thread):
             except zmq.error.ContextTerminated:
                 break
 
-            if self.rx_zmq_sub in socks and self.connection_state == ConnectionState.CONNECTED:
+            if self.rx_zmq_sub in socks and (self.connection_state == ConnectionState.CONNECTED or self._planned_disconnect):
                 try:
                     [msg_to, data] = self.rx_zmq_sub.recv_multipart()
                 except ValueError:
@@ -445,6 +479,13 @@ class DashConnection(threading.Thread):
                 if msg_to == b'COMMAND':
                     logger.debug("DASH RX COMMAND")
                     self._dash_command(json.loads(data))
+                    continue
+                if self.connection_state != ConnectionState.CONNECTED:
+                    # Disconnected on purpose: don't keep a backlog to publish on reconnecting. Requests to the
+                    # server, such as STE, are kept. WHO and the SDU timestamp request are sent on connecting anyway.
+                    fields = data.split(b'\t')
+                    if msg_to == b"ANNOUNCE" and len(fields) > 2 and fields[2] not in (b"WHO", b"DATA"):
+                        self._pending_announces = self._pending_announces[-(MAX_PENDING_ANNOUNCES - 1):] + [data]
                     continue
                 msg_l = data.split(b'\t')
                 try:
@@ -460,10 +501,15 @@ class DashConnection(threading.Thread):
                     self._queue_publish(f"{self.username}/{device_id}/announce", data.decode(), 1)
                 else:
                     self._queue_publish(f"{self.username}/{device_id}/data", data.decode(), 0)
+            if self._pending_announces and self.connection_state == ConnectionState.CONNECTED:
+                pending, self._pending_announces = self._pending_announces, []
+                for data in pending:
+                    device_id = data.split(b'\t')[1].decode().strip()
+                    self._queue_publish(f"{self.username}/{device_id}/announce", data.decode(), 1)
             self._flush_batch()
             if self._connect_at is not None and time.monotonic() >= self._connect_at:
                 self._connect_at = None
-                self.connect()
+                self._connect()
 
         self._flush_batch(force=True)
         self._dash_c.loop_stop()

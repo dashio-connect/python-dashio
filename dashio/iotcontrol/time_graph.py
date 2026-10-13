@@ -115,6 +115,8 @@ class TimeGraphLine:
         self.color = color
         self.break_data = break_data
         self.data = RingBuffer(max_data_points)
+        self._time_graph = None  # Set by TimeGraph.add_line(), so the line can record its data in the device's store.
+        self._line_id = ""
         self.axis_side = 'left'
         if right_axis:
             self.axis_side = 'right'
@@ -155,6 +157,21 @@ class TimeGraphLine:
             data_str = ""
         return data_str
 
+    def _get_stored_line(self, entries) -> str:
+        """Format the line's entries from a DashStore for the **Dash** app."""
+        if not entries:
+            return ""
+        data_str = self._line_header()
+        if self.break_data:
+            data_str += f"\t{entries[0].time.isoformat()},b"
+        for entry in entries:
+            if isinstance(entry.data, list):
+                value = "[" + ",".join(format_value(item) for item in entry.data) + "]"
+            else:
+                value = format_value(entry.data)
+            data_str += f"\t{entry.time.isoformat()},{value}"
+        return data_str + "\n"
+
     def add_data_point(self, data):
         """Add and sends a DataPoint to the line. It automatically timestamps to the current time.
 
@@ -164,14 +181,16 @@ class TimeGraphLine:
                 A data point to add to the line. A list is added as a DataPointArray.
         """
         if isinstance(data, DataPoint) or isinstance(data, DataPointArray):
-            self.data.append(data)
+            data_p = data
         elif isinstance(data, list):
-            self.data.append(DataPointArray(data))
+            data_p = DataPointArray(data)
         elif isinstance(data, str) or isinstance(data, float) or isinstance(data, int) or isinstance(data, bool):
             data_p = DataPoint(data)
-            self.data.append(data_p)
         else:
             raise TypeError("Not a valid data point")
+        self.data.append(data_p)
+        if self._time_graph is not None and self._time_graph._store is not None:
+            self._time_graph._store.add("TGRPH", self._time_graph.control_id, self._line_id, data_p.timestamp, data_p.data_point)
 
     def add_break(self):
         """Add graph break to the line.
@@ -311,6 +330,7 @@ class TimeGraph(Control):
         self._y_axis_num_bars = y_axis_num_bars
         self._y_axis_min_rt = y_axis_min_rt
         self._y_axis_max_rt = y_axis_max_rt
+        self._store = None  # The device's DashStore, set when the TimeGraph is added to a Device with a store.
 
         self.line_dict = {}
 
@@ -387,6 +407,8 @@ class TimeGraph(Control):
             The Line to add
         """
         self.line_dict[line_id] = gline
+        gline._time_graph = self
+        gline._line_id = line_id
 
     def _get_lines_from_timestamp(self, msg):
         state_str = ""
@@ -395,6 +417,16 @@ class TimeGraph(Control):
             from_timestamp = msg[4]
         except IndexError:
             return ""
+        if self._store is not None:
+            try:
+                after = dateutil.parser.isoparse(from_timestamp)
+            except ValueError:
+                return ""
+            for key, line in self.line_dict.items():
+                line_data = line._get_stored_line(self._store.entries("TGRPH", self.control_id, key, after))
+                if line_data:
+                    state_str += self._control_hdr_str + dashboard_id + "\t" + key + line_data
+            return state_str
         for key, line in self.line_dict.items():
             if line.data:
                 line_data = line.get_line_from_timestamp(from_timestamp)

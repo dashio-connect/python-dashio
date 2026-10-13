@@ -113,6 +113,7 @@ class EventLog(Control):
         self._message_rx_event = Event()
         self._message_rx_event += self._get_log_from_timestamp
         self.log = RingBuffer(max_log_entries)
+        self._store = None  # The device's DashStore, set when the EventLog is added to a Device with a store.
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict):
@@ -143,9 +144,14 @@ class EventLog(Control):
             from_date = dateutil.parser.isoparse(msg[4])
         except (IndexError, ValueError):
             return ""
-        for log in self.log.get():
-            if log.timestamp > from_date:
-                data_str += "\t" + log.to_json()
+        if self._store is not None:
+            for entry in self._store.entries("LOG", self.control_id, "", from_date):
+                event = {'time': entry.time.isoformat(), 'color': entry.data.get('color', ''), 'lines': entry.data.get('lines', [])}
+                data_str += "\t" + json.dumps(event)
+        else:
+            for log in self.log.get():
+                if log.timestamp > from_date:
+                    data_str += "\t" + log.to_json()
         if not data_str:
             return ""
         return self._control_hdr_str + dashboard_id + data_str + "\n"
@@ -160,6 +166,8 @@ class EventLog(Control):
         """
         if isinstance(data, EventData):
             self.log.append(data)
+            if self._store is not None:
+                self._store.add("LOG", self.control_id, "", data.timestamp, {'color': str(data.color.value), 'lines': data.event_lines})
             self.state_str = self._control_hdr_str + str(data)
 
     def send_event(self, event: EventData):

@@ -34,6 +34,7 @@ SOFTWARE.
 """
 from .comms_module_connection import DashIOCommsModuleConnection
 from .dash_connection import DashConnection
+from .dash_store import DashStore
 from .device import Device
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.audio_visual_display import AudioVisualDisplay
@@ -80,6 +81,7 @@ __all__ = [
     'TCPConnection',
     'ZMQConnection',
     'DashConnection',
+    'DashStore',
     'ConnectionState',
     'DashIOCommsModuleConnection',
     'Schedular',

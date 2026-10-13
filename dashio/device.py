@@ -34,6 +34,7 @@ import shortuuid
 import zmq
 
 from .constants import BAD_CHARS, CONNECTION_PUB_URL
+from .dash_store import DashStore, SDUSession
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.control import Control
 from .iotcontrol.device_view import DeviceView
@@ -469,6 +470,8 @@ class Device(threading.Thread):
         if key not in self.controls_dict:
             if isinstance(iot_control, DeviceView):
                 self._cfg["numDeviceViews"] += 1
+            if self.store is not None and iot_control.ctrl_type in ("TGRPH", "LOG", "MAP"):
+                iot_control._store = self.store
             self.controls_dict[key] = iot_control
             return True
         return False
@@ -768,7 +771,8 @@ class Device(threading.Thread):
         device_id: str,
         device_name: str,
         cfg_dict: dict | None = None,
-        context: zmq.Context | None = None
+        context: zmq.Context | None = None,
+        store: DashStore | None = None
     ) -> None:
         """DashDevice
 
@@ -786,8 +790,14 @@ class Device(threading.Thread):
                 loaded with add_cfg64() and cfgRev is set from them. Defaults to None.
             context : optional
                 ZMQ context. Defaults to None.
+            store : DashStore, optional
+                Stores the data of the device's TimeGraph, EventLog and Map controls, answers the Dash app's history
+                requests from it, and sends the Dash server the data it is missing when the device connects.
+                Defaults to None, which keeps a short history of each control in memory.
         """
         threading.Thread.__init__(self, daemon=True)
+        self.store = store
+        self._sdu = None
 
         self.zmq_connection_uuid = "DVCE:" + shortuuid.uuid()
         self._b_zmq_connection_uuid = self.zmq_connection_uuid.encode()
@@ -812,6 +822,9 @@ class Device(threading.Thread):
         self._device_commands_dict['CLK'] = self._server_clk
         self._device_commands_dict['OTA'] = self._server_ota
         self._device_commands_dict['NAME'] = self._name_rx_event
+        if store is not None:
+            self._sdu = SDUSession(device_id.translate(BAD_CHARS), store, self._store_registry, self._send_to_dash_server)
+            self._device_commands_dict['DATA'] = self._data_rx
         self._rst_rx_callback = None
         self.controls_dict = {}
         self._cfg = {}
@@ -900,8 +913,76 @@ class Device(threading.Thread):
 
     def _local_command(self, msg_dict):
         logging.debug("LOCAL COMMAND: %s", msg_dict)
-        if msg_dict.get('msgType', '') == 'send_announce' and msg_dict.get('deviceID', '') == self.device_id:
+        if msg_dict.get('deviceID', '') != self.device_id:
+            return
+        if msg_dict.get('msgType', '') == 'send_announce':
             self._send_announce()
+        elif msg_dict.get('msgType', '') == 'send_store_request' and self._sdu is not None:
+            request = self._sdu.start()
+            if request:
+                logger.debug("ANNOUNCE: %s", request.rstrip())
+                self.tx_zmq_pub.send_multipart([b"ANNOUNCE", request.encode('utf-8')])
+
+    def set_store_sync_callback(self, callback):
+        """Set a callback for the end of each sync of the device's DashStore with the Dash server.
+
+        A sync starts each time the device connects to the Dash server. The callback is called with True when
+        the server has everything, and False when the sync fails, e.g. the server doesn't reply. A device that
+        only connects now and then can disconnect in the callback, e.g. with DashConnection.disconnect().
+
+        Parameters
+        ----------
+        callback : Callable[[bool], None]
+            Called on the device's thread.
+        """
+        if self._sdu is None:
+            raise ValueError("The device has no DashStore")
+        self._sdu.on_finished = callback
+
+    def unset_store_sync_callback(self):
+        """Clears the store sync callback."""
+        if self._sdu is not None:
+            self._sdu.on_finished = None
+
+    def _send_to_dash_server(self, message: str):
+        """Send a message to the Dash server connections only."""
+        self.tx_zmq_pub.send_multipart([b"DASH", message.encode('utf-8')])
+
+    def _data_rx(self, data_array) -> str:
+        """DATA messages from the Dash server: the SDU (store and forward) session."""
+        if len(data_array) < 4 or data_array[2] != "SDU":
+            return ""
+        if data_array[3] == "REQUEST" and len(data_array) > 4:
+            self._sdu.request(data_array[4])
+        elif data_array[3] == "ACK":
+            self._sdu.ack()
+        elif data_array[3] == "NACK":
+            self._sdu.nack()
+        return ""
+
+    def _store_registry(self) -> list[dict]:
+        """The device's stored TimeGraph lines, Map tracks and EventLogs, in SDU controlInfo order."""
+        lines, tracks, logs = [], [], []
+        for control in list(self.controls_dict.values()):
+            if control.ctrl_type == "TGRPH":
+                for line_id, line in list(control.line_dict.items()):
+                    lines.append({
+                        "type": "TGRPH", "id": control.control_id, "sub": line_id, "name": line.name,
+                        "lineType": line.line_type.value, "color": "" if line.color is None else str(line.color.value),
+                        "axis": "R" if line.axis_side == "right" else "L"
+                    })
+            elif control.ctrl_type == "MAP":
+                track_ids = self.store.sub_ids("MAP", control.control_id)
+                track_ids += [track_id for track_id in control.tracks if track_id not in track_ids]
+                for track_id in track_ids:
+                    track = control.tracks.get(track_id)
+                    tracks.append({
+                        "type": "MAP", "id": control.control_id, "sub": track_id, "name": track.text if track else "",
+                        "color": str(track.color.value) if track else ""
+                    })
+            elif control.ctrl_type == "LOG":
+                logs.append({"type": "LOG", "id": control.control_id, "sub": ""})
+        return lines + tracks + logs
 
     def run(self):
         # Continue the network loop, exit when an error occurs
@@ -922,6 +1003,8 @@ class Device(threading.Thread):
                 socks = dict(poller.poll(100))
             except zmq.error.ContextTerminated:
                 break
+            if self._sdu is not None:
+                self._sdu.poll()
             if self.rx_zmq_sub in socks:
                 try:
                     [data, msg_from] = self.rx_zmq_sub.recv_multipart()
