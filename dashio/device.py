@@ -46,6 +46,9 @@ MAX_LAYOUT_COLUMNS = 3
 
 logger = logging.getLogger(__name__)
 
+# The CFG deviceSetup option for each type of connection, by the prefix of the connection's zmq_connection_uuid.
+CONNECTION_SETUP_OPTIONS = {"BLE": "BLE", "TCP": "TCP", "DASH": "MQTT"}
+
 
 class Device(threading.Thread):
     """Dashio Device
@@ -518,35 +521,51 @@ class Device(threading.Thread):
             del self.controls_dict[key]
 
     def _set_device_setup(self, control_name: str, settable: bool):
+        """Turn a deviceSetup option on or off, with the command for the setting's messages."""
+        option = "DASH" if control_name == "dashio" else control_name.upper()
         if settable:
             self._device_commands_dict[control_name.upper()] = getattr(self, '_' + control_name + '_rx_event', None)
-            if control_name not in self._device_setup_list:
-                self._device_setup_list.append(control_name)
+            if option not in self._device_setup_list:
+                self._device_setup_list.append(option)
         else:
             try:
                 del self._device_commands_dict[control_name.upper()]
             except KeyError:
                 pass
             try:
-                self._device_setup_list.remove(control_name)
+                self._device_setup_list.remove(option)
             except ValueError:
                 pass
-        self._cfg["deviceSetup"] = ','.join(self._device_setup_list)
+        self._update_device_setup()
 
-    def _add_action_device_setup(self, settable: bool):
-        if settable:
-            if 'actn' not in self._device_setup_list:
-                self._device_setup_list.append('actn')
-        else:
-            try:
-                del self._device_commands_dict['actn']
-            except KeyError:
-                pass
-            try:
-                self._device_setup_list.remove('actn')
-            except ValueError:
-                pass
-        self._cfg["deviceSetup"] = ','.join(self._device_setup_list)
+    @property
+    def store_and_forward(self) -> bool:
+        """Whether the device supports store and forward (SAF) on the Dash server.
+
+        For devices that only connect now and then. When True, the CFG's deviceSetup includes SAF, so the Dash app
+        can turn store and forward on and off on the Dash server. With it on, the server keeps the app's messages
+        for the device until it connects, and asks the device for its STATUS when it connects, so the app can be
+        shown the latest values while the device is disconnected.
+        """
+        return "SAF" in self._device_setup_list
+
+    @store_and_forward.setter
+    def store_and_forward(self, enabled: bool):
+        if enabled and "SAF" not in self._device_setup_list:
+            self._device_setup_list.append("SAF")
+        elif not enabled and "SAF" in self._device_setup_list:
+            self._device_setup_list.remove("SAF")
+        self._update_device_setup()
+
+    def _update_device_setup(self):
+        """Set CFG deviceSetup: the device's connections, then the settings the Dash app can change.
+
+        The options are upper case, as the Dash app writes them, e.g. "TCP,MQTT,NAME,DASH,RST".
+        """
+        connections = {CONNECTION_SETUP_OPTIONS[uuid.split(":")[0]] for uuid in self.connections_list if uuid.split(":")[0] in CONNECTION_SETUP_OPTIONS}
+        options = [option for option in ("BLE", "TCP", "MQTT") if option in connections]
+        options += [option for option in self._device_setup_list if option not in options]
+        self._cfg["deviceSetup"] = ','.join(options)
 
     def set_clock_callback(self, callback):
         """
@@ -766,6 +785,7 @@ class Device(threading.Thread):
             self.connections_list.append(connection.zmq_connection_uuid)
             self.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=connection.zmq_connection_uuid))
             connection.rx_zmq_sub.connect(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
+            self._update_device_setup()
 
     def de_register_connection(self, connection):
         """Connections unregistered here"""
@@ -774,6 +794,7 @@ class Device(threading.Thread):
             self.connections_list.remove(connection.zmq_connection_uuid)
             self.rx_zmq_sub.disconnect(CONNECTION_PUB_URL.format(id=connection.zmq_connection_uuid))
             connection.rx_zmq_sub.disconnect(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
+            self._update_device_setup()
 
     def __init__(
         self,

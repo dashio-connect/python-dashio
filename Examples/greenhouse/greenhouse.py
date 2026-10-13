@@ -304,7 +304,6 @@ class GreenhouseController:
         self.controls["lights_on"].add_receive_message_callback(self.lights_time_handler)
         self.controls["lights_off"].add_receive_message_callback(self.lights_time_handler)
         self.device.set_name_callback(self.name_handler)
-        update_config_revision(self.device, settings)
 
         self.connections = [dashio.TCPConnection()]
         username, password = settings.get("DASH", "username"), settings.get("DASH", "password")
@@ -314,6 +313,8 @@ class GreenhouseController:
             logging.info("No DashIO username and password, only using TCP.")
         for connection in self.connections:
             connection.add_device(self.device)
+        # After adding the connections, which are listed in the CFG's deviceSetup.
+        update_config_revision(self.device, settings)
 
         self.schedular = dashio.Schedular("Greenhouse")
         # Start after the device has started, as the first tick sends the controls' initial state.

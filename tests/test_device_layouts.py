@@ -134,7 +134,7 @@ class TestDeviceLayouts(unittest.TestCase):
         layout["CFG"]["deviceSetup"] = "BLE,TCP,NAME,WIFI"
         device = self.make_device()
         device.add_cfg64(layout, 1)
-        self.assertEqual(device._cfg["deviceSetup"], "name", "NAME in an app layout should turn on renaming")
+        self.assertEqual(device._cfg["deviceSetup"], "NAME", "NAME in an app layout should turn on renaming")
 
     def test_cfg_hash_same_for_same_cfg(self):
         first = self.make_device(cfg_dict={1: phone_layout(), 3: tablet_layout()})

@@ -250,7 +250,6 @@ class ServerMonitor:
         for key in ALARMS:
             self.controls[f"{key}_level"].add_receive_message_callback(self.alarm_level_handler)
         self.device.set_name_callback(self.name_handler)
-        update_config_revision(self.device, settings)
 
         self.connections = [dashio.TCPConnection()]
         username, password = settings.get("DASH", "username"), settings.get("DASH", "password")
@@ -260,6 +259,8 @@ class ServerMonitor:
             logging.info("No DashIO username and password, only using TCP.")
         for connection in self.connections:
             connection.add_device(self.device)
+        # After adding the connections, which are listed in the CFG's deviceSetup.
+        update_config_revision(self.device, settings)
 
         self.schedular = dashio.Schedular("ServerMonitor")
         # Start after the device has started, as the first tick sends the controls' initial state.

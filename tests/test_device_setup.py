@@ -1,7 +1,7 @@
 import time
 import unittest
 
-from dashio import Device
+from dashio import DashConnection, Device, TCPConnection
 
 
 class RecordingPublisher:
@@ -55,11 +55,11 @@ class TestDeviceSetup(unittest.TestCase):
         self.device.set_name_callback(lambda msg: msg[2])
         self.device.unset_name_callback()
         self.assertEqual(self.command("\tDEVICEID\tNAME\t\n"), "\tDEVICEID\tNAME\tDEVICENAME\n")
-        self.assertNotIn("name", self.device._cfg["deviceSetup"].split(","))
+        self.assertNotIn("NAME", self.device._cfg["deviceSetup"].split(","))
 
     def test_reset_replies_before_calling_callback(self):
         self.device.set_reset_callback(lambda msg: self.events.append(("reset", msg[1])))
-        self.assertIn("rst", self.device._cfg["deviceSetup"].split(","), "The device should advertise it can be reset")
+        self.assertIn("RST", self.device._cfg["deviceSetup"].split(","), "The device should advertise it can be reset")
         self.command("\tDEVICEID\tRST\n")
         self.assertEqual(self.events, [("sent", "\tDEVICEID\tRST\n"), ("reset", "RST")],
                          "The device must reply before resetting")
@@ -67,7 +67,7 @@ class TestDeviceSetup(unittest.TestCase):
     def test_reset_without_callback(self):
         self.device.set_reset_callback(lambda msg: self.events.append(("reset", msg[1])))
         self.device.unset_reset_callback()
-        self.assertNotIn("rst", self.device._cfg["deviceSetup"].split(","))
+        self.assertNotIn("RST", self.device._cfg["deviceSetup"].split(","))
         self.command("\tDEVICEID\tRST\n")
         self.assertEqual(self.events, [], "A device without a reset callback ignores RST")
 
@@ -77,6 +77,52 @@ class TestDeviceSetup(unittest.TestCase):
         self.assertEqual(self.command("\tWHO\n"), who)
         self.device._send_announce()
         self.assertIn(("sent", who), self.events, "The announce must include cfgRev, or the app takes it as 0")
+
+
+class TestDeviceSetupConnections(unittest.TestCase):
+    """CFG deviceSetup lists the device's connections, then the settings the Dash app can change."""
+
+    def setUp(self):
+        self.device = Device("DEVICETYPE", "DEVICEID", "DEVICENAME")
+        self.connections = []
+
+    def tearDown(self):
+        for connection in self.connections:
+            connection.close()
+        self.device.close()
+
+    def test_connections_and_settings(self):
+        tcp = TCPConnection(port=5663, use_zero_conf=False)
+        dash = DashConnection("USERNAME", "PASSWORD", host="localhost", auto_connect=False)
+        self.connections += [tcp, dash]
+        self.device.set_name_callback(lambda msg: msg[2])
+        tcp.add_device(self.device)
+        dash.add_device(self.device)
+        self.device.set_dashio_callback(lambda msg: True)
+        self.assertEqual(self.device._cfg["deviceSetup"], "TCP,MQTT,NAME,DASH")
+        self.assertIn("DASHIO", self.device._device_commands_dict, "DASH still handles the DASHIO message")
+
+    def test_removing_a_connection(self):
+        tcp = TCPConnection(port=5664, use_zero_conf=False)
+        self.connections.append(tcp)
+        tcp.add_device(self.device)
+        self.assertEqual(self.device._cfg["deviceSetup"], "TCP")
+        self.device.de_register_connection(tcp)
+        self.assertEqual(self.device._cfg["deviceSetup"], "")
+
+    def test_store_and_forward(self):
+        self.device.store_and_forward = True
+        self.assertTrue(self.device.store_and_forward)
+        self.assertEqual(self.device._cfg["deviceSetup"], "SAF", "The Dash app can then turn SAF on and off on the server")
+        self.device.store_and_forward = False
+        self.assertEqual(self.device._cfg["deviceSetup"], "")
+
+    def test_changes_the_cfg_hash(self):
+        cfg_hash = self.device.get_cfg_hash()
+        tcp = TCPConnection(port=5665, use_zero_conf=False)
+        self.connections.append(tcp)
+        tcp.add_device(self.device)
+        self.assertNotEqual(self.device.get_cfg_hash(), cfg_hash, "Adding a connection changes the CFG, so cfgRev must change")
 
 
 if __name__ == '__main__':

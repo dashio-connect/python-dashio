@@ -14,6 +14,8 @@ When the **Dash** app connects, it asks the device for the current state of all 
 * *device_name : str.* The name for this device (E.g. GlassHouse, MothersZimmerFrame...).
 * *cfg_dict : dict, optional.* A layout decoded with decode_cfg64, loaded for 1 column, or a dict of column number to layout, each a CFG64 string or decoded dict, e.g. `{1: phone_cfg64, 3: tablet_cfg64}`. cfgRev is set from the layouts. See [Layouts](#layouts), and [Helper Functions](#helper-functions) for tools to use the CFG64 text exported from the **Dash** app. By default None.
 * *context : zmq.Context, optional.* The ZMQ context, by default the shared zmq.Context.instance().
+* *store_and_forward : bool.* Set True if the device supports store and forward (SAF) on the Dash server, for devices that only connect now and then. The CFG's deviceSetup then includes SAF, and the **Dash** app can turn store and forward on and off on the server. With it on, the server keeps the app's messages for the device until it connects, and asks the device for its STATUS when it connects. Defaults to False.
+* *store : DashStore, optional.* Stores the data of the device's TimeGraph, EventLog and Map controls. See [Local Storage](#local-storage). By default None, which keeps a short history of each control in memory.
 
 ### Device Methods
 
@@ -106,6 +108,8 @@ While disconnected, the data is kept in the store. When the device connects, the
 ### Device Callback Methods
 
 These callbacks are used to setup and configure connections by the **Dash** app. Setting these callbacks advertises to the **Dash** app that the connection can be modified.
+
+The CFG's deviceSetup tells the **Dash** app what the device supports: first its connections, added when a connection is added to the device (TCP for a TCPConnection, MQTT for a DashConnection, BLE for a BLEConnection), then the settings the app can change, from these callbacks (NAME, WIFI, DASH, RST and so on), e.g. "TCP,MQTT,NAME,DASH". Adding a connection changes the CFG, so work out cfgRev from get_cfg_hash() after adding the device's connections.
 
 * *set_wifi_callback(callback):* Set a callback function that is called when the DashIO app provides wifi provisioning information. The callback must return a Boolean indicating success.
 * *unset_wifi_callback():* Clears the wifi callback.
