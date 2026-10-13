@@ -37,6 +37,7 @@ Settings changed in the app are saved to `greenhouse.ini`, so they survive a res
   - `generate_cfg64()` turns each set of controls into a layout, and `add_cfg64()` loads it for its column count.
   - Phones (1 column) get three views. Fold-out phones (2 columns) get one view two columns wide, with the climate and controls on the left and the history on the right. Tablets (3 columns) get one view three columns wide.
 - **TCP and Dash connections together**, from one device.
+- **Local storage:** the device has a `DashStore`, an sqlite database in `greenhouse.db`, which keeps the time graph and event log history. The **Dash** app's history requests are answered from it, so the history survives a restart. When the controller connects to the Dash server, it sends the server any history the server is missing, e.g. from while the connection was down. Use `--db` to choose another file.
 - **Dash server storage:** `storage_enable()` keeps the time graph and event log history on the Dash server. You can export it with the `dashio_data_exporter` utility, for example:
 
   ```bash

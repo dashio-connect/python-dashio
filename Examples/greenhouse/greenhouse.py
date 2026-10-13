@@ -7,6 +7,8 @@ and adjust it from the Dash app. It shows how to:
 - Build a layout for phones, fold out phones and tablets in code with generate_cfg64(), and load each with
   add_cfg64() so the Dash app gets the layout for its screen.
 - Connect over TCP on the local network and, with a DashIO account, through the Dash server at the same time.
+- Keep the time graph and event log history in a local DashStore (greenhouse.db), so it survives a restart,
+  and send the Dash server the history it missed while the connection was down.
 - Store time graph and event log data on the Dash server, so the history can be viewed or exported with
   dashio_data_exporter.
 - Run a control loop and a lighting schedule with a Schedular.
@@ -272,8 +274,9 @@ class Settings:
 class GreenhouseController:
     """Runs the greenhouse and its Dash device."""
 
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings, store: dashio.DashStore):
         self.settings = settings
+        self.store = store
         self.greenhouse = GreenhouseSimulator()
         # Dash app messages arrive on the device thread and the control loop runs on the Schedular thread.
         self.lock = threading.Lock()
@@ -284,7 +287,8 @@ class GreenhouseController:
         self.humidity = 0.0
         self.active_alarms = set()
 
-        self.device = dashio.Device("Greenhouse", settings.get("DEVICE", "device_id"), settings.get("DEVICE", "device_name"))
+        # The store keeps the time graph and event log history, and sends the Dash server what it missed.
+        self.device = dashio.Device("Greenhouse", settings.get("DEVICE", "device_id"), settings.get("DEVICE", "device_name"), store=store)
         # The device's own controls use the phone layout. Each layout, including that one, is loaded for its
         # number of columns, so the Dash app gets the layout for its screen.
         self.controls = make_controls(*LAYOUTS[1])
@@ -500,11 +504,13 @@ class GreenhouseController:
         for connection in self.connections:
             connection.close()
         self.device.close()
+        self.store.close()
 
 
 def main():
     parser = argparse.ArgumentParser(description="Greenhouse controller example for DashIO.")
     parser.add_argument("-i", "--ini", default="greenhouse.ini", help="Settings file. Defaults to greenhouse.ini")
+    parser.add_argument("-d", "--db", default="greenhouse.db", help="History database. Defaults to greenhouse.db")
     parser.add_argument("-v", "--verbose", action="store_true", help="Debug logging")
     args = parser.parse_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO, format="%(asctime)s %(message)s")
@@ -513,7 +519,7 @@ def main():
     signal.signal(signal.SIGINT, lambda *_: shutdown.set())
     signal.signal(signal.SIGTERM, lambda *_: shutdown.set())
 
-    controller = GreenhouseController(Settings(args.ini))
+    controller = GreenhouseController(Settings(args.ini), dashio.DashStore(args.db))
     while not shutdown.wait(1.0):
         pass
     controller.close()
