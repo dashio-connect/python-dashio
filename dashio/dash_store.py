@@ -95,7 +95,7 @@ class DashStore:
         self.max_entries = max_entries
         self.max_days = max_days
         self._lock = threading.Lock()
-        self._last_age_prune = 0.0
+        self._last_age_prune: float | None = None  # time.monotonic() of the last delete of old entries.
         self._db = sqlite3.connect(path, check_same_thread=False, isolation_level=None)
         self._db.execute("PRAGMA journal_mode=WAL")
         self._db.execute("PRAGMA synchronous=NORMAL")
@@ -131,7 +131,7 @@ class DashStore:
             if self.max_entries:
                 self._db.execute("DELETE FROM entries WHERE id <= ?", (cursor.lastrowid - self.max_entries,))
             now = time.monotonic()
-            if self.max_days is not None and now - self._last_age_prune >= _AGE_PRUNE_INTERVAL:
+            if self.max_days is not None and (self._last_age_prune is None or now - self._last_age_prune >= _AGE_PRUNE_INTERVAL):
                 self._last_age_prune = now
                 self._db.execute("DELETE FROM entries WHERE ts < ?", (int(time.time() - self.max_days * 86400),))
 

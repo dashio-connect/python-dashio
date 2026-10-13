@@ -46,7 +46,7 @@ class TestDashStore(unittest.TestCase):
         store = DashStore(max_days=1)
         self.addCleanup(store.close)
         store.add("LOG", "LOG1", "", time.time() - 2 * 86400, {"color": "4", "lines": ["old"]})
-        store._last_age_prune = 0.0
+        store._last_age_prune = None  # As if a minute has passed, so old entries are deleted on the next add.
         store.add("LOG", "LOG1", "", time.time(), {"color": "4", "lines": ["new"]})
         self.assertEqual([entry.data["lines"] for entry in store.entries("LOG", "LOG1")], [["new"]])
 
