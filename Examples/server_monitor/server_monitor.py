@@ -20,6 +20,7 @@ Run it with:
 The first run writes server_monitor.ini. Add your DashIO username and password to it to connect through
 the Dash server, otherwise the monitor is only available over TCP on the local network.
 """
+
 import argparse
 import configparser
 import logging
@@ -107,17 +108,11 @@ def make_controls(views: dict, layout: dict, alarm_levels: dict) -> dict:
         return dashio.ControlPosition(*layout[key][1])
 
     for key, (name, _, _) in ALARMS.items():
-        place(key, dashio.Dial(
-            key, name, dial_min=0.0, dial_max=100.0, red_value=alarm_levels[key], units="%", style=dashio.DialStyle.BAR,
-            number_position=dashio.DialNumberPosition.CENTER, control_position=position(key)
-        ))
-    place("system", dashio.Table(
-        "system", "System", columns=2, label_width_percent=35, control_position=position("system")
-    ))
+        place(key, dashio.Dial(key, name, dial_min=0.0, dial_max=100.0, red_value=alarm_levels[key], units="%", style=dashio.DialStyle.BAR, number_position=dashio.DialNumberPosition.CENTER, control_position=position(key)))
+    place("system", dashio.Table("system", "System", columns=2, label_width_percent=35, control_position=position("system")))
 
     # The alarm levels are changed less often, so they go in the Dash app's device provisioning menu.
-    alarm_levels = dashio.Menu("levels", "Alarm Levels", text="Alarm Levels", icon_name=dashio.Icon.BELL,
-                               control_position=dashio.ControlPosition(*MENU_POSITION))
+    alarm_levels = dashio.Menu("levels", "Alarm Levels", text="Alarm Levels", icon_name=dashio.Icon.BELL, control_position=dashio.ControlPosition(*MENU_POSITION))
     alarm_levels.parent_id = PROVISIONING_MENU
     controls["alarm_levels"] = alarm_levels
     for key, (name, _, _) in ALARMS.items():
@@ -125,24 +120,15 @@ def make_controls(views: dict, layout: dict, alarm_levels: dict) -> dict:
         alarm_levels.add_control(slider)
         controls[f"{key}_level"] = slider
 
-    usage_graph = dashio.TimeGraph(
-        "usage", "CPU and Memory", y_axis_label="%", y_axis_min=0.0, y_axis_max=100.0,
-        control_position=position("usage_graph")
-    )
+    usage_graph = dashio.TimeGraph("usage", "CPU and Memory", y_axis_label="%", y_axis_min=0.0, y_axis_max=100.0, control_position=position("usage_graph"))
     usage_graph.add_line("cpu", dashio.TimeGraphLine("CPU", color=dashio.Color.RED))
     usage_graph.add_line("memory", dashio.TimeGraphLine("Memory", color=dashio.Color.DODGER_BLUE))
     place("usage_graph", usage_graph)
-    network_graph = dashio.TimeGraph(
-        "network", "Network", y_axis_label="kB/s", y_axis_min=0.0, y_axis_max=1000.0,
-        control_position=position("network_graph")
-    )
+    network_graph = dashio.TimeGraph("network", "Network", y_axis_label="kB/s", y_axis_min=0.0, y_axis_max=1000.0, control_position=position("network_graph"))
     network_graph.add_line("received", dashio.TimeGraphLine("Received", color=dashio.Color.LIME))
     network_graph.add_line("sent", dashio.TimeGraphLine("Sent", color=dashio.Color.ORANGE))
     place("network_graph", network_graph)
-    place("processes", dashio.Table(
-        "procs", "Busiest Processes", columns=3, label_width_percent=50,
-        column_headings=["Process", "CPU %", "Mem %"], control_position=position("processes")
-    ))
+    place("processes", dashio.Table("procs", "Busiest Processes", columns=3, label_width_percent=50, column_headings=["Process", "CPU %", "Mem %"], control_position=position("processes")))
     place("event_log", dashio.EventLog("events", "Events", control_position=position("event_log")))
     return controls
 
@@ -193,11 +179,13 @@ class Settings:
     def __init__(self, filename: str):
         self.filename = filename
         self.config = configparser.ConfigParser()
-        self.config.read_dict({
-            "DEVICE": {"device_id": shortuuid.uuid(), "device_name": socket.gethostname(), "cfg_rev": "1", "cfg_hash": ""},
-            "DASH": {"username": "", "password": ""},
-            "ALARMS": {f"{key}_level": str(level) for key, (_, level, _) in ALARMS.items()},
-        })
+        self.config.read_dict(
+            {
+                "DEVICE": {"device_id": shortuuid.uuid(), "device_name": socket.gethostname(), "cfg_rev": "1", "cfg_hash": ""},
+                "DASH": {"username": "", "password": ""},
+                "ALARMS": {f"{key}_level": str(level) for key, (_, level, _) in ALARMS.items()},
+            }
+        )
         if not self.config.read(filename):
             self.save()
             logging.info("Wrote %s. Add your DashIO username and password to it to use the Dash server.", filename)
@@ -233,9 +221,7 @@ class ServerMonitor:
         for _ in psutil.process_iter(["cpu_percent"]):
             pass
 
-        self.device = dashio.Device(
-            "ServerMonitor", settings.get("DEVICE", "device_id"), settings.get("DEVICE", "device_name")
-        )
+        self.device = dashio.Device("ServerMonitor", settings.get("DEVICE", "device_id"), settings.get("DEVICE", "device_name"))
         alarm_levels = {key: self.alarm_level(key) for key in ALARMS}
         self.controls = make_controls(PHONE_VIEWS, PHONE_LAYOUT, alarm_levels)
         for control in self.controls.values():

@@ -22,6 +22,7 @@ Run it with:
 The first run writes greenhouse.ini. Add your DashIO username and password to it to connect through the
 Dash server, otherwise the controller is only available over TCP on the local network.
 """
+
 import argparse
 import configparser
 import datetime
@@ -134,62 +135,31 @@ def make_controls(views: dict, positions: dict) -> dict:
     def position(key):
         return dashio.ControlPosition(*positions[key][1])
 
-    place("temperature", dashio.Dial(
-        "temp", "Temperature", dial_min=0.0, dial_max=40.0, red_value=30.0, units="°C",
-        precision=dashio.Precision.ONE, control_position=position("temperature")
-    ))
-    place("humidity", dashio.Dial(
-        "humid", "Humidity", dial_min=0.0, dial_max=100.0, red_value=85.0, units="%",
-        dial_fill_color=dashio.Color.DODGER_BLUE, control_position=position("humidity")
-    ))
-    place("target", dashio.Knob(
-        "target", "Target Temperature", dial_min=5.0, dial_max=35.0, red_value=30.0, show_min_max=True,
-        control_position=position("target")
-    ))
-    place("status", dashio.TextBox(
-        "status", "Status", text_align=dashio.TextAlignment.CENTER, keyboard_type=dashio.Keyboard.NONE,
-        control_position=position("status")
-    ))
+    place("temperature", dashio.Dial("temp", "Temperature", dial_min=0.0, dial_max=40.0, red_value=30.0, units="°C", precision=dashio.Precision.ONE, control_position=position("temperature")))
+    place("humidity", dashio.Dial("humid", "Humidity", dial_min=0.0, dial_max=100.0, red_value=85.0, units="%", dial_fill_color=dashio.Color.DODGER_BLUE, control_position=position("humidity")))
+    place("target", dashio.Knob("target", "Target Temperature", dial_min=5.0, dial_max=35.0, red_value=30.0, show_min_max=True, control_position=position("target")))
+    place("status", dashio.TextBox("status", "Status", text_align=dashio.TextAlignment.CENTER, keyboard_type=dashio.Keyboard.NONE, control_position=position("status")))
     place("mode", dashio.Selector("mode", "Mode", selection=MODES, control_position=position("mode")))
-    place("heater", dashio.Button(
-        "heater", "Heater", icon_name=dashio.Icon.TEMPERATURE, on_color=dashio.Color.RED,
-        off_color=dashio.Color.DARK_GRAY, control_position=position("heater")
-    ))
-    place("fan", dashio.Button(
-        "fan", "Fan", icon_name=dashio.Icon.FAN, on_color=dashio.Color.DODGER_BLUE,
-        off_color=dashio.Color.DARK_GRAY, control_position=position("fan")
-    ))
-    place("lights", dashio.Button(
-        "lights", "Lights", icon_name=dashio.Icon.LIGHT_BULB, on_color=dashio.Color.GOLD,
-        off_color=dashio.Color.DARK_GRAY, control_position=position("lights")
-    ))
+    place("heater", dashio.Button("heater", "Heater", icon_name=dashio.Icon.TEMPERATURE, on_color=dashio.Color.RED, off_color=dashio.Color.DARK_GRAY, control_position=position("heater")))
+    place("fan", dashio.Button("fan", "Fan", icon_name=dashio.Icon.FAN, on_color=dashio.Color.DODGER_BLUE, off_color=dashio.Color.DARK_GRAY, control_position=position("fan")))
+    place("lights", dashio.Button("lights", "Lights", icon_name=dashio.Icon.LIGHT_BULB, on_color=dashio.Color.GOLD, off_color=dashio.Color.DARK_GRAY, control_position=position("lights")))
 
     # The settings are changed less often, so they go in the Dash app's device provisioning menu.
-    settings = dashio.Menu("setup", "Greenhouse Settings", text="Greenhouse Settings", icon_name=dashio.Icon.COG,
-                           control_position=dashio.ControlPosition(*MENU_POSITION))
+    settings = dashio.Menu("setup", "Greenhouse Settings", text="Greenhouse Settings", icon_name=dashio.Icon.COG, control_position=dashio.ControlPosition(*MENU_POSITION))
     settings.parent_id = PROVISIONING_MENU
     controls["settings"] = settings
     for key, control in (
-        ("max_humidity", dashio.Slider(
-            "maxhum", "Max Humidity %", bar_min=40.0, bar_max=95.0, red_value=90.0, show_min_max=True
-        )),
+        ("max_humidity", dashio.Slider("maxhum", "Max Humidity %", bar_min=40.0, bar_max=95.0, red_value=90.0, show_min_max=True)),
         # Date/Time format, so the Dash app shows the time nicely and offers a date/time entry keyboard.
-        ("lights_on", dashio.TextBox(
-            "lt_on", "Lights On", text_format=dashio.TextFormat.DATETIME, keyboard_type=dashio.Keyboard.TIME
-        )),
-        ("lights_off", dashio.TextBox(
-            "lt_off", "Lights Off", text_format=dashio.TextFormat.DATETIME, keyboard_type=dashio.Keyboard.TIME
-        )),
+        ("lights_on", dashio.TextBox("lt_on", "Lights On", text_format=dashio.TextFormat.DATETIME, keyboard_type=dashio.Keyboard.TIME)),
+        ("lights_off", dashio.TextBox("lt_off", "Lights Off", text_format=dashio.TextFormat.DATETIME, keyboard_type=dashio.Keyboard.TIME)),
     ):
         settings.add_control(control)
         controls[key] = control
 
     # One graph: temperature and target on the left axis, humidity on the right axis. Temperature and target
     # share a line of [temperature, target] arrays, and the Dash app chooses a color for each.
-    climate_graph = dashio.TimeGraph(
-        "graph", "Climate", y_axis_label="°C", y_axis_min=0.0, y_axis_max=40.0,
-        y_axis_label_rt="%", y_axis_min_rt=0.0, y_axis_max_rt=100.0, control_position=position("climate_graph")
-    )
+    climate_graph = dashio.TimeGraph("graph", "Climate", y_axis_label="°C", y_axis_min=0.0, y_axis_max=40.0, y_axis_label_rt="%", y_axis_min_rt=0.0, y_axis_max_rt=100.0, control_position=position("climate_graph"))
     climate_graph.add_line("temperatures", dashio.TimeGraphLine(["Temperature", "Target"], color=None))
     climate_graph.add_line("humidity", dashio.TimeGraphLine("Humidity", color=dashio.Color.DODGER_BLUE, right_axis=True))
     place("climate_graph", climate_graph)
@@ -244,17 +214,19 @@ class Settings:
     def __init__(self, filename: str):
         self.filename = filename
         self.config = configparser.ConfigParser()
-        self.config.read_dict({
-            "DEVICE": {"device_id": shortuuid.uuid(), "device_name": "Greenhouse", "cfg_rev": "1", "cfg_hash": ""},
-            "DASH": {"username": "", "password": ""},
-            "SETTINGS": {
-                "mode": "Auto",
-                "target_temperature": "20.0",
-                "max_humidity": "85.0",
-                "lights_on": "06:00",
-                "lights_off": "20:00",
-            },
-        })
+        self.config.read_dict(
+            {
+                "DEVICE": {"device_id": shortuuid.uuid(), "device_name": "Greenhouse", "cfg_rev": "1", "cfg_hash": ""},
+                "DASH": {"username": "", "password": ""},
+                "SETTINGS": {
+                    "mode": "Auto",
+                    "target_temperature": "20.0",
+                    "max_humidity": "85.0",
+                    "lights_on": "06:00",
+                    "lights_off": "20:00",
+                },
+            }
+        )
         if not self.config.read(filename):
             self.save()
             logging.info("Wrote %s. Add your DashIO username and password to it to use the Dash server.", filename)

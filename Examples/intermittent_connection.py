@@ -18,6 +18,7 @@ Run it with:
 then find the device in the Dash app on the local network, and set the Dash username and password in its
 provisioning menu. Or give them on the command line with -u and -w.
 """
+
 import argparse
 import configparser
 import logging
@@ -56,11 +57,13 @@ class Settings:
     def __init__(self, filename: str):
         self.filename = filename
         self.config = configparser.ConfigParser()
-        self.config.read_dict({
-            "DEVICE": {"device_id": shortuuid.uuid(), "device_name": "Intermittent Logger", "cfg_rev": "1", "cfg_hash": ""},
-            "DASH": {"username": "", "password": ""},
-            "SETTINGS": {"connect_interval": "900", "record_interval": "10"},
-        })
+        self.config.read_dict(
+            {
+                "DEVICE": {"device_id": shortuuid.uuid(), "device_name": "Intermittent Logger", "cfg_rev": "1", "cfg_hash": ""},
+                "DASH": {"username": "", "password": ""},
+                "SETTINGS": {"connect_interval": "900", "record_interval": "60"},
+            }
+        )
         if not self.config.read(filename):
             self.save()
 
@@ -86,11 +89,8 @@ class Logger:
         self.disconnect_at = None  # When connected, the time to disconnect.
         self.next_record = self.next_connect = time.monotonic()
 
-        self.device = dashio.Device(
-            "IntermittentLogger", settings.get("DEVICE", "device_id"), settings.get("DEVICE", "device_name"), store=store
-        )
-        self.graph = dashio.TimeGraph("graph", "Temperature", y_axis_label="°C", y_axis_min=0.0, y_axis_max=40.0,
-                                      control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.5))
+        self.device = dashio.Device("IntermittentLogger", settings.get("DEVICE", "device_id"), settings.get("DEVICE", "device_name"), store=store)
+        self.graph = dashio.TimeGraph("graph", "Temperature", y_axis_label="°C", y_axis_min=0.0, y_axis_max=40.0, control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.5))
         self.graph.add_line("temp", dashio.TimeGraphLine("Temperature", color=dashio.Color.RED))
         self.events = dashio.EventLog("events", "Connections", control_position=dashio.ControlPosition(0.0, 0.5, 1.0, 0.5))
         view = dashio.DeviceView("dv_main", "Logger")
@@ -100,13 +100,10 @@ class Logger:
         self.device.add_control(view)
 
         # The settings are in the Dash app's provisioning menu, available over the local TCP connection.
-        setup = dashio.Menu("setup", "Logger Settings", text="Logger Settings", icon_name=dashio.Icon.COG,
-                            control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.1))
+        setup = dashio.Menu("setup", "Logger Settings", text="Logger Settings", icon_name=dashio.Icon.COG, control_position=dashio.ControlPosition(0.0, 0.0, 1.0, 0.1))
         setup.parent_id = PROVISIONING_MENU
-        self.connect_interval = dashio.TextBox("conn", "Connect Every", text_format=dashio.TextFormat.INTVL,
-                                               keyboard_type=dashio.Keyboard.INTVL)
-        self.record_interval = dashio.TextBox("rec", "Record Every", text_format=dashio.TextFormat.INTVL,
-                                              keyboard_type=dashio.Keyboard.INTVL)
+        self.connect_interval = dashio.TextBox("conn", "Connect Every", text_format=dashio.TextFormat.INTVL, keyboard_type=dashio.Keyboard.INTVL)
+        self.record_interval = dashio.TextBox("rec", "Record Every", text_format=dashio.TextFormat.INTVL, keyboard_type=dashio.Keyboard.INTVL)
         self.connect_now = dashio.Button("now", "Connect Now", icon_name=dashio.Icon.REFRESH)
         for control in (self.connect_interval, self.record_interval, self.connect_now):
             setup.add_control(control)
