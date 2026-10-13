@@ -23,7 +23,8 @@ class TestDashStore(unittest.TestCase):
     def test_fnv1a_golden_vectors(self):
         self.assertEqual(f"{fnv1a_64(b''):016x}", "cbf29ce484222325")
         self.assertEqual(f"{fnv1a_64(b'a'):016x}", "af63dc4c8601ec8c")
-        self.assertEqual(f"{fnv1a_64(b'{\"controlInfo\":[],\"data\":[]}'):016x}", "e31bb7a9a23e0d6e")
+        empty_packet = b'{"controlInfo":[],"data":[]}'
+        self.assertEqual(f"{fnv1a_64(empty_packet):016x}", "e31bb7a9a23e0d6e")
 
     def test_entries_after_timestamp(self):
         store = DashStore(max_days=None)
