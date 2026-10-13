@@ -35,7 +35,7 @@ The library reference is in [Documents/Documentation.md](Documents/Documentation
 
 ## Examples
 
-There are plenty of examples in the github repository under the Examples directory. For complete applications, see [Examples/greenhouse](Examples/greenhouse) and [Examples/server_monitor](Examples/server_monitor).
+There are plenty of examples in the github repository under the Examples directory. For complete applications, see [Examples/greenhouse](Examples/greenhouse) and [Examples/server_monitor](Examples/server_monitor). [Examples/intermittent_connection.py](Examples/intermittent_connection.py) is a device that only connects to the Dash server now and then, keeping its data in a DashStore while disconnected, and is provisioned over TCP on the local network.
 
 ## Dash IoT Application
 
