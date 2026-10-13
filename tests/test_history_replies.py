@@ -1,5 +1,6 @@
 import datetime
 import json
+import time
 import unittest
 
 import dashio
@@ -81,6 +82,36 @@ class TestHistoryReplies(unittest.TestCase):
         log.add_receive_message_callback(lambda msg: f"\t{{device_id}}\tLOG\tLOG1\t{msg[3]}\t{{\"time\": \"x\"}}\n")
         reply = self.request("LOG", "LOG1", since(1))
         self.assertEqual(reply, "\tDEVICEID\tLOG\tLOG1\tDASHID\t{\"time\": \"x\"}\n", "A receive callback's reply should be sent")
+
+
+class TestServerStoredHistory(unittest.TestCase):
+    """The Dash server is the app's source of truth for the history of controls with storage_enable()."""
+
+    def setUp(self):
+        self.device = dashio.Device("DEVICETYPE", "DEVICEID", "DEVICENAME")
+        self.graph = dashio.TimeGraph("TG1")
+        self.graph.add_line("L1", dashio.TimeGraphLine("Line 1"))
+        self.device.add_control(self.graph)
+        self.graph.line_dict["L1"].add_data_point(1.5)
+        time.sleep(0.2)  # storage_enable() sends STE on the device thread's socket.
+
+    def tearDown(self):
+        self.device.close()
+
+    def request(self, msg_from: bytes) -> str:
+        return self.device._on_message(f"\tDEVICEID\tTGRPH\tTG1\tDASHID\t{since(1)}\n".encode(), msg_from)
+
+    def test_not_answered_over_local_connections(self):
+        self.device.storage_enable(dashio.ControlName.TGRPH, "TG1")
+        self.assertEqual(self.request(b"TCP:abc"), "", "The app should get the history from the Dash server")
+        self.assertEqual(self.request(b"ZMQ:abc"), "")
+
+    def test_answered_for_the_dash_server(self):
+        self.device.storage_enable(dashio.ControlName.TGRPH, "TG1")
+        self.assertIn(",1.5\n", self.request(b"DASH:abc"))
+
+    def test_answered_over_local_connections_without_server_storage(self):
+        self.assertIn(",1.5\n", self.request(b"TCP:abc"))
 
 
 if __name__ == '__main__':

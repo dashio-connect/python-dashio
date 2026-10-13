@@ -24,7 +24,7 @@ When the **Dash** app connects, it asks the device for the current state of all 
 * *use_cfg64().* Generate a CFG64 formatted CFG message.
 * *use_cfg().* Generate JSON formatted CFG messages.
 * *close().* Close the device.
-* *storage_enable(control_type: ControlName, control_id: str).* Turn on Dash server storage for a TimeGraph, EventLog or Map, so the Dash server stores its data and sends it to the **Dash** app. Requires a DashConnection.
+* *storage_enable(control_type: ControlName, control_id: str).* Turn on Dash server storage for a TimeGraph, EventLog or Map, so the Dash server stores its data and sends it to the **Dash** app. Requires a DashConnection. The Dash server is then the app's source of truth for the control's history, so the device only answers history requests for it from the Dash server, not over TCP or other local connections. Otherwise an app connected locally would take the device's history as complete and not ask the server for older data.
 * *config_revision : int.* The cfgRev sent to the **Dash** app. The app only fetches a new CFG when cfgRev changes, so increase it whenever the CFG changes.
 * *inc_config_revision().* Increase cfgRev by 1.
 * *device_name : str.* The device name. Setting it sends the new name to the **Dash** app.

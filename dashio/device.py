@@ -143,18 +143,19 @@ class Device(threading.Thread):
         Specify a callback function to be called when The Dash server sends ota data.
     """
 
-    def _on_message(self, payload):
+    def _on_message(self, payload, msg_from: bytes = b""):
         data = str(payload, "utf-8").strip()
         command_array = data.split("\n")
         reply = ""
+        from_dash_server = msg_from.startswith(b"DASH:")
         for command in command_array:
             try:
-                reply += self._on_command(command.strip())
+                reply += self._on_command(command.strip(), from_dash_server)
             except TypeError:
                 pass
         return reply
 
-    def _on_command(self, data):
+    def _on_command(self, data, from_dash_server: bool = False):
         data_array = data.split("\t")
         rx_device_id = data_array[0]
         if rx_device_id == "WHO":
@@ -167,6 +168,10 @@ class Device(threading.Thread):
             return ""
         if ctrl_type in self._device_commands_dict:
             return self._device_commands_dict[ctrl_type](data_array)
+        if not from_dash_server and len(data_array) > 4 and ctrl_type + "\t" + data_array[2] in self._server_stored:
+            # The Dash server keeps this control's history, so it's the app's source of truth. Answering a history
+            # request over a local connection would make the app think it has the history, and not ask the server.
+            return ""
         try:
             reply = self.controls_dict[ctrl_type + "\t" + data_array[2]]._message_rx_event(data_array)
         except (KeyError, IndexError):
@@ -364,12 +369,17 @@ class Device(threading.Thread):
             pass
 
     def storage_enable(self, control_type: ControlName, control_id: str) -> None:
-        """Turn On Dash Server Storage for the Event Log, Map, or Time Graph control."""
+        """Turn On Dash Server Storage for the Event Log, Map, or Time Graph control.
+
+        The Dash server then keeps the control's history and answers the Dash app's history requests, so the device
+        only answers them when they come from the Dash server, not over TCP or another local connection.
+        """
         key = f"{control_type.value}\t{control_id}"
         if key not in self.controls_dict:
             return
         if control_type not in [ControlName.LOG, ControlName.MAP, ControlName.TGRPH]:
             return
+        self._server_stored.add(key)
         payload = self._device_id_str + f"\tSTE\t{control_type.value}\t{control_id}\n"
         logger.debug("STORAGE ENABLE: %s", payload)
         self.tx_zmq_pub.send_multipart([b"ANNOUNCE", payload.encode('utf-8')])
@@ -827,6 +837,7 @@ class Device(threading.Thread):
             self._device_commands_dict['DATA'] = self._data_rx
         self._rst_rx_callback = None
         self.controls_dict = {}
+        self._server_stored = set()  # Keys of the controls whose history the Dash server keeps (storage_enable()).
         self._cfg = {}
         self._cfg["deviceSetup"] = ''
         self._cfg["cfgRev"] = 1
@@ -1015,7 +1026,7 @@ class Device(threading.Thread):
                     msg_dict = json.loads(msg_from)
                     self._local_command(msg_dict)
                     continue
-                reply = self._on_message(data)
+                reply = self._on_message(data, msg_from)
                 if reply != "":
                     #  logger.debug("DEVICE TX: %s ,%s", msg_from, data)
                     self.tx_zmq_pub.send_multipart([msg_from, reply.encode('utf-8')])
