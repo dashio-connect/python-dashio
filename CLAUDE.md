@@ -7,6 +7,7 @@ Notes for working on python-dashio, the Python library for the DashIO protocol a
 - `dashio/`: the library.
   - `device.py`: Device, layouts and CFG replies.
   - `dash_connection.py`: Dash server MQTT connection.
+  - `dash_store.py`: `DashStore` (sqlite storage for TimeGraph, EventLog and Map data) and `SDUSession` (store and forward to the Dash server).
   - `tcp_connection.py`, `zmq_connection.py`: the other connections.
   - `load_config.py`: `decode_cfg64`, `encode_cfg64`, `generate_cfg64`.
   - `iotcontrol/`: controls.
@@ -64,6 +65,23 @@ Notes for working on python-dashio, the Python library for the DashIO protocol a
   - Reconnecting is left to paho's network thread (`connect_async` and `loop_start`), whose wait doubles after each failed attempt, up to `RECONNECT_MAX_DELAY`, and only resets after a successful login. The run loop only makes the first connection, and doesn't connect without a username and password. `set_connection()` stops paho's thread and connects again.
   - Announce messages are sent at QoS 1. LWT is best effort; the Dash server also has its own last-connected check.
 - **`Device.close()` doesn't terminate the ZMQ context,** which is shared by default.
+- **What the Dash server does with announce topic messages:**
+  - `WHO`: registers or updates the device.
+  - `DISCONNECT`: **removes the device** from the server. Never send it for going offline; that's `OFFLINE` on the data topic.
+  - `STE`: turns on storage for a LOG, MAP or TGRPH control, only if it isn't on already.
+  - `CLK`: replies `\t<device_id>\tCLK\tsrv_clk\t<epoch seconds>\n` on the control topic, which reaches `set_clock_callback()`.
+  - `SEC`: `\t<device_id>\tSEC\tKEY\t<key>`, stores a device key (BLE security).
+  - `DATA`: `OTA` and `SDU` only.
+- **The Dash server is the source of truth for history.** For a control with `storage_enable()` (`Device._server_stored`), history requests are only answered when they come from a Dash server connection (`msg_from` starting `DASH:`), never over TCP, BLE or other local connections. Otherwise an app connected locally takes the device's history as complete and doesn't fetch the older history from the server. Live updates still go to every connection.
+- **`DashStore` and store and forward (SDU):** a port of the firmware's DashIO Storage Manager (`../zephyr-dashio-tally/port.md`, ESP-IDF port in `../dashesp/components/dashio_dsm`), using sqlite instead of a flash ring buffer.
+  - `Device(..., store=DashStore(path))` gives every TimeGraph, EventLog and Map on the device the store (`control._store`). They record into it as well as their ring buffers, and answer the app's history requests from it.
+  - The wire format must match the firmware byte for byte, as the Dash server is shared with it: the timestamp request, `controlInfo` order (lines, then tracks, then logs), `%.6f` floats, `T`/`F` booleans, unquoted LOG and MAP objects, and the FNV-1a hash (`%016x`) over the JSON. The golden vectors are in `tests/test_dash_store.py`.
+  - The timestamp request goes to the announce topic when the device's control topic subscription succeeds (`send_store_request` command, after `send_announce`). The server's `DATA SDU REQUEST/ACK/NACK` arrive as normal device messages (`Device._data_rx`). UPDATE packets go on the `DASH` zmq topic, so only Dash server connections get them.
+  - Unlike the firmware, a session sends from the server's timestamps for each line, track and log, not from the last ACK. Lines missing from the server's request aren't sent. TimeGraph breaks aren't stored.
+  - The session runs on the device thread: the 10 second ACK timeout is checked by `SDUSession.poll()` in `Device.run()`, because zmq sockets aren't thread safe.
+  - **The main use is devices that connect now and then,** e.g. on LTE to save power: `DashConnection(auto_connect=False)`, `connect()` on a schedule, and `disconnect()` from `device.set_store_sync_callback()`. The callback (`SDUSession.on_finished`) is called on every path that ends a sync, like the firmware's `finished_handler`, including no SDU REQUEST within `SDU_REQUEST_TIMEOUT` of the timestamp request. A new timestamp request abandons a session left from an earlier connection.
+  - During a planned disconnect (after `disconnect()`, or before `connect()` with `auto_connect=False`), DashConnection drops device messages rather than publishing a backlog when it connects. The app always gets current values from the device; with SAF on, the server sends STATUS itself. Announce messages other than WHO and SDU requests (e.g. STE, CLK) are kept and published once connected. A lost connection still queues messages in zmq, as before, so always-on devices without a store don't lose graph points.
+  - Don't confuse SDU with **SAF** (Store And Forward, the `SAF` keyword and the server's `SAFenabled` flag). SAF is a separate Dash server feature for devices that are only connected now and then: the server holds messages between the app and the device until the other end connects. It's a server setting (`SAFenabled`), not turned on by the WHO: `device.store_and_forward = True` adds `SAF` to `deviceSetup`, and the app turns it on and off on the server; with SAF on, the server sends the device a STATUS when it connects, to store the latest values.
 - **`PKG` messages** (not in the protocol PDF): `\t<device_id>\tPKG\tJAOS\t<json>\n` packages several messages into one.
   - The payload is a compact JSON array of strings, each a message without its leading `\t<device_id>\t` and trailing `\n`.
   - `JAOS` is the only encoding.
@@ -72,7 +90,7 @@ Notes for working on python-dashio, the Python library for the DashIO protocol a
   - `STATUS` replies send `NAME` as a normal message, then the controls' states packaged as `PKG`, like the C++ firmware.
   - `STATUS` leaves out controls that are inside a Menu or ButtonGroup **everywhere** they appear, in their own configs and every loaded layout. Their values are sent when the Menu or ButtonGroup is tapped, because the app asks every time. A control on a DeviceView in any layout must stay in `STATUS`, because STATUS doesn't know which layout the app has. This is `Device._menu_only_controls()`.
   - The device replies to `MENU` and `BTGP` (a Menu or ButtonGroup being tapped) with the state of every control whose parent is that Menu or ButtonGroup, packaged as `PKG`. The controls are found by `parentID`, in the controls and in the loaded layouts.
-- **`deviceSetup`:** the app accepts `dash` or `dashio`. `numDeviceViews` is the number of `DVVW` entries.
+- **`deviceSetup`** is built by `Device._update_device_setup()`: the connections first (`BLE`, `TCP`, `MQTT` for a DashConnection, from `CONNECTION_SETUP_OPTIONS` by connection ID prefix, updated by `register_connection()`), then the settings from the callbacks (`NAME`, `WIFI`, `DASH` for `set_dashio_callback()`, `RST`, ...). Upper case, as the app writes them. The app's full list is `BLE,TCP,MQTT,NAME,WIFI,DASH,RST,FRST,SAF,BBE,APN,GNSS,OTA,CLK,FLMD`; there's no TCP port option. Connections change the CFG hash, so examples work out cfgRev after adding their connections. `numDeviceViews` is the number of `DVVW` entries.
 - **Numbers in messages** are formatted by `format_value(value, digits)` in `control.py`.
   - Precision (Dial, Table) is the number of significant digits the app shows, rounded to the nearest: 62.37 shows as 60 with precision 1, 62 with 2, and 62.4 with 3. It's user settable in the app, so the device doesn't use it: controls with a precision setting always send 6 significant digits (`PRECISION_SIGNIFICANT_DIGITS`, the most the app shows) and the app formats the number to fit.
   - Controls without a precision get 5 significant digits, like the firmware's `%.5g`.
