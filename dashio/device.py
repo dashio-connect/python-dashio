@@ -977,8 +977,12 @@ class Device(threading.Thread):
             self._sdu.on_finished = None
 
     def _send_to_dash_server(self, message: str):
-        """Send a message to the Dash server connections only."""
-        self.tx_zmq_pub.send_multipart([b"DASH", message.encode('utf-8')])
+        """Send an SDU message to the Dash server's announce topic, where the server handles DATA messages.
+
+        Only Dash server connections receive the ANNOUNCE zmq topic.
+        """
+        logger.debug("ANNOUNCE: %s", message.rstrip())
+        self.tx_zmq_pub.send_multipart([b"ANNOUNCE", message.encode('utf-8')])
 
     def _data_rx(self, data_array) -> str:
         """DATA messages from the Dash server: the SDU (store and forward) session."""

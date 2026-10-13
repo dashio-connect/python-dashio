@@ -284,7 +284,7 @@ class TestDashServerSync(unittest.TestCase):
                 connection._on_message(None, None, FakeMQTTMessage('\tDEV1\tDATA\tSDU\tREQUEST\t{"logList":[{"controlID":"LOG1","sendInfo":true}]}\n'))
                 time.sleep(0.3)
                 updates = [payload for topic, payload in published if "\tSDU\tUPDATE\t" in payload]
-                self.assertEqual([topic for topic, payload in published if "\tSDU\tUPDATE\t" in payload], ["USERNAME/DEV1/data"])
+                self.assertEqual([topic for topic, payload in published if "\tSDU\tUPDATE\t" in payload], ["USERNAME/DEV1/announce"], "The server handles SDU on the announce topic")
                 self.assertIn('"lines":["Stored"]', split_packet(updates[0]))
                 connection._on_message(None, None, FakeMQTTMessage("\tDEV1\tDATA\tSDU\tACK\n"))
                 time.sleep(0.3)
