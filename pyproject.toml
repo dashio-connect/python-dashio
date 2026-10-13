@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dashio"
-version = "3.9.0"
+version = "3.10.0"
 description = "DashIO interface library"
 readme = "README.md"
 authors = [{ name = "James Boulton", email = "james@dashio.com" }]
