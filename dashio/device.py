@@ -833,6 +833,9 @@ class Device(threading.Thread):
         self.zmq_connection_uuid = "DVCE:" + shortuuid.uuid()
         self._b_zmq_connection_uuid = self.zmq_connection_uuid.encode()
         self.context = context or zmq.Context.instance()
+        # Made before the thread starts, so the device can send as soon as it's created.
+        self.tx_zmq_pub = self.context.socket(zmq.PUB)
+        self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
         self._wifi_rx_callback = None
         self._dashio_rx_callback = None
         self._name_rx_callback = None
@@ -1023,8 +1026,6 @@ class Device(threading.Thread):
     def run(self):
         # Continue the network loop, exit when an error occurs
 
-        self.tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"\tWHO")
         self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"COMMAND")
