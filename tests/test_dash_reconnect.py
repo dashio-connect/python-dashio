@@ -110,6 +110,7 @@ class TestPlannedDisconnect(unittest.TestCase):
     def test_messages_dropped_while_disconnected(self):
         published = []
         self.connection._dash_c.publish = lambda topic, payload, qos=0, **kwargs: published.append(payload)
+        self.connection.app_timeout = 0  # Publish the dial's updates with no app watching.
         device = Device("TestType", "DEV1", "Test")
         dial = Dial("D1")
         device.add_control(dial)

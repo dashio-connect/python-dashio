@@ -794,6 +794,8 @@ The connection tells the **Dash** app when its devices go online and offline, so
 
 The connection connects a moment after it is created, so add the devices straight after creating it.
 
+Control updates are only published while a **Dash** app is watching the device, which saves data and load on the server. The app sends CONNECT through the server about once a minute while it shows the device, so after a CONNECT or WHO the device counts as watched for app_timeout seconds. The app asks for the controls' states with STATUS when it opens, so it sees the latest values. Replies to the app, alarms, announcements, and TimeGraph, EventLog and Map updates (the server keeps their history) are always published. When the connection to the server is lost, no device counts as watched until the app's next CONNECT.
+
 If the connection fails, or is lost, it tries again, waiting twice as long after each failed attempt, up to 15 minutes, until it logs in. Without a username and password it doesn't connect; set them with set_connection().
 
 #### DashConnection Attributes
@@ -807,10 +809,12 @@ If the connection fails, or is lost, it tries again, waiting twice as long after
 * *offline_delay : int, optional.* If the connection is lost, the Dash server publishes OFFLINE for the first device after this many seconds, unless the connection is restored first. 0 publishes it straight away. Defaults to 10.
 * *batch_delay : float, optional.* Messages for the same topic sent within this many seconds are published together, so a device updating several controls makes one publish to the Dash server instead of one for each. Alarms are published straight away. 0 publishes each message straight away. Defaults to 0.05.
 * *auto_connect : bool, optional.* Connect when created. False waits for connect(), e.g. for a device that only connects now and then. Defaults to True.
+* *app_timeout : float, optional.* Seconds after a Dash app's last CONNECT or WHO that the device counts as watched, and its control updates are published. 0 always publishes them. Defaults to 120.
 
 #### DashConnection Methods
 
 * *add_device(device: Device).* Adds a device to the connection.
+* *app_active(device_id: str) -> bool.* Whether a Dash app is watching the device: it sent CONNECT or WHO within app_timeout seconds. With app_timeout 0, whether the connection is connected.
 * *close().* Sends OFFLINE for each device, then closes the connection.
 * *connect().* Connect to the Dash server, e.g. with auto_connect=False or after disconnect(). If the connection fails or is lost, it tries again until it logs in or disconnect() is called.
 * *disconnect().* Sends OFFLINE for each device and disconnects, until connect() is called. While disconnected on purpose, the devices' messages are dropped rather than sent when the connection is made: a device with a DashStore sends the server the history it missed, and the Dash app gets current values from the device. Requests to the server, such as storage_enable()'s STE, are kept and sent when connected.

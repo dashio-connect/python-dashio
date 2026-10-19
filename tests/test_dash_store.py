@@ -251,7 +251,8 @@ class SentMessage:
 
 
 class FakeMQTTMessage:
-    def __init__(self, payload):
+    def __init__(self, payload, topic="USERNAME/DEV1/control"):
+        self.topic = topic
         self.payload = payload.encode()
 
 

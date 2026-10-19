@@ -42,6 +42,7 @@ logger = logging.getLogger(__name__)
 
 MAX_BATCH_LENGTH = 4096  # A batch is published before it would grow past this, as in the DashIO firmware.
 RECONNECT_MAX_DELAY = 900  # The longest wait in seconds between attempts to connect to the Dash server.
+ALWAYS_PUBLISHED = (b"TGRPH", b"LOG", b"MAP")  # The Dash server keeps their history, so they're sent with no app watching.
 MAX_PENDING_ANNOUNCES = 100  # Requests to the server, such as STE, kept during a planned disconnect.
 
 
@@ -163,11 +164,46 @@ class DashConnection(threading.Thread):
     def _on_disconnect(self, client, userdata, disconnect_flags, reason_code, properties):
         logger.debug("disconnecting reason  %s", reason_code)
         self.connection_state = ConnectionState.DISCONNECTED
+        # No app is watching until it sends CONNECT again.
+        with self._app_lock:
+            for device_id in self._app_seen:
+                logger.debug("DASH app inactive for %s", device_id)
+            self._app_seen.clear()
 
     def _on_message(self, client, obj, msg):
         data = str(msg.payload, "utf-8").strip()
         logger.debug("DASH Rx ←\n%s", data)
+        topic = msg.topic.split('/')
+        if len(topic) == 3 and topic[2] == "control":
+            self._app_message(topic[1], data)
         self.tx_zmq_pub.send_multipart([msg.payload, self._b_zmq_connection_uuid])
+
+    def _app_message(self, device_id: str, data: str):
+        """A Dash app watching device_id sends it CONNECT about once a minute, and WHO when it opens."""
+        for line in data.split("\n"):
+            fields = line.strip("\t\r").split("\t")
+            if fields[0] == "WHO" or (len(fields) > 1 and fields[1] == "CONNECT"):
+                with self._app_lock:
+                    if device_id not in self._app_seen:
+                        logger.debug("DASH app active for %s", device_id)
+                    self._app_seen[device_id] = time.monotonic()
+                return
+
+    def app_active(self, device_id: str) -> bool:
+        """Whether a Dash app is watching device_id: it sent CONNECT or WHO within app_timeout seconds."""
+        if self.app_timeout <= 0:
+            return self.connection_state == ConnectionState.CONNECTED
+        with self._app_lock:
+            seen = self._app_seen.get(device_id)
+        return seen is not None and time.monotonic() - seen < self.app_timeout
+
+    def _expire_apps(self):
+        now = time.monotonic()
+        with self._app_lock:
+            expired = [device_id for device_id, seen in self._app_seen.items() if now - seen >= self.app_timeout]
+            for device_id in expired:
+                del self._app_seen[device_id]
+                logger.debug("DASH app inactive for %s", device_id)
 
     def _on_subscribe(self, client, userdata, mid, reason_codes, properties):
         logger.debug("Subscribed: %s %s", str(mid), str(reason_codes))
@@ -356,7 +392,8 @@ class DashConnection(threading.Thread):
         context: zmq.Context | None = None,
         offline_delay: int = 10,
         batch_delay: float = 0.05,
-        auto_connect: bool = True
+        auto_connect: bool = True,
+        app_timeout: float = 120
     ):
         """
         Setups and manages a connection thread to the Dash Server.
@@ -385,6 +422,12 @@ class DashConnection(threading.Thread):
             auto_connect : bool, optional
                 Connect when created. False waits for connect(), e.g. for a device that only connects now and then.
                 Defaults to True.
+            app_timeout : float, optional
+                A Dash app watching a device sends it CONNECT through the Dash server about once a minute. Until
+                app_timeout seconds pass without one, or WHO, control updates sent to all connections are published
+                to the Dash server. While no app is watching they aren't, except TimeGraph, EventLog and Map
+                updates, whose history the server keeps. Replies, alarms and announcements are always published.
+                0 always publishes control updates. Defaults to 120.
         """
 
         threading.Thread.__init__(self, daemon=True)
@@ -398,6 +441,9 @@ class DashConnection(threading.Thread):
         self._subscribing_topics = {}
         self.offline_delay = offline_delay
         self.batch_delay = batch_delay
+        self.app_timeout = app_timeout
+        self._app_seen = {}  # Device ID -> time.monotonic() of the last CONNECT or WHO from a Dash app.
+        self._app_lock = threading.Lock()
         self._batch = {}  # Topic -> (messages, qos) waiting to be published.
         self._batch_start = 0.0
         self._batch_lock = threading.Lock()
@@ -499,6 +545,8 @@ class DashConnection(threading.Thread):
                     self._dash_c.publish(f"{self.username}/{device_id}/alarm", data.decode(), qos=0)
                 elif msg_to == b"ANNOUNCE":
                     self._queue_publish(f"{self.username}/{device_id}/announce", data.decode(), 1)
+                elif msg_to == b"ALL" and control_type not in ALWAYS_PUBLISHED and not self.app_active(device_id):
+                    continue  # No Dash app is watching the device.
                 else:
                     self._queue_publish(f"{self.username}/{device_id}/data", data.decode(), 0)
             if self._pending_announces and self.connection_state == ConnectionState.CONNECTED:
@@ -507,6 +555,8 @@ class DashConnection(threading.Thread):
                     device_id = data.split(b'\t')[1].decode().strip()
                     self._queue_publish(f"{self.username}/{device_id}/announce", data.decode(), 1)
             self._flush_batch()
+            if self.app_timeout > 0:
+                self._expire_apps()
             if self._connect_at is not None and time.monotonic() >= self._connect_at:
                 self._connect_at = None
                 self._connect()

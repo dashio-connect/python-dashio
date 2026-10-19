@@ -25,7 +25,7 @@ class TestDashBatching(unittest.TestCase):
 
     def make_connection(self, batch_delay):
         # Connect to localhost so the test doesn't contact the Dash server.
-        connection = dashio.DashConnection("USERNAME", "PASSWORD", host="localhost", batch_delay=batch_delay)
+        connection = dashio.DashConnection("USERNAME", "PASSWORD", host="localhost", batch_delay=batch_delay, app_timeout=0)
         self.connections.append(connection)
         published = []
 

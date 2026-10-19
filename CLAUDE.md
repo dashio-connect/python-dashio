@@ -61,6 +61,7 @@ Notes for working on python-dashio, the Python library for the DashIO protocol a
   - It sends ONLINE for each device when connected, and for devices added later.
   - `close()` sends OFFLINE for each device.
   - Its Last Will is OFFLINE for the first device only, because an MQTT connection has a single will, with `offline_delay` (WillDelayInterval plus SessionExpiryInterval).
+  - Control updates (messages to `ALL`) are only published while a Dash app is watching the device: a CONNECT or WHO on its control topic within `app_timeout` (default 120 s, twice the app's CONNECT interval; 0 = always), kept per device and cleared on disconnect. Replies, alarms, announce, and TGRPH/LOG/MAP are always published. Tests that expect broadcast publishes need `app_timeout=0` or a CONNECT through `_on_message()`.
   - Messages for the same topic are batched for `batch_delay` (default 0.05 seconds) into one publish, up to 4096 characters, as the firmware's LTE code does. Alarms aren't batched.
   - Reconnecting is left to paho's network thread (`connect_async` and `loop_start`), whose wait doubles after each failed attempt, up to `RECONNECT_MAX_DELAY`, and only resets after a successful login. The run loop only makes the first connection, and doesn't connect without a username and password. `set_connection()` stops paho's thread and connects again.
   - Announce messages are sent at QoS 1. LWT is best effort; the Dash server also has its own last-connected check.
