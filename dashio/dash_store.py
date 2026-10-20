@@ -77,7 +77,7 @@ class DashStore:
 
     Give it to a Device with Device(..., store=DashStore("device.db")). The device's TimeGraph, EventLog and Map
     controls then record their data in it, answer the Dash app's history requests from it, and send the data the
-    Dash server is missing when the device connects (store and forward), as the DashIO firmware does.
+    Dash server is missing when the device connects (history upload, SDU), as the DashIO firmware does.
     """
 
     def __init__(self, path: str = ":memory:", max_entries: int = 100000, max_days: float | None = 31):
@@ -235,7 +235,7 @@ def _json_with_numbers(value: dict) -> str:
 
 
 class SDUSession:
-    """Sends a device's stored data to the Dash server: the DashIO store and forward (SDU) protocol.
+    """Sends a device's stored data to the Dash server: the DashIO history upload (SDU) protocol.
 
     1. When the device connects to the Dash server, it sends a timestamp request listing its stored lines,
        tracks and logs (timestamp_request()).

@@ -156,3 +156,6 @@ ttn.py
 
 # Claude Code personal notes
 CLAUDE.local.md
+
+# Local issue tracker (docs/agents/issue-tracker.md)
+.scratch/

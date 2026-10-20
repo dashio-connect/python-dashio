@@ -7,7 +7,7 @@ Notes for working on python-dashio, the Python library for the DashIO protocol a
 - `dashio/`: the library.
   - `device.py`: Device, layouts and CFG replies.
   - `dash_connection.py`: Dash server MQTT connection.
-  - `dash_store.py`: `DashStore` (sqlite storage for TimeGraph, EventLog and Map data) and `SDUSession` (store and forward to the Dash server).
+  - `dash_store.py`: `DashStore` (sqlite storage for TimeGraph, EventLog and Map data) and `SDUSession` (history upload to the Dash server).
   - `tcp_connection.py`, `zmq_connection.py`: the other connections.
   - `load_config.py`: `decode_cfg64`, `encode_cfg64`, `generate_cfg64`.
   - `iotcontrol/`: controls.
@@ -74,7 +74,7 @@ Notes for working on python-dashio, the Python library for the DashIO protocol a
   - `SEC`: `\t<device_id>\tSEC\tKEY\t<key>`, stores a device key (BLE security).
   - `DATA`: `OTA` and `SDU` only.
 - **The Dash server is the source of truth for history.** For a control with `storage_enable()` (`Device._server_stored`), history requests are only answered when they come from a Dash server connection (`msg_from` starting `DASH:`), never over TCP, BLE or other local connections. Otherwise an app connected locally takes the device's history as complete and doesn't fetch the older history from the server. Live updates still go to every connection.
-- **`DashStore` and store and forward (SDU):** a port of the firmware's DashIO Storage Manager (`../zephyr-dashio-tally/port.md`, ESP-IDF port in `../dashesp/components/dashio_dsm`), using sqlite instead of a flash ring buffer.
+- **`DashStore` and history upload (SDU):** a port of the firmware's DashIO Storage Manager (`../zephyr-dashio-tally/port.md`, ESP-IDF port in `../dashesp/components/dashio_dsm`), using sqlite instead of a flash ring buffer.
   - `Device(..., store=DashStore(path))` gives every TimeGraph, EventLog and Map on the device the store (`control._store`). They record into it as well as their ring buffers, and answer the app's history requests from it.
   - The wire format must match the firmware byte for byte, as the Dash server is shared with it: the timestamp request, `controlInfo` order (lines, then tracks, then logs), `%.6f` floats, `T`/`F` booleans, unquoted LOG and MAP objects, and the FNV-1a hash (`%016x`) over the JSON. The golden vectors are in `tests/test_dash_store.py`.
   - The timestamp request goes to the announce topic when the device's control topic subscription succeeds (`send_store_request` command, after `send_announce`). The server's `DATA SDU REQUEST/ACK/NACK` arrive as normal device messages (`Device._data_rx`). All SDU messages from the device, the timestamp request and the UPDATE packets, go to the **announce** topic (the `ANNOUNCE` zmq topic, which only Dash server connections receive), because that's where the server handles `DATA` messages.
@@ -107,3 +107,17 @@ Notes for working on python-dashio, the Python library for the DashIO protocol a
 
 - **BLE** (`ble_connection.py`): unfinished, Linux-only (needs dbus), and imported separately on purpose.
 - **The modem connections** (`quectel_EG800Q.py`, `telit_LE910Q1.py`, `sim767x.py`, `lte_767x_connection.py`): unfinished, and not exported from `dashio`. Their LWT code never runs.
+
+## Agent skills
+
+### Issue tracker
+
+Issues are tracked as local markdown files under `.scratch/<feature>/`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The default five labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.

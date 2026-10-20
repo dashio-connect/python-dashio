@@ -988,7 +988,7 @@ class Device(threading.Thread):
         self.tx_zmq_pub.send_multipart([b"ANNOUNCE", message.encode('utf-8')])
 
     def _data_rx(self, data_array) -> str:
-        """DATA messages from the Dash server: the SDU (store and forward) session."""
+        """DATA messages from the Dash server: the SDU (history upload) session."""
         if len(data_array) < 4 or data_array[2] != "SDU":
             return ""
         if data_array[3] == "REQUEST" and len(data_array) > 4:

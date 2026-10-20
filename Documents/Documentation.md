@@ -77,7 +77,7 @@ With a store:
 
 * Every data point added to a TimeGraphLine, event added to an EventLog and location added to a Map is stored.
 * The **Dash** app's history requests are answered from the store, including data stored before the program restarted. Without a store, the history is kept in each control's ring buffer. For controls with `storage_enable()`, history requests over local connections aren't answered, so the app gets the history from the Dash server.
-* When the device connects to the **Dash** server through a DashConnection, it sends the server the data the server is missing, e.g. data stored while the connection was down. This is the DashIO store and forward (SDU) protocol, as in the DashIO firmware: the device lists its stored lines, tracks and logs, the server replies with the newest timestamp it holds for each, and the device sends the newer entries in packets of up to 4096 bytes, each acknowledged by the server.
+* When the device connects to the **Dash** server through a DashConnection, it sends the server the data the server is missing, e.g. data stored while the connection was down. This is the DashIO history upload (SDU) protocol, as in the DashIO firmware: the device lists its stored lines, tracks and logs, the server replies with the newest timestamp it holds for each, and the device sends the newer entries in packets of up to 4096 bytes, each acknowledged by the server.
 
 #### Devices that connect now and then
 
