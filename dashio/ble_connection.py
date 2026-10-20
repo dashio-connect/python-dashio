@@ -186,8 +186,8 @@ class BLEConnection(threading.Thread):
         self._loop: asyncio.AbstractEventLoop | None = None
         self._bluez_ready = False
         self._registered = False
-        self._started = threading.Event()
-        self._stop: asyncio.Event | None = None
+        self._loop_ready = threading.Event()
+        self._stop_event: asyncio.Event | None = None
 
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
         self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
@@ -198,7 +198,7 @@ class BLEConnection(threading.Thread):
 
         self.running = True
         self.start()
-        self._started.wait(5)
+        self._loop_ready.wait(5)
 
     def add_device(self, device: Device):
         """Add the device to the connection. A BLEConnection has one device, as it advertises its device type.
@@ -267,8 +267,8 @@ class BLEConnection(threading.Thread):
                 logger.debug("BLE: unregister failed: %s", error)
             self._registered = False
         await self._backend.close()
-        if self._stop is not None:
-            self._stop.set()
+        if self._stop_event is not None:
+            self._stop_event.set()
 
     def _phone_changed(self):
         self._quiet_until = self._loop.time() + QUIET_PERIOD
@@ -430,10 +430,10 @@ class BLEConnection(threading.Thread):
 
     async def _main(self):
         self._loop = asyncio.get_running_loop()
-        self._stop = asyncio.Event()
+        self._stop_event = asyncio.Event()
         self._loop.add_reader(self.rx_zmq_sub.getsockopt(zmq.FD), self._zmq_readable)
         poller = self._loop.create_task(self._poll_zmq())
-        self._started.set()
+        self._loop_ready.set()
         try:
             await self._backend.start(self, self.adapter)
         except BLEError as error:
@@ -453,7 +453,7 @@ class BLEConnection(threading.Thread):
                 logger.warning("BLE: couldn't disconnect phones left connected: %s", error)
             self._bluez_ready = True
             await self._register()
-            await self._stop.wait()
+            await self._stop_event.wait()
         poller.cancel()
         self._loop.remove_reader(self.rx_zmq_sub.getsockopt(zmq.FD))
 
@@ -461,7 +461,7 @@ class BLEConnection(threading.Thread):
         try:
             asyncio.run(self._main())
         finally:
-            self._started.set()
+            self._loop_ready.set()
             self.running = False
             self.tx_zmq_pub.close()
             self.rx_zmq_sub.close()
