@@ -11,6 +11,7 @@ BLEConnection is a BlueZ GATT server written directly on dbus-fast. It sends to 
 ## Consequences
 
 - **No useful back-pressure** (measured on Fedora 44, BlueZ 5.87, October 2026). The notify socket accepted a 640 KB burst in 0.09 s. The kernel queued it and delivered all of it, in order, at about 27 KB/s. So the connection writes straight to the socket without rate limiting, and a large burst delays the messages behind it. A timeout on a blocked write stays as a safety net.
-- **BlueZ before late 2026 can close the wrong phone's notify socket** when another phone disconnects ([bluez#1452](https://github.com/bluez/bluez/issues/1452)). It didn't happen on 5.87. The connection disconnects a phone whose socket dies while it's still connected, so the phone reconnects.
+- **BlueZ 5.87 and earlier close the wrong phone's notify socket** when a phone disconnects ([bluez#1452](https://github.com/bluez/bluez/issues/1452)): the first phone to subscribe loses its socket, not the one leaving. One phone on its own is never affected. The connection disconnects a phone that writes without a socket, so it reconnects and subscribes again, and it contains the knock-on effects with several phones rather than switching to `PropertiesChanged`, which sends to every subscribed phone.
+- **Notifications are at most 512 bytes**, however large the MTU. BlueZ reads each one from the socket into a 512-byte buffer and silently drops the rest.
 - **iPhones need `[GATT] Client = false`** in `/etc/bluetooth/main.conf`. Otherwise bluetoothd reads the iPhone's protected Device Information, pairing fails, and BlueZ disconnects the phone 2 s later. The library can't set this, so it warns when the setting is missing.
 - **The oldest supported BlueZ is 5.66** (Raspberry Pi OS Bookworm).

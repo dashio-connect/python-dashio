@@ -27,7 +27,6 @@ import logging
 import os
 import signal
 import time
-import uuid
 
 import shortuuid
 
@@ -131,8 +130,7 @@ def main():
         default = {
             'DeviceID': shortuuid.uuid(),
             'DeviceName': args.device_name,
-            'DeviceType': 'SetWifi',
-            'BLE_UUID': str(uuid.uuid4())
+            'DeviceType': 'SetWifi'
         }
         config_file_parser['DEFAULT'] = default
         with open(ini_file, 'w') as configfile:
@@ -157,7 +155,7 @@ def main():
     device.set_wifi_callback(set_wifi_callback)
     device.set_name_callback(set_name_callback)
 
-    dash_conn = ble_connection.BLEConnection(ble_uuid=config_file_parser.get('DEFAULT', 'BLE_UUID'))
+    dash_conn = ble_connection.BLEConnection()
     dash_conn.add_device(device)
 
     while not shutdown:

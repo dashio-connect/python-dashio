@@ -46,7 +46,6 @@ from .iotcontrol.control import Control, ControlPosition
 from .iotcontrol.device_view import DeviceView
 from .iotcontrol.dial import Dial
 from .iotcontrol.direction import Direction
-# from .bleconnection import BLEConnection
 from .iotcontrol.enums import (BarMode, ButtonGroupStyle, ButtonState,
                                ButtonStyle, CaptionMode, ChartLineType,
                                ChartXAxisLabelsStyle, Color, ColorPickerStyle,

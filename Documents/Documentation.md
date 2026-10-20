@@ -840,78 +840,40 @@ The TCPConnection sets up a connection to the **Dash** app within a local area n
 
 ### BLEConnection
 
-The BLEConnection is only supported on Linux systems and requires bluez and dbus to be installed. It has been developed with the RaspberryPi Zero W in mind.
+A connection to the **Dash** app over Bluetooth Low Energy, for Linux with BlueZ 5.66 or later, e.g. Raspberry Pi OS. The device appears in the app like a DashIO firmware device, advertised as `DashIO_<device type>`, and the app can use it fully over BLE, including provisioning with the device's callbacks (set_wifi_callback(), set_dashio_callback(), set_name_callback() and so on). Several phones can connect at once: each gets the replies to its own messages, and control updates go to all of them. BLE is a local connection, so history requests for controls with storage_enable() aren't answered over it.
+
+Install it with the `ble` extra, and import it explicitly:
+
+```bash
+pip install dashio[ble]
+```
+
+```python
+from dashio.ble_connection import BLEConnection
+
+device = dashio.Device("PumpController", "pump1", "Pump")
+ble = BLEConnection()
+ble.add_device(device)
+```
+
+For iPhones, BlueZ must not act as a GATT client. Otherwise it reads the iPhone's protected Device Information when it connects, the pairing that starts fails, and BlueZ disconnects the iPhone two seconds later. Set this in `/etc/bluetooth/main.conf`, then `sudo systemctl restart bluetooth`:
+
+```ini
+[GATT]
+Client = false
+```
+
+The BLEConnection logs a warning when it isn't set. The machine then can't use BLE peripherals such as LE keyboards.
 
 #### BLEConnection Attributes
 
-* *ble_uuid : str, optional.* The UUID used by the BLE connection, if None a UUID is generated.
+* *adapter : str, optional.* The Bluetooth adapter, e.g. "hci0". Defaults to the first adapter that can advertise.
 * *context : zmq.Context, optional.* The ZMQ context, by default the shared zmq.Context.instance().
 
 #### BLEConnection Methods
 
-* *add_device(device: Device).* Adds a device to the connection.
-* *close().* Closes the connection.
-
-The steps to get a Pi Zero to become a Device Server
-
-Install bluez and bluetooth:
-
-```bash
-sudo apt-get install bluetooth bluez
-```
-
-Edit:
-
-```bash
-sudo nano /lib/systemd/system/bluetooth.service
-```
-
-Replace:
-
-```bash
-ExecStart=/usr/lib/bluetooth/bluetoothd
-
-```
-
-With:
-
-```bash
-ExecStart=/usr/lib/bluetooth/bluetoothd --noplugin=sap
-```
-
-Edit:
-
-```bash
-sudo nano /lib/systemd/system/bthelper@.service
-```
-
-Replace the [Service] segment with:
-
-```bash
-[Service]
-Type=simple
-ExecStartPre=/bin/sleep 2
-ExecStart=/usr/bin/bthelper %I
-ExecStartPost=sudo /etc/init.d/bluetooth restart
-```
-
-Edit:
-
-```bash
-sudo nano /etc/bluetooth/input.conf
-```
-
-Set:
-
-```bash
-LEAutoSecurity=false
-```
-
-To use the BLEConnection it has to be imported explicitly:
-
-```python
-from dashio.ble_connection import BLEConnection
-```
+* *add_device(device: Device).* Adds the device to the connection. A BLEConnection has one device, as it advertises its device type; adding a second raises ValueError.
+* *close().* Disconnects the phones and unregisters from BlueZ.
 
 ## Helper Functions
 

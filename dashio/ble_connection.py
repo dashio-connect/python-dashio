@@ -1,6 +1,7 @@
-"""ble.connection.py
+"""
+MIT License
 
-Copyright (c) 2019, Douglas Otwell, DashIO Connect
+Copyright (c) 2020 DashIO-Connect
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,475 +21,382 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-import json
+
+from __future__ import annotations
+
+import asyncio
+import configparser
 import logging
+import socket
 import threading
-import time
-import uuid
+
 import shortuuid
-
-import dbus  # type: ignore
-import dbus.exceptions  # type: ignore
-import dbus.mainloop.glib  # type: ignore
-import dbus.service  # type: ignore
 import zmq
-from gi.repository import GLib  # type: ignore
-
-from dashio.device import Device
 
 from .constants import CONNECTION_PUB_URL
-
+from .device import Device
 
 logger = logging.getLogger(__name__)
 
+# The same service and characteristic as the DashIO firmware, so the Dash app finds the device.
+SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
+CHARACTERISTIC_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8"
+NAME_PREFIX = "DashIO_"
+# BlueZ puts the name in the 31-byte scan response, as a 2-byte header and the name.
+MAX_NAME_BYTES = 29
+# The longest attribute value BLE allows. BlueZ reads each notification from the notify socket into a 512-byte
+# buffer, so a longer one loses its end, though the MTU can be 517.
+MAX_NOTIFICATION_BYTES = 512
+# How long a phone can write without a notify socket before it's disconnected, so it subscribes again.
+UNSUBSCRIBED_WRITE_TIMEOUT = 1.0
+BLUEZ_MAIN_CONF = "/etc/bluetooth/main.conf"
 
-class BLEControl():
-    """BLE connection control
+
+class BLEError(Exception):
+    """BlueZ couldn't do what the BLE connection asked."""
+
+
+class BlueZBackend:
+    """What a BLEConnection needs from BlueZ.
+
+    The default is the dbus-fast backend in dashio.ble_bluez. Tests use a fake one. Every method is a coroutine
+    run on the connection's event loop.
+
+    The backend tells the connection about phones by calling, on the same loop:
+
+    - connection._phone_subscribed(phone, notify_socket, mtu) when a phone turns on notifications. phone is the
+      BlueZ device object path. Each chunk sent on notify_socket is one notification to that phone.
+    - connection._phone_wrote(phone, data) when a phone writes to the characteristic.
+
+    A phone has gone when its notify socket closes.
     """
 
-    def get_state(self) -> str:
-        """A CFG only control"""
-        return ""
+    async def start(self, connection: BLEConnection, adapter: str | None) -> None:
+        """Connect to BlueZ and find the adapter: adapter, e.g. "hci0", or the first that can advertise."""
+        raise NotImplementedError
 
-    def get_cfg(self, data) -> str:
-        """Called by iotdashboard app to get controls CFG
+    async def register(self, local_name: str) -> None:
+        """Register the GATT application and the advertisement. Raises BLEError."""
+        raise NotImplementedError
+
+    async def unregister(self) -> None:
+        """Unregister the advertisement and the GATT application."""
+        raise NotImplementedError
+
+    async def disconnect(self, phone: str) -> None:
+        """Disconnect a phone."""
+        raise NotImplementedError
+
+    async def connected_unpaired(self) -> list[str]:
+        """The LE devices connected to the adapter that aren't paired."""
+        raise NotImplementedError
+
+    async def close(self) -> None:
+        """Disconnect from BlueZ."""
+        raise NotImplementedError
+
+
+def advertised_name(device_type: str) -> str:
+    """The name the device advertises: DashIO_<device type>, cut short to fit the scan response."""
+    name = NAME_PREFIX + device_type
+    encoded = name.encode()
+    if len(encoded) <= MAX_NAME_BYTES:
+        return name
+    short_name = encoded[:MAX_NAME_BYTES].decode(errors="ignore")
+    logger.warning("BLE: the advertised name %s is too long, it's cut short to %s", name, short_name)
+    return short_name
+
+
+def gatt_client_disabled(path: str = BLUEZ_MAIN_CONF) -> bool:
+    """Whether BlueZ's main.conf sets [GATT] Client = false.
+
+    With BlueZ's default, true, bluetoothd reads an iPhone's protected Device Information when it connects, pairing
+    fails, and BlueZ disconnects the iPhone two seconds later.
+    """
+    config = configparser.ConfigParser(strict=False, inline_comment_prefixes=("#",))
+    try:
+        if not config.read(path):
+            return False
+    except configparser.Error:
+        return False
+    return config.get("GATT", "Client", fallback="true").strip().lower() in ("false", "no", "off", "0")
+
+
+class _Phone:
+    """A phone connected over BLE."""
+
+    def __init__(self, path: str, notify_socket: socket.socket, mtu: int):
+        self.path = path
+        self.client_id = path.rsplit("/", 1)[-1].encode()
+        self.notify_socket = notify_socket
+        self.mtu = mtu
+        self.queue: asyncio.Queue[bytes] = asyncio.Queue()
+        self.sender: asyncio.Task | None = None
+
+
+class BLEConnection(threading.Thread):
+    """A connection to the Dash app over Bluetooth Low Energy, as a BlueZ GATT server. Linux only.
+
+    The device appears in the Dash app like a DashIO firmware device: the DashIO service and characteristic,
+    advertised as DashIO_<device type>. Each phone gets the replies to its own messages, and control updates go to
+    every connected phone.
+
+    Needs `pip install dashio[ble]`, and for iPhones, [GATT] Client = false in /etc/bluetooth/main.conf.
+    """
+
+    def __init__(self, adapter: str | None = None, context: zmq.Context | None = None, backend: BlueZBackend | None = None):
+        """BLE Connection
+
+        Parameters
+        ----------
+            adapter : str, optional
+                The Bluetooth adapter to use, e.g. "hci0". Defaults to the first adapter that can advertise.
+            context : optional
+                ZMQ context. Defaults to None.
+            backend : BlueZBackend, optional
+                Talks to BlueZ. Defaults to the dbus-fast backend.
         """
-        try:
-            dashboard_id = data[2]
-        except IndexError:
-            return ""
-        cfg_str = f"\tCFG\t{dashboard_id}\t" + self.ctrl_type + "\t" + json.dumps(self._cfg) + "\n"
-        return cfg_str
+        threading.Thread.__init__(self, daemon=True)
+        self.context = context or zmq.Context.instance()
+        self.zmq_connection_uuid = "BLE:" + shortuuid.uuid()
+        self.b_zmq_connection_uuid = self.zmq_connection_uuid.encode('utf-8')
+        self.local_device_id_list = []
+        self.adapter = adapter
+        if backend is None:
+            from .ble_bluez import DbusFastBackend  # pylint: disable=import-outside-toplevel
+            backend = DbusFastBackend()
+        self._backend = backend
+        self._device: Device | None = None
+        self._phones: dict[bytes, _Phone] = {}
+        self._rx_buffers: dict[bytes, bytes] = {}
+        self._unsubscribed_writers: set[str] = set()
+        self._loop: asyncio.AbstractEventLoop | None = None
+        self._bluez_ready = False
+        self._registered = False
+        self._started = threading.Event()
+        self._stop: asyncio.Event | None = None
 
-    def get_cfg64(self, data) -> dict:
-        """Returns the CFG dict for this TCP control
+        self.tx_zmq_pub = self.context.socket(zmq.PUB)
+        self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
+        self.rx_zmq_sub = self.context.socket(zmq.SUB)
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "BLE")
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.zmq_connection_uuid)
 
-        Returns
-        -------
-        dict
-            The CFG string for this control
-        """
-        return self._cfg
-
-    def __init__(self, control_id, service_uuid="", read_uuid="", write_uuid=""):
-        self._cfg = {}
-        self.ctrl_type = "BLE"
-        self._cfg["controlID"] = control_id
-        self.control_id = control_id
-        self.service_uuid = service_uuid
-        self.read_uuid = read_uuid
-        self.write_uuid = write_uuid
-
-    @property
-    def service_uuid(self) -> str:
-        """ServiceUUID"""
-        return self._cfg["serviceUUID"]
-
-    @service_uuid.setter
-    def service_uuid(self, val: str):
-        self._cfg["serviceUUID"] = val
-
-    @property
-    def read_uuid(self) -> str:
-        """readUUID"""
-        return self._cfg["readUUID"]
-
-    @read_uuid.setter
-    def read_uuid(self, val: str):
-        self._cfg["readUUID"] = val
-
-    @property
-    def write_uuid(self) -> str:
-        """writeUUID"""
-        return self._cfg["writeUUID"]
-
-    @write_uuid.setter
-    def write_uuid(self, val: str):
-        self._cfg["writeUUID"] = val
-
-
-GATT_CHRC_IFACE = "org.bluez.GattCharacteristic1"
-NOTIFY_TIMEOUT = 10
-BLUEZ_SERVICE_NAME = "org.bluez"
-LE_ADVERTISING_MANAGER_IFACE = "org.bluez.LEAdvertisingManager1"
-DBUS_OM_IFACE = "org.freedesktop.DBus.ObjectManager"
-DBUS_PROP_IFACE = "org.freedesktop.DBus.Properties"
-LE_ADVERTISEMENT_IFACE = "org.bluez.LEAdvertisement1"
-GATT_MANAGER_IFACE = "org.bluez.GattManager1"
-GATT_SERVICE_IFACE = "org.bluez.GattService1"
-GATT_DESC_IFACE = "org.bluez.GattDescriptor1"
-
-
-class DashIOAdvertisement(dbus.service.Object):
-    """BLE Advertisement
-    """
-    PATH_BASE = "/org/bluez/example/advertisement"
-
-    def __init__(self, index, service_uuid):
-        self.path = self.PATH_BASE + str(index)
-        self.bus = dbus.SystemBus()
-        self.service_uuids = []
-        self.service_uuids.append(service_uuid)
-        self.properties = {}
-        self.properties["Type"] = "peripheral"
-        self.properties["LocalName"] = dbus.String("DashIO")
-        self.properties["ServiceUUIDs"] = dbus.Array(self.service_uuids, signature='s')
-        self.properties["IncludeTxPower"] = dbus.Boolean(True)
-        dbus.service.Object.__init__(self, self.bus, self.path)
-        self.register()
-
-    def find_adapter(self, bus):
-        """Find BLE adapters"""
-        remote_om = dbus.Interface(bus.get_object(BLUEZ_SERVICE_NAME, "/"), DBUS_OM_IFACE)
-        objects = remote_om.GetManagedObjects()
-
-        for obj, props in objects.items():
-            if LE_ADVERTISING_MANAGER_IFACE in props:
-                return obj
-        return None
-
-    def get_properties(self):
-        """Return the properties dictionary"""
-        return {LE_ADVERTISEMENT_IFACE: self.properties}
-
-    def get_path(self):
-        """Get the DBUS Path to BLE advertisement"""
-        return dbus.ObjectPath(self.path)
-
-    # pylint: disable=invalid-name
-    @dbus.service.method(DBUS_PROP_IFACE, in_signature="s", out_signature="a{sv}")
-    def GetAll(self, iface):
-        """DBUS calls this to retrieve Advertisements"""
-        if iface != LE_ADVERTISEMENT_IFACE:
-            raise InvalidArgsException()
-        return self.get_properties()[LE_ADVERTISEMENT_IFACE]
-
-    # pylint: disable=invalid-name
-    @dbus.service.method(LE_ADVERTISEMENT_IFACE, in_signature='', out_signature='')
-    def Release(self):
-        """DBUS calls this on release"""
-        logger.debug('%s: Released!', self.path)
-
-    def register_ad_callback(self):
-        """DBUS calls this on release"""
-        logger.debug("GATT advertisement registered")
-
-    def register_ad_error_callback(self):
-        """DBUS calls this on error"""
-        logger.debug("Failed to register GATT advertisement")
-
-    def register(self):
-        """Register with DBUS"""
-        bus = self.bus
-        adapter = self.find_adapter(bus)
-        ad_manager = dbus.Interface(bus.get_object(BLUEZ_SERVICE_NAME, adapter), LE_ADVERTISING_MANAGER_IFACE)
-        ad_manager.RegisterAdvertisement(self.get_path(), {}, reply_handler=self.register_ad_callback, error_handler=self.register_ad_error_callback)
-
-
-class InvalidArgsException(dbus.exceptions.DBusException):
-    """DBUS errors"""
-    _dbus_error_name = "org.freedesktop.DBus.Error.InvalidArgs"
-
-
-class NotSupportedException(dbus.exceptions.DBusException):
-    """DBUS errors"""
-    _dbus_error_name = "org.bluez.Error.NotSupported"
-
-
-class NotPermittedException(dbus.exceptions.DBusException):
-    """DBUS errors"""
-    _dbus_error_name = "org.bluez.Error.NotPermitted"
-
-
-class BLEConnection(dbus.service.Object, threading.Thread):
-    """BLEConnection
-    """
-
-    def _send_announce(self):
-        msg = {
-            'msgType': 'send_announce',
-            'connectionUUID': self.zmq_connection_uuid
-        }
-        #  logger.debug("TCP SEND ANNOUNCE: %s", msg)
-        self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg).encode()])
+        self.running = True
+        self.start()
+        self._started.wait(5)
 
     def add_device(self, device: Device):
-        """Add a device to the connection
+        """Add the device to the connection. A BLEConnection has one device, as it advertises its device type.
 
         Parameters
         ----------
         device : dashio.Device
             Add a device to the connection.
         """
-        if device.device_id not in self.local_device_id_list:
-            device.register_connection(self)
-            self.local_device_id_list.append(device.device_id)
+        if self._device is device:
+            return
+        if self._device is not None:
+            raise ValueError("A BLEConnection has one device, and already has " + self._device.device_id)
+        self._device = device
+        self.local_device_id_list.append(device.device_id)
+        device.register_connection(self)
+        self._call_soon(self._register())
 
     def close(self):
-        """Close the connection
+        """Close the connection: disconnect the phones and unregister from BlueZ."""
+        if self._loop is None or not self.is_alive():
+            return
+        future = asyncio.run_coroutine_threadsafe(self._shutdown(), self._loop)
+        try:
+            future.result(5)
+        except Exception as error:  # pylint: disable=broad-except
+            logger.warning("BLE: closing failed: %s", error)
+        self.join(5)
+
+    def _call_soon(self, coroutine):
+        if self._loop is None or not self.is_alive():
+            coroutine.close()
+            return
+        asyncio.run_coroutine_threadsafe(coroutine, self._loop)
+
+    # These run on the connection's event loop.
+
+    async def _register(self):
+        if self._device is None or not self._bluez_ready or self._registered:
+            return
+        self._registered = True
+        try:
+            await self._backend.register(advertised_name(self._device.device_type))
+            logger.debug("BLE: registered with BlueZ")
+        except BLEError as error:
+            self._registered = False
+            logger.error("BLE: couldn't register with BlueZ: %s", error)
+
+    async def _shutdown(self):
+        # Every phone, including one whose notify socket BlueZ closed: a phone left connected keeps its old GATT
+        # state, and won't subscribe again to the next run.
+        phone_paths = {phone.path for phone in self._phones.values()}
+        if self._bluez_ready:
+            try:
+                phone_paths.update(await self._backend.connected_unpaired())
+            except BLEError as error:
+                logger.debug("BLE: listing connected phones failed: %s", error)
+        for phone_path in sorted(phone_paths):
+            await self._disconnect(phone_path)
+        for phone in list(self._phones.values()):
+            self._drop_phone(phone)
+        if self._registered:
+            try:
+                await self._backend.unregister()
+            except BLEError as error:
+                logger.debug("BLE: unregister failed: %s", error)
+            self._registered = False
+        await self._backend.close()
+        if self._stop is not None:
+            self._stop.set()
+
+    def _phone_subscribed(self, phone_path: str, notify_socket: socket.socket, mtu: int):
+        phone = _Phone(phone_path, notify_socket, mtu)
+        old = self._phones.get(phone.client_id)
+        if old is not None:
+            self._drop_phone(old)
+        logger.debug("BLE: %s subscribed, MTU %d", phone_path, mtu)
+        notify_socket.setblocking(False)
+        self._phones[phone.client_id] = phone
+        self._loop.add_reader(notify_socket.fileno(), self._notify_socket_readable, phone)
+        phone.sender = self._loop.create_task(self._send_to_phone(phone))
+
+    def _phone_wrote(self, phone_path: str, data: bytes):
+        client_id = phone_path.rsplit("/", 1)[-1].encode()
+        if client_id not in self._phones and phone_path not in self._unsubscribed_writers:
+            self._unsubscribed_writers.add(phone_path)
+            self._loop.call_later(UNSUBSCRIBED_WRITE_TIMEOUT, self._check_subscribed, phone_path, client_id)
+        buffer = self._rx_buffers.get(client_id, b"") + data
+        *messages, buffer = buffer.split(b"\n")
+        self._rx_buffers[client_id] = buffer
+        msg_from = self.b_zmq_connection_uuid + b":" + client_id
+        for message in messages:
+            if message:
+                logger.debug("BLE Rx %s ←\n%s", client_id.decode(), message.decode(errors="replace"))
+                self.tx_zmq_pub.send_multipart([message, msg_from])
+
+    def _check_subscribed(self, phone_path: str, client_id: bytes):
+        """A phone wrote without a notify socket, so it gets no replies.
+
+        BlueZ 5.87 and earlier can close another phone's notify socket when one phone unsubscribes (bluez#1452). That
+        phone stays connected, thinks it's still subscribed, and never subscribes again. Disconnect it, so it
+        reconnects and subscribes.
         """
-        logger.debug("\nGATT application terminated")
-        self.tx_zmq_pub.close()
-        self.rx_zmq_sub.close()
-        self.mainloop.quit()
+        self._unsubscribed_writers.discard(phone_path)
+        if client_id in self._phones:
+            return
+        logger.info("BLE: %s is writing without notifications, disconnecting it so it subscribes again", phone_path)
+        self._loop.create_task(self._disconnect(phone_path))
 
-    def _zmq_callback(self, queue, condition):
-        # logger.debug('zmq_callback')
+    async def _disconnect(self, phone_path: str):
+        try:
+            await self._backend.disconnect(phone_path)
+        except BLEError as error:
+            logger.debug("BLE: disconnect %s failed: %s", phone_path, error)
 
+    def _notify_socket_readable(self, phone: _Phone):
+        try:
+            data = phone.notify_socket.recv(1024)
+        except BlockingIOError:
+            return
+        except OSError:
+            data = b""
+        if not data:
+            logger.debug("BLE: %s disconnected", phone.path)
+            self._drop_phone(phone)
+
+    def _drop_phone(self, phone: _Phone):
+        if self._phones.get(phone.client_id) is not phone:
+            return
+        del self._phones[phone.client_id]
+        self._rx_buffers.pop(phone.client_id, None)
+        self._loop.remove_reader(phone.notify_socket.fileno())
+        if phone.sender is not None:
+            phone.sender.cancel()
+        phone.notify_socket.close()
+
+    def _queue_for_phone(self, phone: _Phone, data: bytes):
+        phone.queue.put_nowait(data)
+
+    async def _send_to_phone(self, phone: _Phone):
+        """Send a phone its messages, as notifications of MTU - 3 bytes, at most 512."""
+        chunk_size = min(max(phone.mtu - 3, 20), MAX_NOTIFICATION_BYTES)
+        while True:
+            data = await phone.queue.get()
+            logger.debug("BLE Tx %s →\n%s", phone.client_id.decode(), data.decode(errors="replace").rstrip())
+            for start in range(0, len(data), chunk_size):
+                try:
+                    await self._loop.sock_sendall(phone.notify_socket, data[start:start + chunk_size])
+                except OSError as error:
+                    logger.debug("BLE: sending to %s failed: %s", phone.path, error)
+                    self._drop_phone(phone)
+                    return
+
+    def _zmq_readable(self):
         while self.rx_zmq_sub.getsockopt(zmq.EVENTS) & zmq.POLLIN:
             try:
-                [_, data] = self.rx_zmq_sub.recv_multipart()
+                [msg_to, data] = self.rx_zmq_sub.recv_multipart(zmq.NOBLOCK)
+            except zmq.Again:
+                return
             except ValueError:
                 continue
             if not data:
                 continue
+            if msg_to in (b"ALL", b"BLE"):
+                for phone in self._phones.values():
+                    self._queue_for_phone(phone, data)
+            else:
+                phone = self._phones.get(msg_to.split(b":")[-1])
+                if phone is not None:
+                    self._queue_for_phone(phone, data)
 
-            data_str = data.decode('utf-8')
-            # TODO: need to set this for the negitiated MTU
-            # 160 seems to work with iPhone
-            mtu = 160
-            data_chunks = [data_str[i: i + mtu] for i in range(0, len(data_str), mtu)]
+    async def _poll_zmq(self):
+        # The zmq socket's fd is edge triggered, so check it now and then as well, in case an edge was missed.
+        while True:
+            await asyncio.sleep(0.5)
+            self._zmq_readable()
 
-            sent = False
-            for data_chunk in data_chunks:
-                sent |= self.dash_service.dash_characteristics.ble_send(data_chunk)
-            if sent:
-                logger.debug("BLE Tx →\n%s", data_str.strip())
-
-        return True
-
-    def _ble_rx(self, msg: str):
-        msg_from = self.b_connection_id
-        #  logger.debug("BLE ZMQ TX: %s", msg)
-        self.tx_zmq_pub.send_multipart([msg.encode(), msg_from])
-
-    def __init__(self, ble_uuid=None, context=None):
-        """BLE Connection
-
-        Parameters
-        ----------
-        ble_uuid : str, optional
-            The UUID used by the BLE connection, if None a UUID is generated
-        context : ZMQ Context, optional
-            ZMQ Context, by default None
-        """
-        threading.Thread.__init__(self, daemon=True)
-
-        self.zmq_connection_uuid = "BLE:" + shortuuid.uuid()
-        self.b_connection_id = self.zmq_connection_uuid.encode('utf-8')
-        self.local_device_id_list = []
-        self.context = context or zmq.Context.instance()
-        self.rx_zmq_sub = self.context.socket(zmq.SUB)
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "ALL")
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "COMMAND")
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "BLE")
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, self.zmq_connection_uuid)
-        # TODO: Need to figure out why this doesn't work
-        # GLib.io_add_watch(
-        #     self.rx_zmq_sub.getsockopt(zmq.FD),
-        #     GLib.IO_IN | GLib.IO_ERR | GLib.IO_HUP | GLib.IO_PRI,
-        #     self.zmq_callback
-        # )
-        GLib.timeout_add(10, self._zmq_callback, "q", "p")
-        self.tx_zmq_pub = self.context.socket(zmq.PUB)
-        self.tx_zmq_pub.bind(CONNECTION_PUB_URL.format(id=self.zmq_connection_uuid))
-        dashio_service_uuid = ble_uuid or str(uuid.uuid4())
-
-        # self.connection_control = BLEControl(self.zmq_connection_uuid, dashio_service_uuid, str(uuid.uuid4()), str(uuid.uuid4()))
-
-        GLib.threads_init()
-        dbus.mainloop.glib.threads_init()
-        dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-        self.mainloop = GLib.MainLoop()
-
-        self.bus = dbus.SystemBus()
-        self.path = "/"
-        self.dash_service = DashIOService(0, dashio_service_uuid, self._ble_rx)
-        self.response = {}
-
-        chrc = self.dash_service.get_characteristics()
-        self.response[chrc.get_path()] = chrc.get_properties()
-        self.response[self.dash_service.get_path()] = self.dash_service.get_properties()
-
-        dbus.service.Object.__init__(self, self.bus, self.path)
-        self._register()
-        self.adv = DashIOAdvertisement(0, dashio_service_uuid)
-        self.start()
-        time.sleep(0.5)
-
-    def _find_adapter(self, bus):
-        remote_om = dbus.Interface(bus.get_object(BLUEZ_SERVICE_NAME, "/"), DBUS_OM_IFACE)
-        objects = remote_om.GetManagedObjects()
-
-        for obj, props in objects.items():
-            if LE_ADVERTISING_MANAGER_IFACE in props:
-                return obj
-        return None
-
-    def get_path(self):
-        """Get DBUS path"""
-        return dbus.ObjectPath(self.path)
-
-    # pylint: disable=invalid-name
-    @dbus.service.method(DBUS_OM_IFACE, out_signature="a{oa{sa{sv}}}")
-    def GetManagedObjects(self):
-        """Called by DBUS"""
-        return self.response
-
-    def _register_app_callback(self):
-        logger.debug("GATT application registered")
-
-    def _register_app_error_callback(self, error):
-        logger.debug("Failed to register application: %s", str(error))
-
-    def _register(self):
-        adapter = self._find_adapter(self.bus)
-        service_manager = dbus.Interface(self.bus.get_object(BLUEZ_SERVICE_NAME, adapter), GATT_MANAGER_IFACE)
-        service_manager.RegisterApplication(self.get_path(), {}, reply_handler=self._register_app_callback, error_handler=self._register_app_error_callback)
+    async def _main(self):
+        self._loop = asyncio.get_running_loop()
+        self._stop = asyncio.Event()
+        self._loop.add_reader(self.rx_zmq_sub.getsockopt(zmq.FD), self._zmq_readable)
+        poller = self._loop.create_task(self._poll_zmq())
+        self._started.set()
+        try:
+            await self._backend.start(self, self.adapter)
+        except BLEError as error:
+            logger.error("BLE: couldn't connect to BlueZ: %s", error)
+        else:
+            if not gatt_client_disabled(BLUEZ_MAIN_CONF):
+                logger.warning(
+                    "BLE: set [GATT] Client = false in %s and restart bluetooth, or iPhones disconnect two seconds after connecting",
+                    BLUEZ_MAIN_CONF
+                )
+            # A phone left connected from an earlier run keeps its old GATT state, and won't subscribe again.
+            try:
+                for phone_path in await self._backend.connected_unpaired():
+                    logger.debug("BLE: disconnecting %s, left connected", phone_path)
+                    await self._backend.disconnect(phone_path)
+            except BLEError as error:
+                logger.warning("BLE: couldn't disconnect phones left connected: %s", error)
+            self._bluez_ready = True
+            await self._register()
+            await self._stop.wait()
+        poller.cancel()
+        self._loop.remove_reader(self.rx_zmq_sub.getsockopt(zmq.FD))
 
     def run(self):
-        self._send_announce()
-        self.mainloop.run()
-
-
-class DashIOService(dbus.service.Object):
-    """DBUS DashIO BLE service
-    """
-    PATH_BASE = "/org/bluez/example/service"
-
-    def __init__(self, index, service_uuid, ble_rx):
-        self.bus = dbus.SystemBus()
-        self.path = self.PATH_BASE + str(index)
-        self.uuid = service_uuid
-        self.primary = True
-
-        self.dash_characteristics = DashConCharacteristic(self, service_uuid, ble_rx)
-
-        dbus.service.Object.__init__(self, self.bus, self.path)
-
-    def get_properties(self):
-        """Get DBUS properties"""
-        return {
-            GATT_SERVICE_IFACE: {
-                'UUID': self.uuid,
-                'Primary': self.primary,
-                'Characteristics': dbus.Array(
-                    self.get_characteristic_paths(),
-                    signature='o')
-            }
-        }
-
-    def get_path(self):
-        """Get DBUS path"""
-        return dbus.ObjectPath(self.path)
-
-    def get_characteristic_paths(self):
-        """get DBUS properties"""
-        result = []
-        result.append(self.dash_characteristics.get_path())
-        return result
-
-    def get_characteristics(self):
-        """Get Dashio charactoristics"""
-        return self.dash_characteristics
-
-    def get_bus(self):
-        """Return the DBUS bus"""
-        return self.bus
-
-    # pylint: disable=invalid-name
-    @dbus.service.method(DBUS_PROP_IFACE, in_signature='s', out_signature='a{sv}')
-    def GetAll(self, iface):
-        """Called by DBUS"""
-        if iface != GATT_SERVICE_IFACE:
-            raise InvalidArgsException()
-        return self.get_properties()[GATT_SERVICE_IFACE]
-
-
-class DashConCharacteristic(dbus.service.Object):
-    """
-    org.bluez.GattCharacteristic1 interface implementation
-    """
-
-    def __init__(self, service, chacteristic_uuid, ble_rx):
-        self.path = service.path + '/char' + str(1)
-        self.bus = service.get_bus()
-        self.uuid = chacteristic_uuid
-        self.service = service
-        self.flags = ["notify", "write-without-response"]
-        self.notifying = False
-        self._ble_rx = ble_rx
-        self.read_buffer = ""
-        dbus.service.Object.__init__(self, self.bus, self.path)
-
-    def get_properties(self):
-        """Get DBUS properties"""
-        return {
-            GATT_CHRC_IFACE: {
-                'Service': self.service.get_path(),
-                'UUID': self.uuid,
-                'Flags': self.flags
-            }
-        }
-
-    def get_path(self):
-        """Get DBUS path"""
-        return dbus.ObjectPath(self.path)
-
-    # pylint: disable=invalid-name
-    @dbus.service.method(DBUS_PROP_IFACE, in_signature='s', out_signature='a{sv}')
-    def GetAll(self, iface):
-        """Called by DBUS"""
-        if iface != GATT_CHRC_IFACE:
-            raise InvalidArgsException()
-        return self.get_properties()[GATT_CHRC_IFACE]
-
-    # pylint: disable=invalid-name
-    @dbus.service.method(GATT_CHRC_IFACE, in_signature='a{sv}', out_signature='ay')
-    def ReadValue(self, _):
-        """Called by DBUS"""
-        logger.debug('Default ReadValue called, returning error')
-        raise NotSupportedException()
-
-    # pylint: disable=invalid-name, unnecessary-pass
-    @dbus.service.signal(DBUS_PROP_IFACE, signature='sa{sv}as')
-    def PropertiesChanged(self, interface, changed, invalidated):
-        """Called by DBUS"""
-        pass
-
-    def get_bus(self):
-        """Return DBUS bus"""
-        bus = self.bus
-        return bus
-
-    def ble_send(self, tx_data):
-        """Send data to BLE connection"""
-        if self.notifying:
-            value = [dbus.Byte(c.encode()) for c in tx_data]
-            self.PropertiesChanged(GATT_CHRC_IFACE, {"Value": value}, [])
-        return self.notifying
-
-    # pylint: disable=invalid-name
-    @dbus.service.method(GATT_CHRC_IFACE)
-    def StartNotify(self):
-        """Called by DBUS"""
-        if self.notifying:
-            return
-        self.notifying = True
-
-    # pylint: disable=invalid-name
-    @dbus.service.method(GATT_CHRC_IFACE)
-    def StopNotify(self):
-        """Called by DBUS"""
-        self.notifying = False
-
-    # pylint: disable=invalid-name
-    @dbus.service.method(GATT_CHRC_IFACE, in_signature='aya{sv}')
-    def WriteValue(self, value, options):
-        """Called by DBUS"""
-        rx_str = ''.join([str(v) for v in value])
-        self.read_buffer += rx_str
-        if rx_str[-1] == '\n':
-            logger.debug("BLE RX ←\n%s", self.read_buffer.strip())
-            self._ble_rx(self.read_buffer)
-            self.read_buffer = ''
+        try:
+            asyncio.run(self._main())
+        finally:
+            self._started.set()
+            self.running = False
+            self.tx_zmq_pub.close()
+            self.rx_zmq_sub.close()

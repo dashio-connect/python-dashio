@@ -29,6 +29,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=6.0", "pytest-cov>=2.0", "flake8>=3.9", "tox>=4.0"]
+ble = ["dbus-fast>=5.0; sys_platform == 'linux'"]
 
 [project.urls]
 Homepage = "https://dashio.io"
