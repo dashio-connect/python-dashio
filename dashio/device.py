@@ -875,6 +875,13 @@ class Device(threading.Thread):
             self._cfg["cfgRev"] = max(cfg.get('CFG', {}).get('cfgRev', 1) for cfg in self._column_cfgs.values())
             self.use_cfg64()
 
+        # Made before the thread starts, as register_connection() connects it from the caller's thread.
+        self.rx_zmq_sub = self.context.socket(zmq.SUB)
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"\tWHO")
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"COMMAND")
+        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self._b_zmq_connection_uuid)
+        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "\t" + self.device_id)
+
         self.running = True
         time.sleep(0.5)
         self.start()
@@ -1025,13 +1032,6 @@ class Device(threading.Thread):
 
     def run(self):
         # Continue the network loop, exit when an error occurs
-
-        self.rx_zmq_sub = self.context.socket(zmq.SUB)
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"\tWHO")
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, b"COMMAND")
-        self.rx_zmq_sub.setsockopt(zmq.SUBSCRIBE, self._b_zmq_connection_uuid)
-        self.rx_zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "\t" + self.device_id)
-
         poller = zmq.Poller()
         poller.register(self.rx_zmq_sub, zmq.POLLIN)
 
