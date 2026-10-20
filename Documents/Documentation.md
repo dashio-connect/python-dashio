@@ -865,6 +865,11 @@ Client = false
 
 The BLEConnection logs a warning when it isn't set. The machine then can't use BLE peripherals such as LE keyboards.
 
+Known issues with several phones at once:
+
+* **BlueZ 5.87 and earlier** close the wrong phone's notifications when a phone disconnects ([bluez#1452](https://github.com/bluez/bluez/issues/1452)), which every current distribution has. The BLEConnection notices a phone that has lost its notifications, or that connected and never subscribed, and disconnects it so that it reconnects. It recovers one phone at a time, so a phone leaving can drop another for a few seconds. One phone on its own isn't affected.
+* **Some Linux kernels** (seen on 7.2) disconnect a phone that asks for new connection parameters within about 100 ms of connecting, before the kernel has finished setting the connection up. Android phones often do, so they can take several tries, or a minute or more, to connect.
+
 #### BLEConnection Attributes
 
 * *adapter : str, optional.* The Bluetooth adapter, e.g. "hci0". Defaults to the first adapter that can advertise.

@@ -166,6 +166,16 @@ class DbusFastBackend(BlueZBackend):
                     break
         else:
             raise BLEError(f"no Bluetooth adapter that can advertise{'' if adapter is None else ' called ' + adapter}")
+        for rule in (
+            f"type='signal',sender='{BLUEZ}',interface='org.freedesktop.DBus.Properties',member='PropertiesChanged',arg0='org.bluez.Device1'",
+            f"type='signal',sender='{BLUEZ}',interface='org.freedesktop.DBus.ObjectManager',member='InterfacesRemoved'",
+            f"type='signal',sender='{BLUEZ}',interface='org.freedesktop.DBus.ObjectManager',member='InterfacesAdded'",
+        ):
+            await self._bus.call(Message(
+                destination="org.freedesktop.DBus", path="/org/freedesktop/DBus", interface="org.freedesktop.DBus",
+                member="AddMatch", signature="s", body=[rule]
+            ))
+        self._bus.add_message_handler(self._on_signal)
         self._bus.export(self._service_path, _Service())
         self._bus.export(self._characteristic_path, _Characteristic(self, self._service_path))
         self._bus.export(self._advertisement_path, self._advertisement)
@@ -207,6 +217,28 @@ class DbusFastBackend(BlueZBackend):
         if self._bus is not None:
             self._bus.disconnect()
             self._bus = None
+
+    def _on_signal(self, message: Message):
+        """Tell the connection when a phone on the adapter connects or disconnects."""
+        if message.message_type != MessageType.SIGNAL:
+            return
+        if message.member == "PropertiesChanged" and message.body and message.body[0] == "org.bluez.Device1":
+            connected = message.body[1].get("Connected")
+            if connected is not None and message.path.startswith(self._adapter_path + "/"):
+                self._phone_connection_changed(message.path, connected.value)
+        elif message.member == "InterfacesAdded" and len(message.body) == 2 and "org.bluez.Device1" in message.body[1]:
+            connected = message.body[1]["org.bluez.Device1"].get("Connected")
+            if connected is not None and connected.value and message.body[0].startswith(self._adapter_path + "/"):
+                self._phone_connection_changed(message.body[0], True)
+        elif message.member == "InterfacesRemoved" and len(message.body) == 2 and "org.bluez.Device1" in message.body[1]:
+            if message.body[0].startswith(self._adapter_path + "/"):
+                self._phone_connection_changed(message.body[0], False)
+
+    def _phone_connection_changed(self, phone: str, connected: bool):
+        if connected:
+            self._connection._phone_connected(phone)
+        else:
+            self._connection._phone_disconnected(phone)
 
     def phone_subscribed(self, phone: str, mtu: int) -> tuple[int, int]:
         """AcquireNotify: give the connection one end of a socket pair, and BlueZ the other."""

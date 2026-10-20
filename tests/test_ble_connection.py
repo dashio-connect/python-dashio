@@ -73,6 +73,27 @@ class FakePhone:
     def write(self, data: bytes):
         self._on_loop(self.connection._phone_wrote, self.path, data)
 
+    def connected(self):
+        """BlueZ reports the phone connected."""
+        self._on_loop(self.connection._phone_connected, self.path)
+
+    def disconnected(self):
+        """BlueZ reports the phone disconnected, without closing its notify socket (bluez#1452)."""
+        self._on_loop(self.connection._phone_disconnected, self.path)
+
+    def subscribe(self):
+        theirs, ours = socket.socketpair(socket.AF_UNIX, socket.SOCK_SEQPACKET)
+        self.socket.close()
+        self.socket = theirs
+        self._on_loop(self.connection._phone_subscribed, self.path, ours, self.mtu)
+
+    def nothing_received(self, wait: float = 0.5) -> bool:
+        self.socket.settimeout(wait)
+        try:
+            return not self.socket.recv(1024)
+        except socket.timeout:
+            return True
+
     def receive(self, until: bytes = b"\n", timeout: float = 2) -> tuple[bytes, list[bytes]]:
         """Notifications until one ends with until: the joined data, and the notifications."""
         chunks = []
@@ -139,7 +160,9 @@ class TestGattClientSetting(unittest.TestCase):
 
 
 @unittest.skipUnless(sys.platform == "linux", "BlueZ's AcquireNotify sockets are Linux SOCK_SEQPACKET socket pairs")
-class TestBLEConnection(unittest.TestCase):
+class BLETestCase(unittest.TestCase):
+    """A BLEConnection on a fake BlueZ, with a real Device."""
+
     def setUp(self):
         conf = tempfile.NamedTemporaryFile("w", suffix=".conf", delete=False)
         conf.write("[GATT]\nClient = false\n")
@@ -175,6 +198,8 @@ class TestBLEConnection(unittest.TestCase):
         time.sleep(0.3)  # Let the device and connection threads connect their sockets.
         return connection, device, backend
 
+
+class TestBLEConnection(BLETestCase):
     def test_registers_with_bluez(self):
         connection, _, backend = self.make(adapter="hci1")
         self.assertEqual(backend.adapter, "hci1")
@@ -336,6 +361,148 @@ class TestBLEConnection(unittest.TestCase):
             with self.assertLogs("dashio.ble_connection", "WARNING") as logs:
                 self.make()
         self.assertTrue(any("Client = false" in line for line in logs.output))
+
+
+class TestSeveralPhones(BLETestCase):
+    """Several phones at once, and containing bluez#1452: a phone leaving can close another phone's notify socket."""
+
+    def setUp(self):
+        super().setUp()
+        for name, value in (("QUIET_PERIOD", 0.4), ("RECOVERY_TIMEOUT", 1.5), ("UNSUBSCRIBED_WRITE_TIMEOUT", 0.2), ("SUBSCRIBE_TIMEOUT", 0.6)):
+            patcher = mock.patch.object(ble_connection, name, value)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
+    def test_each_phone_its_mtu(self):
+        connection, _, _ = self.make()
+        small = self.phone(connection, name="dev_SMALL", mtu=23)
+        large = self.phone(connection, name="dev_LARGE", mtu=100)
+        small.write(b"\tWHO\n")
+        large.write(b"\tWHO\n")
+        who = b"\tDEVICEID\tWHO\tDEVICETYPE\tDEVICENAME\t1\n"
+        small_data, small_chunks = small.receive()
+        large_data, large_chunks = large.receive()
+        self.assertEqual((small_data, large_data), (who, who))
+        self.assertEqual((max(map(len, small_chunks)), len(large_chunks)), (20, 1))
+
+    def test_writes_kept_apart(self):
+        connection, _, _ = self.make()
+        first = self.phone(connection, name="dev_FIRST")
+        second = self.phone(connection, name="dev_SECOND")
+        first.write(b"\tDEVICEID\tCON")
+        second.write(b"\tWH")
+        first.write(b"NECT\n")
+        second.write(b"O\n")
+        self.assertEqual(first.receive()[0], b"\tDEVICEID\tCONNECT\n")
+        self.assertEqual(second.receive()[0], b"\tDEVICEID\tWHO\tDEVICETYPE\tDEVICENAME\t1\n")
+
+    def test_reply_only_to_the_phone_that_asked(self):
+        connection, _, _ = self.make()
+        asking = self.phone(connection, name="dev_ASKING")
+        other = self.phone(connection, name="dev_OTHER")
+        asking.write(b"\tDEVICEID\tSTATUS\n")
+        self.assertIn(b"\tDEVICEID\tNAME\tDEVICENAME\n", asking.receive()[0])
+        self.assertTrue(other.nothing_received())
+
+    def test_update_to_every_phone(self):
+        connection, device, _ = self.make()
+        dial = dashio.Dial("D1")
+        device.add_control(dial)
+        phones = [self.phone(connection, name=f"dev_{number}") for number in range(3)]
+        dial.dial_value = 7
+        for phone in phones:
+            self.assertEqual(phone.receive_message(b"\tDEVICEID\tDIAL\tD1"), b"\tDEVICEID\tDIAL\tD1\t7\n")
+
+    def test_one_phone_leaves(self):
+        connection, device, _ = self.make()
+        dial = dashio.Dial("D1")
+        device.add_control(dial)
+        leaving = self.phone(connection, name="dev_LEAVING")
+        staying = self.phone(connection, name="dev_STAYING")
+        leaving.socket.close()
+        time.sleep(0.2)
+        dial.dial_value = 3
+        self.assertEqual(staying.receive_message(b"\tDEVICEID\tDIAL\tD1"), b"\tDEVICEID\tDIAL\tD1\t3\n")
+        self.assertEqual(list(connection._phones), [b"dev_STAYING"])
+
+    def test_session_dropped_when_bluez_reports_disconnect(self):
+        connection, device, _ = self.make()
+        dial = dashio.Dial("D1")
+        device.add_control(dial)
+        gone = self.phone(connection, name="dev_GONE")
+        gone.disconnected()
+        dial.dial_value = 5
+        self.assertTrue(gone.nothing_received(), "BlueZ may leave its socket open, but the phone has gone")
+        self.assertEqual(connection._phones, {})
+
+    def test_recovered_after_quiet_period(self):
+        connection, _, backend = self.make()
+        self.phone(connection, name="dev_OTHER")  # Subscribing starts a quiet period.
+        lost = self.phone(connection, name="dev_LOST", subscribe=False)
+        lost.write(b"\tWHO\n")
+        time.sleep(0.25)
+        self.assertEqual(backend.disconnected, [], "Not recovered during the quiet period after a phone subscribes")
+        time.sleep(0.4)
+        self.assertEqual(backend.disconnected, [lost.path])
+
+    def test_one_recovery_at_a_time(self):
+        connection, _, backend = self.make()
+        first = self.phone(connection, name="dev_FIRST", subscribe=False)
+        second = self.phone(connection, name="dev_SECOND", subscribe=False)
+        first.write(b"\tWHO\n")
+        second.write(b"\tWHO\n")
+        time.sleep(0.4)
+        self.assertEqual(backend.disconnected, [first.path], "A recovery disconnect is a phone leaving, which can knock off another")
+        first.subscribe()  # It reconnected and subscribed.
+        time.sleep(0.2)
+        self.assertEqual(backend.disconnected, [first.path], "Wait for the quiet period after it subscribes")
+        time.sleep(0.5)
+        self.assertEqual(backend.disconnected, [first.path, second.path])
+
+    def test_connected_without_subscribing(self):
+        connection, _, backend = self.make()
+        silent = self.phone(connection, name="dev_SILENT", subscribe=False)
+        silent.connected()
+        time.sleep(0.4)
+        self.assertEqual(backend.disconnected, [])
+        time.sleep(0.4)
+        self.assertEqual(backend.disconnected, [silent.path], "A connection that never subscribes can stop the Dash app finding the device")
+
+    def test_connected_and_subscribed(self):
+        connection, _, backend = self.make()
+        phone = self.phone(connection, name="dev_PHONE", subscribe=False)
+        phone.connected()
+        phone.subscribe()
+        time.sleep(1.2)
+        self.assertEqual(backend.disconnected, [])
+
+    def test_connected_and_disconnected(self):
+        connection, _, backend = self.make()
+        phone = self.phone(connection, name="dev_PHONE", subscribe=False)
+        phone.connected()
+        phone.disconnected()
+        time.sleep(1.2)
+        self.assertEqual(backend.disconnected, [])
+
+    def test_write_brings_the_check_forward(self):
+        connection, _, backend = self.make()
+        with mock.patch.object(ble_connection, "SUBSCRIBE_TIMEOUT", 30):
+            phone = self.phone(connection, name="dev_PHONE", subscribe=False)
+            phone.connected()
+            phone.write(b"\tWHO\n")
+            time.sleep(0.5)
+        self.assertEqual(backend.disconnected, [phone.path])
+
+    def test_recovery_timeout(self):
+        connection, _, backend = self.make()
+        first = self.phone(connection, name="dev_FIRST", subscribe=False)
+        second = self.phone(connection, name="dev_SECOND", subscribe=False)
+        first.write(b"\tWHO\n")
+        second.write(b"\tWHO\n")
+        time.sleep(0.4)
+        self.assertEqual(backend.disconnected, [first.path])
+        time.sleep(1.5)
+        self.assertEqual(backend.disconnected, [first.path, second.path], "The next phone is recovered if the first never subscribes")
 
 
 if __name__ == '__main__':

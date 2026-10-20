@@ -47,8 +47,15 @@ MAX_NAME_BYTES = 29
 # The longest attribute value BLE allows. BlueZ reads each notification from the notify socket into a 512-byte
 # buffer, so a longer one loses its end, though the MTU can be 517.
 MAX_NOTIFICATION_BYTES = 512
-# How long a phone can write without a notify socket before it's disconnected, so it subscribes again.
+# How long a phone can write without a notify socket, or be connected without subscribing, before it's
+# disconnected, so it subscribes again. The Dash app subscribes within about a second of connecting.
 UNSUBSCRIBED_WRITE_TIMEOUT = 1.0
+SUBSCRIBE_TIMEOUT = 30.0
+# With several phones, BlueZ 5.87 and earlier close the wrong notify socket when a phone leaves (bluez#1452), and a
+# recovery disconnect is a phone leaving. So only one phone is recovered at a time, until it subscribes again or
+# RECOVERY_TIMEOUT passes, and none until QUIET_PERIOD after a phone subscribes, loses its socket or disconnects.
+RECOVERY_TIMEOUT = 10.0
+QUIET_PERIOD = 3.0
 BLUEZ_MAIN_CONF = "/etc/bluetooth/main.conf"
 
 
@@ -67,8 +74,11 @@ class BlueZBackend:
     - connection._phone_subscribed(phone, notify_socket, mtu) when a phone turns on notifications. phone is the
       BlueZ device object path. Each chunk sent on notify_socket is one notification to that phone.
     - connection._phone_wrote(phone, data) when a phone writes to the characteristic.
+    - connection._phone_connected(phone) and connection._phone_disconnected(phone) when BlueZ reports a phone
+      connected or disconnected.
 
-    A phone has gone when its notify socket closes.
+    A phone's notify socket closes when it unsubscribes or disconnects, though BlueZ 5.87 and earlier may close
+    another phone's instead (bluez#1452).
     """
 
     async def start(self, connection: BLEConnection, adapter: str | None) -> None:
@@ -169,7 +179,10 @@ class BLEConnection(threading.Thread):
         self._device: Device | None = None
         self._phones: dict[bytes, _Phone] = {}
         self._rx_buffers: dict[bytes, bytes] = {}
-        self._unsubscribed_writers: set[str] = set()
+        self._pending_checks: dict[str, asyncio.TimerHandle] = {}
+        self._recovering: str | None = None
+        self._recovering_until = 0.0
+        self._quiet_until = 0.0
         self._loop: asyncio.AbstractEventLoop | None = None
         self._bluez_ready = False
         self._registered = False
@@ -243,8 +256,8 @@ class BLEConnection(threading.Thread):
                 phone_paths.update(await self._backend.connected_unpaired())
             except BLEError as error:
                 logger.debug("BLE: listing connected phones failed: %s", error)
-        for phone_path in sorted(phone_paths):
-            await self._disconnect(phone_path)
+        # Together, as BlueZ only answers each Disconnect once its two-second disconnect timer has run.
+        await asyncio.gather(*(self._disconnect(phone_path) for phone_path in sorted(phone_paths)))
         for phone in list(self._phones.values()):
             self._drop_phone(phone)
         if self._registered:
@@ -257,7 +270,19 @@ class BLEConnection(threading.Thread):
         if self._stop is not None:
             self._stop.set()
 
+    def _phone_changed(self):
+        self._quiet_until = self._loop.time() + QUIET_PERIOD
+
     def _phone_subscribed(self, phone_path: str, notify_socket: socket.socket, mtu: int):
+        self._phone_changed()
+        check = self._pending_checks.pop(phone_path, None)
+        if check is not None:
+            check.cancel()
+        if self._recovering == phone_path:
+            # The recovery worked. Check the phones waiting for it once the quiet period is over.
+            self._recovering = None
+            for waiting_path in list(self._pending_checks):
+                self._schedule_check(waiting_path, QUIET_PERIOD)
         phone = _Phone(phone_path, notify_socket, mtu)
         old = self._phones.get(phone.client_id)
         if old is not None:
@@ -270,9 +295,10 @@ class BLEConnection(threading.Thread):
 
     def _phone_wrote(self, phone_path: str, data: bytes):
         client_id = phone_path.rsplit("/", 1)[-1].encode()
-        if client_id not in self._phones and phone_path not in self._unsubscribed_writers:
-            self._unsubscribed_writers.add(phone_path)
-            self._loop.call_later(UNSUBSCRIBED_WRITE_TIMEOUT, self._check_subscribed, phone_path, client_id)
+        if client_id not in self._phones:
+            check = self._pending_checks.get(phone_path)
+            if check is None or check.when() > self._loop.time() + UNSUBSCRIBED_WRITE_TIMEOUT:
+                self._schedule_check(phone_path, UNSUBSCRIBED_WRITE_TIMEOUT)
         buffer = self._rx_buffers.get(client_id, b"") + data
         *messages, buffer = buffer.split(b"\n")
         self._rx_buffers[client_id] = buffer
@@ -282,17 +308,55 @@ class BLEConnection(threading.Thread):
                 logger.debug("BLE Rx %s ←\n%s", client_id.decode(), message.decode(errors="replace"))
                 self.tx_zmq_pub.send_multipart([message, msg_from])
 
-    def _check_subscribed(self, phone_path: str, client_id: bytes):
-        """A phone wrote without a notify socket, so it gets no replies.
+    def _phone_connected(self, phone_path: str):
+        """BlueZ reports a phone connected. One that never subscribes is disconnected after SUBSCRIBE_TIMEOUT.
 
-        BlueZ 5.87 and earlier can close another phone's notify socket when one phone unsubscribes (bluez#1452). That
+        Android can hold a connection outside the Dash app, e.g. from its Bluetooth settings, and while it does the
+        Dash app on that phone can't find the device.
+        """
+        logger.debug("BLE: %s connected", phone_path)
+        if phone_path.rsplit("/", 1)[-1].encode() not in self._phones:
+            self._schedule_check(phone_path, SUBSCRIBE_TIMEOUT)
+
+    def _phone_disconnected(self, phone_path: str):
+        """BlueZ reports the phone disconnected. Its notify socket may still be open, because of bluez#1452."""
+        client_id = phone_path.rsplit("/", 1)[-1].encode()
+        logger.debug("BLE: %s disconnected", phone_path)
+        check = self._pending_checks.pop(phone_path, None)
+        if check is not None:
+            check.cancel()
+        phone = self._phones.get(client_id)
+        if phone is not None:
+            self._drop_phone(phone)
+        self._rx_buffers.pop(client_id, None)
+        self._phone_changed()
+
+    def _schedule_check(self, phone_path: str, delay: float):
+        check = self._pending_checks.pop(phone_path, None)
+        if check is not None:
+            check.cancel()
+        self._pending_checks[phone_path] = self._loop.call_later(delay, self._check_subscribed, phone_path)
+
+    def _check_subscribed(self, phone_path: str):
+        """A phone wrote without a notify socket, or connected and didn't subscribe, so it gets no replies.
+
+        BlueZ 5.87 and earlier can close another phone's notify socket when a phone disconnects (bluez#1452). That
         phone stays connected, thinks it's still subscribed, and never subscribes again. Disconnect it, so it
         reconnects and subscribes.
         """
-        self._unsubscribed_writers.discard(phone_path)
-        if client_id in self._phones:
+        self._pending_checks.pop(phone_path, None)
+        if phone_path.rsplit("/", 1)[-1].encode() in self._phones:
             return
-        logger.info("BLE: %s is writing without notifications, disconnecting it so it subscribes again", phone_path)
+        now = self._loop.time()
+        if self._recovering is not None and now >= self._recovering_until:
+            self._recovering = None
+        wait_until = max(self._quiet_until, self._recovering_until if self._recovering else 0.0)
+        if wait_until > now:
+            self._schedule_check(phone_path, wait_until - now)
+            return
+        logger.info("BLE: %s has no notifications, disconnecting it so it subscribes again", phone_path)
+        self._recovering = phone_path
+        self._recovering_until = now + RECOVERY_TIMEOUT
         self._loop.create_task(self._disconnect(phone_path))
 
     async def _disconnect(self, phone_path: str):
@@ -309,8 +373,9 @@ class BLEConnection(threading.Thread):
         except OSError:
             data = b""
         if not data:
-            logger.debug("BLE: %s disconnected", phone.path)
+            logger.debug("BLE: %s notify socket closed", phone.path)
             self._drop_phone(phone)
+            self._phone_changed()
 
     def _drop_phone(self, phone: _Phone):
         if self._phones.get(phone.client_id) is not phone:
