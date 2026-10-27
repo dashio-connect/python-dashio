@@ -33,6 +33,8 @@ For the **DashIO** Python library: [dashio.io/python-library](https://dashio.io/
 
 The library reference is in [Documents/Documentation.md](Documents/Documentation.md).
 
+[skills/python-dashio](skills/python-dashio) is a Claude Code skill for writing devices with this library and making layouts for Arduino and zephyr-dashio firmware: copy or link it into your project's `.claude/skills/` directory.
+
 ## Examples
 
 There are plenty of examples in the github repository under the Examples directory. For complete applications, see [Examples/greenhouse](Examples/greenhouse) and [Examples/server_monitor](Examples/server_monitor). [Examples/intermittent_connection.py](Examples/intermittent_connection.py) is a device that only connects to the Dash server now and then, keeping its data in a DashStore while disconnected, and is provisioned over TCP on the local network.

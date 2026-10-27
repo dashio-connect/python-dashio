@@ -17,6 +17,7 @@ Notes for working on python-dashio, the Python library for the DashIO protocol a
   - `ex01`–`ex06`: shown in the README. Keep the README snippets identical to these files.
   - `greenhouse/` and `server_monitor/`: full applications.
 - `Documents/Documentation.md`: the library reference. Keep it in step with the code.
+- `skills/python-dashio/SKILL.md`: a Claude Code skill for library users, for Python devices and for making layouts for Arduino and zephyr-dashio firmware. Keep it in step with the code and the utilities.
 - `Documents/DashIO-Controls-V2.pdf` and `DashIO-Protocol-Definition-V5.pdf`: the authoritative protocol and controls references. They're git-ignored (`*.pdf`). Read them with `pypdf`; poppler isn't installed.
 
 ## Running tests and lint
