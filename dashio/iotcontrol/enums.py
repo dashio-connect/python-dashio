@@ -43,7 +43,8 @@ class ControlName(Enum):
     BTGP = "BTGP"
     BTTN = "BTTN"
     TEXT = "TEXT"
-    GRPH = "GRPH"
+    CHRT = "CHRT"
+    GRPH = "CHRT"  # The old name for CHRT, kept so existing code still runs
     DIAL = "DIAL"
     CLR = "CLR"
     TGRPH = "TGRPH"

@@ -1,8 +1,8 @@
 import json
 import unittest
 
-from dashio import Chart, ChartLine
-from dashio.iotcontrol.enums import Color, ChartLineType, ChartXAxisLabelsStyle
+from dashio import Chart, ChartLine, Device
+from dashio.iotcontrol.enums import Color, ChartLineType, ChartXAxisLabelsStyle, ControlName
 
 
 class TestChart(unittest.TestCase):
@@ -19,7 +19,14 @@ class TestChart(unittest.TestCase):
     def test_graph_control_type(self):
         test_control = Chart("CHARTID")
         test_str_list = test_control._control_hdr_str.split('\t')
-        self.assertEqual(test_str_list[2], 'CHRT', "control type should be GRPH")
+        self.assertEqual(test_str_list[2], 'CHRT', "control type should be CHRT")
+
+    def test_get_control(self):
+        test_device = Device("DEVICETYPE", "DEVICEID", "DEVICENAME")
+        test_control = Chart("CHARTID")
+        test_device.add_control(test_control)
+        self.assertIs(test_device.get_control(ControlName.CHRT, "CHARTID"), test_control, "get_control should find a Chart")
+        self.assertIs(test_device.get_control(ControlName.GRPH, "CHARTID"), test_control, "GRPH should still find a Chart")
 
     def test_graph_control_id(self):
         test_control = Chart("CHARTID")
