@@ -84,7 +84,7 @@ CONFIG_INSTANCE_DICT = {
     "DIR": DirectionConfig,
     "LOG": ControlConfig,
     "LBL": ControlConfig,
-    "Map": ControlConfig,
+    "MAP": ControlConfig,
     "TBL": TableConfig
 }
 

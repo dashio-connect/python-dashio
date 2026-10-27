@@ -2,6 +2,7 @@ import unittest
 
 from dashio import Button, Color, ColorPicker, ColorPickerStyle, ControlPosition, Table
 from dashio.iotcontrol.control import _get_color
+from dashio.load_config import CONFIG_INSTANCE_DICT, CONTROL_INSTANCE_DICT
 
 
 class TestCfgRoundTrip(unittest.TestCase):
@@ -45,6 +46,9 @@ class TestCfgRoundTrip(unittest.TestCase):
         self.assertEqual(cfg["colHeadings"], [], "A Table without column headings should have none")
         cfg["parentID"] = "VIEW1"
         self.assertEqual(Table.from_cfg_dict(cfg).get_cfg64([])[0]["columns"], 3, "columns should survive a round trip")
+
+    def test_config_instance_dict_matches_control_types(self):
+        self.assertEqual(set(CONFIG_INSTANCE_DICT), set(CONTROL_INSTANCE_DICT), "Every control type should have a config class, keyed by its CFG type")
 
 
 if __name__ == '__main__':
