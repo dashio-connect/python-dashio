@@ -94,8 +94,8 @@ class TextBoxConfig(ControlConfig):
             _get_precision(cfg_dict["precision"]),
             _get_keyboard_type(cfg_dict["kbdType"]),
             cfg_dict["closeKbdOnSend"],
-            _get_caption_mode(cfg_dict["captionMode"]),
-            cfg_dict["replace"],
+            _get_caption_mode(cfg_dict.get("captionMode", CaptionMode.MSG.value)),
+            cfg_dict.get("replace"),
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
         )
         tmp_cls.parent_id = cfg_dict["parentID"]
@@ -204,7 +204,7 @@ class TextBox(Control):
             _get_precision(cfg_dict["precision"]),
             _get_keyboard_type(cfg_dict["kbdType"]),
             cfg_dict["closeKbdOnSend"],
-            _get_caption_mode(cfg_dict["captionMode"]),
+            _get_caption_mode(cfg_dict.get("captionMode", CaptionMode.MSG.value)),
             cfg_dict.get("replace"),
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),
         )

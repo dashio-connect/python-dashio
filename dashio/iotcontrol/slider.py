@@ -26,6 +26,13 @@ from .control import Control, ControlPosition, ControlConfig, format_value, _get
 from .enums import Color, SliderBarStyle, TitlePosition, BarMode
 
 
+def _bar_mode_from_cfg(cfg_dict: dict) -> BarMode:
+    """The layout's barMode, or from barFollowsSlider in older layouts, before Bar Mode replaced it."""
+    if "barMode" in cfg_dict:
+        return _get_bar_mode(cfg_dict["barMode"])
+    return BarMode.FOLLOW if cfg_dict.get("barFollowsSlider", True) else BarMode.MSG
+
+
 class SliderConfig(ControlConfig):
     """SliderConfig"""
 
@@ -81,7 +88,7 @@ class SliderConfig(ControlConfig):
             cfg_dict["showMinMax"],
             cfg_dict["sliderEnabled"],
             cfg_dict["sendOnlyOnRelease"],
-            _get_bar_mode(cfg_dict["barMode"]),
+            _bar_mode_from_cfg(cfg_dict),
             _get_color(cfg_dict["barColor"]),
             _get_color(cfg_dict["knobColor"]),
             _get_bar_style(cfg_dict["barStyle"]),
@@ -250,7 +257,7 @@ class Slider(Control):
             cfg_dict["showMinMax"],
             cfg_dict["sliderEnabled"],
             cfg_dict["sendOnlyOnRelease"],
-            _get_bar_mode(cfg_dict["barMode"]),
+            _bar_mode_from_cfg(cfg_dict),
             _get_color(cfg_dict["barColor"]),
             _get_color(cfg_dict["knobColor"]),
             _get_bar_style(cfg_dict["barStyle"]),

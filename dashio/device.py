@@ -33,7 +33,7 @@ import time
 import shortuuid
 import zmq
 
-from .constants import BAD_CHARS, CONNECTION_PUB_URL
+from .constants import BAD_CHARS, CONNECTION_PUB_URL, MAX_CONTROL_ID_LENGTH
 from .dash_store import DashStore, SDUSession
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.control import Control
@@ -445,6 +445,11 @@ class Device(threading.Thread):
         if not 1 <= column_no <= MAX_LAYOUT_COLUMNS:
             raise ValueError(f"column_no must be 1 to {MAX_LAYOUT_COLUMNS}, not {column_no}")
         cfg_dict = decode_cfg64(cfg) if isinstance(cfg, str) else copy.deepcopy(cfg)
+        long_ids = [f"{control_type} '{control['controlID']}'" for control_type, control_list in cfg_dict.items() if isinstance(control_list, list)
+                    for control in control_list if len(control['controlID']) > MAX_CONTROL_ID_LENGTH]
+        if long_ids:
+            raise ValueError(f"The layout's control IDs must be at most {MAX_CONTROL_ID_LENGTH} characters: {', '.join(long_ids)}. "
+                             "Shorten them in the layout (c64_decode it, edit the JSON, c64_encode it) and in the device code.")
         for control_type, control_list in cfg_dict.items():
             if isinstance(control_list, list):
                 for control in control_list:

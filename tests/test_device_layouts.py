@@ -105,6 +105,17 @@ class TestDeviceLayouts(unittest.TestCase):
         device.add_cfg64(encode_cfg64(tablet_layout()), 2)
         self.assertEqual(self.titles(self.request_cfg(device, 2), "BTTN"), ["Tablet Button"])
 
+    def test_add_cfg64_names_long_control_ids(self):
+        layout = phone_layout()
+        layout["BTTN"][0]["controlID"] = "pumpButton"
+        device = self.make_device()
+        with self.assertRaises(ValueError) as raised:
+            device.add_cfg64(layout)
+        message = str(raised.exception)
+        for text in ("BTTN", "pumpButton", "7", "c64_decode"):
+            self.assertIn(text, message, "The error should name the control, the limit, and how to fix the layout")
+        self.assertNotIn(1, device._column_cfgs, "A layout that fails to load shouldn't be kept")
+
     def test_add_cfg64_rejects_bad_column(self):
         device = self.make_device()
         with self.assertRaises(ValueError):

@@ -1,6 +1,6 @@
 import unittest
 
-from dashio import Button, Color, ColorPicker, ColorPickerStyle, ControlPosition, Table
+from dashio import Button, Color, ColorPicker, ColorPickerStyle, ControlPosition, Device, DeviceView, Knob, Slider, Table, TextBox
 from dashio.iotcontrol.control import _get_color
 from dashio.load_config import CONFIG_INSTANCE_DICT, CONTROL_INSTANCE_DICT
 
@@ -46,6 +46,36 @@ class TestCfgRoundTrip(unittest.TestCase):
         self.assertEqual(cfg["colHeadings"], [], "A Table without column headings should have none")
         cfg["parentID"] = "VIEW1"
         self.assertEqual(Table.from_cfg_dict(cfg).get_cfg64([])[0]["columns"], 3, "columns should survive a round trip")
+
+    def test_modes_default_when_missing_from_older_layouts(self):
+        for control, key, default in (
+            (TextBox("TXT1", control_position=ControlPosition(0.1, 0.2, 0.3, 0.4)), "captionMode", "MSG"),
+            (Knob("KNB1", control_position=ControlPosition(0.1, 0.2, 0.3, 0.4)), "dialMode", "FOLLOW"),
+            (Slider("SLD1", control_position=ControlPosition(0.1, 0.2, 0.3, 0.4)), "barMode", "FOLLOW"),
+        ):
+            cfg = control.get_cfg64([])[0]
+            cfg["parentID"] = "VIEW1"
+            del cfg[key]
+            self.assertEqual(type(control).from_cfg_dict(cfg).get_cfg64([])[0][key], default, f"A layout without {key} should load with the default")
+            self.assertEqual(CONFIG_INSTANCE_DICT[control.ctrl_type].from_dict(cfg).cfg[key], default, f"A layout without {key} should load with the default")
+
+    def test_slider_bar_mode_from_deprecated_bar_follows_slider(self):
+        cfg = Slider("SLD1", control_position=ControlPosition(0.1, 0.2, 0.3, 0.4)).get_cfg64([])[0]
+        cfg["parentID"] = "VIEW1"
+        del cfg["barMode"]
+        cfg["barFollowsSlider"] = False
+        self.assertEqual(Slider.from_cfg_dict(cfg).get_cfg64([])[0]["barMode"], "MSG", "barFollowsSlider false is the bar responding to messages")
+
+    def test_device_loads_layout_without_caption_mode(self):
+        text = TextBox("TXT1", control_position=ControlPosition(0.1, 0.2, 0.3, 0.4))
+        text.parent_id = "VIEW1"
+        layout = {"CFG": {"deviceSetup": "", "cfgRev": 1, "numDeviceViews": 1}, "DVVW": DeviceView("VIEW1", "View").get_cfg64([]), "TEXT": text.get_cfg64([])}
+        del layout["TEXT"][0]["captionMode"]
+        device = Device("Test", "test1", "Test", cfg_dict={1: layout})
+        try:
+            self.assertTrue(device.is_control_loaded("TEXT", "TXT1"), "The TextBox should be loaded from the layout")
+        finally:
+            device.close()
 
     def test_config_instance_dict_matches_control_types(self):
         self.assertEqual(set(CONFIG_INSTANCE_DICT), set(CONTROL_INSTANCE_DICT), "Every control type should have a config class, keyed by its CFG type")

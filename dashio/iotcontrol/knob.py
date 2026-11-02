@@ -79,7 +79,7 @@ class KnobConfig(ControlConfig):
             cfg_dict["redValue"],
             cfg_dict["showMinMax"],
             cfg_dict["sendOnlyOnRelease"],
-            _get_dial_mode(cfg_dict["dialMode"]),
+            _get_dial_mode(cfg_dict.get("dialMode", DialMode.FOLLOW.value)),
             _get_color(cfg_dict["dialColor"]),
             _get_color(cfg_dict["knobColor"]),
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"])
@@ -236,7 +236,7 @@ class Knob(Control):
             cfg_dict["redValue"],
             cfg_dict["showMinMax"],
             cfg_dict["sendOnlyOnRelease"],
-            _get_dial_mode(cfg_dict["dialMode"]),
+            _get_dial_mode(cfg_dict.get("dialMode", DialMode.FOLLOW.value)),
             _get_color(cfg_dict["dialColor"]),
             _get_color(cfg_dict["knobColor"]),
             ControlPosition(cfg_dict["xPositionRatio"], cfg_dict["yPositionRatio"], cfg_dict["widthRatio"], cfg_dict["heightRatio"]),

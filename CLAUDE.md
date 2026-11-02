@@ -44,7 +44,8 @@ Notes for working on python-dashio, the Python library for the DashIO protocol a
 
 ## Protocol and library rules
 
-- **Control IDs are at most 7 characters.** `Control.__init__` raises `ValueError` for longer IDs (`MAX_CONTROL_ID_LENGTH` in `constants.py`). The greenhouse and server monitor examples use longer descriptive names for their controls as dict keys, but the IDs sent to the app are short. Layouts the app exports already use short IDs.
+- **Control IDs are at most 7 characters.** The limit is the library's own, chosen to keep messages short; the app doesn't need it. `Control.__init__` raises `ValueError` for longer IDs (`MAX_CONTROL_ID_LENGTH` in `constants.py`), and `add_cfg64` checks a whole layout first and raises one `ValueError` naming every long ID. The greenhouse and server monitor examples use longer descriptive names for their controls as dict keys, but the IDs sent to the app are short. Older app exports can have long IDs.
+- **Older layouts lack keys the app added later.** `from_cfg_dict` fills in defaults rather than raising `KeyError`: TextBox `captionMode` (`MSG`), Knob `dialMode` (`FOLLOW`), and Slider `barMode`, from the deprecated `barFollowsSlider` when present, otherwise `FOLLOW`.
 - **cfgRev must change whenever the CFG changes.** The Dash app only fetches a new CFG when the device reports a different cfgRev. Code that builds its layouts at startup should save `device.get_cfg_hash()` with cfgRev and increase cfgRev when the hash changes, as the examples do.
 - **Enum and style values written into a CFG are UPPER CASE by convention.** The app ignores case. Many enums still emit mixed or lower case values; only ColorPicker's `pickerStyle` was converted.
 - **Layouts:**
