@@ -106,6 +106,10 @@ class DashStore:
         )
         self._db.execute("CREATE INDEX IF NOT EXISTS entries_control ON entries (control_type, control_id, sub_id, ts)")
         self._db.execute("CREATE INDEX IF NOT EXISTS entries_ts ON entries (ts)")
+        self._db.execute(
+            "CREATE TABLE IF NOT EXISTS pending_deletes ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, control_type TEXT NOT NULL, control_id TEXT NOT NULL, sub_id TEXT NOT NULL)"
+        )
 
     def add(self, control_type: str, control_id: str, sub_id: str, timestamp: datetime.datetime | int, data) -> None:
         """Add an entry, deleting the oldest entries if the store is over its limits.
@@ -159,8 +163,46 @@ class DashStore:
             ).fetchall()
         return [row[0] for row in rows]
 
+    def delete(self, control_type: str, control_id: str, sub_id: str = "") -> None:
+        """Delete a line's, track's or log's entries, here and on the Dash server.
+
+        The entries are deleted from the store now, and from the Dash server at the next sync (an SDU "delete"
+        action). The line's or track's details (name, color and so on) stay on the server. Use it when the old data
+        no longer belongs with the new, e.g. after a factory reset or when a line is reused for another sensor.
+
+        Parameters
+        ----------
+        control_type : str
+            "TGRPH", "LOG" or "MAP".
+        control_id : str
+            The control's ID.
+        sub_id : str
+            The TimeGraph line ID or Map track ID, "" for an EventLog.
+        """
+        with self._lock:
+            self._db.execute(
+                "DELETE FROM entries WHERE control_type = ? AND control_id = ? AND sub_id = ?", (control_type, control_id, sub_id)
+            )
+            pending = self._db.execute(
+                "SELECT 1 FROM pending_deletes WHERE control_type = ? AND control_id = ? AND sub_id = ?", (control_type, control_id, sub_id)
+            ).fetchone()
+            if pending is None:
+                self._db.execute(
+                    "INSERT INTO pending_deletes (control_type, control_id, sub_id) VALUES (?, ?, ?)", (control_type, control_id, sub_id)
+                )
+
+    def pending_deletes(self) -> list[tuple[int, str, str, str]]:
+        """The deletes not yet sent to the Dash server, as (delete ID, control type, control ID, sub ID), oldest first."""
+        with self._lock:
+            return [tuple(row) for row in self._db.execute("SELECT * FROM pending_deletes ORDER BY id").fetchall()]
+
+    def remove_pending_deletes(self, delete_ids) -> None:
+        """Forget deletes the Dash server has acknowledged."""
+        with self._lock:
+            self._db.executemany("DELETE FROM pending_deletes WHERE id = ?", [(delete_id,) for delete_id in delete_ids])
+
     def clear(self) -> None:
-        """Delete every entry."""
+        """Delete every entry. The Dash server isn't told: use delete() for that."""
         with self._lock:
             self._db.execute("DELETE FROM entries")
 
@@ -198,8 +240,9 @@ def _sdu_number(value) -> str | None:
 def format_sdu_data(entry: StoreEntry) -> str | None:
     """The data of an entry, formatted for an SDU UPDATE packet, or None if it can't be sent.
 
-    TimeGraph data is returned as a quoted JSON string, EventLog and Map data as JSON objects, as the DashIO
-    firmware sends them.
+    TimeGraph data is returned as a JSON string, EventLog and Map data as JSON objects, as the SDU protocol
+    describes: Map values are strings, and an EventLog's color is left out when it has none (the server uses BLACK).
+    The Map point's time is the entry's "ts".
     """
     from .iotcontrol.control import format_value  # pylint: disable=import-outside-toplevel
 
@@ -215,35 +258,36 @@ def format_sdu_data(entry: StoreEntry) -> str | None:
                 return None
         return _json(text)
     if entry.control_type == "LOG":
-        return _json({"color": data.get("color", ""), "lines": data.get("lines", [])})
+        log = {"color": str(data["color"])} if data.get("color") else {}
+        log["lines"] = [str(line) for line in data.get("lines", [])]
+        return _json(log)
     if entry.control_type == "MAP":
-        location = {"time": entry.time.strftime("%Y-%m-%dT%H:%M:%SZ")}
+        if "latitude" not in data or "longitude" not in data:
+            return None
+        location = {}
         for key in ("latitude", "longitude", "altitude", "avgeSpeed", "peakSpeed", "course", "distance"):
-            if key in data:
-                number = _sdu_number(data[key])
-                location[key] = data[key] if number is None else _RawNumber(number)
-        return _json_with_numbers(location)
+            if key in data and data[key] is not None:
+                value = data[key]
+                location[key] = value if isinstance(value, str) else (_sdu_number(value) or str(value))
+        return _json(location)
     return None
 
 
-class _RawNumber(str):
-    """A number already formatted, written into JSON without quotes."""
-
-
-def _json_with_numbers(value: dict) -> str:
-    return "{" + ",".join(f"{_json(key)}:{item if isinstance(item, _RawNumber) else _json(item)}" for key, item in value.items()) + "}"
-
-
 class SDUSession:
-    """Sends a device's stored data to the Dash server: the DashIO history upload (SDU) protocol.
+    """Sends a device's stored data to the Dash server: the DashIO Store Data Update (SDU) protocol.
 
-    1. When the device connects to the Dash server, it sends a timestamp request listing its stored lines,
-       tracks and logs (timestamp_request()).
-    2. The server replies with an SDU REQUEST giving, for each, the newest timestamp it holds, and sendInfo where
-       it needs the line or track details (request()).
-    3. The device sends the newer entries in SDU UPDATE packets of up to 4096 bytes, one at a time. The server
-       ACKs or NACKs each one. A NACK, or no reply within SDU_ACK_TIMEOUT, sends the packet once more; a second
-       failure ends the session.
+    1. When the device connects to the Dash server, it sends a REQUEST listing its stored lines, tracks and logs
+       (timestamp_request()).
+    2. The server replies with a REQUEST giving, for each, the newest timestamp it holds, or sendInfo (sendAll for
+       a log) when it holds nothing (request()).
+    3. The device sends the newer entries in UPDATE packets of up to 4096 bytes, one at a time. Each packet's
+       controlInfo lists only the lines, tracks and logs it has data for or deletes, and a line's or track's info
+       is sent in the first packet with its data after a sendInfo. The server ACKs or NACKs each one. A NACK, or no
+       reply within SDU_ACK_TIMEOUT, sends the packet once more; a second failure ends the session.
+
+    Deletes recorded with DashStore.delete() are sent as "delete" actions in the first packet, and forgotten once
+    the server ACKs it. A registry entry with "action": "replace" (a Map track that only shows the current
+    position) is sent with that action.
 
     on_finished is called with True when a session has sent everything, or there was nothing to send, and False
     when it fails: no SDU REQUEST within SDU_REQUEST_TIMEOUT of the timestamp request, a request that can't be
@@ -267,9 +311,10 @@ class SDUSession:
         store : DashStore
             The store to send entries from.
         get_registry : Callable[[], list[dict]]
-            Returns the device's stored lines, tracks and logs, in controlInfo order. Each is a dict with "type"
-            ("TGRPH", "MAP" or "LOG"), "id" and "sub" (line or track ID, "" for a log), and for TGRPH "name",
-            "lineType", "color" and "axis", for MAP "name" and "color".
+            Returns the device's stored lines, tracks and logs, lines first, then tracks, then logs. Each is a dict
+            with "type" ("TGRPH", "MAP" or "LOG"), "id" and "sub" (line or track ID, "" for a log), and for TGRPH
+            "name", "lineType", "color" and "axis", for MAP "name" and "color", and optionally "action" ("replace"
+            for a Map track that only keeps its latest point).
         send : Callable[[str], None]
             Sends a message to the Dash server.
         """
@@ -278,12 +323,14 @@ class SDUSession:
         self._get_registry = get_registry
         self._send = send
         self.state = self.IDLE
-        self._registry = []
+        self._registry = {}  # (type, control ID, sub ID) -> registry entry.
         self._thresholds = {}  # (type, control ID, sub ID) -> newest timestamp the server holds.
-        self._send_info = set()
+        self._send_info = set()  # Keys whose info the server asked for, until a packet with it is ACKed.
         self._scan_id = 0
         self._packet = ""
         self._packet_end_id = 0
+        self._packet_info = set()  # Keys whose info is in the packet waiting for an ACK.
+        self._packet_deletes = []  # Pending delete IDs in the packet waiting for an ACK.
         self._deadline = 0.0
         self.on_finished: Callable[[bool], None] | None = None
 
@@ -303,7 +350,7 @@ class SDUSession:
         return message
 
     def timestamp_request(self) -> str:
-        """The timestamp request the device sends to the Dash server's announce topic when it connects.
+        """The REQUEST the device sends to the Dash server's announce topic when it connects.
 
         Returns "" if there's nothing stored to ask about.
         """
@@ -343,11 +390,11 @@ class SDUSession:
             logger.warning("SDU REQUEST not understood: %s", error)
             self._finish(False)
             return
-        if not thresholds:
+        if not thresholds and not self.store.pending_deletes():
             logger.debug("SDU REQUEST has no timestamps, nothing to send")
             self._finish(True)
             return
-        self._registry = self._get_registry()
+        self._registry = {(item["type"], item["id"], item["sub"]): item for item in self._get_registry()}
         self._thresholds = thresholds
         self._send_info = send_info
         self._scan_id = 0
@@ -360,8 +407,9 @@ class SDUSession:
             logger.debug("SDU ACK received without a session")
             return
         self._scan_id = self._packet_end_id
-        # The server has the line and track details after the first packet.
-        self._send_info = set()
+        self._send_info -= self._packet_info
+        if self._packet_deletes:
+            self.store.remove_pending_deletes(self._packet_deletes)
         self.state = self.WAITING_ACK
         self._send_next_packet()
 
@@ -397,49 +445,66 @@ class SDUSession:
         thresholds = {}
         send_info = set()
 
-        def add(key, element):
-            if element.get("sendInfo", False):
-                send_info.add(key)
+        def add(key, element, send_all_key):
+            if element.get(send_all_key, False):
+                if send_all_key == "sendInfo":
+                    send_info.add(key)
             elif not element.get("ts"):
-                logger.debug("SDU REQUEST: %s has neither ts nor sendInfo, ignored", key)
+                logger.debug("SDU REQUEST: %s has neither ts nor %s, ignored", key, send_all_key)
                 return
             thresholds[key] = int(element.get("ts", 0))
 
         for control in request.get("tgrphList", []):
             control_id = control["controlID"]
             for line in control.get("lineList", []):
-                add(("TGRPH", control_id, line["id"]), line)
+                add(("TGRPH", control_id, line["id"]), line, "sendInfo")
         for control in request.get("mapList", []):
             control_id = control["controlID"]
             for track in control.get("trackList", []):
-                add(("MAP", control_id, track["id"]), track)
+                add(("MAP", control_id, track["id"]), track, "sendInfo")
         for log in request.get("logList", []):
-            add(("LOG", log["controlID"], ""), log)
+            # The server replies sendAll for a log it has no entries for. sendInfo is accepted too.
+            add(("LOG", log["controlID"], ""), log, "sendAll" if "sendAll" in log else "sendInfo")
         return thresholds, send_info
 
-    def _control_info(self) -> str:
-        items = []
-        for item in self._registry:
-            key = (item["type"], item["id"], item["sub"])
-            if item["type"] == "TGRPH":
-                info = {"type": "TGRPH", "id": item["id"], "lineID": item["sub"]}
-                if key in self._send_info:
-                    info.update(name=item["name"], lineType=item["lineType"], color=item["color"], axis=item["axis"])
-            elif item["type"] == "MAP":
-                info = {"type": "MAP", "id": item["id"], "trackID": item["sub"]}
-                if key in self._send_info:
-                    info.update(name=item["name"], color=item["color"])
-            else:
-                info = {"type": "LOG", "id": item["id"]}
-            items.append(_json(info))
-        return "[" + ",".join(items) + "]"
+    def _control_info(self, key: tuple, action: str = "") -> dict:
+        """A controlInfo entry: the line's or track's info when the server asked for it, and the action."""
+        control_type, control_id, sub_id = key
+        item = self._registry.get(key, {})
+        if control_type == "TGRPH":
+            info = {"type": "TGRPH", "id": control_id, "lineID": sub_id}
+            if not action and key in self._send_info and item:
+                info.update(name=item["name"], lineType=item["lineType"], color=item["color"], axis=item["axis"])
+        elif control_type == "MAP":
+            info = {"type": "MAP", "id": control_id, "trackID": sub_id}
+            if not action and key in self._send_info and item:
+                info.update(name=item["name"], color=item["color"])
+        else:
+            info = {"type": "LOG", "id": control_id}
+        action = action or item.get("action", "")
+        if action:
+            info["action"] = action
+        return info
 
     def _send_next_packet(self) -> None:
         header = f"\t{self.device_id}\tDATA\tSDU\tUPDATE\t"
-        start = '{"controlInfo":' + self._control_info() + ',"data":['
-        # Room for the entries, keeping space for the closing "]}", the hash and the newline.
-        remaining = SDU_MAX_PACKET_LENGTH - len(header.encode()) - len(start.encode()) - len("]}\t") - 16 - 1
-        indexes = {(item["type"], item["id"], item["sub"]): index for index, item in enumerate(self._registry)}
+        # Room for the controlInfo and data, after the fixed parts, the hash and the newline.
+        remaining = SDU_MAX_PACKET_LENGTH - len(header.encode()) - len('{"controlInfo":[],"data":[]}\t') - 16 - 1
+        infos = []
+        packet_info = set()
+        packet_deletes = []
+        # The server applies deletes before storing any data, so they go first, with no data pointing at them.
+        for delete_id, control_type, control_id, sub_id in self.store.pending_deletes():
+            info = ("," if infos else "") + _json(self._control_info((control_type, control_id, sub_id), "delete"))
+            if len(info.encode()) > remaining:
+                break
+            infos.append(info)
+            remaining -= len(info.encode())
+            packet_deletes.append(delete_id)
+            key = (control_type, control_id, sub_id)
+            if key in self._thresholds:
+                self._thresholds[key] = 0  # The server holds nothing for it after the delete.
+        indexes = {}  # Key -> index of its controlInfo entry with data.
         items = []
         scan_id = self._scan_id
         full = False
@@ -449,31 +514,43 @@ class SDUSession:
                 break
             for entry in entries:
                 key = (entry.control_type, entry.control_id, entry.sub_id)
-                index = indexes.get(key)
-                if index is None or key not in self._thresholds or entry.timestamp <= self._thresholds[key]:
+                if key not in self._registry or key not in self._thresholds or entry.timestamp <= self._thresholds[key]:
                     scan_id = entry.entry_id
                     continue
                 data = format_sdu_data(entry)
                 if data is None:
                     scan_id = entry.entry_id
                     continue
+                info = ""
+                index = indexes.get(key)
+                if index is None:
+                    index = len(infos)
+                    info = ("," if infos else "") + _json(self._control_info(key))
                 item = ("," if items else "") + f'{{"idx":{index},"ts":{entry.timestamp},"data":{data}}}'
-                if len(item.encode()) > remaining:
-                    if not items:
+                size = len(info.encode()) + len(item.encode())
+                if size > remaining:
+                    if not items and not infos:
                         logger.warning("SDU entry %s is too big for a packet, skipped", entry.entry_id)
                         scan_id = entry.entry_id
                         continue
                     full = True
                     break
+                if info:
+                    indexes[key] = index
+                    infos.append(info)
+                    if key in self._send_info:
+                        packet_info.add(key)
                 items.append(item)
-                remaining -= len(item.encode())
+                remaining -= size
                 scan_id = entry.entry_id
-        if not items:
+        if not items and not packet_deletes:
             logger.debug("SDU session finished, nothing more to send")
             self._finish(True)
             return
-        body = start + "".join(items) + "]}"
+        body = '{"controlInfo":[' + "".join(infos) + '],"data":[' + "".join(items) + "]}"
         self._packet_end_id = scan_id
+        self._packet_info = packet_info
+        self._packet_deletes = packet_deletes
         self._send_packet(f"{header}{body}\t{fnv1a_64(body.encode()):016x}\n")
 
     def _finish(self, completed: bool) -> None:

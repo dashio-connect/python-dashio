@@ -31,6 +31,9 @@ from .ring_buffer import RingBuffer
 from .event import Event
 
 
+MAX_EVENT_LINES = 25  # The most lines in an event.
+
+
 class EventData:
     """Event log data point
     """
@@ -46,14 +49,7 @@ class EventData:
         """
         self.color = color
         self.timestamp = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
-        self.event_lines = []
-        no_l = 0
-
-        for s_line in lines.split("\n"):
-            self.event_lines.append(s_line.translate(BAD_CHARS))
-            no_l += 1
-            if no_l > 25:
-                break
+        self.event_lines = [s_line.translate(BAD_CHARS) for s_line in lines.split("\n")[:MAX_EVENT_LINES]]
 
     def to_json(self):
         """Convert to JSON
@@ -155,6 +151,17 @@ class EventLog(Control):
         if not data_str:
             return ""
         return self._control_hdr_str + dashboard_id + data_str + "\n"
+
+    def delete_history(self):
+        """Delete the log's entries from the device and the Dash server.
+
+        The entries are deleted from the ring buffer and the device's DashStore now, and from the Dash server's store
+        at the device's next sync with a DashStore. Use it when the old entries no longer belong with the new, e.g.
+        after a factory reset.
+        """
+        self.log.clear()
+        if self._store is not None:
+            self._store.delete("LOG", self.control_id, "")
 
     def add_event_data(self, data: EventData):
         """Add a data point to the log and send it to any connected **Dash** app

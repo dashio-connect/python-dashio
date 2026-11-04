@@ -98,10 +98,25 @@ class MapTrack:
     """A Map track
     """
 
-    def __init__(self, track_id: str, text="", color=Color.RED) -> None:
+    def __init__(self, track_id: str, text="", color=Color.RED, replace=False) -> None:
+        """A Map track
+
+        Parameters
+        ----------
+        track_id : str
+            The track's ID.
+        text : str, optional
+            The track's name, by default "".
+        color : Color, optional
+            The track's color, by default Color.RED.
+        replace : bool, optional
+            If True, the Dash server only keeps the track's latest location, e.g. for a "current position" marker
+            rather than a track log. Each location sent to the server replaces the ones it holds. By default False.
+        """
         self.track_id = track_id.translate(BAD_CHARS)
         self.text = text.translate(BAD_CHARS)
         self.color = color
+        self.replace = replace
         self.track_start_time = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
         self.locations = []
 
@@ -219,6 +234,42 @@ class Map(Control):
                 if value.track_start_time > from_timestamp:
                     reply += self._control_hdr_str + dashboard_id + value.get_track() + "\n"
         return reply
+
+    def add_track(self, track: MapTrack) -> None:
+        """Add a track, to set its name, color and whether the Dash server keeps only its latest location.
+
+        Tracks are also made by add_location_to_track(), with no name and the default color.
+
+        Parameters
+        ----------
+        track : MapTrack
+            The track to add. A track with the same ID is replaced.
+        """
+        if isinstance(track, MapTrack):
+            self.tracks[track.track_id] = track
+
+    def delete_history(self, track_id: str | None = None):
+        """Delete a track's locations, or every track's, from the device and the Dash server.
+
+        The locations are deleted from the tracks and the device's DashStore now, and from the Dash server's store at
+        the device's next sync with a DashStore. The tracks' names and colors stay.
+
+        Parameters
+        ----------
+        track_id : str | None, optional
+            The track to delete the locations of, by default None for every track.
+        """
+        if track_id is None:
+            track_ids = list(self.tracks)
+            if self._store is not None:
+                track_ids += [key for key in self._store.sub_ids("MAP", self.control_id) if key not in track_ids]
+        else:
+            track_ids = [track_id]
+        for key in track_ids:
+            if key in self.tracks:
+                self.tracks[key].locations = []
+            if self._store is not None:
+                self._store.delete("MAP", self.control_id, key)
 
     def add_location_to_track(self, location: MapLocation, track_id: str) -> None:
         """Add Location to the map

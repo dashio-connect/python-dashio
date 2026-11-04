@@ -28,6 +28,10 @@ class TestEventLog(unittest.TestCase):
         test_str_list = test_control._control_hdr_str.split('\t')
         self.assertEqual(test_str_list[3], 'LOGID', "control_id type should be LOGID")
 
+    def test_event_data_at_most_25_lines(self):
+        event = EventData("\n".join(str(line) for line in range(30)))
+        self.assertEqual(event.event_lines, [str(line) for line in range(25)])
+
 
 if __name__ == '__main__':
     unittest.main()

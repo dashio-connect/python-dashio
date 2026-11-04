@@ -410,6 +410,25 @@ class TimeGraph(Control):
         gline._time_graph = self
         gline._line_id = line_id
 
+    def delete_history(self, line_id: str | None = None):
+        """Delete a line's data, or every line's, from the device and the Dash server.
+
+        The data is deleted from the lines' ring buffers and the device's DashStore now, and from the Dash server's
+        store at the device's next sync with a DashStore. The lines' names, colors and so on stay. Use it when the old
+        data no longer belongs with the new, e.g. after a factory reset or when a line is reused for another sensor.
+
+        Parameters
+        ----------
+        line_id : str | None, optional
+            The line to delete the data of, by default None for every line.
+        """
+        line_ids = list(self.line_dict) if line_id is None else [line_id]
+        for key in line_ids:
+            if key in self.line_dict:
+                self.line_dict[key].data.clear()
+            if self._store is not None:
+                self._store.delete("TGRPH", self.control_id, key)
+
     def _get_lines_from_timestamp(self, msg):
         state_str = ""
         try:

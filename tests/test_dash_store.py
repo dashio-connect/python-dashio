@@ -109,7 +109,7 @@ class TestSDUSession(unittest.TestCase):
             f'{{"idx":0,"ts":{TS + 1},"data":"23.500000"}},'
             f'{{"idx":1,"ts":{TS + 2},"data":"[21.3,20]"}},'
             f'{{"idx":0,"ts":{TS + 3},"data":"T"}},'
-            f'{{"idx":2,"ts":{TS + 4},"data":{{"time":"2025-10-09T08:53:24Z","latitude":-36.850000,"longitude":174.760000}}}},'
+            f'{{"idx":2,"ts":{TS + 4},"data":{{"latitude":"-36.85","longitude":"174.76"}}}},'
             f'{{"idx":3,"ts":{TS + 5},"data":{{"color":"4","lines":["a \\"b\\"","c"]}}}}]}}'
         ))
         self.session.ack()
@@ -162,7 +162,8 @@ class TestSDUSession(unittest.TestCase):
         self.store.add("TGRPH", "TG1", "L2", TS + 1, 2)
         self.session.request(json.dumps({"tgrphList": [{"controlID": "TG1", "lineList": [{"id": "L1"}, {"id": "L2", "ts": TS}]}]}))
         body = json.loads(split_packet(self.sent[0]))
-        self.assertEqual([item["idx"] for item in body["data"]], [1])
+        self.assertEqual(body["controlInfo"], [{"type": "TGRPH", "id": "TG1", "lineID": "L2"}])
+        self.assertEqual([item["idx"] for item in body["data"]], [0])
 
     def test_request_during_session_ignored(self):
         self.store.add("LOG", "LOG1", "", TS + 1, {"color": "4", "lines": ["a"]})
@@ -170,6 +171,91 @@ class TestSDUSession(unittest.TestCase):
         self.session.request(request)
         self.session.request(request)
         self.assertEqual(len(self.sent), 1)
+
+    def test_control_info_only_lists_entries_with_data(self):
+        self.store.add("LOG", "LOG1", "", TS + 1, {"lines": ["a"]})
+        self.session.request(json.dumps({
+            "tgrphList": [{"controlID": "TG1", "lineList": [{"id": "L1", "ts": TS}, {"id": "L2", "sendInfo": True}]}],
+            "logList": [{"controlID": "LOG1", "ts": TS}],
+        }))
+        self.assertEqual(
+            split_packet(self.sent[0]),
+            f'{{"controlInfo":[{{"type":"LOG","id":"LOG1"}}],"data":[{{"idx":0,"ts":{TS + 1},"data":{{"lines":["a"]}}}}]}}',
+            "Only the log has data, and a log without a color leaves it out"
+        )
+
+    def test_log_send_all(self):
+        self.store.add("LOG", "LOG1", "", TS + 1, {"color": "4", "lines": ["a"]})
+        self.session.request(json.dumps({"logList": [{"controlID": "LOG1", "sendAll": True}]}))
+        body = json.loads(split_packet(self.sent[0]))
+        self.assertEqual([item["ts"] for item in body["data"]], [TS + 1])
+
+    def test_send_info_in_first_packet_with_the_lines_data(self):
+        for offset in range(300):
+            self.store.add("TGRPH", "TG1", "L1", TS + 1 + offset, offset + 0.5)
+        self.store.add("TGRPH", "TG1", "L2", TS + 400, 1)
+        self.session.request(json.dumps({"tgrphList": [{"controlID": "TG1", "lineList": [
+            {"id": "L1", "ts": TS}, {"id": "L2", "sendInfo": True}
+        ]}]}))
+        packets = []
+        while self.session.state != SDUSession.IDLE:
+            packets.append(json.loads(split_packet(self.sent[-1])))
+            self.session.ack()
+        self.assertGreater(len(packets), 1)
+        self.assertNotIn("L2", [info["lineID"] for info in packets[0]["controlInfo"]])
+        self.assertIn({"type": "TGRPH", "id": "TG1", "lineID": "L2", "name": "Hum", "lineType": "BAR", "color": "", "axis": "R"}, packets[-1]["controlInfo"])
+
+    def test_send_info_again_if_its_packet_fails(self):
+        self.store.add("TGRPH", "TG1", "L1", TS + 1, 1)
+        request = json.dumps({"tgrphList": [{"controlID": "TG1", "lineList": [{"id": "L1", "sendInfo": True}]}]})
+        self.session.request(request)
+        self.session.nack()
+        self.session.nack()
+        self.session.request(request)
+        self.assertIn("name", json.loads(split_packet(self.sent[-1]))["controlInfo"][0])
+
+    def test_delete_sent_first_then_new_data(self):
+        self.store.add("TGRPH", "TG1", "L1", TS + 10, 1)
+        self.store.delete("TGRPH", "TG1", "L1")
+        self.store.add("TGRPH", "TG1", "L1", TS + 5, 2)  # Older than the server's ts, but the server is cleared.
+        self.session.request(json.dumps({"tgrphList": [{"controlID": "TG1", "lineList": [{"id": "L1", "ts": TS + 8}]}]}))
+        self.assertEqual(split_packet(self.sent[0]), (
+            '{"controlInfo":[{"type":"TGRPH","id":"TG1","lineID":"L1","action":"delete"},{"type":"TGRPH","id":"TG1","lineID":"L1"}],'
+            f'"data":[{{"idx":1,"ts":{TS + 5},"data":"2"}}]}}'
+        ))
+        self.assertEqual(len(self.store.pending_deletes()), 1, "Kept until the server ACKs")
+        self.session.ack()
+        self.assertEqual(self.store.pending_deletes(), [])
+        self.assertEqual(self.session.state, SDUSession.IDLE)
+
+    def test_delete_without_data(self):
+        self.store.delete("LOG", "LOG1")
+        self.session.request(json.dumps({"logList": [{"controlID": "LOG1", "sendAll": True}]}))
+        self.assertEqual(split_packet(self.sent[0]), '{"controlInfo":[{"type":"LOG","id":"LOG1","action":"delete"}],"data":[]}')
+
+    def test_delete_kept_when_the_session_fails(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "store.db")
+            store = DashStore(path, max_days=None)
+            store.delete("MAP", "M1", "T1")
+            session = SDUSession("DEV1", store, lambda: REGISTRY, self.sent.append)
+            session.request(json.dumps({"mapList": [{"controlID": "M1", "trackList": [{"id": "T1", "ts": TS}]}]}))
+            session.nack()
+            session.nack()
+            store.close()
+            store = DashStore(path, max_days=None)
+            self.assertEqual([delete[1:] for delete in store.pending_deletes()], [("MAP", "M1", "T1")])
+            store.close()
+
+    def test_replace_track(self):
+        registry = [{"type": "MAP", "id": "M1", "sub": "T1", "name": "Here", "color": "4", "action": "replace"}]
+        session = SDUSession("DEV1", self.store, lambda: registry, self.sent.append)
+        self.store.add("MAP", "M1", "T1", TS + 1, {"latitude": -36.85, "longitude": 174.76, "altitude": "12"})
+        session.request(json.dumps({"mapList": [{"controlID": "M1", "trackList": [{"id": "T1", "sendInfo": True}]}]}))
+        self.assertEqual(split_packet(self.sent[0]), (
+            '{"controlInfo":[{"type":"MAP","id":"M1","trackID":"T1","name":"Here","color":"4","action":"replace"}],'
+            f'"data":[{{"idx":0,"ts":{TS + 1},"data":{{"latitude":"-36.850000","longitude":"174.760000","altitude":"12"}}}}]}}'
+        ))
 
 
 class TestDeviceStore(unittest.TestCase):
@@ -231,6 +317,38 @@ class TestDeviceStore(unittest.TestCase):
         self.assertEqual([item["data"] for item in body["data"]], ["21.500000"])
         device._on_message(b"\tDEV1\tDATA\tSDU\tACK\n")
         self.assertEqual(device._sdu.state, SDUSession.IDLE)
+
+    def test_delete_history_through_device(self):
+        device, graph, log, map_control = self.make_device()
+        sent = []
+        device._sdu._send = sent.append
+        map_control.add_track(dashio.MapTrack("T2", "Here", replace=True))
+        graph.line_dict["L1"].add_data_point(21.5)
+        log.add_event_data(dashio.EventData("Started"))
+        map_control.add_location_to_track(dashio.MapLocation("-36.85", "174.76"), "T1")
+        graph.delete_history()
+        log.delete_history()
+        map_control.delete_history("T1")
+        self.assertEqual(len(graph.line_dict["L1"].data.get()), 0)
+        self.assertEqual(len(device.store), 0)
+        map_control.add_location_to_track(dashio.MapLocation("-36.9", "174.8"), "T2")
+        self.assertIn('"trackList":["T2","T1"]', device._sdu.timestamp_request(), "A deleted track is still asked about")
+        request = {
+            "tgrphList": [{"controlID": "TG1", "lineList": [{"id": "L1", "ts": TS}]}],
+            "mapList": [{"controlID": "M1", "trackList": [{"id": "T1", "ts": TS}, {"id": "T2", "ts": TS}]}],
+            "logList": [{"controlID": "LOG1", "ts": TS}],
+        }
+        device._on_message(f"\tDEV1\tDATA\tSDU\tREQUEST\t{json.dumps(request)}\n".encode())
+        body = json.loads(split_packet(sent[0]))
+        self.assertEqual(body["controlInfo"], [
+            {"type": "TGRPH", "id": "TG1", "lineID": "L1", "action": "delete"},
+            {"type": "LOG", "id": "LOG1", "action": "delete"},
+            {"type": "MAP", "id": "M1", "trackID": "T1", "action": "delete"},
+            {"type": "MAP", "id": "M1", "trackID": "T2", "action": "replace"},
+        ])
+        self.assertEqual([item["idx"] for item in body["data"]], [3])
+        device._on_message(b"\tDEV1\tDATA\tSDU\tACK\n")
+        self.assertEqual(device.store.pending_deletes(), [])
 
     def test_without_store_unchanged(self):
         device = dashio.Device("TestType", "DEV2", "Test")

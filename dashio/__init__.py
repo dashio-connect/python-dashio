@@ -59,7 +59,7 @@ from .iotcontrol.enums import (BarMode, ButtonGroupStyle, ButtonState,
 from .iotcontrol.event_log import EventData, EventLog
 from .iotcontrol.knob import Knob
 from .iotcontrol.label import Label
-from .iotcontrol.map import Map, MapLocation
+from .iotcontrol.map import Map, MapLocation, MapTrack
 from .iotcontrol.menu import Menu
 from .iotcontrol.selector import Selector
 from .iotcontrol.slider import Slider
@@ -135,6 +135,7 @@ __all__ = [
     'Direction',
     'Map',
     'MapLocation',
+    'MapTrack',
     'Alarm',
     'Menu',
     'Selector',

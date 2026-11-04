@@ -1025,12 +1025,19 @@ class Device(threading.Thread):
             elif control.ctrl_type == "MAP":
                 track_ids = self.store.sub_ids("MAP", control.control_id)
                 track_ids += [track_id for track_id in control.tracks if track_id not in track_ids]
+                track_ids += [
+                    sub_id for _, control_type, control_id, sub_id in self.store.pending_deletes()
+                    if control_type == "MAP" and control_id == control.control_id and sub_id not in track_ids
+                ]
                 for track_id in track_ids:
                     track = control.tracks.get(track_id)
-                    tracks.append({
+                    item = {
                         "type": "MAP", "id": control.control_id, "sub": track_id, "name": track.text if track else "",
                         "color": str(track.color.value) if track else ""
-                    })
+                    }
+                    if track is not None and track.replace:
+                        item["action"] = "replace"
+                    tracks.append(item)
             elif control.ctrl_type == "LOG":
                 logs.append({"type": "LOG", "id": control.control_id, "sub": ""})
         return lines + tracks + logs

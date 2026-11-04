@@ -13,7 +13,7 @@ from .time_graph import TimeGraph, TimeGraphLine, DataPoint, DataPointArray, Tim
 from .knob import Knob, KnobConfig
 from .dial import Dial, DialConfig
 from .direction import Direction, DirectionConfig
-from .map import Map, MapLocation
+from .map import Map, MapLocation, MapTrack
 from .alarm import Alarm
 from .menu import Menu, MenuConfig
 from .selector import Selector

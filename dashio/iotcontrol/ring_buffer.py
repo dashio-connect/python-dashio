@@ -44,6 +44,11 @@ class RingBuffer:
         else:
             self.data.append(val)
 
+    def clear(self):
+        """Remove every element."""
+        self.data = []
+        self._full = False
+
     def get_latest(self):
         """Get the last item in the buffer
         """
