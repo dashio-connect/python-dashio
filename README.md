@@ -5,141 +5,41 @@
 [![Tests](https://github.com/dashio-connect/python-dashio/actions/workflows/tests.yml/badge.svg)](https://github.com/dashio-connect/python-dashio/actions/workflows/tests.yml)
 [![Discord](https://img.shields.io/discord/1313341785430429747?color=5865F2&logo=Discord&style=flat-square)](https://discord.gg/fqvhNV3GQB)
 
-**[python-dashio](https://github.com/dashio-connect/python-dashio)** - Create beautiful mobile dashboards for your python project. The python-dashio library allows easy setup of controls such as Dials, Text Boxes, Charts, Graphs, and Notifications. You can define the look and layout of the controls on your phone from your python code. Connect to your phone over TCP on your local network, or from anywhere through the Dash server (dash.dashio.io), which also sends notifications, stores data and lets you share your devices. Bluetooth Low Energy (BLE) is available on Linux, and is experimental.
+A Python library that connects your project to the **Dash** IoT app, over your local network (TCP), from anywhere through the Dash server (MQTT), or over Bluetooth LE on Linux. You create controls in Python (dials, knobs, sliders, buttons, text boxes, time graphs, maps, event logs...), give them values, and handle what the app sends back. Lay them out from your code, or design the layout in the app itself. There's no app or web code to write.
 
-## Getting Started
+- TCP on your local network, the Dash server, and Bluetooth LE on Linux (experimental), separately or together.
+- Layouts for phones, fold out phones and tablets, designed in the app or built in Python.
+- Notifications to your phone, through the Dash server.
+- Provisioning from the app: the device name, WiFi, Dash server login, and your own settings in the app's provisioning menu.
+- History for time graphs, event logs and maps, kept in sqlite and uploaded to the Dash server, for devices that are only online now and then.
 
-* For the big picture on **DashIO**, take a look at our website: [dashio.io](https://dashio.io)
+It's the Python counterpart of the Arduino DashIO libraries, and speaks the same protocol. It's also the quickest way to prototype a device and design its layout before writing firmware.
 
-* Create an account on [dash.dashio.io](https://dashio.io/account-create/)
+![A knob turned in the Dash app: the message goes through the TCPConnection and ZMQ to the Device thread and your callback, and the dial update goes back out over TCP and through the Dash server](https://raw.githubusercontent.com/dashio-connect/python-dashio/master/docs/images/how-it-works.gif)
 
-* Get the App:
+## The Dash app
 
-Apple              | Android
-:-----------------:|:------------------:
-[<img src=https://raw.githubusercontent.com/dashio-connect/python-dashio/master/Documents/download-on-the-app-store.svg width=200>](<https://apps.apple.com/us/app/dash-iot/id1574116689>) | [<img src=https://raw.githubusercontent.com/dashio-connect/python-dashio/master/Documents/Google_Play_Store_badge_EN.svg width=223>](<https://play.google.com/store/apps/details?id=com.dashio.dashiodashboard>)
+| Apple | Android |
+| :---: | :---: |
+| [<img src=https://raw.githubusercontent.com/dashio-connect/python-dashio/master/Documents/download-on-the-app-store.svg width=200>](https://apps.apple.com/us/app/dash-iot/id1574116689) | [<img src=https://raw.githubusercontent.com/dashio-connect/python-dashio/master/Documents/Google_Play_Store_badge_EN.svg width=223>](https://play.google.com/store/apps/details?id=com.dashio.dashiodashboard) |
 
-## Discord Community
+TCP and BLE are free. To reach your device from anywhere, create an account on [dashio.io](https://dashio.io/account-create/). More at [dashio.io](https://dashio.io), and on [Discord](https://discord.gg/fqvhNV3GQB).
 
-Be a part of the DashIO community by joining our [Discord Server](https://discord.gg/fqvhNV3GQB)
-
-## Documentation
-
-For all documentation and software guides: [dashio.io/documents](https://dashio.io/documents)
-
-For the **DashIO** Python guide: [dashio.io/guide-python](https://dashio.io/guide-python)
-
-For the **DashIO** Python library: [dashio.io/python-library](https://dashio.io/python-library/)
-
-The library reference is in [Documents/Documentation.md](Documents/Documentation.md).
-
-[skills/python-dashio](skills/python-dashio) is a Claude Code skill for writing devices with this library and making layouts for Arduino and zephyr-dashio firmware: copy or link it into your project's `.claude/skills/` directory.
-
-## Examples
-
-There are plenty of examples in the github repository under the Examples directory. For complete applications, see [Examples/greenhouse](Examples/greenhouse) and [Examples/server_monitor](Examples/server_monitor). [Examples/intermittent_connection.py](Examples/intermittent_connection.py) is a device that only connects to the Dash server now and then, keeping its data in a DashStore while disconnected, and is provisioned over TCP on the local network.
-
-## Dash IoT Application
-
-The **Dash** app is free and available for both Apple and Android devices. Use it to create beautiful and powerful user interfaces to your IoT devices.
-
-Dashio Phone               |  Dashio Tablet
-:-------------------------:|:-------------------------:
-<img src="https://dashio.io/wp-content/uploads/2020/11/IMG_4154.jpeg" width="150" /> | <img src="https://dashio.io/wp-content/uploads/2020/12/IMG_4203.jpeg" width="450" />
+<img src="https://dashio.io/wp-content/uploads/2020/11/IMG_4154.jpeg" width="150" alt="The Dash app on a phone"> <img src="https://dashio.io/wp-content/uploads/2020/12/IMG_4203.jpeg" width="450" alt="The Dash app on a tablet">
 
 ## Requirements
 
-Python 3.11 or later. pip installs the other dependencies: paho-mqtt, pyzmq, python-dateutil, zeroconf, shortuuid and pyserial.
-
-## Install
-
-### From PyPI (Recommended)
+Python 3.11 or later.
 
 ```sh
 pip3 install dashio
 ```
 
-### From Source
+pip installs the other dependencies. For Bluetooth LE on Linux, `pip3 install dashio[ble]`. To work on the library, clone it and `pip3 install -e .`.
 
-For development (editable install):
+## Quick start
 
-```sh
-git clone https://github.com/dashio-connect/python-dashio.git
-cd python-dashio
-pip3 install -e .
-```
-
-For regular installation:
-
-```sh
-git clone https://github.com/dashio-connect/python-dashio.git
-cd python-dashio
-pip3 install .
-```
-
-## A Quick Guide
-
-This guide covers the **DashIO** python library. For information on the [***Dash***](https://dashio.io/dashboard) phone app please visit the website.
-
-### Basics
-
-So what is **DashIO**? It is a quick, effortless way to connect your IoT device to your phone, with controls such as Dials, Text Boxes, Maps, Graphs and Notifications set up from your device. What's Dash then? Dash is an MQTT server with extra features: it sends notifications, stores time graph, event log and map data, lets you share your devices, and saves your settings from the **Dash** app.
-
-Show me some code.
-
-```python
-# Examples/ex01.py
-import dashio
-import random
-import time
-
-device = dashio.Device("aDeviceType", "aDeviceID", "aDeviceName")
-tcp_con = dashio.TCPConnection()
-tcp_con.add_device(device)
-first_dial_control = dashio.Dial("dial1")
-device.add_control(first_dial_control)
-
-while True:
-    first_dial_control.dial_value = random.random() * 100
-    time.sleep(5)
-```
-
-This is about the fewest lines of code to get talking to the app. There is a lot happening under the hood to make this work. After the import we create a device with three attributes:
-
-* "aDeviceType": a common name device_type for all IoT devices using this code which is used for device discovery
-* "aDeviceID": a device_ID to uniquely identify this device, preferably a UUID.
-* "aDeviceName": The name of this device, which can be changed at any time.
-
-These attributes describe the device to the app and allow you to distinguish one of your devices from another.
-
-The next two lines create a TCP connection and then add the device to the connection. This device is discoverable by the Dash app. You can also discover your IoT device using a third party Bonjour/Zeroconf discovery tool. The mDNS service will be "_DashIO._tcp."
-
-Though this device is discoverable by the app it would be nice to have the DashIO app automatically setup a new DeviceView and place your control on the new DeviceView. To do that we need to add a few more lines of code:
-
-```python
-# Examples/ex02.py
-import dashio
-import random
-import time
-
-device = dashio.Device("aDeviceType", "aDeviceID", "aDeviceName")
-tcp_con = dashio.TCPConnection()
-tcp_con.add_device(device)
-first_dial_control = dashio.Dial("dial1", control_position=dashio.ControlPosition(0.24, 0.36, 0.54, 0.26))
-device.add_control(first_dial_control)
-
-dv_dial = dashio.DeviceView("aView", "A Dial")
-dv_dial.add_control(first_dial_control)
-device.add_control(dv_dial)
-
-while True:
-    first_dial_control.dial_value = random.random() * 100
-    time.sleep(5)
-```
-
-First we altered the instantiation of a Dial by including a control_position. This allows us to place the control at a set location. The added lines instantiated a DeviceView control, to which we then added the dial control. Finally we added the DeviceView to the device.
-
-The next piece of the puzzle to consider is how do we get data from the DashIO app? Let's add a Knob and connect it to the Dial:
+A knob that moves a dial, on your local network. This is [Examples/ex03.py](Examples/ex03.py):
 
 ```python
 # Examples/ex03.py
@@ -170,97 +70,48 @@ while True:
     time.sleep(1)
 ```
 
-First we added a function that sets the dial value. Next we added a Knob control and added our new function to be called when it receives data from the DashIO app. We also add it to the DeviceView and to the device. Now when the knob in the DashIO app is moved the dial is set to the same value.
+Run it, then add the device in the Dash app: it's found on the local network. Turn the knob, and the dial follows. [Getting started](docs/getting-started.md) goes on from here.
 
-### Connecting From Anywhere
+## How you develop with it
 
-A TCPConnection only works on your local network. To reach your device from anywhere, connect it through the Dash server with a DashConnection, using your Dash account username and password. The Dash server can also send notifications to your phone, with an Alarm:
+1. **Create the controls** in Python, with IDs of up to 7 characters, and run the device over TCP.
+2. **Design the layout** in the Dash app, and export it. Or build it in Python with `generate_cfg64()`.
+3. **Load the layout** into the device, with `cfg_dict` or `add_cfg64()`, and handle the app's messages in the controls' callbacks.
+4. **Change the layout** later by raising its cfgRev, so the app fetches the new one.
+5. **Connect to the Dash server** to reach the device from anywhere, send notifications and keep history.
 
-```python
-# Examples/ex06.py
-import dashio
-import random
-import time
+The same layout works on Arduino firmware with controls of the same types and IDs. [docs/layouts.md](docs/layouts.md) covers each step.
 
-device = dashio.Device("aDeviceType", "aDeviceID3", "aDeviceName")
-dash_con = dashio.DashConnection("your_dash_username", "your_dash_password")
-dash_con.add_device(device)
+## Documentation
 
-first_dial_control = dashio.Dial("dial1", control_position=dashio.ControlPosition(0.24, 0.36, 0.54, 0.26))
-device.add_control(first_dial_control)
-dv = dashio.DeviceView("aView", "A Dial")
-dv.add_control(first_dial_control)
-device.add_control(dv)
+| | |
+|---|---|
+| [Getting started](docs/getting-started.md) | From a dial on your phone to a device you can reach from anywhere |
+| [Layouts](docs/layouts.md) | Designing, generating and loading layouts; Menus and the provisioning menu |
+| [Controls](docs/controls.md) | Every control: its settings, its values, and what its callbacks receive |
+| [The Device](docs/device.md) | Controls, provisioning from the app, reset, the clock |
+| [Connections](docs/connections.md) | The Dash server, TCP, Bluetooth LE and ZMQ |
+| [Storing history](docs/storage.md) | Time graph, event log and map history, on the device and the Dash server |
+| [Exporting data](docs/data-exporter.md) | `dashio_data_exporter`: history from the Dash server, as text or CSV |
+| [Examples](Examples) | `ex01`–`ex06` from the docs; [greenhouse](Examples/greenhouse), [server_monitor](Examples/server_monitor) and [intermittent_connection.py](Examples/intermittent_connection.py) are complete applications |
 
-alarm = dashio.Alarm("hiAlarm")
-device.add_control(alarm)
+### Command line utilities
 
-high = False
-while True:
-    value = random.random() * 100
-    first_dial_control.dial_value = value
-    if value > 90 and not high:
-        alarm.send("High value", f"The dial is at {value:.0f}")
-    high = value > 90
-    time.sleep(5)
-```
+The library installs three commands. Run any of them with `-h` for its options.
 
-The alarm is sent when the dial goes above 90. A device can use a TCPConnection and a DashConnection at the same time. The Dash server can also store the data of time graphs, event logs and maps, with *device.storage_enable()*. See the [Documentation](Documents/Documentation.md#dashconnection).
+| Command | |
+|---|---|
+| `c64_decode layout.c64` | Decodes a CFG64 layout, e.g. one exported from the Dash app, to JSON |
+| `c64_encode layout.json` | Encodes a JSON layout to CFG64, optionally formatted for C or Python code with `-f` |
+| `dashio_data_exporter -u USERNAME -p PASSWORD -d DEVICE_ID -c CONTROL_ID` | Exports time graph or event log history from the Dash server ([docs](docs/data-exporter.md)) |
 
-### Using the Config64
+### For Claude Code users
 
-The **Dash** app can generate a CFG64 text string that defines the controls, the controls layout, and device parameters for the Device. For example, run ex03 above, arrange its controls in the **Dash** app, and export the layout. The layout can then set up the device and its controls:
+[skills/python-dashio](skills/python-dashio) is a Claude Code skill that teaches Claude how to use this library, and how to make layouts for Arduino and zephyr-dashio firmware: copy or link it into your project's `.claude/skills/` directory.
 
-```python
-# Examples/ex04.py
-import dashio
-import time
+## Working on the library
 
-cfg64 = "jVTbjtowEP0VlOeqImyXSn1LCLCIXFDiQqWqD97ESywSmzrOAl3x7+sxOAk3qW/jM+Pxseccf1jeLLZ+9H7/+dKzRpOpCj8sVpce"\
-    "eacpWVKyqxRkq2SmkYTIeqsQy1JQ+raOyTvkj2o1DyMXOn1YKWdS8GLmQSGehy4U54SucxljSbmC+18HQwVKKguy4BVVKINqN0Io"\
-    "CiyTAsjpzRl/BagiLItYcYhYTAqCK0hLUROVKils70NRzncBZQHeK+ANFxWkBcmWuKhhw/dntd5iQZg8E4RbQvuM4iLgmT50Evl+"\
-    "tAJ0b+h1qH9T+I5mMm+xZ8A2iuiIF1xAi5hkpmuDucABSMrD6XJhFAeOD9Dh9hwbepb6Ina/f9Qj8ptpJb7XxM7SM2HgLEzoomkT"\
-    "B+Pwp4nR+Bcyse/6JvSWy9V5gFK0nFc5laSXlHxzSd11ktlIy0BVu1xkRDzasxY0U7m6ZKCmwQA2XWjEjIAqOMSl7p/8rdWUrqTg"\
-    "qddsztysWdZ5WpxuNMFcbTud1uoD6hG0cfn+dks3iwRmldZHejhLqklPFOmE/gMu9vCcUELrwAOoV/5pb2t32d5rfsMGXivm2nhP"\
-    "Az11P5o2Hn2JUauAEYrbYaOwmeTM8U+T3AqS0upkrv71s4M0betE+JWIrg/98QRdTHsxG1uPjNNI9MKIW06Z7GjCaL9mVFbmC7n7"\
-    "K1y7FXhOaFFcW+v/fg8jmUdGvmO8p+EDg99+Lno+aBovXvTjHz8B"
-
-
-config_dict = dashio.decode_cfg64(cfg64)
-device = dashio.Device("aDeviceType", "aDeviceID2", "aDeviceName1", cfg_dict=config_dict)
-tcp_con = dashio.TCPConnection()
-tcp_con.add_device(device)
-
-aknob: dashio.Knob = device.get_control(dashio.ControlName.KNOB, "aKNB")
-first_dial_control: dashio.Dial = device.get_control(dashio.ControlName.DIAL, "dial1")
-
-
-def knob_event_handler(msg):
-    aknob.knob_dial_value = float(msg[3])
-    first_dial_control.dial_value = float(msg[3])
-
-
-aknob.add_receive_message_callback(knob_event_handler)
-
-while True:
-    time.sleep(1)
-```
-
-We've added the cfg64 string. Then decoded it with *dashio.decode_cfg64(cfg64)*. This function returns a dictionary that we can pass into Device so that it can instantiate and add the controls.
-
-The **Dash** app reports its screen size in columns: 1 for phones, 2 for fold out phones and 3 for tablets. A device can hold a layout for each, e.g. `cfg_dict={1: phone_cfg64, 3: tablet_cfg64}`, and layouts can also be built in code with *dashio.generate_cfg64()*. See [Layouts](Documents/Documentation.md#layouts).
-
-The **Dash** app only fetches a new layout when the device's cfgRev changes, so increase *device.config_revision* whenever the layout changes. *device.get_cfg_hash()* helps tell when it has changed.
-
-### Command Line Utilities
-
-The library installs three command line utilities. Run any of them with `-h` for its options.
-
-| Command | What it does |
-|---------|--------------|
-| `c64_decode layout.c64` | Decode a CFG64 layout, e.g. one exported from the **Dash** app, to JSON. |
-| `c64_encode layout.json` | Encode a JSON layout to CFG64, optionally formatted for C or Python code with `-f`. |
-| `dashio_data_exporter -u USERNAME -p PASSWORD -d DEVICE_ID -c CONTROL_ID` | Export time graph or event log data stored on the Dash server. See [the data exporter guide](Documents/dashio_data_exporter.md). |
+[CLAUDE.md](CLAUDE.md) describes the code, and how to run the tests and lint.
 
 ## License
 

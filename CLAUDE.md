@@ -14,9 +14,11 @@ Notes for working on python-dashio, the Python library for the DashIO protocol a
   - `utilities/`: the `c64_encode`, `c64_decode` and `dashio_data_exporter` commands.
 - `tests/`: unittest/pytest tests.
 - `Examples/`:
-  - `ex01`–`ex06`: shown in the README. Keep the README snippets identical to these files.
+  - `ex01`–`ex06`: shown in `docs/getting-started.md` (and `ex03` in the README). Keep the snippets identical to these files.
   - `greenhouse/` and `server_monitor/`: full applications.
-- `Documents/Documentation.md`: the library reference. Keep it in step with the code.
+- `docs/`: the user documentation, in the style of zephyr-dashio's `docs/`: `getting-started.md`, `layouts.md`, `controls.md`, `device.md`, `connections.md`, `storage.md`, `data-exporter.md`. Keep it in step with the code. `docs/agents/` and `docs/adr/` are for working on the library.
+- `docs/animation/`: the Manim scene for the README's `docs/images/how-it-works.gif`, with its rendering steps. The names it shows must match the code.
+- `Documents/`: the control pictures the docs link to (by raw GitHub URL, so they show on PyPI), and `Documentation.md`, now a pointer to `docs/` for old links.
 - `skills/python-dashio/SKILL.md`: a Claude Code skill for library users, for Python devices and for making layouts for Arduino and zephyr-dashio firmware. Keep it in step with the code and the utilities.
 - `Documents/DashIO-Controls-V2.pdf` and `DashIO-Protocol-Definition-V5.pdf`: the authoritative protocol and controls references. They're git-ignored (`*.pdf`). Read them with `pypdf`; poppler isn't installed.
 
@@ -78,7 +80,9 @@ Notes for working on python-dashio, the Python library for the DashIO protocol a
 - **The Dash server is the source of truth for history.** For a control with `storage_enable()` (`Device._server_stored`), history requests are only answered when they come from a Dash server connection (`msg_from` starting `DASH:`), never over TCP, BLE or other local connections. Otherwise an app connected locally takes the device's history as complete and doesn't fetch the older history from the server. Live updates still go to every connection.
 - **`DashStore` and history upload (SDU):** a port of the firmware's DashIO Storage Manager (`../zephyr-dashio-tally/port.md`, ESP-IDF port in `../dashesp/components/dashio_dsm`), using sqlite instead of a flash ring buffer.
   - `Device(..., store=DashStore(path))` gives every TimeGraph, EventLog and Map on the device the store (`control._store`). They record into it as well as their ring buffers, and answer the app's history requests from it.
-  - The wire format must match the firmware byte for byte, as the Dash server is shared with it: the timestamp request, `controlInfo` order (lines, then tracks, then logs), `%.6f` floats, `T`/`F` booleans, unquoted LOG and MAP objects, and the FNV-1a hash (`%016x`) over the JSON. The golden vectors are in `tests/test_dash_store.py`.
+  - The wire format follows `../dash_docs/DashIODataFormat/DashIO_Data_Updater.md` (the SDU section): the timestamp request (lines, then tracks, then logs), `%.6f` floats, `T`/`F` booleans, MAP values as strings without `time`, LOG `color` left out when empty, and the FNV-1a hash (`%016x`) over the JSON. The golden vectors are in `tests/test_dash_store.py`.
+  - Each UPDATE's `controlInfo` lists only the lines, tracks and logs with data in it, or deleted by it, in order of first use. A line's or track's info goes in the first packet with its data after a `sendInfo`, and is sent again until a packet with it is ACKed. Logs answer `sendAll`.
+  - `DashStore.delete()` (the controls' `delete_history()`) deletes locally and records a pending delete in the `pending_deletes` table. Pending deletes go first in the next session's first UPDATE as `"action": "delete"` entries with no data, and are removed when it's ACKed. `MapTrack(replace=True)` sends `"action": "replace"`.
   - The timestamp request goes to the announce topic when the device's control topic subscription succeeds (`send_store_request` command, after `send_announce`). The server's `DATA SDU REQUEST/ACK/NACK` arrive as normal device messages (`Device._data_rx`). All SDU messages from the device, the timestamp request and the UPDATE packets, go to the **announce** topic (the `ANNOUNCE` zmq topic, which only Dash server connections receive), because that's where the server handles `DATA` messages.
   - Unlike the firmware, a session sends from the server's timestamps for each line, track and log, not from the last ACK. Lines missing from the server's request aren't sent. TimeGraph breaks aren't stored.
   - The session runs on the device thread: the 10 second ACK timeout is checked by `SDUSession.poll()` in `Device.run()`, because zmq sockets aren't thread safe.

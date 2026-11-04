@@ -111,7 +111,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-
+JMB_Test_Code/
 # Spyder project settings
 .spyderproject
 .spyproject

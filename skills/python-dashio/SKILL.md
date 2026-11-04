@@ -10,7 +10,7 @@ description: Write Python device code with the dashio library (python-dashio) fo
 - **A device in Python**: controls, their values and callbacks, and connections to the Dash app (TCP on the local network, the Dash server over MQTT).
 - **The layout tool for every DashIO platform**: a layout is CFG64 (JSON, deflated, base64), and the same CFG64 works on python-dashio, Arduino and zephyr-dashio, as long as the control types and IDs match the device code.
 
-The reference is [Documentation.md](https://github.com/dashio-connect/python-dashio/blob/master/Documents/Documentation.md); working examples are in [Examples/](https://github.com/dashio-connect/python-dashio/tree/master/Examples) (`ex01`–`ex06`, then `greenhouse/` and `server_monitor/` for full applications). Read the control's section of the reference before using an unfamiliar control.
+The documentation is in [docs/](https://github.com/dashio-connect/python-dashio/tree/master/docs): [controls.md](https://github.com/dashio-connect/python-dashio/blob/master/docs/controls.md) (every control's settings, values and callbacks), [layouts.md](https://github.com/dashio-connect/python-dashio/blob/master/docs/layouts.md), [device.md](https://github.com/dashio-connect/python-dashio/blob/master/docs/device.md), [connections.md](https://github.com/dashio-connect/python-dashio/blob/master/docs/connections.md) and [storage.md](https://github.com/dashio-connect/python-dashio/blob/master/docs/storage.md). Working examples are in [Examples/](https://github.com/dashio-connect/python-dashio/tree/master/Examples) (`ex01`–`ex06`, then `greenhouse/` and `server_monitor/` for full applications). Read the control's section of controls.md before using an unfamiliar control.
 
 ## Rules for every layout
 
@@ -140,7 +140,8 @@ while True:
 - **Loading layouts:** `device.add_cfg64(cfg64, column_no)`, or `Device(..., cfg_dict={1: phone_cfg64, 3: tablet_cfg64})`. Add the device's own controls first: loading a layout creates controls for IDs the device doesn't have. With no layout loaded, the device sends one generated from its controls (`device.get_generated_cfg_dict()`).
 - **Receive callbacks can reply:** a callback's returned string is sent back to the app.
 - **Through the Dash server**, control updates are only published while a Dash app is watching the device (`app_timeout`, 120 s by default); replies, alarms and history always go. A device that seems silent with the app closed is working as designed.
-- History for TimeGraph, EventLog and Map: `Device(..., store=dashio.DashStore(path))` keeps it in sqlite and answers the app's history requests. See the Local Storage section of the reference.
+- History for TimeGraph, EventLog and Map: `Device(..., store=dashio.DashStore(path))` keeps it in sqlite and answers the app's history requests. See [storage.md](https://github.com/dashio-connect/python-dashio/blob/master/docs/storage.md).
+- To start a line, track or log again on the device and the Dash server (factory reset, sensor swapped): `control.delete_history()`. For a Map marker that only shows the current position: `map.add_track(dashio.MapTrack("pos", "Here", replace=True))`.
 
 ## When the app doesn't show what you expect
 
