@@ -589,7 +589,7 @@ class TestCertificateLogin(unittest.TestCase):
     def test_pending_certificate_logs_in_on_the_certificate_port(self):
         self.install(self.pki.device_ca)
         self.start()
-        self.assertTrue(wait_for(lambda: self.certificates.state == CERT), "CERT after the first login")
+        self.assertTrue(wait_for(lambda: self.states[-1:] == [CERT]), "CERT after the first login")
         self.assertEqual(self.cert_broker.client_ids, ["d-DEV1"])
         self.assertEqual(self.password_broker.client_ids, [])
         self.assertEqual(self.connection.password, "", "The password is erased")
@@ -610,7 +610,7 @@ class TestCertificateLogin(unittest.TestCase):
 
     def test_first_certificate_from_the_server(self):
         self.start()
-        self.assertTrue(wait_for(lambda: self.certificates.state == CERT, timeout=15), "PASSWORD, then PENDING, then CERT")
+        self.assertTrue(wait_for(lambda: self.states[-1:] == [CERT], timeout=15), "PASSWORD, then PENDING, then CERT")
         self.assertEqual(self.states, [PENDING, CERT])
         self.assertEqual(self.cert_broker.client_ids, ["d-DEV1"])
         self.assertTrue(wait_for(lambda: self.connection.connection_state == ConnectionState.CONNECTED))
