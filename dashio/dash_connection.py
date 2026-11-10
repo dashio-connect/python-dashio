@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import json
 import logging
+import socket
 import ssl
 import threading
 import time
@@ -42,8 +43,11 @@ logger = logging.getLogger(__name__)
 
 MAX_BATCH_LENGTH = 4096  # A batch is published before it would grow past this, as in the DashIO firmware.
 RECONNECT_MAX_DELAY = 900  # The longest wait in seconds between attempts to connect to the Dash server.
+CERT_RECONNECT_MAX_DELAY = 3600  # The same with a device certificate, which may have been revoked.
 ALWAYS_PUBLISHED = (b"TGRPH", b"LOG", b"MAP")  # The Dash server keeps their history, so they're sent with no app watching.
 MAX_PENDING_ANNOUNCES = 100  # Requests to the server, such as STE, kept during a planned disconnect.
+CHECK_READ_TIMEOUT = 3.0  # Seconds to wait for the server to refuse a certificate after the TLS handshake.
+DISCONNECT_TIMEOUT = 5.0  # Seconds disconnect() waits for the connection thread to publish what's waiting.
 
 
 class DashControl():
@@ -146,6 +150,11 @@ class DashConnection(threading.Thread):
     def _on_connect(self, client, userdata, flags, reason_code, properties):
         if not reason_code.is_failure:
             self.connection_state = ConnectionState.CONNECTED
+            self._check_wait = 0.0
+            if self._certificate_login and self._certificates is not None:
+                self._certificates.logged_in()
+                # The certificate has worked, so the password is never used again.
+                self.password = ""
             for device_id in self._device_id_list:
                 control_topic = f"{self.username}/{device_id}/control"
                 result, mid = self._dash_c.subscribe(control_topic, 0)
@@ -163,7 +172,12 @@ class DashConnection(threading.Thread):
 
     def _on_disconnect(self, client, userdata, disconnect_flags, reason_code, properties):
         logger.debug("disconnecting reason  %s", reason_code)
+        if self._certificate_login and self._certificates is not None and self.connection_state == ConnectionState.CONNECTING:
+            # Dropped before CONNACK: the server refused the certificate after the TLS handshake.
+            self._certificates.login_refused()
         self.connection_state = ConnectionState.DISCONNECTED
+        if self._certificates is not None:
+            self._certificates.connection_lost()
         # No app is watching until it sends CONNECT again.
         with self._app_lock:
             for device_id in self._app_seen:
@@ -213,6 +227,8 @@ class DashConnection(threading.Thread):
             if topic is not None:
                 device_id = topic.split('/')[1]
                 self._send_dash_announce(device_id)
+                if self._certificates is not None:
+                    self._certificates.connection_ready(self._certificate_login)
 
     def _on_log(self, client, obj, level, string):
         logger.debug(string)
@@ -226,6 +242,12 @@ class DashConnection(threading.Thread):
                 The Device to add.
         """
         if device.device_id not in self._device_id_list:
+            certificates = getattr(device, "certificates", None)
+            if self._device_id_list and (certificates is not None or self._certificates is not None):
+                # A certificate is one device's login.
+                raise ValueError("A DashConnection logging in with a device certificate has one device")
+            if certificates is not None:
+                self._certificates = certificates
             self._device_id_list.append(device.device_id)
             device.register_connection(self)
             if self.connection_state == ConnectionState.CONNECTED:
@@ -324,10 +346,21 @@ class DashConnection(threading.Thread):
     def disconnect(self):
         """Send OFFLINE for every device and disconnect from the Dash server, until connect() is called.
 
-        For devices that only connect now and then, e.g. to save power on an LTE connection. While disconnected,
-        the devices' messages aren't sent or kept: a device with a DashStore sends the server the history it
-        missed when it connects again, and the Dash app gets current values from the device.
+        For devices that only connect now and then, e.g. to save power on an LTE connection. Messages the devices
+        have already sent are published first, e.g. a reply to the server sent just before its SAF END. While
+        disconnected, the devices' messages aren't sent or kept: a device with a DashStore sends the server the
+        history it missed when it connects again, and the Dash app gets current values from the device.
         """
+        self._connect_at = None
+        if self.connection_state == ConnectionState.CONNECTED and self.is_alive() and threading.current_thread() is not self:
+            # The connection thread publishes what's waiting in its socket, then disconnects.
+            done = threading.Event()
+            self._disconnect_requests.append(done)
+            if done.wait(timeout=DISCONNECT_TIMEOUT):
+                return
+        self._disconnect_now()
+
+    def _disconnect_now(self):
         self._planned_disconnect = True
         self._connect_at = None
         if self.connection_state == ConnectionState.CONNECTED:
@@ -346,22 +379,125 @@ class DashConnection(threading.Thread):
 
     def _connect(self):
         """Start paho's network thread, which connects and reconnects if the connection fails or is lost."""
-        if not self.username or not self.password:
+        certificates = self._certificates
+        use_certificate = certificates is not None and certificates.use_certificate()
+        if use_certificate and certificates.needs_check():
+            result = self._check_certificate()
+            if result == "refused":
+                certificates.refused()
+                use_certificate = certificates.use_certificate()
+            elif result == "failed":
+                # The server can't be reached: check again later, waiting twice as long each time.
+                self._check_wait = min(max(self._check_wait * 2, 1.0), RECONNECT_MAX_DELAY)
+                self._connect_at = time.monotonic() + self._check_wait
+                if self.connection_state == ConnectionState.DISCONNECTED:
+                    self.connection_state = ConnectionState.CONNECTING
+                return
+        if use_certificate:
+            # The topics are still under the owner's username. The password isn't needed.
+            if not self.username:
+                logger.warning("Not connecting to the Dash server without a username")
+                return
+        elif not self.username or not self.password:
             logger.warning("Not connecting to the Dash server without a username and password")
             return
-        logger.debug("Connecting..")
+        logger.debug("Connecting%s..", " with the device certificate" if use_certificate else "")
+        self._use_client(use_certificate)
         self._set_will()
         properties = None
         if self.offline_delay > 0:
             # The server only waits the will delay if it keeps the session that long.
             properties = Properties(PacketTypes.CONNECT)
             properties.SessionExpiryInterval = self.offline_delay
-        self._dash_c.username_pw_set(self.username, self.password)
-        self._dash_c.connect_async(self.host, self.port, properties=properties)
+        if not use_certificate:
+            self._dash_c.username_pw_set(self.username, self.password)
+        port = self.cert_port if use_certificate else self.port
+        self._dash_c.connect_async(self.host, port, properties=properties)
         if self.connection_state == ConnectionState.DISCONNECTED:
             self.connection_state = ConnectionState.CONNECTING
         # Start the network loop only once a host is set, otherwise paho's thread dies with "Invalid host".
         self._dash_c.loop_start()
+
+    def _certificate_tls_context(self) -> ssl.SSLContext:
+        """TLS for port 8885: check the server against the DashIO Server CA, and present the device's certificate."""
+        context = ssl.create_default_context(cafile=self._certificates.ca_path)
+        context.minimum_version = ssl.TLSVersion.TLSv1_2
+        context.load_cert_chain(self._certificates.cert_path, self._certificates.key_path)
+        return context
+
+    def _check_certificate(self) -> str:
+        """Check that the server accepts a certificate that hasn't been used to log in yet.
+
+        With TLS 1.3 the server refuses a client certificate after the handshake, with an alert that paho only
+        reports as a lost connection, so a refusal couldn't be told from a network failure. Returns "accepted",
+        "refused", or "failed" when the server couldn't be reached.
+        """
+        try:
+            context = self._certificate_tls_context()
+        except (OSError, ssl.SSLError) as error:
+            logger.warning("The device certificate can't be loaded: %s", error)
+            return "refused"
+        try:
+            with socket.create_connection((self.host, self.cert_port), timeout=10) as sock:
+                with context.wrap_socket(sock, server_hostname=self.host) as tls:
+                    tls.settimeout(CHECK_READ_TIMEOUT)
+                    try:
+                        data = tls.recv(1)
+                    except (socket.timeout, TimeoutError):
+                        return "accepted"  # The server is waiting for an MQTT CONNECT.
+                    return "accepted" if data else "refused"
+        except ssl.SSLCertVerificationError as error:
+            logger.warning("The Dash server's certificate isn't valid: %s", error)
+            return "failed"
+        except ssl.SSLError as error:
+            logger.debug("Device certificate refused: %s", error)
+            return "refused"
+        except OSError as error:
+            logger.debug("Device certificate check failed: %s", error)
+            return "failed"
+
+    def _new_client(self, client_id: str = "", tls_context: ssl.SSLContext | None = None) -> mqtt.Client:
+        client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=client_id, protocol=mqtt.MQTTv5)  # type: ignore
+        client.on_message = self._on_message
+        client.on_connect = self._on_connect
+        client.on_disconnect = self._on_disconnect  # type: ignore
+        client.on_subscribe = self._on_subscribe
+        if tls_context is not None:
+            client.tls_set_context(tls_context)
+        elif self.use_ssl:
+            client.tls_set(
+                ca_certs=None,
+                certfile=None,
+                keyfile=None,
+                cert_reqs=ssl.CERT_REQUIRED,
+                tls_version=ssl.PROTOCOL_TLSv1_2,
+                ciphers=None,
+            )
+            client.tls_insecure_set(False)
+        # A device whose certificate is refused waits up to an hour between attempts.
+        client.reconnect_delay_set(1, CERT_RECONNECT_MAX_DELAY if tls_context is not None else RECONNECT_MAX_DELAY)
+        return client
+
+    def _use_client(self, use_certificate: bool):
+        """Make a new MQTT client when changing between the password and the certificate login. The broker sets a
+        certificate login's client ID to d-<device id>, and refuses a password login whose client ID starts with d-."""
+        if not use_certificate and not self._certificate_login:
+            return
+        self._dash_c.loop_stop()
+        if use_certificate:
+            self._dash_c = self._new_client(f"d-{self._device_id_list[0]}", self._certificate_tls_context())
+        else:
+            self._dash_c = self._new_client()
+        self._certificate_login = use_certificate
+
+    def _login_again(self):
+        """Disconnect and connect again, e.g. with a new certificate."""
+        self._dash_c.disconnect()
+        self._dash_c.loop_stop()
+        self.connection_state = ConnectionState.DISCONNECTED
+        if self._certificates is not None:
+            self._certificates.connection_lost()
+        self._connect_at = time.monotonic()
 
     def set_connection(self, username: str, password: str):
         """Changes the username and password, and connects again with them.
@@ -393,7 +529,8 @@ class DashConnection(threading.Thread):
         offline_delay: int = 10,
         batch_delay: float = 0.05,
         auto_connect: bool = True,
-        app_timeout: float = 120
+        app_timeout: float = 120,
+        cert_port: int = 8885
     ):
         """
         Setups and manages a connection thread to the Dash Server.
@@ -428,6 +565,9 @@ class DashConnection(threading.Thread):
                 to the Dash server. While no app is watching they aren't, except TimeGraph, EventLog and Map
                 updates, whose history the server keeps. Replies, alarms and announcements are always published.
                 0 always publishes control updates. Defaults to 120.
+            cert_port : int, optional
+                The port for logging in with a device certificate, when the device has DeviceCertificates. Defaults
+                to 8885.
         """
 
         threading.Thread.__init__(self, daemon=True)
@@ -452,26 +592,12 @@ class DashConnection(threading.Thread):
         self.password = password
         self.host = host
         self.port = port
-        self._dash_c = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, protocol=mqtt.MQTTv5)  # type: ignore
-        # Assign event callbacks
-
-        self._dash_c.on_message = self._on_message
-        self._dash_c.on_connect = self._on_connect
-        self._dash_c.on_disconnect = self._on_disconnect  # type: ignore
-        self._dash_c.on_subscribe = self._on_subscribe
-        # self.connection_control = DashControl(self.zmq_connection_uuid, username, host)
-        if use_ssl:
-            self._dash_c.tls_set(
-                ca_certs=None,
-                certfile=None,
-                keyfile=None,
-                cert_reqs=ssl.CERT_REQUIRED,
-                tls_version=ssl.PROTOCOL_TLSv1_2,
-                ciphers=None,
-            )
-            self._dash_c.tls_insecure_set(False)
-
-        self._dash_c.reconnect_delay_set(1, RECONNECT_MAX_DELAY)
+        self.cert_port = cert_port
+        self.use_ssl = use_ssl
+        self._certificates = None  # The device's DeviceCertificates, if it has them.
+        self._certificate_login = False  # Whether _dash_c logs in with the device certificate.
+        self._check_wait = 0.0
+        self._dash_c = self._new_client()
         # The connection thread connects a moment after it starts, so the devices added straight after creating
         # the connection are included in the will.
         self.auto_connect = auto_connect
@@ -479,6 +605,7 @@ class DashConnection(threading.Thread):
         # connection, the devices' messages are dropped rather than sent when the connection is made.
         self._planned_disconnect = not auto_connect
         self._pending_announces = []  # Announce messages from a planned disconnect, published when connected.
+        self._disconnect_requests: list[threading.Event] = []  # disconnect() calls for the connection thread.
         self._connect_at: float | None = time.monotonic() + 1.0 if auto_connect else None
         self.rx_zmq_sub = self.context.socket(zmq.SUB)
         self.start()
@@ -494,6 +621,45 @@ class DashConnection(threading.Thread):
             self._add_device_rx(msg_dict)
         if msg_dict['msgType'] == 'disconnect':
             self._del_device_rx(msg_dict)
+
+    def _receive(self):
+        """Receive a message from the devices, and publish it to the Dash server."""
+        try:
+            [msg_to, data] = self.rx_zmq_sub.recv_multipart()
+        except ValueError:
+            logger.debug("DASH value error")
+            return
+        if not data:
+            logger.debug("DASH no data error")
+            return
+        # logger.debug("DASH: %s ,%s", msg_to, data)
+        if msg_to == b'COMMAND':
+            logger.debug("DASH RX COMMAND")
+            self._dash_command(json.loads(data))
+            return
+        if self.connection_state != ConnectionState.CONNECTED:
+            # Disconnected on purpose: don't keep a backlog to publish on reconnecting. Requests to the
+            # server, such as STE, are kept. WHO and the SDU timestamp request are sent on connecting anyway.
+            fields = data.split(b'\t')
+            if msg_to == b"ANNOUNCE" and len(fields) > 2 and fields[2] not in (b"WHO", b"DATA"):
+                self._pending_announces = self._pending_announces[-(MAX_PENDING_ANNOUNCES - 1):] + [data]
+            return
+        msg_l = data.split(b'\t')
+        try:
+            device_id = msg_l[1].decode().strip()
+        except IndexError:
+            return
+        control_type = msg_l[2] if len(msg_l) > 2 else b""
+        if control_type == b'ALM':
+            # Each alarm is a push notification, so it's published straight away.
+            logger.debug("DASH Tx →\n%s", data.decode().rstrip())
+            self._dash_c.publish(f"{self.username}/{device_id}/alarm", data.decode(), qos=0)
+        elif msg_to == b"ANNOUNCE":
+            self._queue_publish(f"{self.username}/{device_id}/announce", data.decode(), 1)
+        elif msg_to == b"ALL" and control_type not in ALWAYS_PUBLISHED and not self.app_active(device_id):
+            return  # No Dash app is watching the device.
+        else:
+            self._queue_publish(f"{self.username}/{device_id}/data", data.decode(), 0)
 
     def run(self):
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
@@ -512,43 +678,16 @@ class DashConnection(threading.Thread):
             except zmq.error.ContextTerminated:
                 break
 
+            if self._disconnect_requests:
+                # Publish what the devices have already sent, then disconnect.
+                while self.connection_state == ConnectionState.CONNECTED and self.rx_zmq_sub.poll(0):
+                    self._receive()
+                self._disconnect_now()
+                while self._disconnect_requests:
+                    self._disconnect_requests.pop().set()
+                continue  # socks is out of date.
             if self.rx_zmq_sub in socks and (self.connection_state == ConnectionState.CONNECTED or self._planned_disconnect):
-                try:
-                    [msg_to, data] = self.rx_zmq_sub.recv_multipart()
-                except ValueError:
-                    logger.debug("DASH value error")
-                    continue
-                if not data:
-                    logger.debug("DASH no data error")
-                    continue
-                # logger.debug("DASH: %s ,%s", msg_to, data)
-                if msg_to == b'COMMAND':
-                    logger.debug("DASH RX COMMAND")
-                    self._dash_command(json.loads(data))
-                    continue
-                if self.connection_state != ConnectionState.CONNECTED:
-                    # Disconnected on purpose: don't keep a backlog to publish on reconnecting. Requests to the
-                    # server, such as STE, are kept. WHO and the SDU timestamp request are sent on connecting anyway.
-                    fields = data.split(b'\t')
-                    if msg_to == b"ANNOUNCE" and len(fields) > 2 and fields[2] not in (b"WHO", b"DATA"):
-                        self._pending_announces = self._pending_announces[-(MAX_PENDING_ANNOUNCES - 1):] + [data]
-                    continue
-                msg_l = data.split(b'\t')
-                try:
-                    device_id = msg_l[1].decode().strip()
-                except IndexError:
-                    continue
-                control_type = msg_l[2] if len(msg_l) > 2 else b""
-                if control_type == b'ALM':
-                    # Each alarm is a push notification, so it's published straight away.
-                    logger.debug("DASH Tx →\n%s", data.decode().rstrip())
-                    self._dash_c.publish(f"{self.username}/{device_id}/alarm", data.decode(), qos=0)
-                elif msg_to == b"ANNOUNCE":
-                    self._queue_publish(f"{self.username}/{device_id}/announce", data.decode(), 1)
-                elif msg_to == b"ALL" and control_type not in ALWAYS_PUBLISHED and not self.app_active(device_id):
-                    continue  # No Dash app is watching the device.
-                else:
-                    self._queue_publish(f"{self.username}/{device_id}/data", data.decode(), 0)
+                self._receive()
             if self._pending_announces and self.connection_state == ConnectionState.CONNECTED:
                 pending, self._pending_announces = self._pending_announces, []
                 for data in pending:
@@ -557,6 +696,9 @@ class DashConnection(threading.Thread):
             self._flush_batch()
             if self.app_timeout > 0:
                 self._expire_apps()
+            if self._certificates is not None and self._certificates.take_changed() | self._certificates.pending_retry_due():
+                if self.connection_state != ConnectionState.DISCONNECTED and not self._planned_disconnect:
+                    self._login_again()
             if self._connect_at is not None and time.monotonic() >= self._connect_at:
                 self._connect_at = None
                 self._connect()

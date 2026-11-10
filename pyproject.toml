@@ -25,6 +25,7 @@ dependencies = [
     "zeroconf",
     "shortuuid",
     "pyserial",
+    "cryptography",
 ]
 
 [project.optional-dependencies]
@@ -48,7 +49,7 @@ zip-safe = false
 where = ["."]
 
 [tool.setuptools.package-data]
-dashio = ["py.typed"]
+dashio = ["py.typed", "certs/*.crt"]
 
 [tool.pytest.ini_options]
 addopts = "--cov=dashio"

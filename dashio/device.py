@@ -35,6 +35,7 @@ import zmq
 
 from .constants import BAD_CHARS, CONNECTION_PUB_URL, MAX_CONTROL_ID_LENGTH
 from .dash_store import DashStore, SDUSession
+from .device_certificates import CRT_NOT_SUPPORTED, CertificateError, CertificateSession, DeviceCertificates
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.control import Control
 from .iotcontrol.device_view import DeviceView
@@ -43,6 +44,8 @@ from .load_config import CONTROL_INSTANCE_DICT, decode_cfg64, encode_cfg64
 from .package import make_packages
 
 MAX_LAYOUT_COLUMNS = 3
+SAF_END_TIMEOUT = 5.0  # Seconds after the WHO to wait for the Dash server's SAF END, as zephyr-dashio does.
+SERVER_DASHBOARD_ID = "DASH"  # The ID the Dash server uses in a CFG request, where an app puts its dashboard ID.
 
 logger = logging.getLogger(__name__)
 
@@ -168,6 +171,9 @@ class Device(threading.Thread):
         try:
             ctrl_type = data_array[1]
         except IndexError:
+            return ""
+        if ctrl_type == "CFG" and len(data_array) > 2 and data_array[2] == SERVER_DASHBOARD_ID:
+            self._send_layout_to_dash_server(data_array)
             return ""
         if ctrl_type in self._device_commands_dict:
             return self._device_commands_dict[ctrl_type](data_array)
@@ -323,6 +329,55 @@ class Device(threading.Thread):
             return ""
         c64_json = encode_cfg64(self._get_layout(data))
         return self._device_id_str + f"\tCFG\t{dashboard_id}\tC64\t{c64_json}\n"
+
+    def _send_layout_to_dash_server(self, data):
+        """Answer the Dash server's CFG request, which it sends a store and forward device whose layout it doesn't
+        keep, so a phone can load the layout while the device is offline.
+
+        The reply is the C64 reply an app gets, but on the announce topic, where the server reads it. It's always
+        C64, even after use_cfg(), and the server only asks for the 1 column layout.
+        """
+        reply = self._device_id_str + f"\tCFG\t{SERVER_DASHBOARD_ID}\tC64\t{encode_cfg64(self._get_layout(data))}\n"
+        logger.debug("ANNOUNCE: CFG %s", SERVER_DASHBOARD_ID)
+        self.tx_zmq_pub.send_multipart([b"ANNOUNCE", reply.encode('utf-8')])
+
+    def _saf_rx(self, data):
+        """SAF END from the Dash server: every message it held for the device has arrived."""
+        if len(data) > 2 and data[2] == "END":
+            self._saf_end(True)
+        return ""
+
+    def _saf_end(self, received: bool):
+        """The end of the wait for SAF END: received, or timed out."""
+        if self._saf_end_deadline is None:
+            return
+        self._saf_end_deadline = None
+        logger.debug("SAF END %s", "received" if received else "timed out")
+        if self._saf_end_callback is not None:
+            try:
+                self._saf_end_callback(received)
+            except Exception:  # pylint: disable=broad-except
+                logger.exception("SAF END callback")
+
+    def set_saf_end_callback(self, callback):
+        """Set a callback for the end of the Dash server's store and forward messages, each time the device connects.
+
+        With store_and_forward on, the Dash server sends the device the messages it held while the device was
+        disconnected each time it connects, then SAF END. A device that only connects now and then can disconnect
+        once it has them. The callback is called with True when SAF END arrives, by which time every held message has
+        been through its control's callbacks, and False when it doesn't arrive within saf_end_timeout seconds of the
+        device announcing itself, e.g. the user hasn't turned store and forward on for the device.
+
+        Parameters
+        ----------
+        callback : Callable[[bool], None]
+            Called on the device's thread.
+        """
+        self._saf_end_callback = callback
+
+    def unset_saf_end_callback(self):
+        """Clears the SAF END callback."""
+        self._saf_end_callback = None
 
     def _server_clk(self, data):
         if self._clk_rx_callback is not None:
@@ -688,6 +743,9 @@ class Device(threading.Thread):
     def _dashio_rx_event(self, msg):
         if self._dashio_rx_callback is not None:
             if self._dashio_rx_callback(msg):
+                if self.certificates is not None:
+                    # A new Dash login: back to the password, and a new key for the next certificate.
+                    self.certificates.reset()
                 data = self._device_id_str + "\tDASHIO\n"
                 self.tx_zmq_pub.send_multipart([b"ALL", data.encode('utf-8')])
         return ""
@@ -808,7 +866,8 @@ class Device(threading.Thread):
         device_name: str,
         cfg_dict: dict | None = None,
         context: zmq.Context | None = None,
-        store: DashStore | None = None
+        store: DashStore | None = None,
+        certificates: DeviceCertificates | None = None
     ) -> None:
         """DashDevice
 
@@ -830,6 +889,9 @@ class Device(threading.Thread):
                 Stores the data of the device's TimeGraph, EventLog and Map controls, answers the Dash app's history
                 requests from it, and sends the Dash server the data it is missing when the device connects.
                 Defaults to None, which keeps a short history of each control in memory.
+            certificates : DeviceCertificates, optional
+                The device's key and certificate, for logging in to the Dash server with its own certificate rather
+                than its owner's password. A DashConnection with certificates has one device. Defaults to None.
         """
         threading.Thread.__init__(self, daemon=True)
         self.store = store
@@ -861,9 +923,18 @@ class Device(threading.Thread):
         self._device_commands_dict['CLK'] = self._server_clk
         self._device_commands_dict['OTA'] = self._server_ota
         self._device_commands_dict['NAME'] = self._name_rx_event
+        self._device_commands_dict['SAF'] = self._saf_rx
+        self._saf_end_callback = None
+        self._saf_end_deadline: float | None = None  # While waiting for SAF END, when to give up.
+        self.saf_end_timeout = SAF_END_TIMEOUT
         if store is not None:
             self._sdu = SDUSession(device_id.translate(BAD_CHARS), store, self._store_registry, self._send_to_dash_server)
-            self._device_commands_dict['DATA'] = self._data_rx
+        self._device_commands_dict['DATA'] = self._data_rx
+        self.certificates = certificates
+        self._crt_session = None
+        if certificates is not None:
+            certificates.device_id = self.device_id
+            self._crt_session = CertificateSession(certificates, self.device_id, self._send_to_dash_server)
         self._rst_rx_callback = None
         self.controls_dict = {}
         self._server_stored = set()  # Keys of the controls whose history the Dash server keeps (storage_enable()).
@@ -964,6 +1035,9 @@ class Device(threading.Thread):
             return
         if msg_dict.get('msgType', '') == 'send_announce':
             self._send_announce()
+            if self.store_and_forward and msg_dict.get('connectionUUID', '').startswith("DASH:"):
+                # The Dash server answers the WHO with the messages it held for the device, then SAF END.
+                self._saf_end_deadline = time.monotonic() + self.saf_end_timeout
         elif msg_dict.get('msgType', '') == 'send_store_request' and self._sdu is not None:
             request = self._sdu.start()
             if request:
@@ -1000,8 +1074,12 @@ class Device(threading.Thread):
         self.tx_zmq_pub.send_multipart([b"ANNOUNCE", message.encode('utf-8')])
 
     def _data_rx(self, data_array) -> str:
-        """DATA messages from the Dash server: the SDU (history upload) session."""
-        if len(data_array) < 4 or data_array[2] != "SDU":
+        """DATA messages: the SDU (history upload) session with the Dash server, and certificates (CRT)."""
+        if len(data_array) < 4:
+            return ""
+        if data_array[2] == "CRT":
+            return self._crt_rx(data_array)
+        if data_array[2] != "SDU" or self._sdu is None:
             return ""
         if data_array[3] == "REQUEST" and len(data_array) > 4:
             self._sdu.request(data_array[4])
@@ -1009,6 +1087,51 @@ class Device(threading.Thread):
             self._sdu.ack()
         elif data_array[3] == "NACK":
             self._sdu.nack()
+        return ""
+
+    def _crt_reply(self, *fields: str) -> str:
+        return self._device_id_str + "\tDATA\tCRT\t" + "\t".join(fields) + "\n"
+
+    def _crt_rx(self, data_array) -> str:
+        """CRT messages: REQUEST and UPDATE from the Dash app, SVR_CRT and ERR from the Dash server."""
+        message_type = data_array[3]
+        payload = data_array[4] if len(data_array) > 4 else ""
+        certificate = data_array[5] if len(data_array) > 5 else ""
+        try:
+            options = json.loads(payload) if payload.startswith("{") else {}
+        except ValueError:
+            options = {}
+        if message_type == "REQUEST":
+            action = options.get("action", "")
+            if action == "INFO":
+                info = {"state": "PASSWORD", "keyTypes": []} if self.certificates is None else self.certificates.info()
+                return self._crt_reply("REQUEST", json.dumps({"action": "INFO", **info}, separators=(",", ":")))
+            if action == "CSR":
+                if self.certificates is None:
+                    return self._crt_reply("ERR", str(CRT_NOT_SUPPORTED))
+                key_type = options.get("keyType", "EC-P256")
+                try:
+                    csr = self.certificates.make_csr(key_type, bool(options.get("newKey", False)))
+                except CertificateError as error:
+                    logger.warning("Certificate request: %s", error)
+                    return self._crt_reply("ERR", str(error.code))
+                return self._crt_reply("REQUEST", json.dumps({"action": "CSR", "keyType": key_type}, separators=(",", ":")), csr)
+        elif message_type == "UPDATE":
+            if self.certificates is None:
+                return self._crt_reply("ERR", str(CRT_NOT_SUPPORTED))
+            try:
+                self.certificates.install(certificate, options.get("caCert", ""))
+            except CertificateError as error:
+                logger.warning("Certificate from the Dash app: %s", error)
+                return self._crt_reply("ERR", str(error.code))
+            return self._crt_reply("STATUS", "SUCCESS")
+        elif message_type == "SVR_CRT" and self._crt_session is not None:
+            self._crt_session.server_certificate(payload, certificate)
+        elif message_type == "ERR" and self._crt_session is not None:
+            try:
+                self._crt_session.server_error(int(payload))
+            except ValueError:
+                pass
         return ""
 
     def _store_registry(self) -> list[dict]:
@@ -1054,6 +1177,10 @@ class Device(threading.Thread):
                 break
             if self._sdu is not None:
                 self._sdu.poll()
+            if self._crt_session is not None:
+                self._crt_session.poll()
+            if self._saf_end_deadline is not None and time.monotonic() >= self._saf_end_deadline:
+                self._saf_end(False)
             if self.rx_zmq_sub in socks:
                 try:
                     [data, msg_from] = self.rx_zmq_sub.recv_multipart()

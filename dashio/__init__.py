@@ -36,6 +36,7 @@ from .comms_module_connection import DashIOCommsModuleConnection
 from .dash_connection import DashConnection
 from .dash_store import DashStore
 from .device import Device
+from .device_certificates import DeviceCertificates
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.audio_visual_display import AudioVisualDisplay
 from .iotcontrol.button import Button
@@ -81,6 +82,7 @@ __all__ = [
     'ZMQConnection',
     'DashConnection',
     'DashStore',
+    'DeviceCertificates',
     'ConnectionState',
     'DashIOCommsModuleConnection',
     'Schedular',

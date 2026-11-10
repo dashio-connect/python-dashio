@@ -22,6 +22,7 @@ device.add_control(dial)
 | `cfg_dict` | None | Layouts to load: `{1: phone_cfg64, 3: tablet_cfg64}`, or one decoded layout. See [layouts.md](layouts.md#loading-layouts) |
 | `context` | The shared `zmq.Context.instance()` | The ZMQ context the device and its connections talk over |
 | `store` | None | A [DashStore](storage.md) for time graph, event log and map history |
+| `certificates` | None | [DeviceCertificates](connections.md#device-certificates), to log in to the Dash server with the device's own certificate |
 
 `device.close()` stops the device. It leaves the shared ZMQ context running, for other devices and connections.
 
@@ -87,7 +88,7 @@ device.set_reset_callback(reset)
 
 The layout's `deviceSetup` tells the app what the device supports: first its connections, added as you add the device to them (`BLE`, `TCP`, and `MQTT` for a DashConnection), then the settings it lets the user change, from the callbacks above (`NAME`, `WIFI`, `DASH`, `RST` and so on), e.g. `TCP,MQTT,NAME,DASH`. It's part of the layout, so work out cfgRev after adding the device's connections and callbacks ([layouts.md](layouts.md#keeping-cfgrev-up-to-date)).
 
-`device.store_and_forward = True` adds `SAF`, which lets the user turn on the Dash server's store and forward for the device: the server keeps the app's messages until the device connects, and asks it for its values when it does. It's for devices that only connect now and then ([storage.md](storage.md#a-connection-thats-only-on-now-and-then)).
+`device.store_and_forward = True` adds `SAF`, which lets the user turn on the Dash server's store and forward for the device: the server keeps the app's messages until the device connects, and asks it for its values when it does. It's for devices that only connect now and then ([storage.md](storage.md#a-connection-thats-only-on-now-and-then)). With it on, the server also keeps a copy of the device's layout, so the app can show the device while it's offline: when the server doesn't have the current one, it asks the device for it when it connects, and the device sends it.
 
 ## Other settings
 
@@ -107,5 +108,6 @@ These need a [DashConnection](connections.md#dashconnection).
 | `request_ota_build_number()` | Asks the server for the latest firmware build number. The reply goes to `set_ota_callback(callback)` |
 | `request_ota(build_number, chunk_number)` | Asks the server for a block of firmware. The reply goes to the OTA callback |
 | `set_store_sync_callback(callback)` | Called when each upload of the device's [DashStore](storage.md) to the server ends: True when the server has everything, False when it failed |
+| `set_saf_end_callback(callback)` | With `store_and_forward`, called each time the device connects, once the messages the server kept for it have arrived (True), or when the server's SAF END doesn't come within `saf_end_timeout` seconds, 5 by default (False) ([storage.md](storage.md#a-connection-thats-only-on-now-and-then)) |
 
 Each has an `unset_..._callback()`.

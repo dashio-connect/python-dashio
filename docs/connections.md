@@ -32,13 +32,14 @@ The Dash server relays messages between the app and the device, wherever they ar
 | `batch_delay` | 0.05 | Seconds to collect messages for one publish ([below](#what-its-sent)). 0 publishes each straight away |
 | `auto_connect` | True | False waits for `connect()` |
 | `app_timeout` | 120 | Seconds a device counts as watched after the app's last CONNECT or WHO ([below](#what-its-sent)). 0: always |
+| `cert_port` | 8885 | The port for logging in with a [device certificate](#device-certificates) |
 
 | Method | |
 |---|---|
 | `add_device(device)` | Adds a device |
 | `set_connection(username, password)` | Changes the login and connects again, e.g. from `set_dashio_callback()` ([device.md](device.md#provisioning-from-the-dash-app)) |
 | `connect()` | Connects, with `auto_connect=False` or after `disconnect()` |
-| `disconnect()` | Says OFFLINE for each device and disconnects, until `connect()` |
+| `disconnect()` | Publishes what the devices have already sent, says OFFLINE for each device and disconnects, until `connect()` |
 | `close()` | Says OFFLINE for each device, and closes the connection |
 | `app_active(device_id)` | Whether an app is watching the device |
 
@@ -58,6 +59,43 @@ The connection tells the app when its devices go online and offline, so the app 
 - Replies to the app, alarms, and time graph, event log and map updates (the server keeps their history) are always sent.
 - Messages within `batch_delay` of each other go in one publish, up to 4096 characters, so a device that updates several controls at once makes one publish, not one for each. Alarms go straight away.
 - While disconnected with `disconnect()`, or before `connect()` with `auto_connect=False`, the devices' messages are dropped, rather than sent in a burst when it connects. A device with a [DashStore](storage.md) sends the server the history it missed, and the app gets current values from the device. Requests to the server, such as `storage_enable()`, are kept and sent once connected.
+
+### Device certificates
+
+A device can log in to the Dash server with its own certificate, rather than your username and password:
+
+- your password isn't kept on the device;
+- you can cut one device off, by revoking its certificate in the Dash app, without changing your password;
+- the server knows which device is connected from its certificate.
+
+```python
+def certificate_state(state):
+    if state == "CERT":
+        settings.erase_dash_password()  # The certificate has worked: don't keep the password
+
+
+certificates = dashio.DeviceCertificates("certs", state_callback=certificate_state)
+device = dashio.Device("Greenhouse", "gh-7f3a", "Greenhouse", certificates=certificates)
+dash = dashio.DashConnection(username, password)
+dash.add_device(device)
+```
+
+`DeviceCertificates(path)` keeps the device's key, certificate and state in the directory `path`, readable only by its owner. The private key is made on the device and never leaves it. The device moves through three states:
+
+| State | Logs in with | Moves on when |
+|---|---|---|
+| `PASSWORD` | Your username and password, on port 8883 | It gets a certificate: `PENDING` |
+| `PENDING` | The certificate, on port 8885. If the server refuses it, the password, trying the certificate again an hour later | It logs in with the certificate: `CERT` |
+| `CERT` | The certificate only. The password is erased | A new Dash login from the app: `PASSWORD` |
+
+- **Getting a certificate:** logged in with your password, the device asks the Dash server for one, and the server signs it at once for a device on your account. `auto_issue=False` turns this off, leaving the Dash app to provision the certificate.
+- **The password is erased** when the device reaches `CERT`: the connection forgets it, and `state_callback` is called so your program can erase its stored copy. A device that kept it would fall back to it when its certificate was revoked.
+- **Renewal:** certificates last 5 years. In its last year, the device asks for a new one each time it connects, at most once a day, and uses it once it has logged in with it.
+- **Revoking:** a revoked device is refused, and stays in `CERT`, offline, trying again up to once an hour. Setting its Dash login again from the app moves it back to `PASSWORD`, with a new key.
+- **One device:** a certificate is one device's login, so a DashConnection with certificates has one device. Give each device its own connection.
+- The topics are still under your username, so the connection needs it, but not the password, in `CERT`.
+- The server's certificate on port 8885 is checked against the DashIO Server CA, which comes with the library.
+- `certificates.state` and `certificates.info()` give the state and the certificate's serial number and expiry. The Dash app can also read them, and provision a certificate, over any connection.
 
 ## TCPConnection
 

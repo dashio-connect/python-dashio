@@ -95,7 +95,7 @@ A device on LTE or a battery may connect to the Dash server only now and then, s
 ```python
 connection = dashio.DashConnection(username, password, auto_connect=False)
 connection.add_device(device)
-device.set_store_sync_callback(lambda completed: connection.disconnect())
+device.set_store_sync_callback(lambda completed: connection.disconnect())  # Or wait for SAF END too, below
 ...
 connection.connect()  # e.g. every 15 minutes
 ```
@@ -104,6 +104,7 @@ connection.connect()  # e.g. every 15 minutes
 - Give the connection a time limit of your own too, from your own thread, for when it never connects.
 - While disconnected, live control updates are dropped rather than sent in a burst when it connects ([connections.md](connections.md#what-its-sent)).
 - `device.store_and_forward = True` lets the user turn on the Dash server's store and forward for the device: the server keeps the app's messages until the device connects, and asks it for its values when it does ([device.md](device.md#what-the-device-offers-the-app)).
+- With store and forward on, the server sends the messages it kept each time the device connects, then SAF END. `set_saf_end_callback(callback)` is called on the device thread when SAF END arrives (True), by which time the kept messages have been through their controls' callbacks, or when it doesn't come within `device.saf_end_timeout` seconds (5 by default), e.g. when the user hasn't turned store and forward on (False). Disconnect once both callbacks have been called. `disconnect()` publishes what the device has already sent first, e.g. its layout, when the server asked for it before SAF END.
 - An always on TCPConnection lets the app provision the device on the local network: get its layout, set its Dash server login, and set how often it connects in its provisioning menu.
 
 [Examples/intermittent_connection.py](../Examples/intermittent_connection.py) does all of this.

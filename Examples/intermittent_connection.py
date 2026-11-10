@@ -8,7 +8,9 @@ This example shows how to:
 - Connect with DashConnection(auto_connect=False) and connect() on a schedule.
 - Disconnect with disconnect() when the store has synced with the Dash server, using the store sync callback.
   The server is sent the data it missed, and the Dash app gets the history from the server.
-- Support store and forward (SAF), so the Dash app can turn it on for the device on the Dash server.
+- Support store and forward (SAF), so the Dash app can turn it on for the device on the Dash server. The server
+  then keeps the app's messages for the device while it's disconnected, sends them when it connects, then SAF END.
+  The logger also waits for SAF END, using the SAF END callback, before it disconnects.
 - Provision the device over an always on TCP connection on the local network, as an IoT device usually does
   over BLE: the Dash app gets the layout, sets the device name and the Dash server username and password, and
   sets the connection and record intervals in the device's provisioning menu.
@@ -87,6 +89,7 @@ class Logger:
         self.store = store
         self.lock = threading.Lock()
         self.disconnect_at = None  # When connected, the time to disconnect.
+        self.waiting_for = set()  # What has to end before disconnecting: "store" and "saf".
         self.next_record = self.next_connect = time.monotonic()
 
         self.device = dashio.Device("IntermittentLogger", settings.get("DEVICE", "device_id"), settings.get("DEVICE", "device_name"), store=store)
@@ -126,6 +129,7 @@ class Logger:
         self.dash = dashio.DashConnection(settings.get("DASH", "username"), settings.get("DASH", "password"), auto_connect=False)
         self.dash.add_device(self.device)
         self.device.set_store_sync_callback(self.synced)
+        self.device.set_saf_end_callback(self.saf_ended)
         # The Dash server keeps the history, so the app gets it from the server. STE is sent when connected.
         self.device.storage_enable(dashio.ControlName.TGRPH, "graph")
         self.device.storage_enable(dashio.ControlName.LOG, "events")
@@ -183,8 +187,19 @@ class Logger:
     def synced(self, completed: bool):
         """Store sync callback, called on the device thread when the sync with the Dash server ends."""
         logging.info("Sync %s", "finished" if completed else "failed")
+        self.finished("store")
+
+    def saf_ended(self, received: bool):
+        """SAF END callback, called on the device thread once the messages the server kept have arrived, or when
+        SAF END doesn't come, e.g. store and forward isn't turned on for the device."""
+        logging.info("Store and forward %s", "messages received" if received else "END didn't arrive")
+        self.finished("saf")
+
+    def finished(self, part: str):
+        """Disconnect once the store has synced and the store and forward messages have arrived."""
         with self.lock:
-            if self.disconnect_at is not None:
+            self.waiting_for.discard(part)
+            if self.disconnect_at is not None and not self.waiting_for:
                 self.disconnect_at = time.monotonic()
 
     def record(self):
@@ -199,6 +214,7 @@ class Logger:
         self.events.add_event_data(dashio.EventData("Connecting", dashio.Color.GREEN))
         with self.lock:
             self.disconnect_at = time.monotonic() + SYNC_TIME_LIMIT
+            self.waiting_for = {"store", "saf"}
         self.dash.connect()
 
     def sleep(self):

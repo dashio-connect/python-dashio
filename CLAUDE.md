@@ -9,6 +9,7 @@ Notes for working on python-dashio, the Python library for the DashIO protocol a
   - `dash_connection.py`: Dash server MQTT connection.
   - `dash_store.py`: `DashStore` (sqlite storage for TimeGraph, EventLog and Map data) and `SDUSession` (history upload to the Dash server).
   - `tcp_connection.py`, `zmq_connection.py`: the other connections.
+  - `device_certificates.py`: `DeviceCertificates`, the device's key and certificate for logging in on port 8885, and `CertificateSession`.
   - `load_config.py`: `decode_cfg64`, `encode_cfg64`, `generate_cfg64`.
   - `iotcontrol/`: controls.
   - `utilities/`: the `c64_encode`, `c64_decode` and `dashio_data_exporter` commands.
@@ -78,6 +79,17 @@ Notes for working on python-dashio, the Python library for the DashIO protocol a
   - `SEC`: `\t<device_id>\tSEC\tKEY\t<key>`, stores a device key (BLE security).
   - `DATA`: `OTA` and `SDU` only.
 - **The Dash server is the source of truth for history.** For a control with `storage_enable()` (`Device._server_stored`), history requests are only answered when they come from a Dash server connection (`msg_from` starting `DASH:`), never over TCP, BLE or other local connections. Otherwise an app connected locally takes the device's history as complete and doesn't fetch the older history from the server. Live updates still go to every connection.
+- **Store and forward (SaF) on the Dash server** (dash_docs `StoreAndForward.md`, dash#49, dash#57), for devices with `store_and_forward` on:
+  - After each WHO the server sends the held control messages, then `\t<device_id>\tSAF\tEND\n`, in one publish. `set_saf_end_callback()` is called with True on END, or False when it doesn't come within `saf_end_timeout` (5 s, as zephyr-dashio) of the WHO on a DashConnection. The wait is checked in `Device.run()`.
+  - When the server doesn't keep the device's current layout, it asks with `\t<device_id>\tCFG\tDASH\t1\n`, before END. The device sends its usual C64 reply, always C64 and the 1 column layout, on the **announce** topic, not as a reply. `DASH` is never a dashboard ID.
+  - `DashConnection.disconnect()` from another thread has the connection thread publish what's waiting in its zmq socket first, so a reply sent just before END isn't dropped by the planned disconnect.
+- **Device certificates** (dash_docs `ClientCertificates/DashIO_Client_Certificates.md`, dash#29), in `device_certificates.py`:
+  - `DeviceCertificates(path)` is given to the Device (`certificates=`), which handles the CRT messages: REQUEST INFO/CSR and UPDATE from the app, over any connection, and SVR_CRT/ERR from the server. The device sends SVR_CSR and SVR_STATUS on announce (`CertificateSession`, polled in `Device.run()`, started by `connection_ready()` from the DashConnection's subscription).
+  - States PASSWORD, PENDING and CERT, kept in `state.json` in the directory with `key.pem`, `cert.pem`, `ca.pem` (from the app's `caCert`), `new_key.pem` (an outstanding request's key) and `previous_*.pem` (a renewal not yet proven). Files are written 0600.
+  - The DashConnection takes the certificate from its one device (a second device raises `ValueError`), and makes a new paho client when it changes login: client ID `d-<device_id>` and `tls_set_context` for port 8885, a random client ID for 8883, because the broker refuses `d-` client IDs on password logins.
+  - A certificate not yet used to log in (PENDING, or a renewal) is checked first with a TLS handshake and a short read (`_check_certificate()`): with TLS 1.3 the broker refuses a client certificate with an alert after the handshake, which paho only reports as a lost connection. Refused: PENDING falls back to the password for an hour and reports 420; a renewal rolls back to the previous certificate. Unreachable: check again with backoff.
+  - On the first certificate login the connection erases its password and `state_callback("CERT")` lets the program erase its copy. A new Dash login from the app (the DASHIO message, when the dashio callback accepts it) calls `reset()`: back to PASSWORD, keys deleted.
+  - The DashIO Server CA is bundled as `dashio/certs/dashio-server-ca.crt` (package data). `cryptography` is a dependency.
 - **`DashStore` and history upload (SDU):** a port of the firmware's DashIO Storage Manager (`../zephyr-dashio-tally/port.md`, ESP-IDF port in `../dashesp/components/dashio_dsm`), using sqlite instead of a flash ring buffer.
   - `Device(..., store=DashStore(path))` gives every TimeGraph, EventLog and Map on the device the store (`control._store`). They record into it as well as their ring buffers, and answer the app's history requests from it.
   - The wire format follows `../dash_docs/DashIODataFormat/DashIO_Data_Updater.md` (the SDU section): the timestamp request (lines, then tracks, then logs), `%.6f` floats, `T`/`F` booleans, MAP values as strings without `time`, LOG `color` left out when empty, and the FNV-1a hash (`%016x`) over the JSON. The golden vectors are in `tests/test_dash_store.py`.
