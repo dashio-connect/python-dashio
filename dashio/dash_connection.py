@@ -37,6 +37,7 @@ import shortuuid
 import zmq
 
 from .constants import CONNECTION_PUB_URL
+from .device_certificates import DeviceCertificates
 from .iotcontrol.enums import ConnectionState
 
 logger = logging.getLogger(__name__)
@@ -381,17 +382,30 @@ class DashConnection(threading.Thread):
         """Start paho's network thread, which connects and reconnects if the connection fails or is lost."""
         certificates = self._certificates
         use_certificate = certificates is not None and certificates.use_certificate()
-        if use_certificate and certificates.needs_check():
-            result = self._check_certificate()
+        tls_context = None
+        if use_certificate:
+            try:
+                tls_context = self._certificate_tls_context()
+            except Exception as error:  # pylint: disable=broad-except
+                # Not the server's refusal: e.g. the key's passphrase isn't available. Try again later.
+                logger.error("The device certificate can't be loaded: %s", error)
+                self._try_again_later()
+                return
+        if certificates is not None and tls_context is not None and certificates.needs_check():
+            result = self._check_certificate(tls_context)
             if result == "refused":
                 certificates.refused()
                 use_certificate = certificates.use_certificate()
+                tls_context = None
+                if use_certificate:
+                    try:
+                        tls_context = self._certificate_tls_context()  # Rolled back to the previous certificate.
+                    except Exception as error:  # pylint: disable=broad-except
+                        logger.error("The device certificate can't be loaded: %s", error)
+                        self._try_again_later()
+                        return
             elif result == "failed":
-                # The server can't be reached: check again later, waiting twice as long each time.
-                self._check_wait = min(max(self._check_wait * 2, 1.0), RECONNECT_MAX_DELAY)
-                self._connect_at = time.monotonic() + self._check_wait
-                if self.connection_state == ConnectionState.DISCONNECTED:
-                    self.connection_state = ConnectionState.CONNECTING
+                self._try_again_later()
                 return
         if use_certificate:
             # The topics are still under the owner's username. The password isn't needed.
@@ -402,7 +416,7 @@ class DashConnection(threading.Thread):
             logger.warning("Not connecting to the Dash server without a username and password")
             return
         logger.debug("Connecting%s..", " with the device certificate" if use_certificate else "")
-        self._use_client(use_certificate)
+        self._use_client(tls_context)
         self._set_will()
         properties = None
         if self.offline_delay > 0:
@@ -420,23 +434,28 @@ class DashConnection(threading.Thread):
 
     def _certificate_tls_context(self) -> ssl.SSLContext:
         """TLS for port 8885: check the server against the DashIO Server CA, and present the device's certificate."""
-        context = ssl.create_default_context(cafile=self._certificates.ca_path)
+        certificates = self._certificates
+        if certificates is None:
+            raise ValueError("No device certificate")
+        context = ssl.create_default_context(cafile=certificates.ca_path)
         context.minimum_version = ssl.TLSVersion.TLSv1_2
-        context.load_cert_chain(self._certificates.cert_path, self._certificates.key_path)
+        context.load_cert_chain(certificates.cert_path, certificates.key_path, password=certificates.key_passphrase())
         return context
 
-    def _check_certificate(self) -> str:
+    def _try_again_later(self):
+        """Connect again later, waiting twice as long each time, e.g. when the server can't be reached."""
+        self._check_wait = min(max(self._check_wait * 2, 1.0), RECONNECT_MAX_DELAY)
+        self._connect_at = time.monotonic() + self._check_wait
+        if self.connection_state == ConnectionState.DISCONNECTED:
+            self.connection_state = ConnectionState.CONNECTING
+
+    def _check_certificate(self, context: ssl.SSLContext) -> str:
         """Check that the server accepts a certificate that hasn't been used to log in yet.
 
         With TLS 1.3 the server refuses a client certificate after the handshake, with an alert that paho only
         reports as a lost connection, so a refusal couldn't be told from a network failure. Returns "accepted",
         "refused", or "failed" when the server couldn't be reached.
         """
-        try:
-            context = self._certificate_tls_context()
-        except (OSError, ssl.SSLError) as error:
-            logger.warning("The device certificate can't be loaded: %s", error)
-            return "refused"
         try:
             with socket.create_connection((self.host, self.cert_port), timeout=10) as sock:
                 with context.wrap_socket(sock, server_hostname=self.host) as tls:
@@ -478,17 +497,17 @@ class DashConnection(threading.Thread):
         client.reconnect_delay_set(1, CERT_RECONNECT_MAX_DELAY if tls_context is not None else RECONNECT_MAX_DELAY)
         return client
 
-    def _use_client(self, use_certificate: bool):
+    def _use_client(self, tls_context: ssl.SSLContext | None):
         """Make a new MQTT client when changing between the password and the certificate login. The broker sets a
         certificate login's client ID to d-<device id>, and refuses a password login whose client ID starts with d-."""
-        if not use_certificate and not self._certificate_login:
+        if tls_context is None and not self._certificate_login:
             return
         self._dash_c.loop_stop()
-        if use_certificate:
-            self._dash_c = self._new_client(f"d-{self._device_id_list[0]}", self._certificate_tls_context())
+        if tls_context is not None:
+            self._dash_c = self._new_client(f"d-{self._device_id_list[0]}", tls_context)
         else:
             self._dash_c = self._new_client()
-        self._certificate_login = use_certificate
+        self._certificate_login = tls_context is not None
 
     def _login_again(self):
         """Disconnect and connect again, e.g. with a new certificate."""
@@ -594,7 +613,7 @@ class DashConnection(threading.Thread):
         self.port = port
         self.cert_port = cert_port
         self.use_ssl = use_ssl
-        self._certificates = None  # The device's DeviceCertificates, if it has them.
+        self._certificates: DeviceCertificates | None = None  # The device's DeviceCertificates, if it has them.
         self._certificate_login = False  # Whether _dash_c logs in with the device certificate.
         self._check_wait = 0.0
         self._dash_c = self._new_client()

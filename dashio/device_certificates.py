@@ -131,14 +131,28 @@ class DeviceCertificates:
     state_callback : Callable[[str], None], optional
         Called with the new state, "PASSWORD", "PENDING" or "CERT", when it changes. On CERT, erase the stored Dash
         password: a device that kept it would fall back to it when its certificate is revoked.
+    key_passphrase : str | bytes | Callable[[], str | bytes], optional
+        Keep the private key encrypted with this passphrase. A function is called each time the key is loaded, so
+        the passphrase can come from somewhere other than the device's disk, e.g. a systemd credential. A trailing
+        newline is ignored. A key stored unencrypted is encrypted when it's first loaded with a passphrase. Without
+        the passphrase the key can't be used, and the device needs a new certificate. Defaults to None: the key is
+        protected only by the file's permissions.
     """
 
-    def __init__(self, path: str, auto_issue: bool = True, ca_file: str | None = None, state_callback: Callable[[str], None] | None = None):
+    def __init__(
+        self,
+        path: str,
+        auto_issue: bool = True,
+        ca_file: str | None = None,
+        state_callback: Callable[[str], None] | None = None,
+        key_passphrase: str | bytes | Callable[[], str | bytes] | None = None
+    ):
         self.path = Path(path)
         self.path.mkdir(mode=0o700, parents=True, exist_ok=True)
         self.auto_issue = auto_issue
         self._ca_file = ca_file
         self.state_callback = state_callback
+        self._key_passphrase = key_passphrase
         self.device_id = ""  # Set by the Device.
         self._lock = threading.RLock()
         self._changed = False  # The key or certificate changed, so the connection logs in again.
@@ -182,11 +196,41 @@ class DeviceCertificates:
         }
         self._write(STATE_FILE, json.dumps(state).encode())
 
+    def key_passphrase(self) -> bytes | None:
+        """The key's passphrase, or None if the key isn't encrypted. Raises whatever the passphrase function raises."""
+        passphrase = self._key_passphrase() if callable(self._key_passphrase) else self._key_passphrase
+        if passphrase is None:
+            return None
+        if isinstance(passphrase, str):
+            passphrase = passphrase.encode()
+        passphrase = passphrase.rstrip(b"\r\n")
+        if not passphrase:
+            raise ValueError("The key passphrase is empty")
+        return passphrase
+
+    def _key_bytes(self, key) -> bytes:
+        """The key as PEM, encrypted with the passphrase if there is one."""
+        passphrase = self.key_passphrase()
+        encryption = serialization.BestAvailableEncryption(passphrase) if passphrase else serialization.NoEncryption()
+        return key.private_bytes(serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8, encryption)
+
     def _load_key(self, name: str):
         try:
-            return serialization.load_pem_private_key(self._file(name).read_bytes(), password=None)
-        except (OSError, ValueError, TypeError):
+            data = self._file(name).read_bytes()
+        except OSError:
             return None
+        encrypted = data.startswith(b"-----BEGIN ENCRYPTED PRIVATE KEY-----")
+        try:
+            passphrase = self.key_passphrase()
+            if encrypted and passphrase is None:
+                raise ValueError("the key is encrypted, and there's no key_passphrase")
+            key = serialization.load_pem_private_key(data, password=passphrase if encrypted else None)
+        except Exception as error:  # pylint: disable=broad-except
+            logger.error("The device key %s can't be loaded: %s", name, error)
+            return None
+        if passphrase is not None and not encrypted:
+            self._write(name, self._key_bytes(key))  # Encrypt a key stored before there was a passphrase.
+        return key
 
     def _load_cert(self, name: str = CERT_FILE) -> x509.Certificate | None:
         try:
@@ -419,8 +463,8 @@ class DeviceCertificates:
                 except Exception as error:  # pylint: disable=broad-except
                     raise CertificateError(CRT_KEYGEN_ERR, str(error)) from error
                 try:
-                    self._write(NEW_KEY_FILE, key.private_bytes(serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8, serialization.NoEncryption()))
-                except OSError as error:
+                    self._write(NEW_KEY_FILE, self._key_bytes(key))
+                except Exception as error:  # pylint: disable=broad-except
                     raise CertificateError(CRT_STORE_ERR, str(error)) from error
             try:
                 csr = (

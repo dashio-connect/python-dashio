@@ -250,6 +250,28 @@ class TestStore(unittest.TestCase):
         self.assertNotIn("keyType", self.certificates.info())
         self.assertFalse(os.path.exists(self.certificates.cert_path))
 
+    def test_encrypted_key(self):
+        certificates = DeviceCertificates(os.path.join(self.directory.name, "encrypted"), key_passphrase=lambda: "secret\n")
+        certificates.device_id = "DEV1"
+        certificates.install(sign_csr(self.pki.device_ca, certificates.make_csr()))
+        with open(certificates.key_path, "rb") as file:
+            data = file.read()
+        self.assertTrue(data.startswith(b"-----BEGIN ENCRYPTED PRIVATE KEY-----"))
+        serialization.load_pem_private_key(data, password=b"secret")  # The trailing newline isn't part of it.
+        self.assertEqual(certificates.info()["keyType"], "EC-P256")
+        context = ssl.create_default_context()
+        context.load_cert_chain(certificates.cert_path, certificates.key_path, password=certificates.key_passphrase())
+        without = DeviceCertificates(os.path.join(self.directory.name, "encrypted"))
+        self.assertNotIn("keyType", without.info(), "The key can't be used without the passphrase")
+
+    def test_plain_key_encrypted_when_a_passphrase_is_given(self):
+        self.install_first()
+        certificates = DeviceCertificates(self.certificates.path, key_passphrase="secret")
+        certificates.device_id = "DEV1"
+        self.assertEqual(certificates.info()["keyType"], "EC-P256")
+        with open(certificates.key_path, "rb") as file:
+            self.assertTrue(file.read().startswith(b"-----BEGIN ENCRYPTED PRIVATE KEY-----"))
+
     def test_bundled_server_ca(self):
         certificates = DeviceCertificates(os.path.join(self.directory.name, "other"))
         with open(certificates.ca_path, "rb") as file:
@@ -600,6 +622,36 @@ class TestCertificateLogin(unittest.TestCase):
         self.start(password="")
         self.assertTrue(wait_for(lambda: self.cert_broker.client_ids))
         self.assertEqual(self.password_broker.client_ids, [])
+
+    def test_encrypted_key_login(self):
+        self.certificates = DeviceCertificates(os.path.join(self.directory.name, "encrypted"), ca_file=self.pki.server_ca_file, key_passphrase="secret")
+        self.install(self.pki.device_ca)
+        self.start()
+        self.assertTrue(wait_for(lambda: self.certificates.state == CERT), "Logs in with the encrypted key")
+        self.assertEqual(self.cert_broker.client_ids, ["d-DEV1"])
+
+    def test_passphrase_unavailable_isnt_a_refusal(self):
+        available = [False]
+
+        def passphrase():
+            if not available[0]:
+                raise FileNotFoundError("no credential")
+            return "secret"
+
+        self.certificates = DeviceCertificates(os.path.join(self.directory.name, "encrypted"), ca_file=self.pki.server_ca_file, key_passphrase=passphrase)
+        available[0] = True
+        self.install(self.pki.device_ca)
+        self.certificates.logged_in()
+        self.certificates.take_status_due()
+        available[0] = False
+        self.start(password="")
+        time.sleep(2.5)
+        self.assertEqual(self.cert_broker.client_ids, [])
+        self.assertEqual(self.certificates.state, CERT)
+        self.assertEqual(self.certificates.info()["lastError"], 0, "Not counted as the server refusing it")
+        self.assertTrue(self.connection.is_alive())
+        available[0] = True
+        self.assertTrue(wait_for(lambda: self.cert_broker.client_ids, timeout=15), "Logs in once the passphrase is there")
 
     def test_one_device_per_connection(self):
         self.start()

@@ -97,6 +97,48 @@ dash.add_device(device)
 - The server's certificate on port 8885 is checked against the DashIO Server CA, which comes with the library.
 - `certificates.state` and `certificates.info()` give the state and the certificate's serial number and expiry. The Dash app can also read them, and provision a certificate, over any connection.
 
+#### Encrypting the key
+
+By default the private key is protected only by its file's permissions: root, or anyone with the device's disk, can read it. `key_passphrase` keeps it encrypted, with a passphrase from somewhere else:
+
+```python
+certificates = dashio.DeviceCertificates("certs", key_passphrase=get_passphrase)
+```
+
+`key_passphrase` is a string, bytes, or a function returning one, called each time the key is loaded. A trailing newline is ignored. A key already stored unencrypted is encrypted the first time it's loaded with a passphrase. If the passphrase isn't available, the connection logs an error and tries again later, waiting twice as long each time; it doesn't count as the server refusing the certificate. If it's lost, the key can't be used again, and the device needs a new certificate, e.g. by setting its Dash login again from the app.
+
+On Linux, run the device as a systemd service (systemd 250 or later, e.g. Raspberry Pi OS Bookworm) and keep the passphrase as an encrypted systemd credential. Make the passphrase and encrypt it:
+
+```bash
+sudo mkdir -p -m 0700 /etc/credstore.encrypted
+openssl rand -base64 32 | sudo systemd-creds encrypt --name=dashio-key - /etc/credstore.encrypted/dashio-key
+```
+
+Give it to the service, in its unit file:
+
+```ini
+[Service]
+LoadCredentialEncrypted=dashio-key:/etc/credstore.encrypted/dashio-key
+```
+
+systemd decrypts it when the service starts, into a directory only the service can read:
+
+```python
+import os
+
+
+def get_passphrase() -> str:
+    with open(os.path.join(os.environ["CREDENTIALS_DIRECTORY"], "dashio-key"), encoding="utf-8") as file:
+        return file.read()
+```
+
+How much this protects depends on the hardware:
+
+- **With a TPM** (`systemd-creds has-tpm2`), the credential is sealed to the TPM. Copying the disk to another machine gets neither the passphrase nor the key. Add `--with-key=tpm2` to `systemd-creds encrypt` to refuse to make it without one.
+- **Without a TPM**, as on a Raspberry Pi, it's sealed with a key in `/var/lib/systemd/credential.secret`, readable only by root. The key file can't be used by other users, or from a copy of the program's directory or a backup of it, but someone with root or the whole disk can still decrypt it. Full disk encryption adds to this.
+
+Either way, revoking the device in the Dash app cuts off a stolen key.
+
 ## TCPConnection
 
 ```python
