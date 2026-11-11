@@ -46,6 +46,7 @@ from .package import make_packages
 MAX_LAYOUT_COLUMNS = 3
 SAF_END_TIMEOUT = 5.0  # Seconds after the WHO to wait for the Dash server's SAF END, as zephyr-dashio does.
 SERVER_DASHBOARD_ID = "DASH"  # The ID the Dash server uses in a CFG request, where an app puts its dashboard ID.
+SERVER_CLOCK_ID = "srv_clk"  # The ID in the Dash server's reply to a CLK request.
 
 logger = logging.getLogger(__name__)
 
@@ -134,10 +135,11 @@ class Device(threading.Thread):
         Requests UTC Timestamp from the Dash Server.
 
     set_clock_callback(callback):
-        Specify a callback function to be called when The Dash server sends clock data.
+        Specify a callback function to be called with the time, from the Dash app or the Dash server. The app
+        offers to set the clock.
 
     unset_clock_callback():
-        Unset the clock rx callback.
+        Unset the clock callback.
 
     request_ota_build_number() :
         Requests requests latest build number for over the air updates from the Dash Server
@@ -379,9 +381,18 @@ class Device(threading.Thread):
         """Clears the SAF END callback."""
         self._saf_end_callback = None
 
-    def _server_clk(self, data):
-        if self._clk_rx_callback is not None:
-            self._clk_rx_callback(data)
+    def _clk_rx_event(self, msg) -> str:
+        """CLK with the time: from the Dash app, `\\t<id>\\tCLK\\t<epoch>`, or the Dash server's reply to
+        request_clock(), `\\t<id>\\tCLK\\tsrv_clk\\t<epoch>`. The app is answered with a bare CLK when the
+        clock is set. The server isn't: a CLK to the server asks it for the time again."""
+        from_server = len(msg) > 2 and msg[2] == SERVER_CLOCK_ID
+        try:
+            utc = int(float(msg[3] if from_server else msg[2]))
+        except (IndexError, ValueError):
+            return ""
+        if self._clk_rx_callback is not None and self._clk_rx_callback(utc) and not from_server:
+            return self._device_id_str + "\tCLK\n"
+        return ""
 
     def _server_ota(self, data):
         if self._ota_rx_callback is not None:
@@ -643,21 +654,29 @@ class Device(threading.Thread):
 
     def set_clock_callback(self, callback):
         """
-        Specify a callback function to be called when The Dash server sends clock data.
+        Specify a callback function to be called with the time, from the Dash app or the Dash server.
+
+        Setting it adds CLK to deviceSetup, so the Dash app offers to set the device's clock. The Dash server's
+        reply to request_clock() also comes here.
 
         Parameters
         ----------
             callback:
-                The callback function. It will be invoked with one argument, the msg from dash server.
-                The callback must return a Boolean indicating success.
+                The callback function. It will be invoked with one argument, the time as an int: whole seconds
+                since 1 January 1970, UTC. It must return True if it set the clock; the device then tells the
+                app.
         """
+        self._set_device_setup("clk", True)
         self._clk_rx_callback = callback
 
     def unset_clock_callback(self):
         """
-        Unset the clock rx callback.
+        Unset the clock callback, and stop offering the clock setting to the Dash app.
         """
-        self._ota_rx_callback = None
+        self._set_device_setup("clk", False)
+        self._clk_rx_callback = None
+        # Keep taking CLK messages, so the server's reply to request_clock() isn't treated as a control message.
+        self._device_commands_dict['CLK'] = self._clk_rx_event
 
     def set_ota_callback(self, callback):
         """
@@ -669,7 +688,7 @@ class Device(threading.Thread):
                 The callback function. It will be invoked with one argument, the msg from dash server.
                 The callback must return a Boolean indicating success.
         """
-        self._clk_rx_callback = callback
+        self._ota_rx_callback = callback
 
     def unset_ota_callback(self):
         """
@@ -939,7 +958,7 @@ class Device(threading.Thread):
         self._device_commands_dict['CONNECT'] = self._make_connect
         self._device_commands_dict['STATUS'] = self._make_status
         self._device_commands_dict['CFG'] = self._make_cfg64
-        self._device_commands_dict['CLK'] = self._server_clk
+        self._device_commands_dict['CLK'] = self._clk_rx_event
         self._device_commands_dict['OTA'] = self._server_ota
         self._device_commands_dict['NAME'] = self._name_rx_event
         self._device_commands_dict['SAF'] = self._saf_rx

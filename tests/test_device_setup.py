@@ -71,6 +71,49 @@ class TestDeviceSetup(unittest.TestCase):
         self.command("\tDEVICEID\tRST\n")
         self.assertEqual(self.events, [], "A device without a reset callback ignores RST")
 
+    def test_clock_from_app(self):
+        times = []
+        self.device.set_clock_callback(lambda utc: times.append(utc) or True)
+        self.assertIn("CLK", self.device._cfg["deviceSetup"].split(","), "The app only offers to set the clock with CLK")
+        self.assertEqual(self.command("\tDEVICEID\tCLK\t1762819200\n"), "\tDEVICEID\tCLK\n", "The app waits for a bare CLK back")
+        self.assertEqual(times, [1762819200])
+
+    def test_clock_not_set(self):
+        self.device.set_clock_callback(lambda utc: False)
+        self.assertEqual(self.command("\tDEVICEID\tCLK\t1762819200\n"), "", "Only a clock that was set is confirmed")
+
+    def test_clock_from_server(self):
+        times = []
+        self.device.set_clock_callback(lambda utc: times.append(utc) or True)
+        self.assertEqual(self.command("\tDEVICEID\tCLK\tsrv_clk\t1762819200\n"), "", "A CLK to the server asks for the time again")
+        self.assertEqual(times, [1762819200])
+
+    def test_clock_without_time(self):
+        times = []
+        self.device.set_clock_callback(lambda utc: times.append(utc) or True)
+        self.assertEqual(self.command("\tDEVICEID\tCLK\n"), "")
+        self.assertEqual(self.command("\tDEVICEID\tCLK\tsoon\n"), "")
+        self.assertEqual(times, [])
+
+    def test_clock_after_unset(self):
+        times = []
+        self.device.set_clock_callback(lambda utc: times.append(utc) or True)
+        self.device.unset_clock_callback()
+        self.assertNotIn("CLK", self.device._cfg["deviceSetup"].split(","))
+        self.assertEqual(self.command("\tDEVICEID\tCLK\t1762819200\n"), "")
+        self.assertEqual(times, [])
+
+    def test_ota_callback_is_not_the_clock_callback(self):
+        ota, times = [], []
+        self.device.set_clock_callback(lambda utc: times.append(utc) or True)
+        self.device.set_ota_callback(lambda msg: ota.append(msg) or True)
+        self.command("\tDEVICEID\tCLK\tsrv_clk\t1762819200\n")
+        self.command("\tDEVICEID\tOTA\tBUILD\t7\n")
+        self.assertEqual(times, [1762819200])
+        self.assertEqual(len(ota), 1)
+        self.device.unset_clock_callback()
+        self.assertIsNotNone(self.device._ota_rx_callback, "Unsetting the clock callback must leave the OTA callback")
+
     def test_announce_and_who_reply_include_cfg_rev(self):
         self.device.layout_hash = False
         self.device.config_revision = 5

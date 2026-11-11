@@ -67,6 +67,7 @@ device.set_dashio_callback(dash_login)
 | `set_dashio_callback(callback)` | `msg[2]`: username, `msg[3]`: password | The Dash server login. Return True if it took them |
 | `set_tcp_callback(callback)` | `msg[2]`: port | Return True if it took it |
 | `set_mqtt_callback(callback)` | The MQTT settings | Return True if it took them |
+| `set_clock_callback(callback)` | The time | Called with an int, whole seconds since 1970 UTC. Return True if it set the clock. The Dash server's reply to `request_clock()` comes here too |
 
 Each has an `unset_..._callback()` that clears it, and stops offering the setting.
 
@@ -86,7 +87,7 @@ device.set_reset_callback(reset)
 
 ## What the device offers the app
 
-The layout's `deviceSetup` tells the app what the device supports: first its connections, added as you add the device to them (`BLE`, `TCP`, and `MQTT` for a DashConnection), then the settings it lets the user change, from the callbacks above (`NAME`, `WIFI`, `DASH`, `RST` and so on), e.g. `TCP,MQTT,NAME,DASH`. It's part of the layout, so work out cfgRev after adding the device's connections and callbacks ([layouts.md](layouts.md#keeping-cfgrev-up-to-date)).
+The layout's `deviceSetup` tells the app what the device supports: first its connections, added as you add the device to them (`BLE`, `TCP`, and `MQTT` for a DashConnection), then the settings it lets the user change, from the callbacks above (`NAME`, `WIFI`, `DASH`, `CLK`, `RST` and so on), e.g. `TCP,MQTT,NAME,DASH`. It's part of the layout, so work out cfgRev after adding the device's connections and callbacks ([layouts.md](layouts.md#keeping-cfgrev-up-to-date)).
 
 `device.store_and_forward = True` adds `SAF`, which lets the user turn on the Dash server's store and forward for the device: the server keeps the app's messages until the device connects, and asks it for its values when it does. It's for devices that only connect now and then ([storage.md](storage.md#a-connection-thats-only-on-now-and-then)). With it on, the server also keeps a copy of the device's layout, so the app can show the device while it's offline: when the server doesn't have the current one, it asks the device for it when it connects, and the device sends it.
 
@@ -105,7 +106,7 @@ These need a [DashConnection](connections.md#dashconnection).
 
 | Method | |
 |---|---|
-| `request_clock()` | Asks the Dash server for the time. The reply goes to `set_clock_callback(callback)`: `msg[3]` is the time in seconds since the epoch |
+| `request_clock()` | Asks the Dash server for the time. The reply goes to `set_clock_callback(callback)`, as an int: seconds since 1970 UTC |
 | `request_ota_build_number()` | Asks the server for the latest firmware build number. The reply goes to `set_ota_callback(callback)` |
 | `request_ota(build_number, chunk_number)` | Asks the server for a block of firmware. The reply goes to the OTA callback |
 | `set_store_sync_callback(callback)` | Called when each upload of the device's [DashStore](storage.md) to the server ends: True when the server has everything, False when it failed |
