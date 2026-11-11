@@ -95,6 +95,7 @@ The layout's `deviceSetup` tells the app what the device supports: first its con
 | Method or value | |
 |---|---|
 | `device_name` | The device's name. Setting it sends it to the app |
+| `layout_id`, `layout_hash` | How the device identifies its layout to the app: a hash of it by default, or cfgRev. See [layouts.md](layouts.md#how-layouts-work) |
 | `config_revision`, `inc_config_revision()` | cfgRev. See [layouts.md](layouts.md) |
 | `number_of_device_views` | The number of DeviceViews in the layout generated from the controls |
 

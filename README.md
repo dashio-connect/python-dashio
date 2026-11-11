@@ -77,7 +77,7 @@ Run it, then add the device in the Dash app: it's found on the local network. Tu
 1. **Create the controls** in Python, with IDs of up to 7 characters, and run the device over TCP.
 2. **Design the layout** in the Dash app, and export it. Or build it in Python with `generate_cfg64()`.
 3. **Load the layout** into the device, with `cfg_dict` or `add_cfg64()`, and handle the app's messages in the controls' callbacks.
-4. **Change the layout** later by raising its cfgRev, so the app fetches the new one.
+4. **Change the layout** later. The device identifies its layout by a hash, so the app fetches the new one by itself.
 5. **Connect to the Dash server** to reach the device from anywhere, send notifications and keep history.
 
 The same layout works on Arduino firmware with controls of the same types and IDs. [docs/layouts.md](docs/layouts.md) covers each step.

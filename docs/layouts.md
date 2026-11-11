@@ -8,7 +8,8 @@ A **layout** tells the Dash app how to show your device: its DeviceViews (screen
 - The Dash app reports its screen size in **columns**: 1 for phones, 2 for fold out phones, 3 for tablets. A device can hold one layout for each.
 - The app is sent the layout for its column count. If there isn't one, it gets the largest layout with fewer columns, or failing that the smallest. Each layout is sent whole, so layouts are never mixed. A device with only a 1 column layout shows it everywhere.
 - With no layout loaded, the device sends a layout **generated from its controls**: their positions, DeviceViews and settings in your code. That's what [getting-started.md](getting-started.md) uses.
-- Each layout has a revision, **cfgRev**. The device reports it when the app connects, and the app fetches the layout again only when it changes. **Increase cfgRev every time you change a layout** ([below](#keeping-cfgrev-up-to-date)).
+- The device tells the app which layout it has, its **layout ID**, and the app fetches the layout again only when that changes. By default the ID is a hash of the layout, so the app notices a changed layout by itself.
+- The ID is the layout's revision, **cfgRev**, instead when the device has layouts for more than one column count (one hash can't describe them), with `Device(layout_hash=False)` for Dash app versions from before the hash, or with `use_cfg()`. Then **increase cfgRev every time you change a layout** ([below](#keeping-cfgrev-up-to-date)).
 
 ## Loading layouts
 
@@ -32,6 +33,8 @@ device.add_cfg64(tablet_cfg64, 3)
 | `add_cfg64(cfg, column_no=1)` | Loads a layout, a CFG64 string or a decoded dict, for apps that report `column_no` columns. Raises `ValueError` naming every control ID over 7 characters, before any of the layout is loaded |
 | `remove_cfg64(column_no)` | Removes the layout loaded for `column_no` |
 | `get_generated_cfg_dict()` | The layout generated from the device's controls, as a dict. Export it with `encode_cfg64()` |
+| `layout_id` | What the device reports: `#` and the 64-bit FNV-1a hash of the CFG64 the app downloads (16 hex digits), or cfgRev |
+| `layout_hash` | True (the default) to report the hash when the device can. `Device(layout_hash=False)` reports cfgRev |
 | `get_cfg_hash()` | A hash of the layouts the device sends, without cfgRev. See [below](#keeping-cfgrev-up-to-date) |
 | `config_revision` | cfgRev. Set it, or `inc_config_revision()` adds 1 |
 | `use_cfg64()`, `use_cfg()` | Send layouts to the app as CFG64 (the default) or as JSON |
@@ -49,7 +52,7 @@ Older layouts can have control IDs longer than 7 characters, which the library r
 1. Run your device with its controls, as in [getting-started.md](getting-started.md). Give them positions and a DeviceView, or not: the app can place them.
 2. In the app, edit the device's layout: move and resize the controls, add DeviceViews, Labels and Menus, and change colours and styles.
 3. Export the layout from the app. It's a CFG64 string.
-4. Load it into the device, as above, and increase cfgRev.
+4. Load it into the device, as above. Increase cfgRev if the device reports cfgRev ([above](#how-layouts-work)).
 
 Do it for each screen size you want to support: export from a phone for 1 column and from a tablet for 3.
 
@@ -113,7 +116,7 @@ A layout works on any device with controls of the same types and IDs. Prototype 
 
 ## Keeping cfgRev up to date
 
-The app only fetches a layout again when cfgRev changes. Layouts built in code are rebuilt each time the program starts, so save the hash of the layouts with cfgRev, and increase cfgRev when the hash changes:
+Only needed when the device reports cfgRev rather than the layout hash ([above](#how-layouts-work)): the app then only fetches a layout again when cfgRev changes. Layouts built in code are rebuilt each time the program starts, so save the hash of the layouts with cfgRev, and increase cfgRev when the hash changes:
 
 ```python
 cfg_hash = device.get_cfg_hash()
@@ -145,4 +148,4 @@ Pass a Menu and its controls to `generate_cfg64()` together. The greenhouse and 
 - [ ] Every control in the layout has the same type and ID as in your code, and the IDs are at most 7 characters.
 - [ ] Controls created in code were added to the device before the layouts were loaded.
 - [ ] Every control, DeviceView and Menu child was passed to `generate_cfg64()`, with a position.
-- [ ] cfgRev went up.
+- [ ] The device reports the layout hash (`device.layout_id` starts with `#`), or cfgRev went up.

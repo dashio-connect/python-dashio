@@ -185,7 +185,7 @@ while True:
 
 `Device(..., cfg_dict=...)` creates the controls in the layout. Get them with `get_control()` to set their values and add callbacks.
 
-**When you change a layout, increase the device's cfgRev** (`device.config_revision`): the app only fetches the layout again when it changes. [layouts.md](layouts.md) covers layouts for phones and tablets, and building them in code.
+**The app notices a changed layout by itself:** the device identifies its layout by a hash of it. A device with layouts for several column counts reports cfgRev instead, and then you increase it (`device.config_revision`) when you change a layout. [layouts.md](layouts.md) covers layouts for phones and tablets, and building them in code.
 
 ## Where next
 
@@ -197,6 +197,6 @@ while True:
 ## When something's wrong
 
 - **The app doesn't find the device on the local network:** check that the phone and the computer are on the same network, and that nothing blocks TCP port 5650 or mDNS.
-- **The app shows an old layout:** increase cfgRev. If that doesn't help, delete the device in the app and add it again.
+- **The app shows an old layout:** update the Dash app, since versions from before the layout hash don't understand it (or use `Device(layout_hash=False)`). For a device that reports cfgRev, increase it. If that doesn't help, delete the device in the app and add it again.
 - **A `ValueError` about a control ID:** IDs are at most 7 characters, in your code and in loaded layouts ([controls.md](controls.md#how-controls-work)).
 - **Nothing from the Dash server:** check the username and password; the library logs failed logins. Control updates only go to the server while an app is watching ([connections.md](connections.md#dashconnection)).

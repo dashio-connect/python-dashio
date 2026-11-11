@@ -34,7 +34,7 @@ import shortuuid
 import zmq
 
 from .constants import BAD_CHARS, CONNECTION_PUB_URL, MAX_CONTROL_ID_LENGTH
-from .dash_store import DashStore, SDUSession
+from .dash_store import DashStore, SDUSession, fnv1a_64
 from .device_certificates import CRT_NOT_SUPPORTED, CertificateError, CertificateSession, DeviceCertificates
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.control import Control
@@ -442,12 +442,26 @@ class Device(threading.Thread):
         logger.debug("STORAGE ENABLE: %s", payload)
         self.tx_zmq_pub.send_multipart([b"ANNOUNCE", payload.encode('utf-8')])
 
+    @property
+    def layout_id(self) -> str:
+        """How WHO identifies the device's layout (dashio-connect/dash#35): "#" and the 64-bit FNV-1a hash of the
+        C64 the Dash app downloads, as 16 lower case hex digits, or cfgRev.
+
+        The Dash app compares the hash with that of the layout it holds, so a changed layout is noticed without
+        cfgRev being raised. cfgRev is sent instead with layout_hash False, with use_cfg() (no C64), and when the
+        device has different layouts for different column counts, since one hash can't describe them (dash#54).
+        """
+        if self.layout_hash and self._device_commands_dict['CFG'] == self._make_cfg64 and len(self._column_cfgs) <= 1:
+            c64 = encode_cfg64(self._get_layout(["", self.device_id, "", "1"]))
+            return f"#{fnv1a_64(c64.encode()):016x}"
+        return str(self._cfg["cfgRev"])
+
     def _who_message(self) -> str:
         """The WHO message, used to reply to WHO and to announce the device.
 
-        It always includes cfgRev: the Dash app takes a WHO without one as cfgRev 0.
+        It always includes the layout ID: the Dash app takes a WHO without one as cfgRev 0.
         """
-        return self._device_id_str + f"\tWHO\t{self.device_type}\t{self.device_name}\t{self._cfg['cfgRev']}\n"
+        return self._device_id_str + f"\tWHO\t{self.device_type}\t{self.device_name}\t{self.layout_id}\n"
 
     def _send_announce(self):
         payload = self._who_message()
@@ -867,7 +881,8 @@ class Device(threading.Thread):
         cfg_dict: dict | None = None,
         context: zmq.Context | None = None,
         store: DashStore | None = None,
-        certificates: DeviceCertificates | None = None
+        certificates: DeviceCertificates | None = None,
+        layout_hash: bool = True
     ) -> None:
         """DashDevice
 
@@ -892,6 +907,10 @@ class Device(threading.Thread):
             certificates : DeviceCertificates, optional
                 The device's key and certificate, for logging in to the Dash server with its own certificate rather
                 than its owner's password. A DashConnection with certificates has one device. Defaults to None.
+            layout_hash : bool, optional
+                Identify the layout in WHO by the FNV-1a hash of its C64, so the Dash app sees a changed layout
+                without cfgRev being raised (see layout_id). False sends cfgRev, for app versions from before the
+                hash. Defaults to True.
         """
         threading.Thread.__init__(self, daemon=True)
         self.store = store
@@ -927,6 +946,7 @@ class Device(threading.Thread):
         self._saf_end_callback = None
         self._saf_end_deadline: float | None = None  # While waiting for SAF END, when to give up.
         self.saf_end_timeout = SAF_END_TIMEOUT
+        self.layout_hash = layout_hash
         if store is not None:
             self._sdu = SDUSession(device_id.translate(BAD_CHARS), store, self._store_registry, self._send_to_dash_server)
         self._device_commands_dict['DATA'] = self._data_rx

@@ -72,11 +72,19 @@ class TestDeviceSetup(unittest.TestCase):
         self.assertEqual(self.events, [], "A device without a reset callback ignores RST")
 
     def test_announce_and_who_reply_include_cfg_rev(self):
+        self.device.layout_hash = False
         self.device.config_revision = 5
         who = "\tDEVICEID\tWHO\tDEVICETYPE\tDEVICENAME\t5\n"
         self.assertEqual(self.command("\tWHO\n"), who)
         self.device._send_announce()
         self.assertIn(("sent", who), self.events, "The announce must include cfgRev, or the app takes it as 0")
+
+    def test_announce_and_who_reply_include_layout_hash(self):
+        who = f"\tDEVICEID\tWHO\tDEVICETYPE\tDEVICENAME\t{self.device.layout_id}\n"
+        self.assertTrue(self.device.layout_id.startswith("#"))
+        self.assertEqual(self.command("\tWHO\n"), who)
+        self.device._send_announce()
+        self.assertIn(("sent", who), self.events)
 
 
 class TestDeviceSetupConnections(unittest.TestCase):
