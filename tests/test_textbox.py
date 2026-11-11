@@ -1,7 +1,8 @@
 import json
 import unittest
 
-from dashio import TextBox
+from dashio import Color, TextBox
+from dashio.iotcontrol.control import _get_color_str
 from dashio.iotcontrol.enums import (
     Keyboard,
     Precision,
@@ -56,6 +57,42 @@ class TestTextBox(unittest.TestCase):
         test_control = TextBox("TEXTID", close_keyboard_on_send=True)
         cfg_dict = _get_cfg_dict(test_control.get_cfg(["DEVICEID", "CONTROLID", "DASHID", 1]))
         self.assertEqual(cfg_dict['closeKbdOnSend'], True, "CFG closeKbdOnSend should be True")
+
+    def _sent(self, control):
+        sent = []
+        control._message_tx_event += sent.append
+        return sent
+
+    def test_color_is_sent_when_set(self):
+        test_control = TextBox("TEXTID")
+        test_control.text = "CC"
+        sent = self._sent(test_control)
+        test_control.color = Color.ORANGE
+        self.assertEqual(sent, [f"\t{{device_id}}\tTEXT\tTEXTID\tCC\t{_get_color_str(Color.ORANGE)}\n"])
+
+    def test_state_has_color(self):
+        test_control = TextBox("TEXTID")
+        test_control.color = Color.ORANGE
+        test_control.text = "CC"
+        self.assertEqual(test_control.get_state(), f"\t{{device_id}}\tTEXT\tTEXTID\tCC\t{_get_color_str(Color.ORANGE)}\n")
+
+    def test_state_has_caption(self):
+        test_control = TextBox("TEXTID")
+        test_control.text = "21.5"
+        test_control.caption_color = Color.RED
+        test_control.caption = "Too hot"
+        self.assertEqual(test_control.get_state(),
+                         f"\t{{device_id}}\tTEXT\tTEXTID\t21.5\t{_get_color_str(Color.WHITE)}\n"
+                         f"\t{{device_id}}\tTXTC\tTEXTID\tToo hot\t{_get_color_str(Color.RED)}\n")
+
+    def test_caption_color_is_sent_with_caption(self):
+        test_control = TextBox("TEXTID")
+        sent = self._sent(test_control)
+        test_control.caption_color = Color.RED  # No caption yet: nothing to send
+        self.assertEqual(sent, [])
+        test_control.caption = "Too hot"
+        test_control.caption_color = Color.GREEN
+        self.assertEqual(sent[-1], f"\t{{device_id}}\tTXTC\tTEXTID\tToo hot\t{_get_color_str(Color.GREEN)}\n")
 
 
 if __name__ == '__main__':

@@ -62,7 +62,7 @@ class TestMenuUpdates(unittest.TestCase):
         for control in (menu, text, slider, selector, outside):
             self.device.add_control(control)
         messages = sum(unpack(self.tap("MENU", "M1")), [])
-        self.assertIn("TEXT\tT1\tPump", messages)
+        self.assertIn("TEXT\tT1\tPump\t1", messages)  # The text and its colour (1, white)
         self.assertTrue(any(m.startswith("SLDR\tS1\t40") for m in messages), messages)
         self.assertTrue(any(m.startswith("BAR\tS1\t") for m in messages), "A Slider's two messages are separate items")
         self.assertTrue(any(m.startswith("SLCTR\tSR1\t") for m in messages), messages)
@@ -87,7 +87,7 @@ class TestMenuUpdates(unittest.TestCase):
         menu.add_control(text)
         self.device.add_cfg64(dashio.generate_cfg64(view, menu, text), 1)  # The device creates the controls.
         self.device.get_control(dashio.ControlName.TEXT, "T1").text = "Pump 2"
-        self.assertEqual(sum(unpack(self.tap("MENU", "M1")), []), ["TEXT\tT1\tPump 2"])
+        self.assertEqual(sum(unpack(self.tap("MENU", "M1")), []), ["TEXT\tT1\tPump 2\t1"])
 
     def test_menu_callback_still_called(self):
         menu = dashio.Menu("M1", "Settings")
@@ -106,7 +106,7 @@ class TestMenuUpdates(unittest.TestCase):
         reply = self.device._on_message(b"\tDEVICEID\tSTATUS\n")
         name_line, packages = reply.split("\n", 1)
         self.assertEqual(name_line, "\tDEVICEID\tNAME\tDEVICENAME", "NAME stays a normal message, before the packages")
-        self.assertEqual(sorted(sum(unpack(packages), [])), ["DIAL\tD1\t12", "TEXT\tT1\tPump"])
+        self.assertEqual(sorted(sum(unpack(packages), [])), ["DIAL\tD1\t12", "TEXT\tT1\tPump\t1"])
 
     def test_device_id_only_message(self):
         self.assertEqual(self.device._on_message(b"\tDEVICEID\n"), "")
@@ -136,7 +136,7 @@ class TestStatusLeavesOutMenus(unittest.TestCase):
         self.assertIn("T2", self.status_ids())
         self.assertNotIn("T1", self.status_ids(), "A control only in a Menu is sent when the Menu is tapped")
         menu_reply = self.device._on_message(b"\tDEVICEID\tMENU\tM1\n")
-        self.assertEqual(sum(unpack(menu_reply), []), ["TEXT\tT1\ta"])
+        self.assertEqual(sum(unpack(menu_reply), []), ["TEXT\tT1\ta\t1"])
 
     def test_button_group_buttons_left_out_of_status(self):
         group = dashio.ButtonGroup("BG1", "Lights")

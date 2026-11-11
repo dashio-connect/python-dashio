@@ -163,8 +163,9 @@ The user picks from a list. The app sends the index of the choice, and shows it 
 
 Shows text, a number or a date and time from the device, and lets the user enter text with the keyboard you choose. The app sends the text when the user taps Send.
 
-- `text` sets the text, and `color` its colour (`Color.WHITE` until set).
-- `caption` and `caption_color` set the caption, a smaller line under the text.
+- `text` sets the text, and `color` its colour (`Color.WHITE` until set). Setting either sends the text in its colour.
+- `caption` and `caption_color` set the caption, a smaller line under the text. Setting either sends the caption, once there is one.
+- When an app connects, the device sends the text and the caption, each in its colour.
 
 | Parameter | Default | |
 |---|---|---|

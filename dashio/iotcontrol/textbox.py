@@ -177,8 +177,18 @@ class TextBox(Control):
         self.text = text.translate(BAD_CHARS)
         self.caption = ""
 
+    def _text_msg(self) -> str:
+        return self._control_hdr_str + f"{self._text}\t{_get_color_str(self._color)}\n"
+
+    def _caption_msg(self) -> str:
+        return f"\t{{device_id}}\tTXTC\t{self.control_id}\t{self._caption}\t{_get_color_str(self._caption_color)}\n"
+
     def get_state(self):
-        return self._control_hdr_str + f"{self.text}\n"
+        """The text and its colour, and the caption and its colour when there's a caption."""
+        state = self._text_msg()
+        if self._caption:
+            state += self._caption_msg()
+        return state
 
     @classmethod
     def from_cfg_dict(cls, cfg_dict: dict):
@@ -224,10 +234,8 @@ class TextBox(Control):
 
     @text.setter
     def text(self, val: str):
-        _val = val.translate(BAD_CHARS)
-        self._text = _val
-        color = _get_color_str(self._color)
-        self.state_str = self._control_hdr_str + f"{_val}\t{color}\n"
+        self._text = val.translate(BAD_CHARS)
+        self.state_str = self._text_msg()
 
     @property
     def caption(self) -> str:
@@ -242,10 +250,8 @@ class TextBox(Control):
 
     @caption.setter
     def caption(self, val: str):
-        _val = val.translate(BAD_CHARS)
-        self._caption = _val
-        color = _get_color_str(self._caption_color)
-        self.state_str = f"\t{{device_id}}\tTXTC\t{self.control_id}\t{_val}\t{color}\n"
+        self._caption = val.translate(BAD_CHARS)
+        self.state_str = self._caption_msg()
 
     @property
     def color(self):
@@ -261,6 +267,7 @@ class TextBox(Control):
     @color.setter
     def color(self, val):
         self._color = val
+        self.state_str = self._text_msg()  # Sends the text again in the new colour
 
     @property
     def caption_color(self):
@@ -276,3 +283,5 @@ class TextBox(Control):
     @caption_color.setter
     def caption_color(self, val):
         self._caption_color = val
+        if self._caption:
+            self.state_str = self._caption_msg()  # Sends the caption again in the new colour
