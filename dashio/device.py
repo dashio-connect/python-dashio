@@ -382,13 +382,17 @@ class Device(threading.Thread):
         self._saf_end_callback = None
 
     def _clk_rx_event(self, msg) -> str:
-        """CLK with the time: from the Dash app, `\\t<id>\\tCLK\\t<epoch>`, or the Dash server's reply to
-        request_clock(), `\\t<id>\\tCLK\\tsrv_clk\\t<epoch>`. The app is answered with a bare CLK when the
-        clock is set. The server isn't: a CLK to the server asks it for the time again."""
-        from_server = len(msg) > 2 and msg[2] == SERVER_CLOCK_ID
+        """CLK with the time, the last field: from the Dash app, `\\t<id>\\tCLK\\t<epoch>` or
+        `\\t<id>\\tCLK\\t<request ID>\\t<epoch>`, or the Dash server's reply to request_clock(),
+        `\\t<id>\\tCLK\\tsrv_clk\\t<epoch>`. The app is answered with a bare CLK when the clock is set.
+        The server isn't: a CLK to the server asks it for the time again."""
+        if len(msg) < 3:
+            return ""
+        from_server = len(msg) > 3 and msg[2] == SERVER_CLOCK_ID
         try:
-            utc = int(float(msg[3] if from_server else msg[2]))
-        except (IndexError, ValueError):
+            utc = int(float(msg[-1]))
+        except ValueError:
+            logger.debug("CLK without a time: %s", msg)
             return ""
         if self._clk_rx_callback is not None and self._clk_rx_callback(utc) and not from_server:
             return self._device_id_str + "\tCLK\n"

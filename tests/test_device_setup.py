@@ -78,6 +78,13 @@ class TestDeviceSetup(unittest.TestCase):
         self.assertEqual(self.command("\tDEVICEID\tCLK\t1762819200\n"), "\tDEVICEID\tCLK\n", "The app waits for a bare CLK back")
         self.assertEqual(times, [1762819200])
 
+    def test_clock_from_app_with_request_id(self):
+        times = []
+        self.device.set_clock_callback(lambda utc: times.append(utc) or True)
+        self.assertEqual(self.command("\tDEVICEID\tCLK\tR2\t1762819200\n"), "\tDEVICEID\tCLK\n",
+                         "Any request ID but srv_clk is the app's, and the app waits for CLK back")
+        self.assertEqual(times, [1762819200])
+
     def test_clock_not_set(self):
         self.device.set_clock_callback(lambda utc: False)
         self.assertEqual(self.command("\tDEVICEID\tCLK\t1762819200\n"), "", "Only a clock that was set is confirmed")
