@@ -3,7 +3,7 @@
 
 import argparse
 import time
-import ssl
+from dashio.dash_connection import server_tls_context
 import socket
 import datetime
 import json
@@ -175,15 +175,7 @@ def main():
     mqtt_client.on_subscribe = on_subscribe
 
     # Setup connection
-    mqtt_client.tls_set(
-        ca_certs=None,
-        certfile=None,
-        keyfile=None,
-        cert_reqs=ssl.CERT_REQUIRED,
-        tls_version=ssl.PROTOCOL_TLSv1_2,
-        ciphers=None,
-    )
-    mqtt_client.tls_insecure_set(False)
+    mqtt_client.tls_set_context(server_tls_context())
     mqtt_client.username_pw_set(args.username, args.password)
 
     # MQTT Topics to request and receive the data. A shared device's store is under the owner's username.

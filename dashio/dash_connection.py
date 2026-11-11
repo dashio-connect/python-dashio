@@ -130,6 +130,16 @@ class DashControl():
         self._cfg["hostURL"] = val
 
 
+def server_tls_context() -> ssl.SSLContext:
+    """TLS 1.2 or later, checking the Dash server's certificate and host name against the system's CAs.
+
+    A context rather than tls_set(tls_version=ssl.PROTOCOL_TLSv1_2): Python built with OpenSSL 4 has no
+    PROTOCOL_TLSv1_2."""
+    context = ssl.create_default_context()
+    context.minimum_version = ssl.TLSVersion.TLSv1_2
+    return context
+
+
 class DashConnection(threading.Thread):
     """Setups and manages a connection thread to the Dash Server.
 
@@ -484,15 +494,7 @@ class DashConnection(threading.Thread):
         if tls_context is not None:
             client.tls_set_context(tls_context)
         elif self.use_ssl:
-            client.tls_set(
-                ca_certs=None,
-                certfile=None,
-                keyfile=None,
-                cert_reqs=ssl.CERT_REQUIRED,
-                tls_version=ssl.PROTOCOL_TLSv1_2,
-                ciphers=None,
-            )
-            client.tls_insecure_set(False)
+            client.tls_set_context(server_tls_context())
         # A device whose certificate is refused waits up to an hour between attempts.
         client.reconnect_delay_set(1, CERT_RECONNECT_MAX_DELAY if tls_context is not None else RECONNECT_MAX_DELAY)
         return client
