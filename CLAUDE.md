@@ -29,6 +29,7 @@ Notes for working on python-dashio, the Python library for the DashIO protocol a
   `PYTHONPATH=. .venv/bin/python -m unittest discover -s tests -q`
 - **flake8 isn't in the venv, but CI runs it,** as `flake8 dashio tests` with max line length 260. Run it before every commit. Inserting tests in front of `if __name__ == '__main__':` has caused E303 blank line errors more than once.
 - **tox** has `py311`–`py314` and `flake8` environments, and uses tox-uv. For example: `uvx --with tox-uv tox -e py313`.
+- **`tests/test_ble_connection.py` only runs on Linux** (BlueZ socket pairs), so the 32 skipped tests on macOS are those. A change to messages the device sends can break them unseen; CI runs them.
 - **Tests must not contact `dash.dashio.io`.** Create a `DashConnection` with `host="localhost"`.
 
 ## CI and releases
@@ -39,8 +40,8 @@ Notes for working on python-dashio, the Python library for the DashIO protocol a
   1. Bump `version` in `pyproject.toml`.
   2. Run the tox matrix.
   3. Commit "Bump version to X.Y.Z".
-  4. Create a lightweight tag `X.Y.Z`, with no `v`.
-  5. Push `master`, then the tag.
+  4. Push `master`, and wait for the Tests workflow on it to pass. The BLE connection tests are Linux only, so they're skipped on macOS and only CI runs them (3.13.0 was tagged with five of them failing).
+  5. Create a lightweight tag `X.Y.Z`, with no `v`, and push it.
   6. Check that PyPI has the version.
   7. Run `gh release create X.Y.Z --notes-file ...`. Use absolute links to the tag in the notes, because relative links don't work in a release body.
 - **Version numbers:** breaking changes have gone in minor versions, e.g. 3.6.0 and 3.7.0.
