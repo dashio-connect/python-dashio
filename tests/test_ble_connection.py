@@ -192,7 +192,8 @@ class BLETestCase(unittest.TestCase):
         backend = backend or FakeBlueZ()
         connection = BLEConnection(adapter=adapter, backend=backend)
         self.connections.append(connection)
-        device = dashio.Device("DEVICETYPE", "DEVICEID", device_name)
+        # cfgRev in WHO rather than the layout hash, so the expected WHO messages are short and fixed.
+        device = dashio.Device("DEVICETYPE", "DEVICEID", device_name, layout_hash=False)
         self.devices.append(device)
         connection.add_device(device)
         time.sleep(0.3)  # Let the device and connection threads connect their sockets.
