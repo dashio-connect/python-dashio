@@ -132,6 +132,19 @@ A device's reply giving the current state of every control that isn't a nested c
 One message bundling several others, `PKG` in the protocol.
 _Avoid_: batch
 
+**Topic prefix**:
+The first part of a device's MQTT topics: its owner's username, or its installation's account.
+_Avoid_: username (for topics)
+
+**Installation**:
+A place or thing a business keeps devices in, such as a pump station, with an account of its own on the Dash server (`inst-` and 12 hex digits) that its devices use as their topic prefix.
+
+**Role**:
+The part a device plays in its installation, such as `pump-1`, filled by one device at a time.
+
+**Move**:
+A device changing its topic prefix to another installation's, or home to its owner's, kept unconfirmed until the server answers under the new one.
+
 ## History
 
 **Server storage**:

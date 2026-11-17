@@ -41,6 +41,8 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec, rsa
 from cryptography.x509.oid import NameOID
 
+from .installation import Installation
+
 logger = logging.getLogger(__name__)
 
 PASSWORD = "PASSWORD"  # No certificate: log in with the owner's password.
@@ -170,6 +172,8 @@ class DeviceCertificates:
         self._last_renewal_request = float(state.get("lastRenewalRequest", 0))
         if self._state != PASSWORD and not (self.path / CERT_FILE).exists():
             self._state = PASSWORD
+        # The device's installation, if it's put in one. It needs the certificate, so it's kept with it.
+        self.installation = Installation(self)
 
     # Files
 
@@ -181,6 +185,18 @@ class DeviceCertificates:
         with open(os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), "wb") as file:
             file.write(data)
         os.replace(temporary, self._file(name))
+
+    def read_file(self, name: str) -> str:
+        """A file in the directory, e.g. the installation's. Raises OSError."""
+        return self._file(name).read_text(encoding="utf-8")
+
+    def write_file(self, name: str, data: bytes):
+        """Write a file in the directory, readable only by its owner, replacing it in one step. Raises OSError."""
+        self._write(name, data)
+
+    def remove_file(self, name: str):
+        """Remove a file from the directory, if it's there. Raises OSError."""
+        self._remove(name)
 
     def _remove(self, *names: str):
         for name in names:

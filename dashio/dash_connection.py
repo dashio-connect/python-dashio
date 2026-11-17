@@ -45,6 +45,7 @@ logger = logging.getLogger(__name__)
 MAX_BATCH_LENGTH = 4096  # A batch is published before it would grow past this, as in the DashIO firmware.
 RECONNECT_MAX_DELAY = 900  # The longest wait in seconds between attempts to connect to the Dash server.
 CERT_RECONNECT_MAX_DELAY = 3600  # The same with a device certificate, which may have been revoked.
+REFUSED_RETRY_MIN = 10.0  # Seconds before logging in again after the broker refused the control topic, doubling.
 ALWAYS_PUBLISHED = (b"TGRPH", b"LOG", b"MAP")  # The Dash server keeps their history, so they're sent with no app watching.
 MAX_PENDING_ANNOUNCES = 100  # Requests to the server, such as STE, kept during a planned disconnect.
 CHECK_READ_TIMEOUT = 3.0  # Seconds to wait for the server to refuse a certificate after the TLS handshake.
@@ -167,12 +168,12 @@ class DashConnection(threading.Thread):
                 # The certificate has worked, so the password is never used again.
                 self.password = ""
             for device_id in self._device_id_list:
-                control_topic = f"{self.username}/{device_id}/control"
+                control_topic = f"{self._prefix}/{device_id}/control"
                 result, mid = self._dash_c.subscribe(control_topic, 0)
                 if result == mqtt.MQTT_ERR_SUCCESS:
                     self._subscribing_topics[mid] = control_topic
             for device_id in self._device_id_rx_list:
-                data_topic = f"{self.username}/{device_id}/data"
+                data_topic = f"{self._prefix}/{device_id}/data"
                 result, mid = self._dash_c.subscribe(data_topic, 0)
             for device_id in self._device_id_list:
                 self._send_online_state(device_id, "ONLINE")
@@ -232,14 +233,21 @@ class DashConnection(threading.Thread):
 
     def _on_subscribe(self, client, userdata, mid, reason_codes, properties):
         logger.debug("Subscribed: %s %s", str(mid), str(reason_codes))
-        if not reason_codes[0].is_failure:
-            topic = self._subscribing_topics.get(mid, None)
-            logger.debug("On sub: %s", topic)
-            if topic is not None:
-                device_id = topic.split('/')[1]
-                self._send_dash_announce(device_id)
-                if self._certificates is not None:
-                    self._certificates.connection_ready(self._certificate_login)
+        topic = self._subscribing_topics.pop(mid, None)
+        if reason_codes[0].is_failure:
+            if topic is not None and self._certificate_login and self._certificates is not None:
+                # The login has no rows for this prefix: a move the server never made, or rows removed.
+                logger.warning("The Dash server refused the control topic %s", topic)
+                if not self._certificates.installation.topic_refused():
+                    self._subscription_refused = True  # Nowhere to go back to: try again later.
+            return
+        logger.debug("On sub: %s", topic)
+        if topic is not None:
+            self._refused_wait = 0.0
+            device_id = topic.split('/')[1]
+            self._send_dash_announce(device_id)
+            if self._certificates is not None:
+                self._certificates.connection_ready(self._certificate_login)
 
     def _on_log(self, client, obj, level, string):
         logger.debug(string)
@@ -259,10 +267,11 @@ class DashConnection(threading.Thread):
                 raise ValueError("A DashConnection logging in with a device certificate has one device")
             if certificates is not None:
                 self._certificates = certificates
+                certificates.installation.owner = self.username
             self._device_id_list.append(device.device_id)
             device.register_connection(self)
             if self.connection_state == ConnectionState.CONNECTED:
-                control_topic = f"{self.username}/{device.device_id}/control"
+                control_topic = f"{self._prefix}/{device.device_id}/control"
                 result, mid = self._dash_c.subscribe(control_topic, 0)
                 if result == mqtt.MQTT_ERR_SUCCESS:
                     self._subscribing_topics[mid] = control_topic
@@ -274,13 +283,13 @@ class DashConnection(threading.Thread):
         logger.debug("DASH DEVICE CONNECT: %s", device_id)
         if device_id not in self._device_id_rx_list:
             self._device_id_rx_list.append(device_id)
-            data_topic = f"{self.username}/{device_id}/data"
+            data_topic = f"{self._prefix}/{device_id}/data"
             self._dash_c.subscribe(data_topic, 0)
 
     def _del_device_rx(self, msg_dict):
         device_id = msg_dict["deviceID"]
         if device_id in self._device_id_rx_list:
-            data_topic = f"{self.username}/{device_id}/data"
+            data_topic = f"{self._prefix}/{device_id}/data"
             self._dash_c.unsubscribe(data_topic)
             logger.debug("DASH DEVICE_DISCONNECT: %s", device_id)
             del self._device_id_rx_list[device_id]
@@ -291,7 +300,8 @@ class DashConnection(threading.Thread):
             msg = {
                 'msgType': msg_type,
                 'connectionUUID': self.zmq_connection_uuid,
-                'deviceID': device_id
+                'deviceID': device_id,
+                'certificateLogin': self._certificate_login  # A device in an installation reports its role.
             }
             logger.debug("DASH SEND ANNOUNCE: %s", msg)
             self.tx_zmq_pub.send_multipart([b"COMMAND", json.dumps(msg).encode()])
@@ -324,7 +334,7 @@ class DashConnection(threading.Thread):
 
     def _send_online_state(self, device_id: str, state: str):
         """Publish ONLINE or OFFLINE for device_id to its data topic."""
-        return self._dash_c.publish(f"{self.username}/{device_id}/data", f"\t{device_id}\t{state}\n", qos=1)
+        return self._dash_c.publish(f"{self._prefix}/{device_id}/data", f"\t{device_id}\t{state}\n", qos=1)
 
     def _set_will(self):
         """Set the MQTT Last Will and Testament: the Dash server publishes OFFLINE if the connection is lost.
@@ -341,7 +351,7 @@ class DashConnection(threading.Thread):
         if self.offline_delay > 0:
             properties = Properties(PacketTypes.WILLMESSAGE)
             properties.WillDelayInterval = self.offline_delay
-        self._dash_c.will_set(f"{self.username}/{device_id}/data", f"\t{device_id}\tOFFLINE\n", qos=1, retain=False, properties=properties)
+        self._dash_c.will_set(f"{self._prefix}/{device_id}/data", f"\t{device_id}\tOFFLINE\n", qos=1, retain=False, properties=properties)
 
     def connect(self):
         """Connect to the Dash server, e.g. with auto_connect=False or after disconnect().
@@ -418,13 +428,23 @@ class DashConnection(threading.Thread):
                 self._try_again_later()
                 return
         if use_certificate:
-            # The topics are still under the owner's username. The password isn't needed.
-            if not self.username:
+            # The topics are under the installation's account, or the owner's username. The password isn't needed.
+            installation = certificates.installation
+            installation.owner = self.username
+            self._prefix = installation.topic_prefix(self.username)
+            if not self._prefix:
                 logger.warning("Not connecting to the Dash server without a username")
                 return
+        elif certificates is not None and certificates.installation.in_installation():
+            # An installation account has no password, and the owner's password can't use its topics.
+            logger.warning("Not connecting to the Dash server: the device is in an installation, and can't use its certificate")
+            self._try_again_later()
+            return
         elif not self.username or not self.password:
             logger.warning("Not connecting to the Dash server without a username and password")
             return
+        else:
+            self._prefix = self.username
         logger.debug("Connecting%s..", " with the device certificate" if use_certificate else "")
         self._use_client(tls_context)
         self._set_will()
@@ -611,6 +631,9 @@ class DashConnection(threading.Thread):
         self.running = True
         self.username = username
         self.password = password
+        self._prefix = username  # The topic prefix of the current login: the username, or an installation account.
+        self._subscription_refused = False  # The broker refused a control topic, with no move to go back from.
+        self._refused_wait = 0.0
         self.host = host
         self.port = port
         self.cert_port = cert_port
@@ -674,13 +697,13 @@ class DashConnection(threading.Thread):
         if control_type == b'ALM':
             # Each alarm is a push notification, so it's published straight away.
             logger.debug("DASH Tx →\n%s", data.decode().rstrip())
-            self._dash_c.publish(f"{self.username}/{device_id}/alarm", data.decode(), qos=0)
+            self._dash_c.publish(f"{self._prefix}/{device_id}/alarm", data.decode(), qos=0)
         elif msg_to == b"ANNOUNCE":
-            self._queue_publish(f"{self.username}/{device_id}/announce", data.decode(), 1)
+            self._queue_publish(f"{self._prefix}/{device_id}/announce", data.decode(), 1)
         elif msg_to == b"ALL" and control_type not in ALWAYS_PUBLISHED and not self.app_active(device_id):
             return  # No Dash app is watching the device.
         else:
-            self._queue_publish(f"{self.username}/{device_id}/data", data.decode(), 0)
+            self._queue_publish(f"{self._prefix}/{device_id}/data", data.decode(), 0)
 
     def run(self):
         self.tx_zmq_pub = self.context.socket(zmq.PUB)
@@ -713,13 +736,20 @@ class DashConnection(threading.Thread):
                 pending, self._pending_announces = self._pending_announces, []
                 for data in pending:
                     device_id = data.split(b'\t')[1].decode().strip()
-                    self._queue_publish(f"{self.username}/{device_id}/announce", data.decode(), 1)
+                    self._queue_publish(f"{self._prefix}/{device_id}/announce", data.decode(), 1)
             self._flush_batch()
             if self.app_timeout > 0:
                 self._expire_apps()
-            if self._certificates is not None and self._certificates.take_changed() | self._certificates.pending_retry_due():
+            certificates = self._certificates
+            if certificates is not None and certificates.take_changed() | certificates.pending_retry_due() | certificates.installation.take_changed():
                 if self.connection_state != ConnectionState.DISCONNECTED and not self._planned_disconnect:
                     self._login_again()
+            if self._subscription_refused:
+                self._subscription_refused = False
+                if self.connection_state != ConnectionState.DISCONNECTED and not self._planned_disconnect:
+                    self._login_again()
+                    self._refused_wait = min(max(self._refused_wait * 2, REFUSED_RETRY_MIN), CERT_RECONNECT_MAX_DELAY)
+                    self._connect_at = time.monotonic() + self._refused_wait
             if self._connect_at is not None and time.monotonic() >= self._connect_at:
                 self._connect_at = None
                 self._connect()

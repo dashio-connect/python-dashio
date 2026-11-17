@@ -139,6 +139,40 @@ How much this protects depends on the hardware:
 
 Either way, revoking the device in the Dash app cuts off a stolen key.
 
+### Installations
+
+A business keeps its devices in **installations**, such as a pump station, a vehicle or a cold room. Each installation has **roles**, such as `pump-1` or `level`, and one device fills each role at a time. When a device is replaced, the new one takes the same role, and the installation's history carries on. The protocol is in dash_docs, `Installations/DashIO_Installations.md`.
+
+Every installation has an account of its own on the Dash server, named `inst-` and 12 lowercase hex digits. A device in an installation sends its messages under that account instead of your username:
+
+| | On your account | In an installation |
+|---|---|---|
+| Topics | `<username>/<device ID>/...` | `inst-3f9a01c2b7de/<device ID>/...` |
+| Login | password or certificate | certificate only |
+| Role | none | the role it was put in, reported each time it connects |
+
+An installation account has no password, so a device needs [certificates](#device-certificates), in the state `CERT`, before it can join one. Nothing else is needed: a device with `DeviceCertificates` can be put in an installation. The installation is kept in the certificates' directory, in `installation.json`.
+
+- **On site, with the Dash app.** An administrator of the business provisions the device over BLE or TCP. The app asks the Dash server to put it in the installation, then writes the account, the role, and optionally the coordinates and metadata into the device. The device reconnects under the installation's account. It ignores this when it comes through the Dash server.
+- **Remotely, by the Dash server.** An administrator moves the device to another installation on the server, which sends it the new account and role. The device reconnects under the new account.
+- **Checking the new account.** Until the server answers under the new account, the device keeps the last account the server confirmed. If the server refuses the device's subscription under the new one, the device goes back, reconnects, and reports the failed move. The app then shows the status `MOVE_FAILED`.
+- **The role report.** Each time it connects, after its `WHO`, a device with a role reports it. The server answers `ASSIGNED`, `TAKEN` (another device fills it), `NO_ROLE` (the installation has no such role) or `NOT_INSTALLATION`. The device keeps its role whatever the answer: an administrator settles a conflict on the server, or on site. Without an answer it reports again after a minute, waiting twice as long each time, up to an hour.
+- **Leaving.** When an administrator unassigns the device or retires its installation, the server sends it home to your account. A new Dash login from the app also takes it out of its installation. A device in an installation never falls back to your password: if it can't use its certificate, it stays off the server until one of these happens.
+- **Refused with nowhere to go back to.** If the server refuses the device's own account, it stays, and tries again, waiting up to an hour. It never goes home by itself.
+
+`device.installation` gives the installation's `prefix`, `role`, `location` (`(lat, lon)` or None), `metadata` (a dict for your own use, or None), the server's last answer as `status`, and `moving_from` while a move is being checked:
+
+```python
+def installation_changed(change, installation):
+    # change is "SET_BY_APP", "SET_BY_MOVE", "WENT_BACK", "LEFT" or "STATUS"
+    print(change, installation.prefix, installation.role, installation.status)
+
+
+device.set_installation_callback(installation_changed)
+```
+
+The callback may be called from the device's thread or the DashConnection's.
+
 ## TCPConnection
 
 ```python

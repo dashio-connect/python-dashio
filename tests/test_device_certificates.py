@@ -449,9 +449,10 @@ def read_varint(body: bytes, index: int):
 
 class FakeBroker(threading.Thread):
     """Just enough of an MQTT v5 broker: accepts every login, answers SUBSCRIBE and QoS 1 PUBLISH, and records them.
-    With a TLS context, it requires a client certificate from the test Device CA."""
+    With a TLS context, it requires a client certificate from the test Device CA. refuse(topic) True refuses a
+    subscription, as the Dash broker does for a topic the login has no rows for."""
 
-    def __init__(self, tls_context=None, on_publish=None):
+    def __init__(self, tls_context=None, on_publish=None, refuse=None):
         super().__init__(daemon=True)
         self.server = socket.socket()
         self.server.bind(("127.0.0.1", 0))
@@ -460,6 +461,8 @@ class FakeBroker(threading.Thread):
         self.port = self.server.getsockname()[1]
         self.tls_context = tls_context
         self.on_publish = on_publish
+        self.refuse = refuse
+        self.subscribed = []  # (topic, granted)
         self.client_ids = []
         self.published = []
         self.running = True
@@ -489,7 +492,13 @@ class FakeBroker(threading.Thread):
                     self.client_ids.append(body[index + 2:index + 2 + id_length].decode())
                     client.sendall(bytes([0x20, 0x03, 0x00, 0x00, 0x00]))
                 elif kind == 8:  # SUBSCRIBE
-                    client.sendall(bytes([0x90, 0x04]) + body[:2] + bytes([0x00, 0x00]))
+                    properties, index = read_varint(body, 2)
+                    index += properties
+                    topic_length = int.from_bytes(body[index:index + 2], "big")
+                    topic = body[index + 2:index + 2 + topic_length].decode()
+                    refused = self.refuse is not None and self.refuse(topic)
+                    self.subscribed.append((topic, not refused))
+                    client.sendall(bytes([0x90, 0x04]) + body[:2] + bytes([0x00, 0x80 if refused else 0x00]))
                 elif kind == 3:  # PUBLISH
                     qos = (packet_type >> 1) & 3
                     topic_length = int.from_bytes(body[:2], "big")

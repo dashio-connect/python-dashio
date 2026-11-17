@@ -35,7 +35,8 @@ import zmq
 
 from .constants import BAD_CHARS, CONNECTION_PUB_URL, MAX_CONTROL_ID_LENGTH
 from .dash_store import DashStore, SDUSession, fnv1a_64
-from .device_certificates import CRT_NOT_SUPPORTED, CertificateError, CertificateSession, DeviceCertificates
+from .device_certificates import CERT, CRT_NOT_SUPPORTED, CertificateError, CertificateSession, DeviceCertificates
+from .installation import INS_BAD_VALUE, INS_NO_CERT, Installation, InstallationError, InstallationSession
 from .iotcontrol.alarm import Alarm
 from .iotcontrol.control import Control
 from .iotcontrol.device_view import DeviceView
@@ -177,6 +178,8 @@ class Device(threading.Thread):
         if ctrl_type == "CFG" and len(data_array) > 2 and data_array[2] == SERVER_DASHBOARD_ID:
             self._send_layout_to_dash_server(data_array)
             return ""
+        if ctrl_type == "DATA" and len(data_array) > 3 and data_array[2] == "INS":
+            return self._ins_rx(data_array, from_dash_server)
         if ctrl_type in self._device_commands_dict:
             return self._device_commands_dict[ctrl_type](data_array)
         if not from_dash_server and len(data_array) > 4 and ctrl_type + "\t" + data_array[2] in self._server_stored:
@@ -781,7 +784,9 @@ class Device(threading.Thread):
         if self._dashio_rx_callback is not None:
             if self._dashio_rx_callback(msg):
                 if self.certificates is not None:
-                    # A new Dash login: back to the password, and a new key for the next certificate.
+                    # A new Dash login: back to the password, and a new key for the next certificate. The owner
+                    # has taken the device back, so it leaves its installation.
+                    self.certificates.installation.leave()
                     self.certificates.reset()
                 data = self._device_id_str + "\tDASHIO\n"
                 self.tx_zmq_pub.send_multipart([b"ALL", data.encode('utf-8')])
@@ -975,9 +980,11 @@ class Device(threading.Thread):
         self._device_commands_dict['DATA'] = self._data_rx
         self.certificates = certificates
         self._crt_session = None
+        self._ins_session = None
         if certificates is not None:
             certificates.device_id = self.device_id
             self._crt_session = CertificateSession(certificates, self.device_id, self._send_to_dash_server)
+            self._ins_session = InstallationSession(certificates.installation, certificates, self.device_id, self._send_to_dash_server)
         self._rst_rx_callback = None
         self.controls_dict = {}
         self._server_stored = set()  # Keys of the controls whose history the Dash server keeps (storage_enable()).
@@ -1078,6 +1085,9 @@ class Device(threading.Thread):
             return
         if msg_dict.get('msgType', '') == 'send_announce':
             self._send_announce()
+            if self._ins_session is not None and msg_dict.get('certificateLogin', False):
+                # SVR_ROLE follows WHO, on every connection while the device has a role.
+                self._ins_session.connected()
             if self.store_and_forward and msg_dict.get('connectionUUID', '').startswith("DASH:"):
                 # The Dash server answers the WHO with the messages it held for the device, then SAF END.
                 self._saf_end_deadline = time.monotonic() + self.saf_end_timeout
@@ -1177,6 +1187,74 @@ class Device(threading.Thread):
                 pass
         return ""
 
+    @property
+    def installation(self) -> Installation | None:
+        """The device's installation: its prefix, role, location, metadata and status. None without certificates."""
+        return self.certificates.installation if self.certificates is not None else None
+
+    def set_installation_callback(self, callback):
+        """
+        Specify a callback function to be called when the device's installation changes, or the Dash server answers
+        its role report. It needs certificates.
+
+        Parameters
+        ----------
+            callback:
+                The callback function. It will be invoked with two arguments: the change, one of "SET_BY_APP",
+                "SET_BY_MOVE", "WENT_BACK", "LEFT" or "STATUS", and the device's Installation. It may be called from
+                the device's thread or the DashConnection's.
+        """
+        if self.certificates is None:
+            raise ValueError("Installations need DeviceCertificates")
+        self.certificates.installation.callback = callback
+
+    def unset_installation_callback(self):
+        """Unset the installation callback function."""
+        if self.certificates is not None:
+            self.certificates.installation.callback = None
+
+    def _ins_reply(self, *fields: str) -> str:
+        return self._device_id_str + "\tDATA\tINS\t" + "\t".join(fields) + "\n"
+
+    def _ins_rx(self, data_array, from_dash_server: bool) -> str:
+        """INS messages: REQUEST INFO and UPDATE from the Dash app, SVR_ROLE and SVR_MOVE from the Dash server."""
+        message_type = data_array[3]
+        payload = data_array[4] if len(data_array) > 4 else ""
+        try:
+            values = json.loads(payload) if payload else {}
+        except ValueError:
+            values = None
+        installation = self.installation
+        if message_type == "REQUEST":
+            if isinstance(values, dict) and values.get("action") == "INFO":
+                info = installation.info() if installation is not None else {"action": "INFO", "prefix": "", "role": "", "status": ""}
+                return self._ins_reply("REQUEST", json.dumps(info, separators=(",", ":")))
+        elif message_type == "UPDATE":
+            if from_dash_server:
+                logger.warning("INS UPDATE through the Dash server ignored: only on site")
+                return ""
+            if installation is None or self.certificates is None or self.certificates.state != CERT:
+                return self._ins_reply("ERR", str(INS_NO_CERT))
+            if not isinstance(values, dict):
+                return self._ins_reply("ERR", str(INS_BAD_VALUE))
+            try:
+                installation.set(values, by_move=False)
+            except InstallationError as error:
+                logger.warning("Installation from the Dash app not set: %s", error)
+                return self._ins_reply("ERR", str(error.code))
+            return self._ins_reply("STATUS", "SUCCESS")
+        elif not from_dash_server or installation is None or self._ins_session is None:
+            return ""
+        elif message_type == "SVR_ROLE" and isinstance(values, dict):
+            self._ins_session.answer(str(values.get("status", "")), str(values.get("role", "")))
+        elif message_type == "SVR_MOVE" and isinstance(values, dict):
+            # No reply on the old connection: the device reconnects under the new prefix and reports its role there.
+            try:
+                installation.set(values, by_move=True)
+            except InstallationError as error:
+                logger.warning("Move from the Dash server not made: %s", error)
+        return ""
+
     def _store_registry(self) -> list[dict]:
         """The device's stored TimeGraph lines, Map tracks and EventLogs, in SDU controlInfo order."""
         lines, tracks, logs = [], [], []
@@ -1222,6 +1300,8 @@ class Device(threading.Thread):
                 self._sdu.poll()
             if self._crt_session is not None:
                 self._crt_session.poll()
+            if self._ins_session is not None:
+                self._ins_session.poll()
             if self._saf_end_deadline is not None and time.monotonic() >= self._saf_end_deadline:
                 self._saf_end(False)
             if self.rx_zmq_sub in socks:
