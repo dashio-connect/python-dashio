@@ -171,6 +171,8 @@ class Device(threading.Thread):
             return self._who_message()
         if rx_device_id != self.device_id:
             return ""
+        if from_dash_server and self._ins_session is not None:
+            self._ins_session.server_heard()  # During a move, the new prefix works.
         try:
             ctrl_type = data_array[1]
         except IndexError:

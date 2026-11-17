@@ -25,8 +25,8 @@ Installations: a device on certificates fills a role in a business's installatio
 server (inst- and 12 hex digits), whose name is the device's topic prefix. The spec is dash_docs
 Installations/DashIO_Installations.md.
 
-As in zephyr-dashio, beyond the spec: an UPDATE from the app is checked like a move (the device goes back if the
-broker refuses the new prefix), and a move made while another is being checked keeps the last confirmed prefix.
+An UPDATE from the app is checked like a move (the device goes back if the new prefix is refused), and a move made
+while another is being checked keeps the last confirmed prefix.
 """
 from __future__ import annotations
 
@@ -63,6 +63,7 @@ STATUS = "STATUS"  # The server answered the role report.
 
 ROLE_RETRY_MIN = 60.0  # Seconds to wait for the answer to SVR_ROLE before reporting again.
 ROLE_RETRY_MAX = 3600.0  # The wait doubles after each unanswered report, up to this.
+MOVE_SILENCE = 60.0  # During a move, nothing from the server for this long after connecting counts as refused.
 MAX_METADATA_LENGTH = 512
 
 INSTALLATION_FILE = "installation.json"
@@ -301,19 +302,22 @@ class Installation:
         self._notify(SET_BY_MOVE if by_move else SET_BY_APP)
         return True
 
-    def connected(self) -> tuple[bool, bool]:
-        """Logged in with the certificate and WHO sent. Returns (whether the device has a role to report, whether to
-        send ERR 423). A move home is confirmed by the WHO: the device leaves its installation."""
+    def connected(self) -> tuple[bool, bool, bool]:
+        """Logged in with the certificate and WHO sent. Returns whether the device has a role to report, whether to
+        send ERR 423, and whether a move is being checked."""
+        with self._lock:
+            report_failed, self._report_failed = self._report_failed, False
+            if report_failed:
+                self._save_quietly()
+            return bool(self._current["role"]), report_failed, self._moving
+
+    def server_heard(self):
+        """The server was heard under the current prefix during a move, so the prefix works. A move home is
+        confirmed by it: the device leaves its installation. A move into one is confirmed by the role answer."""
         with self._lock:
             going_home = self._moving and not self._current["prefix"]
-            if not going_home:
-                report_failed, self._report_failed = self._report_failed, False
-                if report_failed:
-                    self._save_quietly()
-                return bool(self._current["role"]), report_failed
-        self.leave()
-        logger.info("Moved home: left the installation")
-        return False, False
+        if going_home and self.leave():
+            logger.info("Moved home: left the installation")
 
     def role_answer(self, status: str, role: str) -> bool:
         """The server's answer to SVR_ROLE. Returns whether it answers the device's current role."""
@@ -364,7 +368,12 @@ class Installation:
 
 
 class InstallationSession:
-    """The device's role report to the Dash server (SVR_ROLE), and ERR 423 after going back.
+    """The device's role report to the Dash server (SVR_ROLE), ERR 423 after going back, and the check that the
+    server is heard under a new prefix during a move.
+
+    The check is for connections that can't report a refused subscription, such as the SIM7672 modem's, and for a
+    move home, which has no role to report. The device asks the server for the time (CLK), which the server answers
+    at once; nothing from the server within MOVE_SILENCE seconds counts as the prefix being refused.
 
     It runs on the device's thread: poll() is called from Device.run().
     """
@@ -377,6 +386,7 @@ class InstallationSession:
         self._connection = certificates.connection()
         self._deadline: float | None = None
         self._wait = ROLE_RETRY_MIN
+        self._silence_deadline: float | None = None  # During a move: when to give up hearing from the server.
 
     def _message(self, *fields: str) -> str:
         return f"\t{self.device_id}\tDATA\tINS\t" + "\t".join(fields) + "\n"
@@ -384,7 +394,11 @@ class InstallationSession:
     def connected(self):
         """Logged in with the certificate, and WHO sent."""
         self._deadline = None
-        has_role, report_failed = self.installation.connected()
+        has_role, report_failed, moving = self.installation.connected()
+        self._silence_deadline = None
+        if moving:
+            self._silence_deadline = time.monotonic() + MOVE_SILENCE
+            self._send(f"\t{self.device_id}\tCLK\n")  # The server answers at once.
         if report_failed:
             self._send(self._message("ERR", str(INS_MOVE_FAILED)))
         if has_role:
@@ -405,9 +419,24 @@ class InstallationSession:
         if connection != self._connection:
             self._connection = connection
             if connection[1] is None:
-                self._deadline = None  # The connection dropped: report again on the next.
+                # The connection dropped: report again, and check the prefix again, on the next.
+                self._deadline = None
+                self._silence_deadline = None
+        if self._silence_deadline is not None and time.monotonic() >= self._silence_deadline:
+            self._silence_deadline = None
+            if self.installation.moving_from is not None:
+                logger.warning("Nothing from the Dash server for %d s under the new prefix: taken as refused", MOVE_SILENCE)
+                self.installation.topic_refused()
+                self._deadline = None
         if self._deadline is not None and time.monotonic() >= self._deadline:
             self._report()
+
+    def server_heard(self):
+        """A message from the Dash server for the device."""
+        if self._silence_deadline is None:
+            return  # Not checking a move.
+        self._silence_deadline = None
+        self.installation.server_heard()
 
     def answer(self, status: str, role: str):
         """SVR_ROLE from the server."""

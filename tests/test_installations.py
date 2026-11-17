@@ -105,8 +105,8 @@ class TestInstallation(unittest.TestCase):
         self.assertTrue(self.installation.topic_refused())
         self.assertTrue(self.installation.take_changed(), "Logs in again")
         self.assertEqual((self.installation.prefix, self.installation.role, self.installation.status), (INST_A, "pump-1", MOVE_FAILED))
-        self.assertEqual(self.installation.connected(), (True, True), "ERR 423 on the next connection")
-        self.assertEqual(self.installation.connected(), (True, False), "Only once")
+        self.assertEqual(self.installation.connected(), (True, True, False), "ERR 423 on the next connection")
+        self.assertEqual(self.installation.connected(), (True, False, False), "Only once")
         self.assertEqual(self.changes, ["SET_BY_APP", "STATUS", "SET_BY_MOVE", "WENT_BACK"])
 
     def test_refused_update_goes_back_to_the_owner(self):
@@ -151,7 +151,9 @@ class TestInstallation(unittest.TestCase):
         self.assertEqual(self.installation.topic_prefix("USER"), "USER")
         self.assertTrue(self.installation.in_installation(), "No password until it's home")
         self.assertEqual(self.installation.role, "")
-        self.assertEqual(self.installation.connected(), (False, False), "The WHO confirms it")
+        self.assertEqual(self.installation.connected(), (False, False, True))
+        self.assertTrue(self.installation.in_installation(), "Not until the server is heard there")
+        self.installation.server_heard()
         self.assertFalse(self.installation.in_installation())
         self.assertIsNone(self.installation.moving_from)
         self.assertEqual(self.changes[-1], "LEFT")
@@ -257,6 +259,44 @@ class TestInsMessages(unittest.TestCase):
         self.assertEqual(self.send("SVR_MOVE", move, b"DASH:abc"), [], "No reply on the old connection")
         self.assertEqual(self.device.installation.prefix, INST_B)
 
+    def test_move_checked_by_hearing_the_server(self):
+        certify(self.certificates, self.pki)
+        self.send("UPDATE", json.dumps({"prefix": INST_A, "role": "pump-1"}))
+        self.connect()
+        clk = [message for topic, message in self.device.tx_zmq_pub.sent if topic == b"ANNOUNCE" and message == "\tDEV1\tCLK\n"]
+        self.assertEqual(len(clk), 1, "Asks the server for the time, which it answers at once")
+        self.device._on_message(b"\tDEV1\tCLK\tsrv_clk\t1763366400\n", b"DASH:abc")
+        self.assertEqual(self.device.installation.moving_from, "", "Heard, but a move into an installation waits for the role answer")
+        self.device._ins_session.poll()
+        self.assertEqual(self.device.installation.prefix, INST_A)
+
+    def test_silence_during_a_move_goes_back(self):
+        silence = installation_module.MOVE_SILENCE
+        installation_module.MOVE_SILENCE = 0.3
+        try:
+            certify(self.certificates, self.pki)
+            self.send("UPDATE", json.dumps({"prefix": INST_A, "role": "pump-1"}))
+            self.connect()
+            self.assertTrue(wait_for(lambda: self.device.installation.prefix == "", timeout=2), "Back to the owner's account")
+            self.assertEqual(self.device.installation.status, MOVE_FAILED)
+            self.connect()
+            self.assertIn(["ERR", "423"], self.announced())
+        finally:
+            installation_module.MOVE_SILENCE = silence
+
+    def test_no_silence_check_without_a_move(self):
+        silence = installation_module.MOVE_SILENCE
+        installation_module.MOVE_SILENCE = 0.2
+        try:
+            certify(self.certificates, self.pki)
+            self.send("UPDATE", json.dumps({"prefix": INST_A, "role": "pump-1"}))
+            self.send("SVR_ROLE", '{"status":"ASSIGNED","role":"pump-1"}', b"DASH:abc")
+            self.connect()
+            time.sleep(0.6)
+            self.assertEqual((self.device.installation.prefix, self.device.installation.status), (INST_A, "ASSIGNED"))
+        finally:
+            installation_module.MOVE_SILENCE = silence
+
     def test_err_423_after_going_back(self):
         certify(self.certificates, self.pki)
         self.send("UPDATE", json.dumps({"prefix": INST_A, "role": "pump-1"}))
@@ -296,6 +336,7 @@ class TestInstallationLogin(unittest.TestCase):
         context.load_verify_locations(self.pki.device_ca_file)
         context.verify_mode = ssl.CERT_REQUIRED
         self.rows = {"USER", INST_A}  # The prefixes the device's login may use.
+        self.silent = set()  # Prefixes granted but never delivered to, as a SIM7672 reports a refused subscription.
         self.broker = FakeBroker(context, on_publish=self.answer_roles, refuse=lambda topic: topic.split("/")[0] not in self.rows)
         self.password_broker = FakeBroker()
         self.certificates = DeviceCertificates(os.path.join(self.directory.name, "certs"), ca_file=self.pki.server_ca_file)
@@ -314,9 +355,14 @@ class TestInstallationLogin(unittest.TestCase):
         self.directory.cleanup()
 
     def answer_roles(self, topic, payload):
+        """The Dash server's part: answer SVR_ROLE and CLK on the control topic."""
         replies = []
+        if topic.split("/")[0] in self.silent:
+            return replies
         for line in payload.split("\n"):
             fields = line.split("\t")
+            if topic.endswith("/announce") and fields[2:] == ["CLK"]:
+                replies.append((topic.replace("/announce", "/control"), f"\t{fields[1]}\tCLK\tsrv_clk\t1763366400\n"))
             if len(fields) > 5 and fields[3:5] == ["INS", "SVR_ROLE"]:
                 answer = {"status": "ASSIGNED", "role": json.loads(fields[5])["role"]}
                 replies.append((topic.replace("/announce", "/control"), f"\t{fields[1]}\tDATA\tINS\tSVR_ROLE\t{json.dumps(answer)}\n"))
@@ -364,6 +410,32 @@ class TestInstallationLogin(unittest.TestCase):
         self.assertTrue(wait_for(lambda: self.published("USER", "\tWHO\t"), timeout=15))
         self.assertTrue(wait_for(lambda: not self.certificates.installation.in_installation()))
         self.assertEqual(self.certificates.installation.role, "")
+
+    def test_silent_prefix_goes_back(self):
+        self.certificates.installation.set({"prefix": INST_A, "role": "pump-1"}, by_move=False)
+        self.start()
+        self.assertTrue(wait_for(lambda: self.certificates.installation.status == "ASSIGNED"))
+        silence = installation_module.MOVE_SILENCE
+        installation_module.MOVE_SILENCE = 1.0
+        try:
+            self.rows.add(INST_B)
+            self.silent.add(INST_B)
+            self.device._on_message(f'\tDEV1\tDATA\tINS\tSVR_MOVE\t{{"prefix":"{INST_B}","role":"level","moveID":"m-4"}}\n'.encode(), b"DASH:abc")
+            self.assertTrue(wait_for(lambda: self.published(INST_A, "\tINS\tERR\t423"), timeout=15))
+            self.assertIn((f"{INST_B}/DEV1/control", True), self.broker.subscribed, "Granted, but nothing came")
+            self.assertEqual(self.certificates.installation.prefix, INST_A, "Back; its role report there replaces MOVE_FAILED")
+            self.assertIsNone(self.certificates.installation.moving_from)
+        finally:
+            installation_module.MOVE_SILENCE = silence
+
+    def test_refused_move_home_goes_back(self):
+        self.certificates.installation.set({"prefix": INST_A, "role": "pump-1"}, by_move=False)
+        self.start()
+        self.assertTrue(wait_for(lambda: self.certificates.installation.status == "ASSIGNED"))
+        self.rows.discard("USER")  # The owner's rows weren't added.
+        self.device._on_message(b'\tDEV1\tDATA\tINS\tSVR_MOVE\t{"prefix":"","role":"","moveID":"m-5"}\n', b"DASH:abc")
+        self.assertTrue(wait_for(lambda: self.published(INST_A, "\tINS\tERR\t423"), timeout=15))
+        self.assertEqual((self.certificates.installation.prefix, self.certificates.installation.role), (INST_A, "pump-1"), "Kept")
 
     def test_no_password_login_in_an_installation(self):
         self.certificates.installation.set({"prefix": INST_A, "role": "pump-1"}, by_move=False)
