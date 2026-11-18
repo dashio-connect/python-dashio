@@ -13,14 +13,14 @@ class TestControl(unittest.TestCase):
         test_control = Control("CONTROLTYPE", "CTRLID")
         self.assertEqual(test_control._control_hdr_str, '\t{device_id}\tCONTROLTYPE\tCTRLID\t', "ControlID Should be CTRLID")
 
-    def test_control_id_up_to_7_characters(self):
-        self.assertEqual(Control("CONTROLTYPE", "ABCDEFG").control_id, "ABCDEFG")
+    def test_control_id_up_to_8_characters(self):
+        self.assertEqual(Control("CONTROLTYPE", "ABCDEFGH").control_id, "ABCDEFGH")
 
-    def test_control_id_over_7_characters(self):
+    def test_control_id_over_8_characters(self):
         with self.assertRaises(ValueError):
-            Control("CONTROLTYPE", "ABCDEFGH")
+            Control("CONTROLTYPE", "ABCDEFGHI")
         with self.assertRaises(ValueError):
-            Dial("ABCDEFGH")
+            Dial("ABCDEFGHI")
 
 
 if __name__ == '__main__':

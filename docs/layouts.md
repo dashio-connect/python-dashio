@@ -30,7 +30,7 @@ device.add_cfg64(tablet_cfg64, 3)
 
 | Device method | |
 |---|---|
-| `add_cfg64(cfg, column_no=1)` | Loads a layout, a CFG64 string or a decoded dict, for apps that report `column_no` columns. Raises `ValueError` naming every control ID over 7 characters, before any of the layout is loaded |
+| `add_cfg64(cfg, column_no=1)` | Loads a layout, a CFG64 string or a decoded dict, for apps that report `column_no` columns. Raises `ValueError` naming every control ID over 8 characters, before any of the layout is loaded |
 | `remove_cfg64(column_no)` | Removes the layout loaded for `column_no` |
 | `get_generated_cfg_dict()` | The layout generated from the device's controls, as a dict. Export it with `encode_cfg64()` |
 | `layout_id` | What the device reports: `#` and the 64-bit FNV-1a hash of the CFG64 the app downloads (16 hex digits), or cfgRev |
@@ -43,7 +43,7 @@ device.add_cfg64(tablet_cfg64, 3)
 
 Layouts exported from older versions of the Dash app load too. Settings the app added later get their defaults: a TextBox's `captionMode` is `MSG`, a Knob's `dialMode` is `FOLLOW`, and a Slider's `barMode` comes from the older `barFollowsSlider`, or is `FOLLOW` without it.
 
-Older layouts can have control IDs longer than 7 characters, which the library refuses. Decode the layout with `c64_decode`, shorten the IDs in the JSON, encode it again with `c64_encode`, and use the same IDs in your code.
+Older layouts can have control IDs longer than 8 characters, which the library refuses. Decode the layout with `c64_decode`, shorten the IDs in the JSON, encode it again with `c64_encode`, and use the same IDs in your code.
 
 ## Making a layout
 
@@ -145,7 +145,7 @@ Pass a Menu and its controls to `generate_cfg64()` together. The greenhouse and 
 
 ## Checklist
 
-- [ ] Every control in the layout has the same type and ID as in your code, and the IDs are at most 7 characters.
+- [ ] Every control in the layout has the same type and ID as in your code, and the IDs are at most 8 characters.
 - [ ] Controls created in code were added to the device before the layouts were loaded.
 - [ ] Every control, DeviceView and Menu child was passed to `generate_cfg64()`, with a position.
 - [ ] The device reports the layout hash (`device.layout_id` starts with `#`), or cfgRev went up.

@@ -22,6 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 CONNECTION_PUB_URL = "inproc://DASHIO_CONN_PUB_{id}"
-MAX_CONTROL_ID_LENGTH = 7  # Not a Dash app limit: it keeps messages short.
+MAX_CONTROL_ID_LENGTH = 8  # Not a Dash app limit: it keeps messages short. 8, as zephyr-dashio allows.
 
 BAD_CHARS = {ord(i): ' ' for i in '\t\n'}

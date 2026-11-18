@@ -14,7 +14,7 @@ The documentation is in [docs/](https://github.com/dashio-connect/python-dashio/
 
 ## Rules for every layout
 
-- **Control IDs are at most 7 characters**, case sensitive, to keep messages short. Creating a control or loading a layout with a longer one raises `ValueError`; shorten old layouts' IDs with `c64_decode`/`c64_encode`. zephyr-dashio allows 8, but keep to 7 so the same IDs work in a Python prototype.
+- **Control IDs are at most 8 characters**, case sensitive, to keep messages short. Creating a control or loading a layout with a longer one raises `ValueError`; shorten old layouts' IDs with `c64_decode`/`c64_encode`. zephyr-dashio allows 8 too, so the same IDs work in firmware and in a Python prototype.
 - **A control is `(type, ID)`.** The layout, the device code and every handler must agree exactly: `Knob("KNB")` in Python is `dashio_send_knob("KNB", ...)` in Zephyr. A control that does nothing in the app is a mismatch first.
 - **Give each control its position when you create it**, with `control_position=dashio.ControlPosition(x, y, width, height)` (ratios of the view, 0 to 1). Assigning `control.control_position` afterwards does nothing, and the app draws unpositioned controls on top of each other.
 - **The app fetches the layout again only when the device reports a different layout ID in WHO.** The ID is either cfgRev or `#` and the 64-bit FNV-1a hash of the C64. With the hash a changed layout is noticed by itself: python-dashio sends it by default, zephyr-dashio for a device with one layout. With cfgRev (Arduino, layouts for several column counts, older apps), **raise cfgRev whenever the layout changes**, otherwise the app keeps showing the old one.

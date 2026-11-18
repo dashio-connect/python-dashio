@@ -112,7 +112,7 @@ class TestDeviceLayouts(unittest.TestCase):
         with self.assertRaises(ValueError) as raised:
             device.add_cfg64(layout)
         message = str(raised.exception)
-        for text in ("BTTN", "pumpButton", "7", "c64_decode"):
+        for text in ("BTTN", "pumpButton", "8", "c64_decode"):
             self.assertIn(text, message, "The error should name the control, the limit, and how to fix the layout")
         self.assertNotIn(1, device._column_cfgs, "A layout that fails to load shouldn't be kept")
 

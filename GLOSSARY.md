@@ -48,7 +48,7 @@ One item a device shows in the Dash app, such as a Dial, TimeGraph or Menu.
 _Avoid_: widget, element
 
 **Control ID**:
-A control's short name on its device, at most 7 characters.
+A control's short name on its device, at most 8 characters.
 
 **Control type**:
 The protocol keyword for a kind of control, such as `DIAL` or `TGRPH`.

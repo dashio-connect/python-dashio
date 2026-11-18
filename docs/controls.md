@@ -4,7 +4,7 @@ Every control the library supports: its settings, the values it sends to the Das
 
 ## How controls work
 
-- A control is identified by its **type** and **ID**. The ID is at most 7 characters, to keep messages short, and unique among the device's controls of that type. A longer ID raises `ValueError`, in code and in loaded layouts.
+- A control is identified by its **type** and **ID**. The ID is at most 8 characters, to keep messages short, and unique among the device's controls of that type. A longer ID raises `ValueError`, in code and in loaded layouts.
 - Add each control to the device with `device.add_control(control)`. Controls in a loaded layout are created for you ([layouts.md](layouts.md#loading-layouts)).
 - **Settings** are the constructor's parameters: the control's title, position, colours, range and so on. They go into the layout the device generates from its controls.
 - **Values** are properties, such as `dial.dial_value`. Setting one sends it to every connected app. The device keeps the latest values, and sends them all when an app connects.
@@ -18,7 +18,7 @@ Most controls take these settings:
 
 | Parameter | Default | |
 |---|---|---|
-| `control_id` | | The control's ID, up to 7 characters |
+| `control_id` | | The control's ID, up to 8 characters |
 | `title` | Depends on the control | Shown with the control |
 | `title_position` | `TitlePosition.BOTTOM` | `TOP`, `TOPLEFT`, `BOTTOM` or `NONE` |
 | `control_position` | None | `ControlPosition(x, y, width, height)`: where it is on its DeviceView, as fractions of the DeviceView's width and height. Needed for the generated layout |

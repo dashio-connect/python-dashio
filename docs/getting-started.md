@@ -198,5 +198,5 @@ while True:
 
 - **The app doesn't find the device on the local network:** check that the phone and the computer are on the same network, and that nothing blocks TCP port 5650 or mDNS.
 - **The app shows an old layout:** update the Dash app, since versions from before the layout hash don't understand it (or use `Device(layout_hash=False)`). For a device that reports cfgRev, increase it. If that doesn't help, delete the device in the app and add it again.
-- **A `ValueError` about a control ID:** IDs are at most 7 characters, in your code and in loaded layouts ([controls.md](controls.md#how-controls-work)).
+- **A `ValueError` about a control ID:** IDs are at most 8 characters, in your code and in loaded layouts ([controls.md](controls.md#how-controls-work)).
 - **Nothing from the Dash server:** check the username and password; the library logs failed logins. Control updates only go to the server while an app is watching ([connections.md](connections.md#dashconnection)).
