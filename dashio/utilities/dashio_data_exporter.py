@@ -129,6 +129,11 @@ def parse_log_data(control_data: ControlData):
 
 def parse_tgrph_data(control_data: ControlData):
     """parse the TGRPH line"""
+    if not control_data.data:
+        # The store's reply when there's no data after the from time is the header only (dash#79).
+        if screen:
+            print(f"{control_data.device_id}, TGRPH, {control_data.control_id}: no data")
+        return
     line = ""
     if file_format == "raw":
         line = f"\t{control_data.device_id}\tTGRPH\t{control_data.control_id}\t"
